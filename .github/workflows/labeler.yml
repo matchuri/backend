@@ -1,0 +1,104 @@
+name: Backend Auto Labeler
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Auto Labeling based on Branch Name
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branchName = context.payload.pull_request.head.ref.toLowerCase();
+            const prBody = context.payload.pull_request.body || '';
+
+            const managedLabels = [
+              '✨ feat',
+              '🐛 bug',
+              '🧩 api',
+              '🗄️ db',
+              '🔐 auth',
+              '⚡ performance',
+              '✅ test',
+              '♻️ refactor',
+              '📝 docs',
+              '🚚 chore',
+              '🔒 security',
+            ];
+
+            const desiredLabels = new Set();
+
+            // 브랜치 접두사 매핑 규칙
+            if (branchName.startsWith('feat/')) desiredLabels.add('✨ feat');
+            if (branchName.startsWith('fix/') || branchName.startsWith('bug/')) desiredLabels.add('🐛 bug');
+            if (branchName.startsWith('api/')) desiredLabels.add('🧩 api');
+            if (branchName.startsWith('db/')) desiredLabels.add('🗄️ db');
+            if (branchName.startsWith('auth/')) desiredLabels.add('🔐 auth');
+            if (branchName.startsWith('perf/')) desiredLabels.add('⚡ performance');
+            if (branchName.startsWith('test/')) desiredLabels.add('✅ test');
+            if (branchName.startsWith('refactor/')) desiredLabels.add('♻️ refactor');
+            if (branchName.startsWith('style/')) desiredLabels.add('🎨 style');
+            if (branchName.startsWith('docs/')) desiredLabels.add('📝 docs');
+            if (branchName.startsWith('chore/')) desiredLabels.add('🚚 chore');
+            if (branchName.startsWith('security/')) desiredLabels.add('🔒 security');
+
+            // PR 체크박스 기반 라벨링 (문구 변화/대소문자/공백 변화에 강건하도록 정규식 사용)
+            const hasCheckedApiChange = /-\s*\[[xX]\]\s*API(?:의)?\s*(?:요구사항|스펙).*변경/i.test(prBody);
+            const hasCheckedDbChange = /-\s*\[[xX]\]\s*DB\s*구조.*변경/i.test(prBody);
+
+            if (hasCheckedApiChange) {
+              desiredLabels.add('🧩 api');
+            }
+
+            if (hasCheckedDbChange) {
+              desiredLabels.add('🗄️ db');
+            }
+
+            const { data: currentLabelsData } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const currentLabels = currentLabelsData.map(label => label.name);
+
+            const labelsToRemove = currentLabels.filter(
+              label => managedLabels.includes(label) && !desiredLabels.has(label)
+            );
+
+            const labelsToAdd = [...desiredLabels].filter(
+              label => !currentLabels.includes(label)
+            );
+
+            for (const label of labelsToRemove) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name: label,
+                });
+              } catch (error) {
+                core.warning(`Failed to remove label "${label}": ${error.message}`);
+              }
+            }
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labelsToAdd,
+              });
+            }
+
+            core.info(`Desired labels: ${[...desiredLabels].join(', ') || '(none)'}`);
+            core.info(`Added labels: ${labelsToAdd.join(', ') || '(none)'}`);
+            core.info(`Removed labels: ${labelsToRemove.join(', ') || '(none)'}`);

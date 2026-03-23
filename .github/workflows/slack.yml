@@ -1,0 +1,44 @@
+name: Notify Slack on Merged PR with Label
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  notify:
+    if: >
+      github.event.pull_request.merged == true &&
+      (
+        contains(github.event.pull_request.labels.*.name, '🧩 api') ||
+        contains(github.event.pull_request.labels.*.name, '🗄️ db')
+      )
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Slack notification
+        run: |
+          curl -X POST \
+            -H 'Content-type: application/json' \
+            --data "$(jq -n \
+              --arg title "${{ github.event.pull_request.title }}" \
+              --arg url "${{ github.event.pull_request.html_url }}" \
+              '{
+                "text": "프론트 확인이 필요한 PR이 merge되었습니다.",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "🚨 *프론트 확인이 필요한 PR이 merge되었습니다.*"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*\($title)*\n<\($url)|PR 보러가기>"
+                    }
+                  }
+                ]
+              }')" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}"

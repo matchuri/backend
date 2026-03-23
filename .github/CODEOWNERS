@@ -1,0 +1,5 @@
+# Replace placeholders with real GitHub IDs.
+* @matchuri/backend
+
+/src/main/ @matchuri/backend
+/src/test/ @matchuri/backend

@@ -1,0 +1,40 @@
+name: 백엔드 버그 제보
+description: 재현 가능한 백엔드 버그를 제보합니다.
+title: "fix(backend): "
+labels:
+  - type: bug
+  - area: backend
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 버그 요약
+      description: 무엇이 잘못 동작하나요?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 절차
+      description: 실행 명령/API 요청을 구체적으로 작성하세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 동작
+    validations:
+      required: true
+
+  - type: textarea
+    id: done_definition
+    attributes:
+      label: 완료 기준
+      placeholder: |
+        - [ ] 원인 수정 완료
+        - [ ] 회귀 테스트 추가/수정
+        - [ ] CI 통과
+    validations:
+      required: true

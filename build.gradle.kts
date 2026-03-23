@@ -36,4 +36,5 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    systemProperty("spring.docker.compose.enabled", "false")
 }
