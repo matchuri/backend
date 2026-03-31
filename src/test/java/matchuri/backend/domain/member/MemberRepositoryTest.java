@@ -8,13 +8,16 @@ import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.global.config.JpaConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+@DataJpaTest
+@Import(JpaConfig.class)
 @ActiveProfiles("test")
 class MemberRepositoryTest {
 
@@ -69,5 +72,24 @@ class MemberRepositoryTest {
             .extracting(MemberTasteProfile::getProfileVersion)
             .isEqualTo("v1");
         assertThat(profile.getId()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("저장 시 auditing 필드가 채워진다")
+    void auditingFieldsArePopulated() {
+        Member member = memberRepository.save(
+            new Member(
+                "tester03",
+                "hashed-password",
+                "tester3@example.com",
+                false,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+            )
+        );
+
+        assertThat(member.getCreatedAt()).isNotNull();
+        assertThat(member.getUpdatedAt()).isNotNull();
     }
 }
