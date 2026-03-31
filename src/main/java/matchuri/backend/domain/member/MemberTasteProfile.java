@@ -2,16 +2,19 @@ package matchuri.backend.domain.member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import matchuri.backend.domain.common.BaseEntity;
 
-// TODO : 연관관계 매핑을 위한 뼈대 엔티티 먼저 정의
 @Getter
 @Entity
 @Table(
@@ -22,10 +25,23 @@ import lombok.NoArgsConstructor;
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberTasteProfile {
+public class MemberTasteProfile extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(comment = "회원 취향 프로필 ID")
     private Long id;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "member_id", nullable = false, unique = true, comment = "회원 ID")
+    private Member member;
+
+    @Column(name = "profile_version", nullable = false, length = 20, comment = "프로필 버전")
+    private String profileVersion;
+
+    public MemberTasteProfile(Member member, String profileVersion) {
+        this.member = member;
+        this.profileVersion = profileVersion;
+        member.attachTasteProfile(this);
+    }
 }

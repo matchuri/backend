@@ -90,4 +90,8 @@ public class Member extends BaseEntity {
         this.memberRole = memberRole;
         this.status = status;
     }
+
+    public void attachTasteProfile(MemberTasteProfile tasteProfile) {
+        this.tasteProfile = tasteProfile;
+    }
 }
