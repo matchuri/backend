@@ -2,6 +2,12 @@ package matchuri.backend.domain.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberRole;
+import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

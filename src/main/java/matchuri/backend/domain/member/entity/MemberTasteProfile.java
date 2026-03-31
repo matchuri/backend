@@ -1,4 +1,4 @@
-package matchuri.backend.domain.member;
+package matchuri.backend.domain.member.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

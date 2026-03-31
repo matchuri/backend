@@ -1,4 +1,4 @@
-package matchuri.backend.domain.member;
+package matchuri.backend.domain.member.entity;
 
 public enum MemberStatus {
     ACTIVE,
