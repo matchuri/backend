@@ -8,6 +8,8 @@ group = "matchuri"
 version = "0.0.1-SNAPSHOT"
 description = "backend"
 
+val snippetsDir = layout.buildDirectory.dir("generated-snippets")
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -28,12 +30,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
     runtimeOnly("com.mysql:mysql-connector-j")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     testRuntimeOnly("com.h2database:h2")
@@ -43,4 +47,5 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
     systemProperty("spring.docker.compose.enabled", "false")
+    outputs.dir(snippetsDir)
 }

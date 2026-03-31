@@ -27,3 +27,9 @@ logging:
   level:
     root: INFO
     matchuri.backend: INFO
+
+springdoc:
+  api-docs:
+    path: /docs/openapi
+  swagger-ui:
+    path: /docs/swagger-ui.html
