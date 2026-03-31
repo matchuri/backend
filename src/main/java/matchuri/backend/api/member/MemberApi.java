@@ -76,14 +76,14 @@ public interface MemberApi {
             @Parameter(
                     description = """
                             회원 가입 시 사용할 로그인 ID입니다.
-                            필수 path variable입니다.
+
                             제약:
                             - 1자 이상 50자 이하
                             - 공백 불가
                             - 허용 문자: 영문 대소문자, 숫자, 점(.), 밑줄(_), 하이픈(-)
                             - 서버 정규식 검증: ^[A-Za-z0-9._-]+$
-                            허용 예시: tester01, matchuri-user, user.name
-                            비허용 예시: test user, 한글아이디, 50자 초과 문자열
+                            - 허용 예시: tester01, matchuri-user, user.name
+                            - 비허용 예시: test user, 한글아이디, 50자 초과 문자열
                             """,
                     example = "tester01"
             )
