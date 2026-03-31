@@ -19,3 +19,8 @@ logging:
   level:
     root: WARN
     matchuri.backend: INFO
+
+matchuri:
+  seed:
+    enabled: false
+    sample-members-enabled: false
