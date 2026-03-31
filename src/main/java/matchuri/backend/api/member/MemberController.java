@@ -31,17 +31,17 @@ public class MemberController {
 
     private void validateLoginId(String loginId) {
         if (loginId == null || loginId.isBlank()) {
-            throw RequestValidationException.invalidPathVariable("loginId", "loginId는 비어 있을 수 없습니다.");
+            throw RequestValidationException.invalidPathVariable("loginId", "로그인 아이디는 비어 있을 수 없습니다.");
         }
 
         if (loginId.length() > Member.LOGIN_ID_MAX_SIZE) {
-            throw RequestValidationException.invalidPathVariable("loginId", "loginId는 50자를 초과할 수 없습니다.");
+            throw RequestValidationException.invalidPathVariable("loginId", "로그인 아이디는 50자를 초과할 수 없습니다.");
         }
 
         if (!loginId.matches(Member.LOGIN_ID_PATTERN)) {
             throw RequestValidationException.invalidPathVariable(
                     "loginId",
-                    "loginId는 영문, 숫자, 점(.), 밑줄(_), 하이픈(-)만 사용할 수 있습니다."
+                    "로그인 아이디는 영문, 숫자, 점(.), 밑줄(_), 하이픈(-)만 사용할 수 있습니다."
             );
         }
     }
