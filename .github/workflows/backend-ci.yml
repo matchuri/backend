@@ -14,6 +14,7 @@ jobs:
   backend-ci:
     runs-on: ubuntu-latest
     env:
+      MATCHURI_SPRING_PROFILE: test
       SPRING_DOCKER_COMPOSE_ENABLED: "false"
     steps:
       - name: Checkout
