@@ -1,6 +1,8 @@
 spring:
   application:
     name: backend
+  profiles:
+    default: ${MATCHURI_SPRING_PROFILE}
   docker:
     compose:
       lifecycle-management: start-only
