@@ -79,7 +79,7 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("존재하지 않는 경로는 리소스 없음 응답으로 변환한다")
     void returnsNotFoundResponseForMissingResource() throws Exception {
-        mockMvc.perform(get("/favicon.ico"))
+        mockMvc.perform(get("/__missing__/resource.txt"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.error.code").value(CommonErrorCode.RESOURCE_NOT_FOUND.getCode()));
