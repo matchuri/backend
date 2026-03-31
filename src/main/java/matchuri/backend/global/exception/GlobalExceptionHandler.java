@@ -27,6 +27,11 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(RequestValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRequestValidationException(RequestValidationException exception) {
+        return errorResponse(exception.getErrorCode(), List.of(exception.getDetail()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(
             BusinessException exception,
