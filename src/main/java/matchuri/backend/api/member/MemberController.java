@@ -3,6 +3,7 @@ package matchuri.backend.api.member;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.member.dto.LoginIdExistsResponse;
 import matchuri.backend.api.member.mapper.MemberMapper;
+import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.global.exception.RequestValidationException;
 import matchuri.backend.domain.member.service.MemberService;
 import matchuri.backend.global.api.ApiResponse;
@@ -33,11 +34,11 @@ public class MemberController {
             throw RequestValidationException.invalidPathVariable("loginId", "loginId는 비어 있을 수 없습니다.");
         }
 
-        if (loginId.length() > 50) {
+        if (loginId.length() > Member.LOGIN_ID_MAX_SIZE) {
             throw RequestValidationException.invalidPathVariable("loginId", "loginId는 50자를 초과할 수 없습니다.");
         }
 
-        if (!loginId.matches("^[A-Za-z0-9._-]+$")) {
+        if (!loginId.matches(Member.LOGIN_ID_PATTERN)) {
             throw RequestValidationException.invalidPathVariable(
                     "loginId",
                     "loginId는 영문, 숫자, 점(.), 밑줄(_), 하이픈(-)만 사용할 수 있습니다."

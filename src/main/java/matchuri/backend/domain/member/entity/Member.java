@@ -35,14 +35,16 @@ import matchuri.backend.domain.common.BaseEntity;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
-    // 인증(loginId/password), 소셜 연계, 권한(role)은 하나의 계정 식별 경계이므로 함께 관리한다.
+
+    public static final int LOGIN_ID_MAX_SIZE = 50;
+    public static final String LOGIN_ID_PATTERN = "^[A-Za-z0-9._-]+$";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(comment = "회원 ID")
     private Long id;
 
-    @Column(name = "login_id", nullable = false, length = 50, comment = "로그인 아이디")
+    @Column(name = "login_id", nullable = false, length = LOGIN_ID_MAX_SIZE, comment = "로그인 아이디")
     private String loginId;
 
     @Column(name = "password_hash", nullable = false, length = 255, comment = "비밀번호 해시")
