@@ -4,12 +4,26 @@ spring:
   docker:
     compose:
       lifecycle-management: start-only
+  datasource:
+    url: jdbc:mysql://localhost:${MATCHURI_DB_PORT:3331}/${MATCHURI_DB_NAME:matchuri}?serverTimezone=UTC&characterEncoding=UTF-8
+    username: ${MATCHURI_DB_USER:matchuri}
+    password: ${MATCHURI_DB_PW:matchuri}
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         format_sql: true
+        jdbc.time_zone: UTC
 
 matchuri:
-  test: ${MATCHURI_KEY_TEST}
+  auth:
+    public-api-patterns:
+      - /api/v1/auth/**
+      - /error
+
+logging:
+  level:
+    root: INFO
+    matchuri.backend: INFO
