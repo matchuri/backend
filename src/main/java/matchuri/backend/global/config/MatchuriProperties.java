@@ -18,6 +18,7 @@ public class MatchuriProperties {
     @Setter
     public static class Auth {
         private List<String> publicApiPatterns = List.of(
+                "/api/v1/members/exists/**",
                 "/api/v1/auth/**",
                 "/error"
         );

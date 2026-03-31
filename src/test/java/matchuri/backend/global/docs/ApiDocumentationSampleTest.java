@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.validation.annotation.Validated;
 
-@WebMvcTest
+@WebMvcTest(controllers = ApiDocumentationSampleTest.SampleController.class)
 @Import({GlobalExceptionHandler.class, ApiDocumentationSampleTest.SampleController.class})
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
