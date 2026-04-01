@@ -118,10 +118,19 @@ class MemberAuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "email": "updated@example.com",
-                                  "memberTasteProfile": {
-                                    "profileVersion": "v1"
-                                  }
+                                  "nickname": "점심탐험가"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.updatedAt").exists());
+
+        mockMvc.perform(patch("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "profileVersion": "v1"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -132,9 +141,15 @@ class MemberAuthIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").isNumber())
-                .andExpect(jsonPath("$.data.nickname").value(nullValue()))
+                .andExpect(jsonPath("$.data.nickname").value("점심탐험가"))
                 .andExpect(jsonPath("$.data.email").doesNotExist())
                 .andExpect(jsonPath("$.data.memberTasteProfile").doesNotExist());
+
+        assertThat(memberTasteProfileRepository.findByMemberId(memberRepository.findByLoginId("tester01").orElseThrow().getId()))
+                .isPresent()
+                .get()
+                .extracting(profile -> profile.getProfileVersion())
+                .isEqualTo("v1");
 
         mockMvc.perform(post("/api/v1/auth/logout")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))

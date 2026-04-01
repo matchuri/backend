@@ -6,8 +6,9 @@ import matchuri.backend.api.auth.dto.LogoutResponse;
 import matchuri.backend.api.member.dto.CreateMemberRequest;
 import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
-import matchuri.backend.api.member.dto.UpdateMemberRequest;
+import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
+import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.WithdrawMemberResponse;
 
 public interface MemberService {
@@ -22,7 +23,9 @@ public interface MemberService {
 
     MemberProfileResponse getMyProfile();
 
-    UpdateMemberResponse updateMyProfile(UpdateMemberRequest request);
+    UpdateMemberResponse updateMyProfile(UpdateMemberBasicInfoRequest request);
+
+    UpdateMemberResponse updateMyTasteProfile(UpdateMemberTasteProfileRequest request);
 
     WithdrawMemberResponse withdraw();
 }

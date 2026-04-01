@@ -7,8 +7,9 @@ import matchuri.backend.api.auth.dto.LogoutResponse;
 import matchuri.backend.api.member.dto.CreateMemberRequest;
 import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
-import matchuri.backend.api.member.dto.UpdateMemberRequest;
+import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
+import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.WithdrawMemberResponse;
 import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.auth.AuthErrorCode;
@@ -16,7 +17,6 @@ import matchuri.backend.domain.auth.service.JwtTokenProvider;
 import matchuri.backend.domain.auth.service.TokenPair;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
-import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.repository.MemberRepository;
@@ -96,20 +96,26 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public UpdateMemberResponse updateMyProfile(UpdateMemberRequest request) {
+    public UpdateMemberResponse updateMyProfile(UpdateMemberBasicInfoRequest request) {
         Member member = getCurrentActiveMember();
 
-        if (request.email() != null) {
-            member.updateEmail(request.email());
+        if (request.nickname() != null) {
+            member.updateNickname(request.nickname().isBlank() ? null : request.nickname());
         }
 
-        if (request.memberTasteProfile() != null) {
-            MemberTasteProfile tasteProfile = memberTasteProfileRepository.findByMemberId(member.getId())
-                    .orElseGet(() -> memberTasteProfileRepository.save(
-                            new MemberTasteProfile(member, request.memberTasteProfile().profileVersion())
-                    ));
-            tasteProfile.updateProfileVersion(request.memberTasteProfile().profileVersion());
-        }
+        return memberMapper.toUpdateMemberResponse(member);
+    }
+
+    @Override
+    @Transactional
+    public UpdateMemberResponse updateMyTasteProfile(UpdateMemberTasteProfileRequest request) {
+        Member member = getCurrentActiveMember();
+
+        MemberTasteProfile tasteProfile = memberTasteProfileRepository.findByMemberId(member.getId())
+                .orElseGet(() -> memberTasteProfileRepository.save(
+                        new MemberTasteProfile(member, request.profileVersion())
+                ));
+        tasteProfile.updateProfileVersion(request.profileVersion());
 
         return memberMapper.toUpdateMemberResponse(member);
     }

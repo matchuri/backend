@@ -119,6 +119,10 @@ public class Member extends BaseEntity {
         this.email = email;
     }
 
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
     public void issueRefreshToken(String refreshToken, LocalDateTime refreshTokenExpiresAt) {
         this.refreshToken = refreshToken;
         this.refreshTokenExpiresAt = refreshTokenExpiresAt;

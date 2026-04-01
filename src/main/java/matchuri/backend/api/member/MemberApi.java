@@ -11,8 +11,9 @@ import matchuri.backend.api.member.dto.CreateMemberRequest;
 import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
-import matchuri.backend.api.member.dto.UpdateMemberRequest;
+import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
+import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.WithdrawMemberResponse;
 import matchuri.backend.global.api.ApiResponse;
 
@@ -103,11 +104,14 @@ public interface MemberApi {
             String loginId
     );
 
-    @Operation(summary = "내 프로필 조회", description = "현재 로그인한 회원의 정보를 조회합니다.")
+    @Operation(summary = "내 프로필 조회", description = "현재 로그인한 회원의 기본 프로필 정보를 조회합니다.")
     ApiResponse<MemberProfileResponse> getMyProfile();
 
-    @Operation(summary = "내 프로필 수정", description = "현재 로그인한 회원의 이메일과 최소 취향 프로필 정보를 수정합니다.")
-    ApiResponse<UpdateMemberResponse> updateMyProfile(UpdateMemberRequest request);
+    @Operation(summary = "내 기본 정보 수정", description = "현재 로그인한 회원의 기본 정보 중 닉네임만 수정합니다.")
+    ApiResponse<UpdateMemberResponse> updateMyProfile(UpdateMemberBasicInfoRequest request);
+
+    @Operation(summary = "내 취향 프로필 수정", description = "현재 로그인한 회원의 취향 프로필 최소 정보를 수정합니다.")
+    ApiResponse<UpdateMemberResponse> updateMyTasteProfile(UpdateMemberTasteProfileRequest request);
 
     @Operation(summary = "회원 탈퇴", description = "현재 로그인한 회원을 비활성화 처리합니다.")
     ApiResponse<WithdrawMemberResponse> withdraw();

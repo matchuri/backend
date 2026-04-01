@@ -6,8 +6,9 @@ import matchuri.backend.api.member.dto.CreateMemberRequest;
 import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
-import matchuri.backend.api.member.dto.UpdateMemberRequest;
+import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
+import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.WithdrawMemberResponse;
 import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.member.entity.Member;
@@ -55,8 +56,14 @@ public class MemberController implements MemberApi {
 
     @Override
     @PatchMapping("/me")
-    public ApiResponse<UpdateMemberResponse> updateMyProfile(@Valid @RequestBody UpdateMemberRequest request) {
+    public ApiResponse<UpdateMemberResponse> updateMyProfile(@Valid @RequestBody UpdateMemberBasicInfoRequest request) {
         return ApiResponse.success(memberService.updateMyProfile(request));
+    }
+
+    @Override
+    @PatchMapping("/me/taste-profile")
+    public ApiResponse<UpdateMemberResponse> updateMyTasteProfile(@Valid @RequestBody UpdateMemberTasteProfileRequest request) {
+        return ApiResponse.success(memberService.updateMyTasteProfile(request));
     }
 
     @Override
