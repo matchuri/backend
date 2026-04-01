@@ -27,6 +27,7 @@ import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,6 +43,9 @@ import org.springframework.validation.annotation.Validated;
 @AutoConfigureMockMvc
 @ExtendWith(RestDocumentationExtension.class)
 class ApiDocumentationSampleTest {
+
+    @MockitoBean
+    private matchuri.backend.global.security.JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
     private WebApplicationContext context;
