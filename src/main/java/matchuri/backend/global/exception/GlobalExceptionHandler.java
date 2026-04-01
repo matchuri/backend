@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         log.warn("Business exception: path={}, code={}", request.getRequestURI(), exception.getErrorCode().getCode());
-        return errorResponse(exception.getErrorCode());
+        return errorResponse(exception.getErrorCode(), exception.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         log.warn("Authentication exception: path={}, code={}", request.getRequestURI(), exception.getErrorCode().getCode());
-        return errorResponse(exception.getErrorCode());
+        return errorResponse(exception.getErrorCode(), exception.getMessage());
     }
 
     @ExceptionHandler(AuthorizationException.class)
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         log.warn("Authorization exception: path={}, code={}", request.getRequestURI(), exception.getErrorCode().getCode());
-        return errorResponse(exception.getErrorCode());
+        return errorResponse(exception.getErrorCode(), exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -148,6 +148,13 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ApiResponse<Void>> errorResponse(ErrorCode errorCode) {
         return ResponseEntity.status(errorCode.getHttpStatus())
                 .body(ApiResponse.failure(errorCode));
+    }
+
+    private ResponseEntity<ApiResponse<Void>> errorResponse(ErrorCode errorCode, String message) {
+        return ResponseEntity.status(errorCode.getHttpStatus())
+                .body(ApiResponse.failure(
+                        ErrorResponse.of(errorCode.getHttpStatus().value(), errorCode.getCode(), message)
+                ));
     }
 
     private ResponseEntity<ApiResponse<Void>> errorResponse(ErrorCode errorCode, List<ValidationErrorDetail> details) {

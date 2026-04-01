@@ -20,9 +20,21 @@ public class MatchuriProperties {
     public static class Auth {
         private List<String> publicApiPatterns = List.of(
                 "/api/v1/members/exists/**",
+                "/api/v1/members",
                 "/api/v1/auth/**",
+                "/docs/**",
                 "/error"
         );
+        private Jwt jwt = new Jwt();
+    }
+
+    @Getter
+    @Setter
+    public static class Jwt {
+        private String secret = "matchuri-local-jwt-secret-key-matchuri-local-jwt-secret-key";
+        private String issuer = "matchuri-backend";
+        private long accessTokenExpirationSeconds = 3600;
+        private long refreshTokenExpirationSeconds = 1_209_600;
     }
 
     @Getter

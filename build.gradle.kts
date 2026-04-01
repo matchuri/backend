@@ -27,9 +27,11 @@ repositories {
 }
 
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.7")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
@@ -39,6 +41,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
     runtimeOnly("com.mysql:mysql-connector-j")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.7")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.7")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     testRuntimeOnly("com.h2database:h2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
