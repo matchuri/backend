@@ -22,11 +22,15 @@ spring:
 matchuri:
   auth:
     public-api-patterns:
-      - /api/v1/members/exists/**
-      - /api/v1/members
-      - /api/v1/auth/**
-      - /docs/**
       - /error
+    public-get-api-patterns:
+      - /api/v1/members/exists/**
+      - /docs/**
+    public-post-api-patterns:
+      - /api/v1/members
+      - /api/v1/auth/login
+    public-options-api-patterns:
+      - /**
     jwt:
       secret: ${MATCHURI_JWT_SECRET:matchuri-local-jwt-secret-key-matchuri-local-jwt-secret-key}
       issuer: ${MATCHURI_JWT_ISSUER:matchuri-backend}

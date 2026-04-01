@@ -19,11 +19,18 @@ public class MatchuriProperties {
     @Setter
     public static class Auth {
         private List<String> publicApiPatterns = List.of(
-                "/api/v1/members/exists/**",
-                "/api/v1/members",
-                "/api/v1/auth/**",
-                "/docs/**",
                 "/error"
+        );
+        private List<String> publicGetApiPatterns = List.of(
+                "/api/v1/members/exists/**",
+                "/docs/**"
+        );
+        private List<String> publicPostApiPatterns = List.of(
+                "/api/v1/members",
+                "/api/v1/auth/login"
+        );
+        private List<String> publicOptionsApiPatterns = List.of(
+                "/**"
         );
         private Jwt jwt = new Jwt();
     }

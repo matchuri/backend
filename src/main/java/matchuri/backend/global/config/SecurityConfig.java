@@ -1,12 +1,13 @@
 package matchuri.backend.global.config;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.global.config.MatchuriProperties.Auth;
 import matchuri.backend.global.security.JwtAuthenticationFilter;
 import matchuri.backend.global.security.MatchuriAccessDeniedHandler;
 import matchuri.backend.global.security.MatchuriAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -27,7 +28,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        List<String> publicApiPatterns = matchuriProperties.getAuth().getPublicApiPatterns();
+        Auth authProps = matchuriProperties.getAuth();
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -40,8 +41,12 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(publicApiPatterns.toArray(String[]::new)).permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers(authProps.getPublicApiPatterns().toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.GET, authProps.getPublicGetApiPatterns().toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.POST, authProps.getPublicPostApiPatterns().toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, authProps.getPublicOptionsApiPatterns().toArray(String[]::new)).permitAll()
+                        .anyRequest().authenticated()
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

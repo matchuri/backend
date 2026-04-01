@@ -178,6 +178,14 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.error.code").value("AUTH_TOKEN_MISSING"));
     }
 
+    @Test
+    @DisplayName("로그아웃 API는 토큰 없이 접근하면 AUTH_TOKEN_MISSING을 반환한다")
+    void logoutRequiresAuthentication() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/logout"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_TOKEN_MISSING"));
+    }
+
     private void createMemberThroughApi(String loginId, String password) throws Exception {
         mockMvc.perform(post("/api/v1/members")
                         .contentType(MediaType.APPLICATION_JSON)
