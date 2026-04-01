@@ -11,6 +11,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -56,6 +57,12 @@ public class Member extends BaseEntity {
     @Column(length = 150, comment = "이메일")
     private String email;
 
+    @Column(name = "refresh_token", length = 512, comment = "리프레시 토큰")
+    private String refreshToken;
+
+    @Column(name = "refresh_token_expires_at", comment = "리프레시 토큰 만료 일시")
+    private LocalDateTime refreshTokenExpiresAt;
+
     @Column(name = "is_social", nullable = false, comment = "소셜 로그인 여부")
     private boolean social;
 
@@ -95,5 +102,24 @@ public class Member extends BaseEntity {
 
     public void attachTasteProfile(MemberTasteProfile tasteProfile) {
         this.tasteProfile = tasteProfile;
+    }
+
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    public void issueRefreshToken(String refreshToken, LocalDateTime refreshTokenExpiresAt) {
+        this.refreshToken = refreshToken;
+        this.refreshTokenExpiresAt = refreshTokenExpiresAt;
+    }
+
+    public void clearRefreshToken() {
+        this.refreshToken = null;
+        this.refreshTokenExpiresAt = null;
+    }
+
+    public void withdraw() {
+        this.status = MemberStatus.INACTIVE;
+        clearRefreshToken();
     }
 }
