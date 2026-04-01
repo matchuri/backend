@@ -14,10 +14,6 @@ public record CreateMemberRequest(
 
         @NotBlank(message = "password는 비어 있을 수 없습니다.")
         @Size(min = 8, max = 100, message = "password는 8자 이상 100자 이하여야 합니다.")
-        String password,
-
-        @Email(message = "email 형식이 올바르지 않습니다.")
-        @Size(max = 150, message = "email은 150자를 초과할 수 없습니다.")
-        String email
+        String password
 ) {
 }

@@ -100,6 +100,17 @@ public class Member extends BaseEntity {
         this.status = status;
     }
 
+    public static Member createWithEncodedPassword(String loginId, String passwordHash) {
+        return Member.builder()
+                .loginId(loginId)
+                .passwordHash(passwordHash)
+                .social(false)
+                .socialProviderType(null)
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .build();
+    }
+
     public void attachTasteProfile(MemberTasteProfile tasteProfile) {
         this.tasteProfile = tasteProfile;
     }

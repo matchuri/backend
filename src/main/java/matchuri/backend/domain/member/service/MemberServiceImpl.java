@@ -56,15 +56,9 @@ public class MemberServiceImpl implements MemberService {
             );
         }
 
-        Member member = memberRepository.save(new Member(
-                request.loginId(),
-                passwordEncoder.encode(request.password()),
-                request.email(),
-                false,
-                null,
-                MemberRole.MEMBER,
-                MemberStatus.ACTIVE
-        ));
+        String passwordHash = passwordEncoder.encode(request.password());
+        Member member = Member.createWithEncodedPassword(request.loginId(), passwordHash);
+        memberRepository.save(member);
 
         return memberMapper.toCreateMemberResponse(member);
     }
