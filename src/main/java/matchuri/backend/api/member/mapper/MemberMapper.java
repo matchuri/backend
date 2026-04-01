@@ -36,9 +36,7 @@ public class MemberMapper {
     public MemberProfileResponse toMemberProfileResponse(Member member) {
         return new MemberProfileResponse(
                 member.getId(),
-                member.getLoginId(),
-                member.getEmail(),
-                toTasteProfileSummary(member.getTasteProfile())
+                member.getNickname()
         );
     }
 
