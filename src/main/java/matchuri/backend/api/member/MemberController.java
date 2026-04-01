@@ -1,14 +1,25 @@
 package matchuri.backend.api.member;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.api.member.dto.CreateMemberRequest;
+import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.LoginIdExistsResponse;
+import matchuri.backend.api.member.dto.MemberProfileResponse;
+import matchuri.backend.api.member.dto.UpdateMemberRequest;
+import matchuri.backend.api.member.dto.UpdateMemberResponse;
+import matchuri.backend.api.member.dto.WithdrawMemberResponse;
 import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.member.entity.Member;
-import matchuri.backend.global.exception.RequestValidationException;
 import matchuri.backend.domain.member.service.MemberService;
 import matchuri.backend.global.api.ApiResponse;
+import matchuri.backend.global.exception.RequestValidationException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +32,12 @@ public class MemberController implements MemberApi {
     private final MemberMapper memberMapper;
 
     @Override
+    @PostMapping
+    public ApiResponse<CreateMemberResponse> createMember(@Valid @RequestBody CreateMemberRequest request) {
+        return ApiResponse.success(memberService.createMember(request));
+    }
+
+    @Override
     @GetMapping("/exists/{loginId}")
     public ApiResponse<LoginIdExistsResponse> checkLoginIdExists(
             @PathVariable String loginId
@@ -28,6 +45,24 @@ public class MemberController implements MemberApi {
         validateLoginId(loginId);
         boolean exists = memberService.existsByLoginId(loginId);
         return ApiResponse.success(memberMapper.toLoginIdExistsResponse(loginId, exists));
+    }
+
+    @Override
+    @GetMapping("/me")
+    public ApiResponse<MemberProfileResponse> getMyProfile() {
+        return ApiResponse.success(memberService.getMyProfile());
+    }
+
+    @Override
+    @PatchMapping("/me")
+    public ApiResponse<UpdateMemberResponse> updateMyProfile(@Valid @RequestBody UpdateMemberRequest request) {
+        return ApiResponse.success(memberService.updateMyProfile(request));
+    }
+
+    @Override
+    @DeleteMapping("/me")
+    public ApiResponse<WithdrawMemberResponse> withdraw() {
+        return ApiResponse.success(memberService.withdraw());
     }
 
     private void validateLoginId(String loginId) {

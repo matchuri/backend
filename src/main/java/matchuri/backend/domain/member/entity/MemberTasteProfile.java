@@ -44,4 +44,8 @@ public class MemberTasteProfile extends BaseEntity {
         this.profileVersion = profileVersion;
         member.attachTasteProfile(this);
     }
+
+    public void updateProfileVersion(String profileVersion) {
+        this.profileVersion = profileVersion;
+    }
 }
