@@ -1,5 +1,6 @@
 package matchuri.backend.api.member;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -58,8 +59,7 @@ class MemberAuthIntegrationTest {
                         .content("""
                                 {
                                   "loginId": "tester01",
-                                  "password": "P@ssw0rd!",
-                                  "email": "tester01@example.com"
+                                  "password": "P@ssw0rd!"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -78,7 +78,7 @@ class MemberAuthIntegrationTest {
         memberRepository.save(new Member(
                 "tester01",
                 "hashed-password",
-                "tester01@example.com",
+                null,
                 false,
                 null,
                 MemberRole.MEMBER,
@@ -90,8 +90,7 @@ class MemberAuthIntegrationTest {
                         .content("""
                                 {
                                   "loginId": "tester01",
-                                  "password": "P@ssw0rd!",
-                                  "email": "tester01@example.com"
+                                  "password": "P@ssw0rd!"
                                 }
                                 """))
                 .andExpect(status().isConflict())
@@ -102,14 +101,17 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("로그인 후 내 정보 조회, 수정, 로그아웃, 탈퇴 흐름이 동작한다")
     void memberAuthLifecycle() throws Exception {
-        createMemberThroughApi("tester01", "P@ssw0rd!", "tester01@example.com");
+        createMemberThroughApi("tester01", "P@ssw0rd!");
         String accessToken = loginAndGetAccessToken("tester01", "P@ssw0rd!");
 
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.loginId").value("tester01"))
-                .andExpect(jsonPath("$.data.email").value("tester01@example.com"));
+                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.nickname").value(nullValue()))
+                .andExpect(jsonPath("$.data.loginId").doesNotExist())
+                .andExpect(jsonPath("$.data.email").doesNotExist())
+                .andExpect(jsonPath("$.data.memberTasteProfile").doesNotExist());
 
         mockMvc.perform(patch("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
@@ -129,8 +131,10 @@ class MemberAuthIntegrationTest {
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.email").value("updated@example.com"))
-                .andExpect(jsonPath("$.data.memberTasteProfile.profileVersion").value("v1"));
+                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.nickname").value(nullValue()))
+                .andExpect(jsonPath("$.data.email").doesNotExist())
+                .andExpect(jsonPath("$.data.memberTasteProfile").doesNotExist());
 
         mockMvc.perform(post("/api/v1/auth/logout")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
@@ -159,16 +163,15 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.error.code").value("AUTH_TOKEN_MISSING"));
     }
 
-    private void createMemberThroughApi(String loginId, String password, String email) throws Exception {
+    private void createMemberThroughApi(String loginId, String password) throws Exception {
         mockMvc.perform(post("/api/v1/members")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "loginId": "%s",
-                                  "password": "%s",
-                                  "email": "%s"
+                                  "password": "%s"
                                 }
-                                """.formatted(loginId, password, email)))
+                                """.formatted(loginId, password)))
                 .andExpect(status().isOk());
     }
 
