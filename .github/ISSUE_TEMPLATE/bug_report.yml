@@ -1,7 +1,6 @@
 name: 백엔드 버그 제보
 description: 재현 가능한 백엔드 버그를 제보합니다.
 title: "[Fix]"
-labels: ["🐛 bug"]
 assignees:
   - yourjinKR
 type: feature
