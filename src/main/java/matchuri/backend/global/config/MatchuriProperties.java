@@ -32,7 +32,32 @@ public class MatchuriProperties {
         private List<String> publicOptionsApiPatterns = List.of(
                 "/**"
         );
+        private Cors cors = new Cors();
         private Jwt jwt = new Jwt();
+    }
+
+    @Getter
+    @Setter
+    public static class Cors {
+        private List<String> allowedOrigins = List.of(
+                "http://localhost:3000"
+        );
+        private List<String> allowedMethods = List.of(
+                "GET",
+                "POST",
+                "PATCH",
+                "DELETE",
+                "OPTIONS"
+        );
+        private List<String> allowedHeaders = List.of(
+                "Authorization",
+                "Content-Type"
+        );
+        private List<String> exposedHeaders = List.of(
+                "Authorization"
+        );
+        private boolean allowCredentials = true;
+        private long maxAge = 3600;
     }
 
     @Getter
