@@ -1,9 +1,7 @@
 name: 백엔드 기능 요청
 description: 백엔드 기능을 제안합니다.
 title: "[Feat]"
-labels:
-  - type: feature
-  - area: backend
+labels: ["✨ feat"]
 assignees:
   - yourjinKR
 type: feature
