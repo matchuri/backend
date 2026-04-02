@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "4.0.3"
     id("io.spring.dependency-management") version "1.1.7"
+    jacoco
 }
 
 group = "matchuri"
@@ -52,4 +53,14 @@ tasks.withType<Test> {
     useJUnitPlatform()
     systemProperty("spring.docker.compose.enabled", "false")
     outputs.dir(snippetsDir)
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(true)
+    }
 }
