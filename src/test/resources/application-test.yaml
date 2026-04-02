@@ -22,6 +22,22 @@ logging:
 
 matchuri:
   auth:
+    cors:
+      allowed-origins:
+        - http://localhost:3000
+      allowed-methods:
+        - GET
+        - POST
+        - PATCH
+        - DELETE
+        - OPTIONS
+      allowed-headers:
+        - Authorization
+        - Content-Type
+      exposed-headers:
+        - Authorization
+      allow-credentials: true
+      max-age: 3600
     jwt:
       secret: test-jwt-secret-key-test-jwt-secret-key-test-jwt-secret-key
       issuer: matchuri-test
