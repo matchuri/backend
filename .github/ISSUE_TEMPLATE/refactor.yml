@@ -1,0 +1,43 @@
+name: 백엔드 리팩터링
+description: 동작 변화 없이 백엔드 구조와 구현을 개선합니다.
+title: "[Refactor]"
+assignees:
+  - yourjinKR
+type: refactor
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 개선하려는 문제
+      description: 어떤 구조적 문제나 유지보수 불편을 해결하나요?
+      placeholder: 중복 로직, 과도한 책임 집중, 테스트하기 어려운 구조
+    validations:
+      required: false
+
+  - type: textarea
+    id: approach
+    attributes:
+      label: 개선 방향
+      description: 어떤 방식으로 구조를 정리하거나 코드를 개선하나요?
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: 영향 범위 및 주의사항
+      description: 변경 시 확인해야 할 동작, 회귀 위험, 연관 영역을 적어주세요.
+      placeholder: member 도메인 서비스 계층, 관련 API 응답, 테스트 코드
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: 완료 기준(AC)
+      placeholder: |
+        - [ ] 중복/복잡도가 줄어든 구조로 정리됨
+        - [ ] 기존 동작이 유지됨
+        - [ ] test/build 통과
+    validations:
+      required: false
