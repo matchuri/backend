@@ -1,78 +1,96 @@
 package matchuri.backend.global.config;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 @Getter
 @Setter
 @Component
+@Validated
 @ConfigurationProperties(prefix = "matchuri")
 public class MatchuriProperties {
 
-    private Auth auth = new Auth();
-    private Seed seed = new Seed();
+    @Valid
+    @NotNull
+    private Auth auth;
+
+    @Valid
+    @NotNull
+    private Seed seed;
 
     @Getter
     @Setter
     public static class Auth {
-        private List<String> publicApiPatterns = List.of(
-                "/error"
-        );
-        private List<String> publicGetApiPatterns = List.of(
-                "/api/v1/members/exists/**",
-                "/docs/**"
-        );
-        private List<String> publicPostApiPatterns = List.of(
-                "/api/v1/members",
-                "/api/v1/auth/login"
-        );
-        private List<String> publicOptionsApiPatterns = List.of(
-                "/**"
-        );
-        private Cors cors = new Cors();
-        private Jwt jwt = new Jwt();
+        @NotNull
+        private List<String> publicApiPatterns;
+
+        @NotNull
+        private List<String> publicGetApiPatterns;
+
+        @NotNull
+        private List<String> publicPostApiPatterns;
+
+        @NotNull
+        private List<String> publicOptionsApiPatterns;
+
+        @Valid
+        @NotNull
+        private Cors cors;
+
+        @Valid
+        @NotNull
+        private Jwt jwt;
     }
 
     @Getter
     @Setter
     public static class Cors {
-        private List<String> allowedOrigins = List.of(
-                "http://localhost:3000"
-        );
-        private List<String> allowedMethods = List.of(
-                "GET",
-                "POST",
-                "PATCH",
-                "DELETE",
-                "OPTIONS"
-        );
-        private List<String> allowedHeaders = List.of(
-                "Authorization",
-                "Content-Type"
-        );
-        private List<String> exposedHeaders = List.of(
-                "Authorization"
-        );
-        private boolean allowCredentials = true;
-        private long maxAge = 3600;
+        @NotNull
+        private List<String> allowedOrigins;
+
+        @NotNull
+        private List<String> allowedMethods;
+
+        @NotNull
+        private List<String> allowedHeaders;
+
+        @NotNull
+        private List<String> exposedHeaders;
+
+        private boolean allowCredentials;
+
+        @Positive
+        private long maxAge;
     }
 
     @Getter
     @Setter
     public static class Jwt {
-        private String secret = "matchuri-local-jwt-secret-key-matchuri-local-jwt-secret-key";
-        private String issuer = "matchuri-backend";
-        private long accessTokenExpirationSeconds = 3600;
-        private long refreshTokenExpirationSeconds = 1_209_600;
+        @NotBlank
+        private String secret;
+
+        @NotBlank
+        private String issuer;
+
+        @Positive
+        private long accessTokenExpirationSeconds;
+
+        @Positive
+        private long refreshTokenExpirationSeconds;
     }
 
     @Getter
     @Setter
     public static class Seed {
-        private boolean enabled = false;
-        private boolean sampleMembersEnabled = true;
+        private boolean enabled;
+        private boolean sampleMembersEnabled;
     }
 }
