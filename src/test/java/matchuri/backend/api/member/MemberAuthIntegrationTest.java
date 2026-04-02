@@ -4,9 +4,11 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,6 +18,7 @@ import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -184,6 +187,18 @@ class MemberAuthIntegrationTest {
         mockMvc.perform(post("/api/v1/auth/logout"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("AUTH_TOKEN_MISSING"));
+    }
+
+    @Test
+    @DisplayName("허용된 Origin의 preflight 요청은 CORS 헤더를 반환한다")
+    void preflightReturnsCorsHeaders() throws Exception {
+        mockMvc.perform(options("/api/v1/auth/login")
+                        .header(HttpHeaders.ORIGIN, "http://localhost:3000")
+                        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "Authorization,Content-Type"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:3000"))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true"));
     }
 
     private void createMemberThroughApi(String loginId, String password) throws Exception {
