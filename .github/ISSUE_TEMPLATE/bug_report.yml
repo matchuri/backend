@@ -4,6 +4,9 @@ title: "[Fix]"
 labels:
   - type: bug
   - area: backend
+assignees:
+  - yourjinKR
+type: feature
 body:
   - type: textarea
     id: summary

@@ -4,6 +4,9 @@ title: "[Feat]"
 labels:
   - type: feature
   - area: backend
+assignees:
+  - yourjinKR
+type: feature
 body:
   - type: textarea
     id: goal
