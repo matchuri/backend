@@ -8,12 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import matchuri.backend.domain.auth.AuthErrorCode;
 import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
-import matchuri.backend.global.config.MatchuriProperties;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Component
@@ -22,7 +20,7 @@ public class GoogleOAuth2AuthenticationFailureHandler implements AuthenticationF
 
     private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final RefreshTokenCookieService refreshTokenCookieService;
-    private final MatchuriProperties matchuriProperties;
+    private final GoogleOAuth2RedirectService redirectService;
 
     @Override
     public void onAuthenticationFailure(
@@ -36,15 +34,7 @@ public class GoogleOAuth2AuthenticationFailureHandler implements AuthenticationF
         AuthErrorCode errorCode = resolveErrorCode(exception);
         log.warn("auth event=oauth2_provider_failed provider=google ip={} code={}", request.getRemoteAddr(), errorCode.getCode());
 
-        response.sendRedirect(
-                UriComponentsBuilder.fromUriString(matchuriProperties.getAuth().getOauth2().getFrontendBaseUrl())
-                        .path(matchuriProperties.getAuth().getOauth2().getFailurePath())
-                        .queryParam("loginResult", "failed")
-                        .queryParam("provider", "google")
-                        .queryParam("errorCode", errorCode.getCode())
-                        .build()
-                        .toUriString()
-        );
+        response.sendRedirect(redirectService.buildFailureRedirectUrl(errorCode));
     }
 
     private AuthErrorCode resolveErrorCode(AuthenticationException exception) {
