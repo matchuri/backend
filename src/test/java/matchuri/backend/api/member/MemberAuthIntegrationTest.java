@@ -116,7 +116,7 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
-    @DisplayName("로그인 후 내 정보 조회, 수정, 로그아웃, 탈퇴 흐름이 동작한다")
+    @DisplayName("로그아웃은 refresh token만 폐기하고 access token은 만료 전까지 유지된다")
     void memberAuthLifecycle() throws Exception {
         createMemberThroughApi("tester01", "P@ssw0rd!");
         AuthSession authSession = login("tester01", "P@ssw0rd!");
@@ -178,6 +178,12 @@ class MemberAuthIntegrationTest {
 
         assertThat(authRefreshTokenRepository.findByMemberId(memberRepository.findByLoginId("tester01").orElseThrow().getId()))
                 .isEmpty();
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.nickname").value("점심탐험가"));
 
         mockMvc.perform(delete("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
