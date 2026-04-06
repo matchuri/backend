@@ -28,7 +28,11 @@ import matchuri.backend.domain.common.BaseEntity;
         @Index(name = "idx_members_social_provider", columnList = "is_social,social_provider_type")
     },
     uniqueConstraints = {
-        @UniqueConstraint(name = "uk_members_login_id", columnNames = "login_id")
+        @UniqueConstraint(name = "uk_members_login_id", columnNames = "login_id"),
+        @UniqueConstraint(
+                name = "uk_members_social_provider_user",
+                columnNames = {"social_provider_type", "social_provider_user_id"}
+        )
     }
 )
 @Builder
