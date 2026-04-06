@@ -8,7 +8,6 @@ import matchuri.backend.api.member.dto.MemberProfileResponse;
 import matchuri.backend.api.member.dto.MemberTasteProfileSummaryResponse;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.WithdrawMemberResponse;
-import matchuri.backend.domain.auth.service.TokenPair;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import org.springframework.stereotype.Component;
@@ -24,11 +23,11 @@ public class MemberMapper {
         return new CreateMemberResponse(member.getId(), member.getLoginId(), member.getCreatedAt());
     }
 
-    public LoginResponse toLoginResponse(Member member, TokenPair tokenPair) {
+    public LoginResponse toLoginResponse(Member member, String accessToken, long expiresIn, String refreshToken) {
         return new LoginResponse(
-                tokenPair.accessToken(),
-                tokenPair.refreshToken(),
-                tokenPair.accessTokenExpiresIn(),
+                accessToken,
+                refreshToken,
+                expiresIn,
                 new LoginResponse.LoginMemberSummary(member.getId(), member.getMemberRole().name())
         );
     }

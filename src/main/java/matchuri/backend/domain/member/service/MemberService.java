@@ -1,8 +1,5 @@
 package matchuri.backend.domain.member.service;
 
-import matchuri.backend.api.auth.dto.LoginRequest;
-import matchuri.backend.api.auth.dto.LoginResponse;
-import matchuri.backend.api.auth.dto.LogoutResponse;
 import matchuri.backend.api.member.dto.CreateMemberRequest;
 import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
@@ -16,10 +13,6 @@ public interface MemberService {
     boolean existsByLoginId(String loginId);
 
     CreateMemberResponse createMember(CreateMemberRequest request);
-
-    LoginResponse login(LoginRequest request);
-
-    LogoutResponse logout();
 
     MemberProfileResponse getMyProfile();
 

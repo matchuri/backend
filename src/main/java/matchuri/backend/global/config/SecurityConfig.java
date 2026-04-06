@@ -2,6 +2,9 @@ package matchuri.backend.global.config;
 
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.global.config.MatchuriProperties.Auth;
+import matchuri.backend.global.security.GoogleOAuth2AuthenticationFailureHandler;
+import matchuri.backend.global.security.GoogleOAuth2AuthenticationSuccessHandler;
+import matchuri.backend.global.security.HttpCookieOAuth2AuthorizationRequestRepository;
 import matchuri.backend.global.security.JwtAuthenticationFilter;
 import matchuri.backend.global.security.MatchuriAccessDeniedHandler;
 import matchuri.backend.global.security.MatchuriAuthenticationEntryPoint;
@@ -28,6 +31,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final MatchuriAuthenticationEntryPoint authenticationEntryPoint;
     private final MatchuriAccessDeniedHandler accessDeniedHandler;
+    private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
+    private final GoogleOAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
+    private final GoogleOAuth2AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,6 +55,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, authProps.getPublicPostApiPatterns().toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, authProps.getPublicOptionsApiPatterns().toArray(String[]::new)).permitAll()
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(authorization -> authorization
+                                .authorizationRequestRepository(authorizationRequestRepository))
+                        .successHandler(oauth2AuthenticationSuccessHandler)
+                        .failureHandler(oauth2AuthenticationFailureHandler)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

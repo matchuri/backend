@@ -1,9 +1,6 @@
 package matchuri.backend.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.api.auth.dto.LoginRequest;
-import matchuri.backend.api.auth.dto.LoginResponse;
-import matchuri.backend.api.auth.dto.LogoutResponse;
 import matchuri.backend.api.member.dto.CreateMemberRequest;
 import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
@@ -12,16 +9,12 @@ import matchuri.backend.api.member.dto.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.WithdrawMemberResponse;
 import matchuri.backend.api.member.mapper.MemberMapper;
-import matchuri.backend.domain.auth.AuthErrorCode;
-import matchuri.backend.domain.auth.service.JwtTokenProvider;
-import matchuri.backend.domain.auth.service.TokenPair;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
-import matchuri.backend.global.exception.AuthenticationException;
 import matchuri.backend.global.exception.BusinessException;
 import matchuri.backend.global.security.AuthenticatedMember;
 import matchuri.backend.global.security.AuthenticationFacade;
@@ -38,7 +31,6 @@ public class MemberServiceImpl implements MemberService {
     private final MemberTasteProfileRepository memberTasteProfileRepository;
     private final MemberMapper memberMapper;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationFacade authenticationFacade;
 
     @Override
@@ -61,32 +53,6 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(member);
 
         return memberMapper.toCreateMemberResponse(member);
-    }
-
-    @Override
-    @Transactional
-    public LoginResponse login(LoginRequest request) {
-        Member member = memberRepository.findByLoginId(request.loginId())
-                .orElseThrow(() -> new AuthenticationException(AuthErrorCode.LOGIN_FAILED));
-
-        ensureActive(member);
-
-        if (!passwordEncoder.matches(request.password(), member.getPasswordHash())) {
-            throw new AuthenticationException(AuthErrorCode.LOGIN_FAILED);
-        }
-
-        TokenPair tokenPair = jwtTokenProvider.issueTokenPair(member);
-        member.issueRefreshToken(tokenPair.refreshToken(), tokenPair.refreshTokenExpiresAt());
-
-        return memberMapper.toLoginResponse(member, tokenPair);
-    }
-
-    @Override
-    @Transactional
-    public LogoutResponse logout() {
-        Member member = getCurrentActiveMember();
-        member.clearRefreshToken();
-        return new LogoutResponse(true);
     }
 
     @Override
