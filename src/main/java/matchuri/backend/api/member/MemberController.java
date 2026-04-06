@@ -35,7 +35,11 @@ public class MemberController implements MemberApi {
     @Override
     @PostMapping
     public ApiResponse<CreateMemberResponse> createMember(@Valid @RequestBody CreateMemberRequest request) {
-        return ApiResponse.success(memberService.createMember(request));
+        return ApiResponse.success(
+                memberMapper.toCreateMemberResponse(
+                        memberService.createMember(memberMapper.toCreateMemberCommand(request.loginId(), request.password()))
+                )
+        );
     }
 
     @Override
@@ -51,25 +55,33 @@ public class MemberController implements MemberApi {
     @Override
     @GetMapping("/me")
     public ApiResponse<MemberProfileResponse> getMyProfile() {
-        return ApiResponse.success(memberService.getMyProfile());
+        return ApiResponse.success(memberMapper.toMemberProfileResponse(memberService.getMyProfile()));
     }
 
     @Override
     @PatchMapping("/me")
     public ApiResponse<UpdateMemberResponse> updateMyProfile(@Valid @RequestBody UpdateMemberBasicInfoRequest request) {
-        return ApiResponse.success(memberService.updateMyProfile(request));
+        return ApiResponse.success(
+                memberMapper.toUpdateMemberResponse(
+                        memberService.updateMyProfile(memberMapper.toUpdateMemberBasicInfoCommand(request.nickname()))
+                )
+        );
     }
 
     @Override
     @PatchMapping("/me/taste-profile")
     public ApiResponse<UpdateMemberResponse> updateMyTasteProfile(@Valid @RequestBody UpdateMemberTasteProfileRequest request) {
-        return ApiResponse.success(memberService.updateMyTasteProfile(request));
+        return ApiResponse.success(
+                memberMapper.toUpdateMemberResponse(
+                        memberService.updateMyTasteProfile(memberMapper.toUpdateMemberTasteProfileCommand(request.profileVersion()))
+                )
+        );
     }
 
     @Override
     @DeleteMapping("/me")
     public ApiResponse<WithdrawMemberResponse> withdraw() {
-        return ApiResponse.success(memberService.withdraw());
+        return ApiResponse.success(memberMapper.toWithdrawMemberResponse(memberService.withdraw()));
     }
 
     private void validateLoginId(String loginId) {

@@ -1,15 +1,10 @@
 package matchuri.backend.domain.auth.service;
 
-import matchuri.backend.api.auth.dto.LoginRequest;
-import matchuri.backend.api.auth.dto.LoginResponse;
-import matchuri.backend.api.auth.dto.LogoutResponse;
-import matchuri.backend.api.auth.dto.OAuth2ExchangeRequest;
-
 public interface AuthService {
 
-    LoginResult login(LoginRequest request, String clientIp);
+    LoginResult login(LoginCommand command, String clientIp);
 
-    LogoutResponse logout(String refreshToken, String clientIp);
+    LogoutResult logout(String refreshToken, String clientIp);
 
-    LoginResponse exchangeOAuth2Code(OAuth2ExchangeRequest request, String clientIp);
+    LoginPayload exchangeOAuth2Code(OAuth2ExchangeCommand command, String clientIp);
 }

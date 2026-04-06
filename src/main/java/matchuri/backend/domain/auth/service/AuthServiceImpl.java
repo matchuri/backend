@@ -2,11 +2,6 @@ package matchuri.backend.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import matchuri.backend.api.auth.dto.LoginRequest;
-import matchuri.backend.api.auth.dto.LoginResponse;
-import matchuri.backend.api.auth.dto.LogoutResponse;
-import matchuri.backend.api.auth.dto.OAuth2ExchangeRequest;
-import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.auth.AuthErrorCode;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
@@ -29,20 +24,19 @@ public class AuthServiceImpl implements AuthService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MemberMapper memberMapper;
     private final SessionTokenService sessionTokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationFacade authenticationFacade;
 
     @Override
     @Transactional
-    public LoginResult login(LoginRequest request, String clientIp) {
-        Member member = memberRepository.findByLoginId(request.loginId())
+    public LoginResult login(LoginCommand command, String clientIp) {
+        Member member = memberRepository.findByLoginId(command.loginId())
                 .orElseThrow(() -> new AuthenticationException(AuthErrorCode.LOGIN_FAILED));
 
         ensureActive(member);
 
-        if (!passwordEncoder.matches(request.password(), member.getPasswordHash())) {
+        if (!passwordEncoder.matches(command.password(), member.getPasswordHash())) {
             throw new AuthenticationException(AuthErrorCode.LOGIN_FAILED);
         }
 
@@ -50,40 +44,50 @@ public class AuthServiceImpl implements AuthService {
         log.info("auth event=login_success provider=local memberId={} ip={}", member.getId(), clientIp);
 
         return new LoginResult(
-                memberMapper.toLoginResponse(member, tokenPair.accessToken(), tokenPair.accessTokenExpiresIn(), null),
+                new LoginPayload(
+                        tokenPair.accessToken(),
+                        tokenPair.accessTokenExpiresIn(),
+                        member.getId(),
+                        member.getMemberRole().name()
+                ),
                 tokenPair.refreshToken()
         );
     }
 
     @Override
     @Transactional
-    public LogoutResponse logout(String refreshToken, String clientIp) {
+    public LogoutResult logout(String refreshToken, String clientIp) {
         AuthenticatedMember authenticatedMember = authenticationFacade.getCurrentMember();
         sessionTokenService.revokeRefreshToken(refreshToken);
         log.info("auth event=logout provider=local memberId={} ip={}", authenticatedMember.memberId(), clientIp);
 
-        return new LogoutResponse(true);
+        return new LogoutResult(true);
     }
 
     @Override
     @Transactional
-    public LoginResponse exchangeOAuth2Code(OAuth2ExchangeRequest request, String clientIp) {
-        if (request.provider() != SocialProviderType.GOOGLE) {
+    public LoginPayload exchangeOAuth2Code(OAuth2ExchangeCommand command, String clientIp) {
+        if (command.provider() != SocialProviderType.GOOGLE) {
             throw new AuthenticationException(AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
         }
 
-        Member member = sessionTokenService.consumeExchangeCode(request.provider(), request.code());
+        Member member = sessionTokenService.consumeExchangeCode(command.provider(), command.code());
         ensureActive(member);
 
         IssuedAccessToken issuedAccessToken = jwtTokenProvider.issueAccessToken(member);
         log.info(
                 "auth event=oauth2_exchange_success provider={} memberId={} ip={}",
-                request.provider().name().toLowerCase(),
+                command.provider().name().toLowerCase(),
                 member.getId(),
                 clientIp
         );
 
-        return memberMapper.toLoginResponse(member, issuedAccessToken.accessToken(), issuedAccessToken.expiresIn(), null);
+        return new LoginPayload(
+                issuedAccessToken.accessToken(),
+                issuedAccessToken.expiresIn(),
+                member.getId(),
+                member.getMemberRole().name()
+        );
     }
 
     private void ensureActive(Member member) {

@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import matchuri.backend.api.member.dto.CreateMemberRequest;
 import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
@@ -45,14 +44,14 @@ class MemberServiceImplTest {
     @Test
     @DisplayName("회원 가입 저장 충돌은 MEMBER_DUPLICATE_LOGIN_ID로 번역한다")
     void createMemberTranslatesIntegrityViolationToDuplicateLoginId() {
-        CreateMemberRequest request = new CreateMemberRequest("tester01", "P@ssw0rd!");
+        CreateMemberCommand command = new CreateMemberCommand("tester01", "P@ssw0rd!");
 
         when(memberRepository.existsByLoginId("tester01")).thenReturn(false);
         when(passwordEncoder.encode("P@ssw0rd!")).thenReturn("encoded-password");
         when(memberRepository.saveAndFlush(any(Member.class)))
                 .thenThrow(new DataIntegrityViolationException("duplicate login id"));
 
-        assertThatThrownBy(() -> memberService.createMember(request))
+        assertThatThrownBy(() -> memberService.createMember(command))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(MemberErrorCode.DUPLICATE_LOGIN_ID);

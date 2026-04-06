@@ -1,13 +1,6 @@
 package matchuri.backend.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.api.member.dto.CreateMemberRequest;
-import matchuri.backend.api.member.dto.CreateMemberResponse;
-import matchuri.backend.api.member.dto.MemberProfileResponse;
-import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
-import matchuri.backend.api.member.dto.UpdateMemberResponse;
-import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
-import matchuri.backend.api.member.dto.WithdrawMemberResponse;
 import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
@@ -41,57 +34,58 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public CreateMemberResponse createMember(CreateMemberRequest request) {
-        if (memberRepository.existsByLoginId(request.loginId())) {
+    public CreateMemberResult createMember(CreateMemberCommand command) {
+        if (memberRepository.existsByLoginId(command.loginId())) {
             throw new BusinessException(
                     MemberErrorCode.DUPLICATE_LOGIN_ID,
-                    MemberErrorCode.DUPLICATE_LOGIN_ID.format(request.loginId())
+                    MemberErrorCode.DUPLICATE_LOGIN_ID.format(command.loginId())
             );
         }
 
-        String passwordHash = passwordEncoder.encode(request.password());
-        Member member = createLocalMember(request.loginId(), passwordHash);
+        String passwordHash = passwordEncoder.encode(command.password());
+        Member member = createLocalMember(command.loginId(), passwordHash);
 
-        return memberMapper.toCreateMemberResponse(member);
+        return new CreateMemberResult(member.getId(), member.getLoginId(), member.getCreatedAt());
     }
 
     @Override
-    public MemberProfileResponse getMyProfile() {
-        return memberMapper.toMemberProfileResponse(getCurrentActiveMember());
+    public MemberProfileResult getMyProfile() {
+        Member member = getCurrentActiveMember();
+        return new MemberProfileResult(member.getId(), member.getNickname());
     }
 
     @Override
     @Transactional
-    public UpdateMemberResponse updateMyProfile(UpdateMemberBasicInfoRequest request) {
+    public UpdateMemberResult updateMyProfile(UpdateMemberBasicInfoCommand command) {
         Member member = getCurrentActiveMember();
 
-        if (request.nickname() != null) {
-            member.updateNickname(request.nickname().isBlank() ? null : request.nickname());
+        if (command.nickname() != null) {
+            member.updateNickname(command.nickname().isBlank() ? null : command.nickname());
         }
 
-        return memberMapper.toUpdateMemberResponse(member);
+        return new UpdateMemberResult(member.getId(), member.getUpdatedAt());
     }
 
     @Override
     @Transactional
-    public UpdateMemberResponse updateMyTasteProfile(UpdateMemberTasteProfileRequest request) {
+    public UpdateMemberResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command) {
         Member member = getCurrentActiveMember();
 
         MemberTasteProfile tasteProfile = memberTasteProfileRepository.findByMemberId(member.getId())
                 .orElseGet(() -> memberTasteProfileRepository.save(
-                        new MemberTasteProfile(member, request.profileVersion())
+                        new MemberTasteProfile(member, command.profileVersion())
                 ));
-        tasteProfile.updateProfileVersion(request.profileVersion());
+        tasteProfile.updateProfileVersion(command.profileVersion());
 
-        return memberMapper.toUpdateMemberResponse(member);
+        return new UpdateMemberResult(member.getId(), member.getUpdatedAt());
     }
 
     @Override
     @Transactional
-    public WithdrawMemberResponse withdraw() {
+    public WithdrawMemberResult withdraw() {
         Member member = getCurrentActiveMember();
         member.withdraw();
-        return memberMapper.toWithdrawMemberResponse(member);
+        return new WithdrawMemberResult(member.getId(), member.getStatus().name());
     }
 
     private Member getCurrentActiveMember() {

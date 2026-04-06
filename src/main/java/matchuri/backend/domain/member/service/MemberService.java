@@ -1,24 +1,16 @@
 package matchuri.backend.domain.member.service;
 
-import matchuri.backend.api.member.dto.CreateMemberRequest;
-import matchuri.backend.api.member.dto.CreateMemberResponse;
-import matchuri.backend.api.member.dto.MemberProfileResponse;
-import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
-import matchuri.backend.api.member.dto.UpdateMemberResponse;
-import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
-import matchuri.backend.api.member.dto.WithdrawMemberResponse;
-
 public interface MemberService {
 
     boolean existsByLoginId(String loginId);
 
-    CreateMemberResponse createMember(CreateMemberRequest request);
+    CreateMemberResult createMember(CreateMemberCommand command);
 
-    MemberProfileResponse getMyProfile();
+    MemberProfileResult getMyProfile();
 
-    UpdateMemberResponse updateMyProfile(UpdateMemberBasicInfoRequest request);
+    UpdateMemberResult updateMyProfile(UpdateMemberBasicInfoCommand command);
 
-    UpdateMemberResponse updateMyTasteProfile(UpdateMemberTasteProfileRequest request);
+    UpdateMemberResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command);
 
-    WithdrawMemberResponse withdraw();
+    WithdrawMemberResult withdraw();
 }
