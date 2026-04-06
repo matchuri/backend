@@ -6,6 +6,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
+import matchuri.backend.global.config.MatchuriProperties;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.util.SerializationUtils;
 
 public final class CookieUtils {
@@ -24,28 +27,38 @@ public final class CookieUtils {
                 .findFirst();
     }
 
-    public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(maxAge);
-        response.addCookie(cookie);
+    public static void addCookie(
+            HttpServletResponse response,
+            String name,
+            String value,
+            int maxAge,
+            MatchuriProperties.Cookie cookieConfig
+    ) {
+        ResponseCookie responseCookie = ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(cookieConfig.isSecure())
+                .path(cookieConfig.getPath())
+                .domain(cookieConfig.getDomain())
+                .sameSite(cookieConfig.getSameSite())
+                .maxAge(maxAge)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
     }
 
-    public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return;
-        }
-
-        Arrays.stream(cookies)
-                .filter(cookie -> name.equals(cookie.getName()))
-                .forEach(cookie -> {
-                    cookie.setValue("");
-                    cookie.setPath("/");
-                    cookie.setMaxAge(0);
-                    response.addCookie(cookie);
-                });
+    public static void deleteCookie(
+            HttpServletResponse response,
+            String name,
+            MatchuriProperties.Cookie cookieConfig
+    ) {
+        ResponseCookie responseCookie = ResponseCookie.from(name, "")
+                .httpOnly(true)
+                .secure(cookieConfig.isSecure())
+                .path(cookieConfig.getPath())
+                .domain(cookieConfig.getDomain())
+                .sameSite(cookieConfig.getSameSite())
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
     }
 
     public static String serialize(Object value) {

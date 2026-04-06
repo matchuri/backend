@@ -101,13 +101,24 @@ public class MatchuriProperties {
         @NotBlank
         private String refreshTokenCookieName;
 
+        @NotBlank
+        private String oauth2AuthorizationRequestCookieName;
+
         private boolean secure;
 
         @NotBlank
         private String path;
 
+        private String domain;
+
+        @NotBlank
+        private String sameSite;
+
         @Positive
         private int maxAgeSeconds;
+
+        @Positive
+        private int oauth2AuthorizationRequestCookieMaxAgeSeconds;
     }
 
     @Getter

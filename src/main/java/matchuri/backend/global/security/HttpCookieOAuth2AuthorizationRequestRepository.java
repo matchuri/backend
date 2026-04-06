@@ -2,20 +2,22 @@ package matchuri.backend.global.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import matchuri.backend.global.config.MatchuriProperties;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class HttpCookieOAuth2AuthorizationRequestRepository
         implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
-    private static final String OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME = "matchuri_oauth2_auth_request";
-    private static final int COOKIE_EXPIRE_SECONDS = 180;
+    private final MatchuriProperties matchuriProperties;
 
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-        return CookieUtils.getCookie(request, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME)
+        return CookieUtils.getCookie(request, cookieName())
                 .map(cookie -> CookieUtils.deserialize(cookie, OAuth2AuthorizationRequest.class))
                 .orElse(null);
     }
@@ -33,9 +35,10 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
 
         CookieUtils.addCookie(
                 response,
-                OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME,
+                cookieName(),
                 CookieUtils.serialize(authorizationRequest),
-                COOKIE_EXPIRE_SECONDS
+                matchuriProperties.getAuth().getCookie().getOauth2AuthorizationRequestCookieMaxAgeSeconds(),
+                matchuriProperties.getAuth().getCookie()
         );
     }
 
@@ -54,6 +57,10 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     }
 
     public void removeAuthorizationRequestCookies(HttpServletRequest request, HttpServletResponse response) {
-        CookieUtils.deleteCookie(request, response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
+        CookieUtils.deleteCookie(response, cookieName(), matchuriProperties.getAuth().getCookie());
+    }
+
+    private String cookieName() {
+        return matchuriProperties.getAuth().getCookie().getOauth2AuthorizationRequestCookieName();
     }
 }

@@ -23,6 +23,8 @@ public class RefreshTokenCookieService {
                 .httpOnly(true)
                 .secure(cookie.isSecure())
                 .path(cookie.getPath())
+                .sameSite(cookie.getSameSite())
+                .domain(cookie.getDomain())
                 .maxAge(cookie.getMaxAgeSeconds())
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
@@ -34,6 +36,8 @@ public class RefreshTokenCookieService {
                 .httpOnly(true)
                 .secure(cookie.isSecure())
                 .path(cookie.getPath())
+                .sameSite(cookie.getSameSite())
+                .domain(cookie.getDomain())
                 .maxAge(0)
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
