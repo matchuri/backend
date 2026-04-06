@@ -27,6 +27,8 @@ import matchuri.backend.domain.common.BaseEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberTasteProfile extends BaseEntity {
 
+    public static final int PROFILE_VERSION_MAX_SIZE = 20;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(comment = "회원 취향 프로필 ID")
@@ -36,7 +38,7 @@ public class MemberTasteProfile extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false, unique = true, comment = "회원 ID")
     private Member member;
 
-    @Column(name = "profile_version", nullable = false, length = 20, comment = "프로필 버전")
+    @Column(name = "profile_version", nullable = false, length = PROFILE_VERSION_MAX_SIZE, comment = "프로필 버전")
     private String profileVersion;
 
     public MemberTasteProfile(Member member, String profileVersion) {

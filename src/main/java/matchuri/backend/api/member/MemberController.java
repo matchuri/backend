@@ -90,7 +90,10 @@ public class MemberController implements MemberApi {
         }
 
         if (loginId.length() > Member.LOGIN_ID_MAX_SIZE) {
-            throw RequestValidationException.invalidPathVariable("loginId", "로그인 아이디는 50자를 초과할 수 없습니다.");
+            throw RequestValidationException.invalidPathVariable(
+                    "loginId",
+                    "로그인 아이디는 " + Member.LOGIN_ID_MAX_SIZE + "자를 초과할 수 없습니다."
+            );
         }
 
         if (!loginId.matches(Member.LOGIN_ID_PATTERN)) {
