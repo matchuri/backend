@@ -25,10 +25,25 @@ public class JwtTokenProvider {
     private final Clock clock = Clock.systemUTC();
 
     public TokenPair issueTokenPair(Member member) {
+        MatchuriProperties.Jwt jwt = matchuriProperties.getAuth().getJwt();
+        IssuedAccessToken issuedAccessToken = issueAccessToken(member);
+        Instant now = clock.instant();
+        Instant refreshTokenExpiresAt = now.plusSeconds(jwt.getRefreshTokenExpirationSeconds());
+
+        String refreshToken = UUID.randomUUID() + "." + UUID.randomUUID();
+
+        return new TokenPair(
+                issuedAccessToken.accessToken(),
+                issuedAccessToken.expiresIn(),
+                refreshToken,
+                LocalDateTime.ofInstant(refreshTokenExpiresAt, ZoneOffset.UTC)
+        );
+    }
+
+    public IssuedAccessToken issueAccessToken(Member member) {
         Instant now = clock.instant();
         MatchuriProperties.Jwt jwt = matchuriProperties.getAuth().getJwt();
         Instant accessTokenExpiresAt = now.plusSeconds(jwt.getAccessTokenExpirationSeconds());
-        Instant refreshTokenExpiresAt = now.plusSeconds(jwt.getRefreshTokenExpirationSeconds());
 
         String accessToken = Jwts.builder()
                 .issuer(jwt.getIssuer())
@@ -40,14 +55,7 @@ public class JwtTokenProvider {
                 .signWith(signingKey())
                 .compact();
 
-        String refreshToken = UUID.randomUUID() + "." + UUID.randomUUID();
-
-        return new TokenPair(
-                accessToken,
-                jwt.getAccessTokenExpirationSeconds(),
-                refreshToken,
-                LocalDateTime.ofInstant(refreshTokenExpiresAt, ZoneOffset.UTC)
-        );
+        return new IssuedAccessToken(accessToken, jwt.getAccessTokenExpirationSeconds());
     }
 
     public JwtClaims parseAccessToken(String token) throws JwtException {

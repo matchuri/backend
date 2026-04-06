@@ -11,7 +11,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,10 +44,10 @@ public class Member extends BaseEntity {
     @Column(comment = "회원 ID")
     private Long id;
 
-    @Column(name = "login_id", nullable = false, length = LOGIN_ID_MAX_SIZE, comment = "로그인 아이디")
+    @Column(name = "login_id", length = LOGIN_ID_MAX_SIZE, comment = "로그인 아이디")
     private String loginId;
 
-    @Column(name = "password_hash", nullable = false, length = 255, comment = "비밀번호 해시")
+    @Column(name = "password_hash", length = 255, comment = "비밀번호 해시")
     private String passwordHash;
 
     @Column(name = "nickname", length = 50, comment = "닉네임 (자체 로그인은 수집)")
@@ -57,12 +56,6 @@ public class Member extends BaseEntity {
     @Column(length = 150, comment = "이메일")
     private String email;
 
-    @Column(name = "refresh_token", length = 512, comment = "리프레시 토큰")
-    private String refreshToken;
-
-    @Column(name = "refresh_token_expires_at", comment = "리프레시 토큰 만료 일시")
-    private LocalDateTime refreshTokenExpiresAt;
-
     @Column(name = "is_social", nullable = false, comment = "소셜 로그인 여부")
     private boolean social;
 
@@ -70,6 +63,9 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "social_provider_type", length = 20, comment = "소셜 제공자")
     private SocialProviderType socialProviderType;
+
+    @Column(name = "social_provider_user_id", length = 100, comment = "소셜 제공자 사용자 식별자")
+    private String socialProviderUserId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_role", nullable = false, length = 20, comment = "회원 역할")
@@ -88,6 +84,7 @@ public class Member extends BaseEntity {
         String email,
         boolean social,
         SocialProviderType socialProviderType,
+        String socialProviderUserId,
         MemberRole memberRole,
         MemberStatus status
     ) {
@@ -96,6 +93,7 @@ public class Member extends BaseEntity {
         this.email = email;
         this.social = social;
         this.socialProviderType = socialProviderType;
+        this.socialProviderUserId = socialProviderUserId;
         this.memberRole = memberRole;
         this.status = status;
     }
@@ -106,6 +104,21 @@ public class Member extends BaseEntity {
                 .passwordHash(passwordHash)
                 .social(false)
                 .socialProviderType(null)
+                .socialProviderUserId(null)
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .build();
+    }
+
+    public static Member createGoogleSocialMember(String providerUserId, String email, String nickname) {
+        return Member.builder()
+                .loginId(null)
+                .passwordHash(null)
+                .email(email)
+                .nickname(nickname)
+                .social(true)
+                .socialProviderType(SocialProviderType.GOOGLE)
+                .socialProviderUserId(providerUserId)
                 .memberRole(MemberRole.MEMBER)
                 .status(MemberStatus.ACTIVE)
                 .build();
@@ -123,18 +136,7 @@ public class Member extends BaseEntity {
         this.nickname = nickname;
     }
 
-    public void issueRefreshToken(String refreshToken, LocalDateTime refreshTokenExpiresAt) {
-        this.refreshToken = refreshToken;
-        this.refreshTokenExpiresAt = refreshTokenExpiresAt;
-    }
-
-    public void clearRefreshToken() {
-        this.refreshToken = null;
-        this.refreshTokenExpiresAt = null;
-    }
-
     public void withdraw() {
         this.status = MemberStatus.INACTIVE;
-        clearRefreshToken();
     }
 }

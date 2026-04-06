@@ -50,6 +50,7 @@ public class DevSampleDataInitializer {
                 email,
                 false,
                 null,
+                null,
                 MemberRole.MEMBER,
                 MemberStatus.ACTIVE
         ));
