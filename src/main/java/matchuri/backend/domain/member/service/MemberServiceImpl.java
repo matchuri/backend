@@ -18,6 +18,7 @@ import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.global.exception.BusinessException;
 import matchuri.backend.global.security.AuthenticatedMember;
 import matchuri.backend.global.security.AuthenticationFacade;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,8 +50,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         String passwordHash = passwordEncoder.encode(request.password());
-        Member member = Member.createWithEncodedPassword(request.loginId(), passwordHash);
-        memberRepository.save(member);
+        Member member = createLocalMember(request.loginId(), passwordHash);
 
         return memberMapper.toCreateMemberResponse(member);
     }
@@ -110,6 +110,18 @@ public class MemberServiceImpl implements MemberService {
             throw new BusinessException(
                     MemberErrorCode.INACTIVE_MEMBER,
                     MemberErrorCode.INACTIVE_MEMBER.format(member.getId())
+            );
+        }
+    }
+
+    private Member createLocalMember(String loginId, String passwordHash) {
+        try {
+            Member newMember = Member.createWithEncodedPassword(loginId, passwordHash);
+            return memberRepository.saveAndFlush(newMember);
+        } catch (DataIntegrityViolationException exception) {
+            throw new BusinessException(
+                    MemberErrorCode.DUPLICATE_LOGIN_ID,
+                    MemberErrorCode.DUPLICATE_LOGIN_ID.format(loginId)
             );
         }
     }
