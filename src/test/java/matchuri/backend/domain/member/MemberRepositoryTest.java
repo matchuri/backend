@@ -7,7 +7,6 @@ import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
-import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.global.config.JpaConfig;
