@@ -69,9 +69,13 @@ matchuri:
       exchange-code-expiration-seconds: 300
     cookie:
       refresh-token-cookie-name: matchuri_refresh_token
+      oauth2-authorization-request-cookie-name: matchuri_oauth2_auth_request
       secure: ${MATCHURI_COOKIE_SECURE:false}
       path: /
+      domain: ${MATCHURI_COOKIE_DOMAIN:}
+      same-site: ${MATCHURI_COOKIE_SAME_SITE:Lax}
       max-age-seconds: 1209600
+      oauth2-authorization-request-cookie-max-age-seconds: 180
     jwt:
       secret: ${MATCHURI_JWT_SECRET:matchuri-local-jwt-secret-key-matchuri-local-jwt-secret-key}
       issuer: ${MATCHURI_JWT_ISSUER:matchuri-backend}
