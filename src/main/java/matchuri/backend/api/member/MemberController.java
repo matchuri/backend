@@ -35,11 +35,11 @@ public class MemberController implements MemberApi {
     @Override
     @PostMapping
     public ApiResponse<CreateMemberResponse> createMember(@Valid @RequestBody CreateMemberRequest request) {
-        return ApiResponse.success(
-                memberMapper.toCreateMemberResponse(
-                        memberService.createMember(memberMapper.toCreateMemberCommand(request.loginId(), request.password()))
-                )
-        );
+        var command = memberMapper.toCreateMemberCommand(request.loginId(), request.password());
+        var result = memberService.createMember(command);
+        CreateMemberResponse response = memberMapper.toCreateMemberResponse(result);
+
+        return ApiResponse.success(response);
     }
 
     @Override
@@ -61,21 +61,21 @@ public class MemberController implements MemberApi {
     @Override
     @PatchMapping("/me")
     public ApiResponse<UpdateMemberResponse> updateMyProfile(@Valid @RequestBody UpdateMemberBasicInfoRequest request) {
-        return ApiResponse.success(
-                memberMapper.toUpdateMemberResponse(
-                        memberService.updateMyProfile(memberMapper.toUpdateMemberBasicInfoCommand(request.nickname()))
-                )
-        );
+        var command = memberMapper.toUpdateMemberBasicInfoCommand(request.nickname());
+        var result = memberService.updateMyProfile(command);
+        UpdateMemberResponse response = memberMapper.toUpdateMemberResponse(result);
+
+        return ApiResponse.success(response);
     }
 
     @Override
     @PatchMapping("/me/taste-profile")
     public ApiResponse<UpdateMemberResponse> updateMyTasteProfile(@Valid @RequestBody UpdateMemberTasteProfileRequest request) {
-        return ApiResponse.success(
-                memberMapper.toUpdateMemberResponse(
-                        memberService.updateMyTasteProfile(memberMapper.toUpdateMemberTasteProfileCommand(request.profileVersion()))
-                )
-        );
+        var command = memberMapper.toUpdateMemberTasteProfileCommand(request.profileVersion());
+        var result = memberService.updateMyTasteProfile(command);
+        UpdateMemberResponse response = memberMapper.toUpdateMemberResponse(result);
+
+        return ApiResponse.success(response);
     }
 
     @Override

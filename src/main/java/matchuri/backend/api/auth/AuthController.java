@@ -36,12 +36,12 @@ public class AuthController implements AuthApi {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse
     ) {
-        LoginResult loginResult = authService.login(
-                memberMapper.toLoginCommand(request.loginId(), request.password()),
-                resolveClientIp(httpRequest)
-        );
+        var command = memberMapper.toLoginCommand(request.loginId(), request.password());
+        LoginResult loginResult = authService.login(command, resolveClientIp(httpRequest));
+        LoginResponse response = memberMapper.toLoginResponse(loginResult.payload());
+
         refreshTokenCookieService.addRefreshToken(httpResponse, loginResult.refreshToken());
-        return ApiResponse.success(memberMapper.toLoginResponse(loginResult.payload()));
+        return ApiResponse.success(response);
     }
 
     @Override
@@ -49,7 +49,10 @@ public class AuthController implements AuthApi {
     public ApiResponse<LogoutResponse> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         String refreshToken = refreshTokenCookieService.resolveRefreshToken(httpRequest)
                 .orElseThrow(() -> new matchuri.backend.global.exception.AuthenticationException(matchuri.backend.domain.auth.AuthErrorCode.LOGOUT_FAILED));
-        LogoutResponse response = memberMapper.toLogoutResponse(authService.logout(refreshToken, resolveClientIp(httpRequest)));
+
+        var result = authService.logout(refreshToken, resolveClientIp(httpRequest));
+        LogoutResponse response = memberMapper.toLogoutResponse(result);
+
         refreshTokenCookieService.clearRefreshToken(httpResponse);
         return ApiResponse.success(response);
     }
@@ -67,14 +70,11 @@ public class AuthController implements AuthApi {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse
     ) {
-        return ApiResponse.success(
-                memberMapper.toLoginResponse(
-                        authService.exchangeOAuth2Code(
-                                memberMapper.toOAuth2ExchangeCommand(request.provider(), request.code()),
-                                resolveClientIp(httpRequest)
-                        )
-                )
-        );
+        var command = memberMapper.toOAuth2ExchangeCommand(request.provider(), request.code());
+        var payload = authService.exchangeOAuth2Code(command, resolveClientIp(httpRequest));
+        LoginResponse response = memberMapper.toLoginResponse(payload);
+
+        return ApiResponse.success(response);
     }
 
     private String resolveClientIp(HttpServletRequest httpRequest) {
