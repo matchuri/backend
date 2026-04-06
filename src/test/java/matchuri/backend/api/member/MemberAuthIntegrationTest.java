@@ -13,8 +13,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Date;
+import javax.crypto.SecretKey;
 import matchuri.backend.domain.auth.entity.AuthExchangeCode;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
@@ -24,6 +29,7 @@ import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +38,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -58,6 +65,9 @@ class MemberAuthIntegrationTest {
 
     @Autowired
     private MemberTasteProfileRepository memberTasteProfileRepository;
+
+    @Autowired
+    private MatchuriProperties matchuriProperties;
 
     @BeforeEach
     void setUp() {
@@ -205,11 +215,36 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
+    @DisplayName("만료된 access token으로 보호 API에 접근하면 AUTH_TOKEN_EXPIRED를 반환한다")
+    void protectedApiRejectsExpiredAccessToken() throws Exception {
+        createMemberThroughApi("expired-user", "P@ssw0rd!");
+        Member member = memberRepository.findByLoginId("expired-user").orElseThrow();
+        String expiredAccessToken = expiredAccessToken(member);
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(expiredAccessToken)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_TOKEN_EXPIRED"));
+    }
+
+    @Test
     @DisplayName("로그아웃 API는 토큰 없이 접근하면 AUTH_TOKEN_MISSING을 반환한다")
     void logoutRequiresAuthentication() throws Exception {
         mockMvc.perform(post("/api/v1/auth/logout"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("AUTH_TOKEN_MISSING"));
+    }
+
+    @Test
+    @DisplayName("로그아웃 시 refresh token 쿠키가 없으면 AUTH_LOGOUT_FAILED를 반환한다")
+    void logoutFailsWhenRefreshTokenCookieIsMissing() throws Exception {
+        createMemberThroughApi("logout-user", "P@ssw0rd!");
+        AuthSession authSession = login("logout-user", "P@ssw0rd!");
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("AUTH_LOGOUT_FAILED"));
     }
 
     @Test
@@ -246,6 +281,63 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
+    @DisplayName("소셜 교환 코드는 한 번 사용 후 재사용할 수 없다")
+    void exchangeOAuth2CodeCannotBeReused() throws Exception {
+        Member member = memberRepository.save(Member.createGoogleSocialMember("google-user-2", "google2@example.com", "구글사용자2"));
+        authExchangeCodeRepository.save(AuthExchangeCode.issue(
+                member,
+                SocialProviderType.GOOGLE,
+                "single-use-code",
+                LocalDateTime.now().plusMinutes(5)
+        ));
+
+        mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "provider": "GOOGLE",
+                                  "code": "single-use-code"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").isString());
+
+        mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "provider": "GOOGLE",
+                                  "code": "single-use-code"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_OAUTH2_EXCHANGE_CODE_INVALID"));
+    }
+
+    @Test
+    @DisplayName("만료된 소셜 교환 코드는 AUTH_OAUTH2_EXCHANGE_CODE_INVALID를 반환한다")
+    void exchangeOAuth2CodeFailsWhenCodeIsExpired() throws Exception {
+        Member member = memberRepository.save(Member.createGoogleSocialMember("google-user-3", "google3@example.com", "구글사용자3"));
+        authExchangeCodeRepository.save(AuthExchangeCode.issue(
+                member,
+                SocialProviderType.GOOGLE,
+                "expired-exchange-code",
+                LocalDateTime.now().minusMinutes(1)
+        ));
+
+        mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "provider": "GOOGLE",
+                                  "code": "expired-exchange-code"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_OAUTH2_EXCHANGE_CODE_INVALID"));
+    }
+
+    @Test
     @DisplayName("유효하지 않은 소셜 교환 코드는 AUTH_OAUTH2_EXCHANGE_CODE_INVALID를 반환한다")
     void exchangeOAuth2CodeFailsWhenCodeIsInvalid() throws Exception {
         mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
@@ -258,6 +350,29 @@ class MemberAuthIntegrationTest {
                                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("AUTH_OAUTH2_EXCHANGE_CODE_INVALID"));
+    }
+
+    @Test
+    @DisplayName("탈퇴한 회원은 다시 로컬 로그인할 수 없다")
+    void withdrawnMemberCannotLoginAgain() throws Exception {
+        createMemberThroughApi("withdrawn-user", "P@ssw0rd!");
+        AuthSession authSession = login("withdrawn-user", "P@ssw0rd!");
+
+        mockMvc.perform(delete("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("INACTIVE"));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "withdrawn-user",
+                                  "password": "P@ssw0rd!"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_INACTIVE_MEMBER"));
     }
 
     @Test
@@ -308,6 +423,25 @@ class MemberAuthIntegrationTest {
 
     private String bearer(String accessToken) {
         return "Bearer " + accessToken;
+    }
+
+    private String expiredAccessToken(Member member) {
+        Instant now = Instant.now();
+        Instant issuedAt = now.minusSeconds(3600);
+        Instant expiredAt = now.minusSeconds(1800);
+        SecretKey signingKey = Keys.hmacShaKeyFor(
+                matchuriProperties.getAuth().getJwt().getSecret().getBytes(StandardCharsets.UTF_8)
+        );
+
+        return Jwts.builder()
+                .issuer(matchuriProperties.getAuth().getJwt().getIssuer())
+                .subject(String.valueOf(member.getId()))
+                .claim("role", member.getMemberRole().name())
+                .claim("loginId", member.getLoginId())
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(expiredAt))
+                .signWith(signingKey)
+                .compact();
     }
 
     private record AuthSession(

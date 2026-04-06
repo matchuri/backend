@@ -16,6 +16,9 @@ import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
+import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.global.docs.RestDocsSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,10 +47,22 @@ class MemberControllerIntegrationTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private MemberTasteProfileRepository memberTasteProfileRepository;
+
+    @Autowired
+    private AuthRefreshTokenRepository authRefreshTokenRepository;
+
+    @Autowired
+    private AuthExchangeCodeRepository authExchangeCodeRepository;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp(RestDocumentationContextProvider restDocumentation) {
+        authExchangeCodeRepository.deleteAll();
+        authRefreshTokenRepository.deleteAll();
+        memberTasteProfileRepository.deleteAll();
         memberRepository.deleteAll();
         this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
                 .apply(documentationConfiguration(restDocumentation))
