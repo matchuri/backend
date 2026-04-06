@@ -47,6 +47,14 @@ public class MatchuriProperties {
 
         @Valid
         @NotNull
+        private OAuth2 oauth2;
+
+        @Valid
+        @NotNull
+        private Cookie cookie;
+
+        @Valid
+        @NotNull
         private Jwt jwt;
     }
 
@@ -69,6 +77,37 @@ public class MatchuriProperties {
 
         @Positive
         private long maxAge;
+    }
+
+    @Getter
+    @Setter
+    public static class OAuth2 {
+        @NotBlank
+        private String frontendBaseUrl;
+
+        @NotBlank
+        private String successPath;
+
+        @NotBlank
+        private String failurePath;
+
+        @Positive
+        private long exchangeCodeExpirationSeconds;
+    }
+
+    @Getter
+    @Setter
+    public static class Cookie {
+        @NotBlank
+        private String refreshTokenCookieName;
+
+        private boolean secure;
+
+        @NotBlank
+        private String path;
+
+        @Positive
+        private int maxAgeSeconds;
     }
 
     @Getter

@@ -3,6 +3,17 @@ spring:
     name: backend
   profiles:
     default: ${MATCHURI_SPRING_PROFILE:local}
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${MATCHURI_GOOGLE_CLIENT_ID:dummy-google-client-id}
+            client-secret: ${MATCHURI_GOOGLE_CLIENT_SECRET:dummy-google-client-secret}
+            scope:
+              - openid
+              - profile
+              - email
   docker:
     compose:
       lifecycle-management: start-only
@@ -25,10 +36,14 @@ matchuri:
       - /error
     public-get-api-patterns:
       - /api/v1/members/exists/**
+      - /api/v1/auth/oauth2/google
+      - /oauth2/authorization/**
+      - /login/oauth2/code/**
       - /docs/**
     public-post-api-patterns:
       - /api/v1/members
       - /api/v1/auth/login
+      - /api/v1/auth/oauth2/exchange
     public-options-api-patterns:
       - /**
     cors:
@@ -47,6 +62,16 @@ matchuri:
         - Authorization
       allow-credentials: true
       max-age: 3600
+    oauth2:
+      frontend-base-url: ${MATCHURI_FRONTEND_ORIGIN:http://localhost:3000}
+      success-path: /auth/callback/google
+      failure-path: /login
+      exchange-code-expiration-seconds: 300
+    cookie:
+      refresh-token-cookie-name: matchuri_refresh_token
+      secure: ${MATCHURI_COOKIE_SECURE:false}
+      path: /
+      max-age-seconds: 1209600
     jwt:
       secret: ${MATCHURI_JWT_SECRET:matchuri-local-jwt-secret-key-matchuri-local-jwt-secret-key}
       issuer: ${MATCHURI_JWT_ISSUER:matchuri-backend}

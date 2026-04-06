@@ -14,6 +14,17 @@ spring:
   docker:
     compose:
       enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-google-client-id
+            client-secret: test-google-client-secret
+            scope:
+              - openid
+              - profile
+              - email
 
 logging:
   level:
@@ -22,6 +33,20 @@ logging:
 
 matchuri:
   auth:
+    public-api-patterns:
+      - /error
+    public-get-api-patterns:
+      - /api/v1/members/exists/**
+      - /api/v1/auth/oauth2/google
+      - /oauth2/authorization/**
+      - /login/oauth2/code/**
+      - /docs/**
+    public-post-api-patterns:
+      - /api/v1/members
+      - /api/v1/auth/login
+      - /api/v1/auth/oauth2/exchange
+    public-options-api-patterns:
+      - /**
     cors:
       allowed-origins:
         - http://localhost:3000
@@ -38,6 +63,16 @@ matchuri:
         - Authorization
       allow-credentials: true
       max-age: 3600
+    oauth2:
+      frontend-base-url: http://localhost:3000
+      success-path: /auth/callback/google
+      failure-path: /login
+      exchange-code-expiration-seconds: 300
+    cookie:
+      refresh-token-cookie-name: matchuri_refresh_token
+      secure: false
+      path: /
+      max-age-seconds: 1209600
     jwt:
       secret: test-jwt-secret-key-test-jwt-secret-key-test-jwt-secret-key
       issuer: matchuri-test
