@@ -1,7 +1,5 @@
 package matchuri.backend.domain.auth.service;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import matchuri.backend.api.auth.dto.LoginRequest;
@@ -34,12 +32,11 @@ public class AuthServiceImpl implements AuthService {
     private final MemberMapper memberMapper;
     private final SessionTokenService sessionTokenService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenCookieService refreshTokenCookieService;
     private final AuthenticationFacade authenticationFacade;
 
     @Override
     @Transactional
-    public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+    public LoginResult login(LoginRequest request, String clientIp) {
         Member member = memberRepository.findByLoginId(request.loginId())
                 .orElseThrow(() -> new AuthenticationException(AuthErrorCode.LOGIN_FAILED));
 
@@ -50,33 +47,27 @@ public class AuthServiceImpl implements AuthService {
         }
 
         TokenPair tokenPair = sessionTokenService.issueLoginTokenPair(member);
-        refreshTokenCookieService.addRefreshToken(httpResponse, tokenPair.refreshToken());
-        log.info("auth event=login_success provider=local memberId={} ip={}", member.getId(), httpRequest.getRemoteAddr());
+        log.info("auth event=login_success provider=local memberId={} ip={}", member.getId(), clientIp);
 
-        return memberMapper.toLoginResponse(member, tokenPair.accessToken(), tokenPair.accessTokenExpiresIn(), null);
+        return new LoginResult(
+                memberMapper.toLoginResponse(member, tokenPair.accessToken(), tokenPair.accessTokenExpiresIn(), null),
+                tokenPair.refreshToken()
+        );
     }
 
     @Override
     @Transactional
-    public LogoutResponse logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+    public LogoutResponse logout(String refreshToken, String clientIp) {
         AuthenticatedMember authenticatedMember = authenticationFacade.getCurrentMember();
-        String refreshToken = refreshTokenCookieService.resolveRefreshToken(httpRequest)
-                .orElseThrow(() -> new AuthenticationException(AuthErrorCode.LOGOUT_FAILED));
-
         sessionTokenService.revokeRefreshToken(refreshToken);
-        refreshTokenCookieService.clearRefreshToken(httpResponse);
-        log.info("auth event=logout provider=local memberId={} ip={}", authenticatedMember.memberId(), httpRequest.getRemoteAddr());
+        log.info("auth event=logout provider=local memberId={} ip={}", authenticatedMember.memberId(), clientIp);
 
         return new LogoutResponse(true);
     }
 
     @Override
     @Transactional
-    public LoginResponse exchangeOAuth2Code(
-            OAuth2ExchangeRequest request,
-            HttpServletRequest httpRequest,
-            HttpServletResponse httpResponse
-    ) {
+    public LoginResponse exchangeOAuth2Code(OAuth2ExchangeRequest request, String clientIp) {
         if (request.provider() != SocialProviderType.GOOGLE) {
             throw new AuthenticationException(AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
         }
@@ -89,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
                 "auth event=oauth2_exchange_success provider={} memberId={} ip={}",
                 request.provider().name().toLowerCase(),
                 member.getId(),
-                httpRequest.getRemoteAddr()
+                clientIp
         );
 
         return memberMapper.toLoginResponse(member, issuedAccessToken.accessToken(), issuedAccessToken.expiresIn(), null);

@@ -10,6 +10,8 @@ import matchuri.backend.api.auth.dto.LoginResponse;
 import matchuri.backend.api.auth.dto.LogoutResponse;
 import matchuri.backend.api.auth.dto.OAuth2ExchangeRequest;
 import matchuri.backend.domain.auth.service.AuthService;
+import matchuri.backend.domain.auth.service.LoginResult;
+import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
 import matchuri.backend.global.api.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController implements AuthApi {
 
     private final AuthService authService;
+    private final RefreshTokenCookieService refreshTokenCookieService;
 
     @Override
     @PostMapping("/login")
@@ -31,13 +34,19 @@ public class AuthController implements AuthApi {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse
     ) {
-        return ApiResponse.success(authService.login(request, httpRequest, httpResponse));
+        LoginResult loginResult = authService.login(request, resolveClientIp(httpRequest));
+        refreshTokenCookieService.addRefreshToken(httpResponse, loginResult.refreshToken());
+        return ApiResponse.success(loginResult.response());
     }
 
     @Override
     @PostMapping("/logout")
     public ApiResponse<LogoutResponse> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-        return ApiResponse.success(authService.logout(httpRequest, httpResponse));
+        String refreshToken = refreshTokenCookieService.resolveRefreshToken(httpRequest)
+                .orElseThrow(() -> new matchuri.backend.global.exception.AuthenticationException(matchuri.backend.domain.auth.AuthErrorCode.LOGOUT_FAILED));
+        LogoutResponse response = authService.logout(refreshToken, resolveClientIp(httpRequest));
+        refreshTokenCookieService.clearRefreshToken(httpResponse);
+        return ApiResponse.success(response);
     }
 
     @Override
@@ -53,6 +62,10 @@ public class AuthController implements AuthApi {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse
     ) {
-        return ApiResponse.success(authService.exchangeOAuth2Code(request, httpRequest, httpResponse));
+        return ApiResponse.success(authService.exchangeOAuth2Code(request, resolveClientIp(httpRequest)));
+    }
+
+    private String resolveClientIp(HttpServletRequest httpRequest) {
+        return httpRequest.getRemoteAddr();
     }
 }
