@@ -1,17 +1,28 @@
 package matchuri.backend.api.member.dto;
 
-import jakarta.validation.constraints.Email;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import matchuri.backend.domain.member.entity.Member;
 
 public record CreateMemberRequest(
+        @Schema(
+                description = "회원 가입에 사용할 loginId입니다. 영문, 숫자, 점(.), 밑줄(_), 하이픈(-)만 사용할 수 있습니다.",
+                example = "tester01",
+                maxLength = Member.LOGIN_ID_MAX_SIZE
+        )
         @NotBlank(message = "loginId는 비어 있을 수 없습니다.")
         @Size(max = Member.LOGIN_ID_MAX_SIZE, message = "loginId는 50자를 초과할 수 없습니다.")
         @Pattern(regexp = Member.LOGIN_ID_PATTERN, message = "loginId는 영문, 숫자, 점(.), 밑줄(_), 하이픈(-)만 사용할 수 있습니다.")
         String loginId,
 
+        @Schema(
+                description = "회원 가입 비밀번호입니다. 8자 이상 100자 이하를 사용합니다.",
+                example = "P@ssw0rd!",
+                minLength = 8,
+                maxLength = 100
+        )
         @NotBlank(message = "password는 비어 있을 수 없습니다.")
         @Size(min = 8, max = 100, message = "password는 8자 이상 100자 이하여야 합니다.")
         String password
