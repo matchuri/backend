@@ -41,6 +41,9 @@ import matchuri.backend.domain.common.BaseEntity;
 public class Member extends BaseEntity {
 
     public static final int LOGIN_ID_MAX_SIZE = 50;
+    public static final int PASSWORD_MIN_SIZE = 8;
+    public static final int PASSWORD_MAX_SIZE = 100;
+    public static final int NICKNAME_MAX_SIZE = 50;
     public static final String LOGIN_ID_PATTERN = "^[A-Za-z0-9._-]+$";
 
     @Id
@@ -54,7 +57,7 @@ public class Member extends BaseEntity {
     @Column(name = "password_hash", length = 255, comment = "비밀번호 해시")
     private String passwordHash;
 
-    @Column(name = "nickname", length = 50, comment = "닉네임 (자체 로그인은 수집)")
+    @Column(name = "nickname", length = NICKNAME_MAX_SIZE, comment = "닉네임 (자체 로그인은 수집)")
     private String nickname;
 
     @Column(length = 150, comment = "이메일")
