@@ -63,6 +63,7 @@ class MemberControllerIntegrationTest {
                 "tester01@example.com",
                 false,
                 null,
+                null,
                 MemberRole.MEMBER,
                 MemberStatus.ACTIVE
         ));

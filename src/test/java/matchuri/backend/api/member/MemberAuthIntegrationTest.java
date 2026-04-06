@@ -13,9 +13,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
+import java.time.LocalDateTime;
+import matchuri.backend.domain.auth.entity.AuthExchangeCode;
+import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
+import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,10 +51,18 @@ class MemberAuthIntegrationTest {
     private MemberRepository memberRepository;
 
     @Autowired
+    private AuthRefreshTokenRepository authRefreshTokenRepository;
+
+    @Autowired
+    private AuthExchangeCodeRepository authExchangeCodeRepository;
+
+    @Autowired
     private MemberTasteProfileRepository memberTasteProfileRepository;
 
     @BeforeEach
     void setUp() {
+        authExchangeCodeRepository.deleteAll();
+        authRefreshTokenRepository.deleteAll();
         memberTasteProfileRepository.deleteAll();
         memberRepository.deleteAll();
     }
@@ -83,6 +97,7 @@ class MemberAuthIntegrationTest {
                 null,
                 false,
                 null,
+                null,
                 MemberRole.MEMBER,
                 MemberStatus.ACTIVE
         ));
@@ -104,7 +119,8 @@ class MemberAuthIntegrationTest {
     @DisplayName("로그인 후 내 정보 조회, 수정, 로그아웃, 탈퇴 흐름이 동작한다")
     void memberAuthLifecycle() throws Exception {
         createMemberThroughApi("tester01", "P@ssw0rd!");
-        String accessToken = loginAndGetAccessToken("tester01", "P@ssw0rd!");
+        AuthSession authSession = login("tester01", "P@ssw0rd!");
+        String accessToken = authSession.accessToken();
 
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
@@ -154,12 +170,14 @@ class MemberAuthIntegrationTest {
                 .isEqualTo("v1");
 
         mockMvc.perform(post("/api/v1/auth/logout")
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .cookie(authSession.refreshTokenCookie()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.loggedOut").value(true));
+                .andExpect(jsonPath("$.data.loggedOut").value(true))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("Max-Age=0")));
 
-        Member memberAfterLogout = memberRepository.findByLoginId("tester01").orElseThrow();
-        assertThat(memberAfterLogout.getRefreshToken()).isNull();
+        assertThat(authRefreshTokenRepository.findByMemberId(memberRepository.findByLoginId("tester01").orElseThrow().getId()))
+                .isEmpty();
 
         mockMvc.perform(delete("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
@@ -189,6 +207,54 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
+    @DisplayName("구글 OAuth2 시작 요청은 Spring Security authorization 엔드포인트로 리다이렉트한다")
+    void startGoogleOAuth2LoginRedirects() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/oauth2/google"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string(HttpHeaders.LOCATION, "/oauth2/authorization/google"));
+    }
+
+    @Test
+    @DisplayName("유효한 소셜 교환 코드는 액세스 토큰으로 교환된다")
+    void exchangeOAuth2Code() throws Exception {
+        Member member = memberRepository.save(Member.createGoogleSocialMember("google-user-1", "google@example.com", "구글사용자"));
+        authExchangeCodeRepository.save(AuthExchangeCode.issue(
+                member,
+                SocialProviderType.GOOGLE,
+                "valid-exchange-code",
+                LocalDateTime.now().plusMinutes(5)
+        ));
+
+        mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "provider": "GOOGLE",
+                                  "code": "valid-exchange-code"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").isString())
+                .andExpect(jsonPath("$.data.refreshToken").value(nullValue()))
+                .andExpect(jsonPath("$.data.member.id").value(member.getId()));
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 소셜 교환 코드는 AUTH_OAUTH2_EXCHANGE_CODE_INVALID를 반환한다")
+    void exchangeOAuth2CodeFailsWhenCodeIsInvalid() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "provider": "GOOGLE",
+                                  "code": "missing-code"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_OAUTH2_EXCHANGE_CODE_INVALID"));
+    }
+
+    @Test
     @DisplayName("허용된 Origin의 preflight 요청은 CORS 헤더를 반환한다")
     void preflightReturnsCorsHeaders() throws Exception {
         mockMvc.perform(options("/api/v1/auth/login")
@@ -212,7 +278,7 @@ class MemberAuthIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-    private String loginAndGetAccessToken(String loginId, String password) throws Exception {
+    private AuthSession login(String loginId, String password) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -223,13 +289,24 @@ class MemberAuthIntegrationTest {
                                 """.formatted(loginId, password)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").isString())
+                .andExpect(jsonPath("$.data.refreshToken").value(nullValue()))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("matchuri_refresh_token=")))
                 .andReturn();
 
         JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
-        return body.path("data").path("accessToken").asText();
+        return new AuthSession(
+                body.path("data").path("accessToken").asText(),
+                result.getResponse().getCookie("matchuri_refresh_token")
+        );
     }
 
     private String bearer(String accessToken) {
         return "Bearer " + accessToken;
+    }
+
+    private record AuthSession(
+            String accessToken,
+            Cookie refreshTokenCookie
+    ) {
     }
 }

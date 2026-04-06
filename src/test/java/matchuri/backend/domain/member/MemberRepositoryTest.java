@@ -37,6 +37,7 @@ class MemberRepositoryTest {
                 "tester@example.com",
                 false,
                 null,
+                null,
                 MemberRole.MEMBER,
                 MemberStatus.ACTIVE
             )
@@ -56,6 +57,7 @@ class MemberRepositoryTest {
                 "hashed-password",
                 "tester2@example.com",
                 false,
+                null,
                 null,
                 MemberRole.MEMBER,
                 MemberStatus.ACTIVE
@@ -83,6 +85,7 @@ class MemberRepositoryTest {
                 "hashed-password",
                 "tester3@example.com",
                 false,
+                null,
                 null,
                 MemberRole.MEMBER,
                 MemberStatus.ACTIVE
