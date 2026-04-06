@@ -9,6 +9,7 @@ import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.global.exception.AuthenticationException;
 import matchuri.backend.global.exception.BusinessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +27,21 @@ public class GoogleOAuth2Service {
         }
 
         Member member = memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId)
-                .orElseGet(() -> memberRepository.save(Member.createGoogleSocialMember(providerUserId, email, nickname)));
+                .orElseGet(() -> createGoogleSocialMember(providerUserId, email, nickname));
 
         if (member.getStatus() != MemberStatus.ACTIVE) {
             throw new BusinessException(MemberErrorCode.INACTIVE_MEMBER, MemberErrorCode.INACTIVE_MEMBER.format(member.getId()));
         }
 
         return member;
+    }
+
+    private Member createGoogleSocialMember(String providerUserId, String email, String nickname) {
+        try {
+            return memberRepository.saveAndFlush(Member.createGoogleSocialMember(providerUserId, email, nickname));
+        } catch (DataIntegrityViolationException exception) {
+            return memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId)
+                    .orElseThrow(() -> exception);
+        }
     }
 }
