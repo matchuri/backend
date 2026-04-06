@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -68,7 +69,20 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.error.code").value(CommonErrorCode.INVALID_PATH_VARIABLE.getCode()))
                 .andExpect(jsonPath("$.error.details[0].source").value("PATH"))
-                .andExpect(jsonPath("$.error.details[0].field").value("id"));
+                .andExpect(jsonPath("$.error.details[0].field").value("id"))
+                .andExpect(jsonPath("$.error.details[0].reason").value("경로 변수 타입이 올바르지 않습니다."));
+    }
+
+    @Test
+    @DisplayName("쿼리 파라미터 타입 불일치는 QUERY 상세 정보와 표준 메시지로 반환한다")
+    void returnsQueryValidationErrorResponseForTypeMismatch() throws Exception {
+        mockMvc.perform(get("/test/query").param("page", "NaN"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value(CommonErrorCode.INVALID_QUERY_PARAMETER.getCode()))
+                .andExpect(jsonPath("$.error.details[0].source").value("QUERY"))
+                .andExpect(jsonPath("$.error.details[0].field").value("page"))
+                .andExpect(jsonPath("$.error.details[0].reason").value("쿼리 파라미터 타입이 올바르지 않습니다."));
     }
 
     @Test
@@ -110,6 +124,11 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/path/{id}")
         String validatePath(@PathVariable Long id) {
             return id.toString();
+        }
+
+        @GetMapping("/query")
+        String validateQuery(@RequestParam Integer page) {
+            return page.toString();
         }
 
         @GetMapping("/business")

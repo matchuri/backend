@@ -94,15 +94,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
-        String source = isPathVariable(exception) ? "PATH" : "QUERY";
-        CommonErrorCode errorCode = isPathVariable(exception)
+        boolean pathVariable = isPathVariable(exception);
+        String source = pathVariable ? "PATH" : "QUERY";
+        CommonErrorCode errorCode = pathVariable
                 ? CommonErrorCode.INVALID_PATH_VARIABLE
                 : CommonErrorCode.INVALID_QUERY_PARAMETER;
 
         ValidationErrorDetail detail = new ValidationErrorDetail(
                 source,
                 exception.getName(),
-                Objects.requireNonNullElse(exception.getMostSpecificCause().getMessage(), "타입 변환에 실패했습니다.")
+                pathVariable
+                        ? "경로 변수 타입이 올바르지 않습니다."
+                        : "쿼리 파라미터 타입이 올바르지 않습니다."
         );
 
         return errorResponse(errorCode, List.of(detail));
