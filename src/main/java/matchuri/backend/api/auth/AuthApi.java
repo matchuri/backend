@@ -23,7 +23,6 @@ public interface AuthApi {
             description = """
                     `loginId + password`로 로그인합니다.
 
-                    프론트 구현 포인트:
                     - 응답 body에는 `accessToken`과 회원 요약 정보가 포함됩니다.
                     - `refreshToken`은 응답 body가 아니라 `HttpOnly` 쿠키로 내려갑니다.
                     - 프론트는 이후 보호 API 호출 시 `Authorization: Bearer <accessToken>` 헤더를 사용합니다.
@@ -91,7 +90,6 @@ public interface AuthApi {
             description = """
                     현재 로그인 세션의 `refreshToken`만 폐기합니다.
 
-                    프론트 구현 포인트:
                     - 서버는 `refreshToken` 쿠키를 삭제합니다.
                     - 이미 발급된 `accessToken`은 즉시 무효화되지 않으며, 만료 시점까지는 보호 API 호출에 사용할 수 있습니다.
                     - 즉, 현재 단계의 로그아웃 의미는 `재발급 차단`이지 `즉시 전역 세션 종료`가 아닙니다.
@@ -151,7 +149,6 @@ public interface AuthApi {
             description = """
                     Google 로그인 화면으로 리다이렉트합니다.
 
-                    프론트 구현 포인트:
                     - 일반 JSON API가 아니라 `302 Redirect` 응답입니다.
                     - 브라우저 이동 또는 팝업/리다이렉트 흐름에서 사용합니다.
                     - 로그인 성공 후 프론트는 최종적으로 `code`를 전달받고, 별도 교환 API를 호출해 `accessToken`을 받습니다.
@@ -171,7 +168,6 @@ public interface AuthApi {
             description = """
                     Google OAuth2 로그인 성공 후 프론트가 받은 단기 교환 코드를 Matchuri `accessToken`으로 교환합니다.
 
-                    프론트 구현 포인트:
                     - 성공 시 응답 body에는 `accessToken`과 회원 요약 정보가 포함됩니다.
                     - `refreshToken`은 이미 OAuth2 성공 리다이렉트 단계에서 `HttpOnly` 쿠키로 처리되므로 body에는 포함되지 않습니다.
                     - 같은 교환 코드는 한 번만 사용할 수 있습니다.

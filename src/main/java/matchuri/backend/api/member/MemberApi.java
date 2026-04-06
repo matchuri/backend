@@ -25,7 +25,6 @@ public interface MemberApi {
             description = """
                     일반 회원 계정을 생성합니다.
 
-                    프론트 구현 포인트:
                     - 가입 성공 시 자동 로그인되지 않습니다.
                     - 응답에는 생성된 회원의 `memberId`, `loginId`, `createdAt`이 포함됩니다.
                     - 가입 직후 로그인 화면으로 이동하거나, 같은 `loginId`로 로그인 API를 이어 호출하면 됩니다.
@@ -162,7 +161,6 @@ public interface MemberApi {
             description = """
                     현재 로그인한 회원의 기본 프로필 정보를 조회합니다.
 
-                    프론트 구현 포인트:
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
                     - 현재 단계에서는 최소 프로필만 반환하므로 `id`, `nickname`만 사용하면 됩니다.
                     - `loginId`, `email`, 취향 프로필 상세 필드는 이 응답에 포함되지 않습니다.
@@ -174,7 +172,6 @@ public interface MemberApi {
             description = """
                     현재 로그인한 회원의 기본 정보 중 `nickname`만 수정합니다.
 
-                    프론트 구현 포인트:
                     - 부분 수정 API이므로 필요한 필드만 보내면 됩니다.
                     - `nickname`을 보내지 않으면 변경하지 않습니다.
                     - 성공 시 최신 수정 시각(`updatedAt`)을 반환합니다.
@@ -186,7 +183,6 @@ public interface MemberApi {
             description = """
                     현재 로그인한 회원의 취향 프로필 최소 정보(`profileVersion`)를 수정합니다.
 
-                    프론트 구현 포인트:
                     - 현재 단계에서는 취향 프로필 전체가 아니라 서버가 이해하는 버전 문자열만 받습니다.
                     - 취향 설문 결과를 저장한 뒤 이 API로 버전을 연결하는 식으로 사용할 수 있습니다.
                     """)
@@ -197,7 +193,6 @@ public interface MemberApi {
             description = """
                     현재 로그인한 회원을 비활성화 처리합니다.
 
-                    프론트 구현 포인트:
                     - 물리 삭제가 아니라 `status=INACTIVE`로 전환됩니다.
                     - 탈퇴 후 같은 계정으로 다시 로그인할 수 없습니다.
                     - 이미 발급된 access token이 남아 있어도 이후 보호 API에서는 비활성 회원으로 거절됩니다.
