@@ -1,6 +1,6 @@
 package matchuri.backend.domain.auth.service;
 
-public record GoogleOAuth2LoginResult(
+public record OAuth2LoginResult(
         Long memberId,
         String refreshToken,
         String exchangeCode

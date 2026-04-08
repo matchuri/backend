@@ -19,13 +19,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
-class GoogleOAuth2ServiceTest {
+class OAuth2MemberServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
 
     @InjectMocks
-    private GoogleOAuth2Service googleOAuth2Service;
+    private OAuth2MemberService oAuth2MemberService;
 
     @Test
     @DisplayName("동시 생성 충돌이 발생하면 기존 구글 회원을 재조회해 반환한다")
@@ -48,7 +48,12 @@ class GoogleOAuth2ServiceTest {
         when(memberRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(Member.class)))
                 .thenThrow(new DataIntegrityViolationException("duplicate social member"));
 
-        Member resolvedMember = googleOAuth2Service.findOrCreateMember(providerUserId, "google@example.com", "구글사용자");
+        Member resolvedMember = oAuth2MemberService.findOrCreateMember(
+                SocialProviderType.GOOGLE,
+                providerUserId,
+                "google@example.com",
+                "구글사용자"
+        );
 
         assertThat(resolvedMember).isSameAs(existingMember);
         verify(memberRepository).saveAndFlush(org.mockito.ArgumentMatchers.any(Member.class));

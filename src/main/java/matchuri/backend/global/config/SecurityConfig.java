@@ -2,12 +2,12 @@ package matchuri.backend.global.config;
 
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.global.config.MatchuriProperties.Auth;
-import matchuri.backend.global.security.GoogleOAuth2AuthenticationFailureHandler;
-import matchuri.backend.global.security.GoogleOAuth2AuthenticationSuccessHandler;
 import matchuri.backend.global.security.HttpCookieOAuth2AuthorizationRequestRepository;
 import matchuri.backend.global.security.JwtAuthenticationFilter;
 import matchuri.backend.global.security.MatchuriAccessDeniedHandler;
 import matchuri.backend.global.security.MatchuriAuthenticationEntryPoint;
+import matchuri.backend.global.security.OAuth2AuthenticationFailureHandler;
+import matchuri.backend.global.security.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -32,8 +32,8 @@ public class SecurityConfig {
     private final MatchuriAuthenticationEntryPoint authenticationEntryPoint;
     private final MatchuriAccessDeniedHandler accessDeniedHandler;
     private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
-    private final GoogleOAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
-    private final GoogleOAuth2AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
+    private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

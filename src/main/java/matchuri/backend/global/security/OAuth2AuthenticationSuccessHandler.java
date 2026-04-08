@@ -7,12 +7,14 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import matchuri.backend.domain.auth.AuthErrorCode;
-import matchuri.backend.domain.auth.service.GoogleOAuth2LoginResult;
-import matchuri.backend.domain.auth.service.GoogleOAuth2LoginService;
+import matchuri.backend.domain.auth.service.OAuth2LoginResult;
+import matchuri.backend.domain.auth.service.OAuth2LoginService;
 import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
+import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.exception.ErrorCode;
 import matchuri.backend.global.exception.MatchuriException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -20,12 +22,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GoogleOAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final GoogleOAuth2LoginService googleOAuth2LoginService;
+    private final OAuth2LoginService oAuth2LoginService;
     private final RefreshTokenCookieService refreshTokenCookieService;
     private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
-    private final GoogleOAuth2RedirectService redirectService;
+    private final OAuth2RedirectService redirectService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -33,9 +35,11 @@ public class GoogleOAuth2AuthenticationSuccessHandler implements AuthenticationS
             HttpServletResponse response,
             Authentication authentication
     ) throws IOException, ServletException {
+        SocialProviderType provider = resolveProvider(authentication);
         try {
             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-            GoogleOAuth2LoginResult loginResult = googleOAuth2LoginService.login(
+            OAuth2LoginResult loginResult = oAuth2LoginService.login(
+                    provider,
                     oauth2User.getAttribute("sub"),
                     oauth2User.getAttribute("email"),
                     oauth2User.getAttribute("name"),
@@ -45,18 +49,19 @@ public class GoogleOAuth2AuthenticationSuccessHandler implements AuthenticationS
             authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
             refreshTokenCookieService.addRefreshToken(response, loginResult.refreshToken());
 
-            response.sendRedirect(redirectService.buildSuccessRedirectUrl(loginResult.exchangeCode()));
+            response.sendRedirect(redirectService.buildSuccessRedirectUrl(provider, loginResult.exchangeCode()));
         } catch (Exception exception) {
             ErrorCode errorCode = resolveErrorCode(exception);
             log.warn(
-                    "auth event=oauth2_login_failed provider=google ip={} code={} reason={}",
+                    "auth event=oauth2_login_failed provider={} ip={} code={} reason={}",
+                    provider.toRegistrationId(),
                     request.getRemoteAddr(),
                     errorCode.getCode(),
                     exception.getMessage()
             );
             authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
             refreshTokenCookieService.clearRefreshToken(response);
-            response.sendRedirect(redirectService.buildFailureRedirectUrl(errorCode));
+            response.sendRedirect(redirectService.buildFailureRedirectUrl(provider, errorCode));
         }
     }
 
@@ -66,5 +71,13 @@ public class GoogleOAuth2AuthenticationSuccessHandler implements AuthenticationS
         }
 
         return AuthErrorCode.OAUTH2_PROCESSING_FAILED;
+    }
+
+    private SocialProviderType resolveProvider(Authentication authentication) {
+        if (authentication instanceof OAuth2AuthenticationToken oauth2AuthenticationToken) {
+            return SocialProviderType.fromRegistrationId(oauth2AuthenticationToken.getAuthorizedClientRegistrationId());
+        }
+
+        throw new matchuri.backend.global.exception.AuthenticationException(AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
     }
 }

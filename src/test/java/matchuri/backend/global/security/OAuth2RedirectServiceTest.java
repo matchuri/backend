@@ -3,31 +3,34 @@ package matchuri.backend.global.security;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import matchuri.backend.domain.auth.AuthErrorCode;
+import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class GoogleOAuth2RedirectServiceTest {
+class OAuth2RedirectServiceTest {
 
     @Test
     @DisplayName("OAuth2 성공 리다이렉트 URL을 일관되게 생성한다")
     void buildsSuccessRedirectUrl() {
-        GoogleOAuth2RedirectService service = new GoogleOAuth2RedirectService(createProperties());
+        OAuth2RedirectService service = new OAuth2RedirectService(createProperties());
 
-        String redirectUrl = service.buildSuccessRedirectUrl("exchange-code");
+        String redirectUrl = service.buildSuccessRedirectUrl(SocialProviderType.GOOGLE, "exchange-code");
 
-        assertThat(redirectUrl).isEqualTo("http://localhost:3000/auth/callback/google?loginResult=success&code=exchange-code");
+        assertThat(redirectUrl).isEqualTo(
+                "http://localhost:3000/auth/callback/google?loginResult=success&provider=google&code=exchange-code"
+        );
     }
 
     @Test
     @DisplayName("OAuth2 실패 리다이렉트 URL을 일관되게 생성한다")
     void buildsFailureRedirectUrl() {
-        GoogleOAuth2RedirectService service = new GoogleOAuth2RedirectService(createProperties());
+        OAuth2RedirectService service = new OAuth2RedirectService(createProperties());
 
-        String redirectUrl = service.buildFailureRedirectUrl(AuthErrorCode.OAUTH2_PROVIDER_REJECTED);
+        String redirectUrl = service.buildFailureRedirectUrl(SocialProviderType.NAVER, AuthErrorCode.OAUTH2_PROVIDER_REJECTED);
 
         assertThat(redirectUrl).isEqualTo(
-                "http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROVIDER_REJECTED"
+                "http://localhost:3000/login?loginResult=failed&provider=naver&errorCode=AUTH_OAUTH2_PROVIDER_REJECTED"
         );
     }
 

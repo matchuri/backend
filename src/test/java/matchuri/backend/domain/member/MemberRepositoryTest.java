@@ -7,6 +7,7 @@ import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.global.config.JpaConfig;
@@ -100,10 +101,10 @@ class MemberRepositoryTest {
     @Test
     @DisplayName("같은 소셜 제공자 사용자 식별자는 유일해야 한다")
     void socialProviderUserIdMustBeUniquePerProvider() {
-        memberRepository.saveAndFlush(Member.createGoogleSocialMember("google-user-1", "google1@example.com", "구글1"));
+        memberRepository.saveAndFlush(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google1@example.com", "구글1"));
 
         assertThatThrownBy(() ->
-                memberRepository.saveAndFlush(Member.createGoogleSocialMember("google-user-1", "google2@example.com", "구글2"))
+        memberRepository.saveAndFlush(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google2@example.com", "구글2"))
         ).isInstanceOf(Exception.class);
     }
 }

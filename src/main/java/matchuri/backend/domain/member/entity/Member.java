@@ -117,14 +117,14 @@ public class Member extends BaseEntity {
                 .build();
     }
 
-    public static Member createGoogleSocialMember(String providerUserId, String email, String nickname) {
+    public static Member createSocialMember(SocialProviderType provider, String providerUserId, String email, String nickname) {
         return Member.builder()
                 .loginId(null)
                 .passwordHash(null)
                 .email(email)
                 .nickname(nickname)
                 .social(true)
-                .socialProviderType(SocialProviderType.GOOGLE)
+                .socialProviderType(provider)
                 .socialProviderUserId(providerUserId)
                 .memberRole(MemberRole.MEMBER)
                 .status(MemberStatus.ACTIVE)

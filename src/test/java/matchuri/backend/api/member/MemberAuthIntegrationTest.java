@@ -258,7 +258,7 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("유효한 소셜 교환 코드는 액세스 토큰으로 교환된다")
     void exchangeOAuth2Code() throws Exception {
-        Member member = memberRepository.save(Member.createGoogleSocialMember("google-user-1", "google@example.com", "구글사용자"));
+        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "구글사용자"));
         authExchangeCodeRepository.save(AuthExchangeCode.issue(
                 member,
                 SocialProviderType.GOOGLE,
@@ -283,7 +283,7 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("소셜 교환 코드는 한 번 사용 후 재사용할 수 없다")
     void exchangeOAuth2CodeCannotBeReused() throws Exception {
-        Member member = memberRepository.save(Member.createGoogleSocialMember("google-user-2", "google2@example.com", "구글사용자2"));
+        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-2", "google2@example.com", "구글사용자2"));
         authExchangeCodeRepository.save(AuthExchangeCode.issue(
                 member,
                 SocialProviderType.GOOGLE,
@@ -317,7 +317,7 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("만료된 소셜 교환 코드는 AUTH_OAUTH2_EXCHANGE_CODE_INVALID를 반환한다")
     void exchangeOAuth2CodeFailsWhenCodeIsExpired() throws Exception {
-        Member member = memberRepository.save(Member.createGoogleSocialMember("google-user-3", "google3@example.com", "구글사용자3"));
+        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-3", "google3@example.com", "구글사용자3"));
         authExchangeCodeRepository.save(AuthExchangeCode.issue(
                 member,
                 SocialProviderType.GOOGLE,

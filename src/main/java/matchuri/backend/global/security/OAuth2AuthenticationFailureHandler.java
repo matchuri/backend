@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import matchuri.backend.domain.auth.AuthErrorCode;
 import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
+import matchuri.backend.domain.member.entity.SocialProviderType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -16,11 +17,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GoogleOAuth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
+public class OAuth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
 
     private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final RefreshTokenCookieService refreshTokenCookieService;
-    private final GoogleOAuth2RedirectService redirectService;
+    private final OAuth2RedirectService redirectService;
 
     @Override
     public void onAuthenticationFailure(
@@ -31,10 +32,11 @@ public class GoogleOAuth2AuthenticationFailureHandler implements AuthenticationF
         authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
         refreshTokenCookieService.clearRefreshToken(response);
 
+        SocialProviderType provider = resolveProvider(request);
         AuthErrorCode errorCode = resolveErrorCode(exception);
-        log.warn("auth event=oauth2_provider_failed provider=google ip={} code={}", request.getRemoteAddr(), errorCode.getCode());
+        log.warn("auth event=oauth2_provider_failed provider={} ip={} code={}", provider.toRegistrationId(), request.getRemoteAddr(), errorCode.getCode());
 
-        response.sendRedirect(redirectService.buildFailureRedirectUrl(errorCode));
+        response.sendRedirect(redirectService.buildFailureRedirectUrl(provider, errorCode));
     }
 
     private AuthErrorCode resolveErrorCode(AuthenticationException exception) {
@@ -44,5 +46,15 @@ public class GoogleOAuth2AuthenticationFailureHandler implements AuthenticationF
         }
 
         return AuthErrorCode.OAUTH2_PROCESSING_FAILED;
+    }
+
+    private SocialProviderType resolveProvider(HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        if (requestUri == null || requestUri.isBlank()) {
+            return SocialProviderType.GOOGLE;
+        }
+
+        String[] segments = requestUri.split("/");
+        return SocialProviderType.fromRegistrationId(segments[segments.length - 1]);
     }
 }

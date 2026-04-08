@@ -16,18 +16,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class GoogleOAuth2Service {
+public class OAuth2MemberService {
 
     private final MemberRepository memberRepository;
 
     @Transactional
-    public Member findOrCreateMember(String providerUserId, String email, String nickname) {
+    public Member findOrCreateMember(SocialProviderType provider, String providerUserId, String email, String nickname) {
         if (providerUserId == null || providerUserId.isBlank()) {
             throw new AuthenticationException(AuthErrorCode.OAUTH2_PROVIDER_USERINFO_MISSING);
         }
 
-        Member member = memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId)
-                .orElseGet(() -> createGoogleSocialMember(providerUserId, email, nickname));
+        Member member = memberRepository.findBySocialProviderTypeAndSocialProviderUserId(provider, providerUserId)
+                .orElseGet(() -> createSocialMember(provider, providerUserId, email, nickname));
 
         if (member.getStatus() != MemberStatus.ACTIVE) {
             throw new BusinessException(MemberErrorCode.INACTIVE_MEMBER, MemberErrorCode.INACTIVE_MEMBER.format(member.getId()));
@@ -36,11 +36,11 @@ public class GoogleOAuth2Service {
         return member;
     }
 
-    private Member createGoogleSocialMember(String providerUserId, String email, String nickname) {
+    private Member createSocialMember(SocialProviderType provider, String providerUserId, String email, String nickname) {
         try {
-            return memberRepository.saveAndFlush(Member.createGoogleSocialMember(providerUserId, email, nickname));
+            return memberRepository.saveAndFlush(Member.createSocialMember(provider, providerUserId, email, nickname));
         } catch (DataIntegrityViolationException exception) {
-            return memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId)
+            return memberRepository.findBySocialProviderTypeAndSocialProviderUserId(provider, providerUserId)
                     .orElseThrow(() -> exception);
         }
     }
