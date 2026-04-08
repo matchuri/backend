@@ -10,6 +10,8 @@ import matchuri.backend.domain.auth.AuthErrorCode;
 import matchuri.backend.domain.auth.service.GoogleOAuth2LoginResult;
 import matchuri.backend.domain.auth.service.GoogleOAuth2LoginService;
 import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
+import matchuri.backend.global.exception.ErrorCode;
+import matchuri.backend.global.exception.MatchuriException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -45,10 +47,24 @@ public class GoogleOAuth2AuthenticationSuccessHandler implements AuthenticationS
 
             response.sendRedirect(redirectService.buildSuccessRedirectUrl(loginResult.exchangeCode()));
         } catch (Exception exception) {
-            log.warn("auth event=oauth2_login_failed provider=google ip={} reason={}", request.getRemoteAddr(), exception.getMessage());
+            ErrorCode errorCode = resolveErrorCode(exception);
+            log.warn(
+                    "auth event=oauth2_login_failed provider=google ip={} code={} reason={}",
+                    request.getRemoteAddr(),
+                    errorCode.getCode(),
+                    exception.getMessage()
+            );
             authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
             refreshTokenCookieService.clearRefreshToken(response);
-            response.sendRedirect(redirectService.buildFailureRedirectUrl(AuthErrorCode.OAUTH2_PROCESSING_FAILED));
+            response.sendRedirect(redirectService.buildFailureRedirectUrl(errorCode));
         }
+    }
+
+    private ErrorCode resolveErrorCode(Exception exception) {
+        if (exception instanceof MatchuriException matchuriException) {
+            return matchuriException.getErrorCode();
+        }
+
+        return AuthErrorCode.OAUTH2_PROCESSING_FAILED;
     }
 }

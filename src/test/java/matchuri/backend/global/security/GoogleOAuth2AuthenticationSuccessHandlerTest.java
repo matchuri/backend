@@ -9,6 +9,8 @@ import matchuri.backend.domain.auth.AuthErrorCode;
 import matchuri.backend.domain.auth.service.GoogleOAuth2LoginResult;
 import matchuri.backend.domain.auth.service.GoogleOAuth2LoginService;
 import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
+import matchuri.backend.domain.member.MemberErrorCode;
+import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,6 +82,27 @@ class GoogleOAuth2AuthenticationSuccessHandlerTest {
         verify(refreshTokenCookieService).clearRefreshToken(response);
         assertThat(response.getRedirectedUrl())
                 .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
+    }
+
+    @Test
+    @DisplayName("OAuth2 로그인 후속 처리에서 Matchuri 예외가 발생하면 원래 에러 코드를 유지한다")
+    void preservesMatchuriErrorCodeWhenPostLoginProcessingFails() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("127.0.0.1");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        Authentication authentication = authentication(createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
+
+        when(googleOAuth2LoginService.login("google-user-1", "google@example.com", "구글사용자", "127.0.0.1"))
+                .thenThrow(new BusinessException(MemberErrorCode.INACTIVE_MEMBER));
+        when(redirectService.buildFailureRedirectUrl(MemberErrorCode.INACTIVE_MEMBER))
+                .thenReturn("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=MEMBER_INACTIVE_MEMBER");
+
+        successHandler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(authorizationRequestRepository).removeAuthorizationRequestCookies(request, response);
+        verify(refreshTokenCookieService).clearRefreshToken(response);
+        assertThat(response.getRedirectedUrl())
+                .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=MEMBER_INACTIVE_MEMBER");
     }
 
     private Authentication authentication(OAuth2User principal) {

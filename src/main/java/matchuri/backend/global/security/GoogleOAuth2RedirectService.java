@@ -1,8 +1,8 @@
 package matchuri.backend.global.security;
 
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.auth.AuthErrorCode;
 import matchuri.backend.global.config.MatchuriProperties;
+import matchuri.backend.global.exception.ErrorCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -22,7 +22,7 @@ public class GoogleOAuth2RedirectService {
                 .toUriString();
     }
 
-    public String buildFailureRedirectUrl(AuthErrorCode errorCode) {
+    public String buildFailureRedirectUrl(ErrorCode errorCode) {
         MatchuriProperties.OAuth2 oauth2 = matchuriProperties.getAuth().getOauth2();
         return UriComponentsBuilder.fromUriString(oauth2.getFrontendBaseUrl())
                 .path(oauth2.getFailurePath())
