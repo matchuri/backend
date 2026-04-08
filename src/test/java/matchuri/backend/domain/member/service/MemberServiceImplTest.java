@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.repository.MemberRepository;
@@ -28,9 +27,6 @@ class MemberServiceImplTest {
 
     @Mock
     private MemberTasteProfileRepository memberTasteProfileRepository;
-
-    @Mock
-    private MemberMapper memberMapper;
 
     @Mock
     private PasswordEncoder passwordEncoder;

@@ -1,7 +1,6 @@
 package matchuri.backend.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberStatus;
@@ -23,7 +22,6 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final MemberTasteProfileRepository memberTasteProfileRepository;
-    private final MemberMapper memberMapper;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationFacade authenticationFacade;
 
