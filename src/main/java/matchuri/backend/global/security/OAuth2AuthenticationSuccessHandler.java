@@ -47,7 +47,9 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
             refreshTokenCookieService.addRefreshToken(response, loginResult.refreshToken());
 
-            response.sendRedirect(redirectService.buildSuccessRedirectUrl(provider, loginResult.exchangeCode()));
+            String redirectUrl = redirectService.buildSuccessRedirectUrl(provider, loginResult.exchangeCode());
+            response.sendRedirect(redirectUrl);
+
         } catch (Exception exception) {
             ErrorCode errorCode = resolveErrorCode(exception);
             log.warn(
@@ -59,7 +61,10 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             );
             authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
             refreshTokenCookieService.clearRefreshToken(response);
-            response.sendRedirect(redirectService.buildFailureRedirectUrl(provider, errorCode));
+
+            String redirectUrl = redirectService.buildFailureRedirectUrl(provider, errorCode);
+            response.sendRedirect(redirectUrl);
+
         }
     }
 
