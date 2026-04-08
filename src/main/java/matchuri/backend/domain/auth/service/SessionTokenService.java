@@ -65,7 +65,7 @@ public class SessionTokenService {
 
         authRefreshTokenRepository.findByToken(refreshToken)
                 .ifPresentOrElse(
-                        token -> authRefreshTokenRepository.delete(token),
+                        authRefreshTokenRepository::delete,
                         () -> {
                             throw new AuthenticationException(AuthErrorCode.LOGOUT_FAILED);
                         }
