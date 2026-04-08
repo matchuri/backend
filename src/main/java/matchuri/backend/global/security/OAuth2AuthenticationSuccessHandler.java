@@ -40,9 +40,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
             OAuth2LoginResult loginResult = oAuth2LoginService.login(
                     provider,
-                    oauth2User.getAttribute("sub"),
-                    oauth2User.getAttribute("email"),
-                    oauth2User.getAttribute("name"),
+                    oauth2User,
                     request.getRemoteAddr()
             );
 

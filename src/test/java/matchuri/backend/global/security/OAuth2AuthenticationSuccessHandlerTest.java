@@ -1,6 +1,7 @@
 package matchuri.backend.global.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,7 +52,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         Authentication authentication = authentication(createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
 
-        when(oAuth2LoginService.login(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "구글사용자", "127.0.0.1"))
+        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class), org.mockito.Mockito.eq("127.0.0.1")))
                 .thenReturn(new OAuth2LoginResult(1L, "refresh-token", "exchange-code"));
         when(redirectService.buildSuccessRedirectUrl(SocialProviderType.GOOGLE, "exchange-code"))
                 .thenReturn("http://localhost:3000/auth/callback/google?loginResult=success&provider=google&code=exchange-code");
@@ -72,7 +73,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         Authentication authentication = authentication(createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
 
-        when(oAuth2LoginService.login(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "구글사용자", "127.0.0.1"))
+        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class), org.mockito.Mockito.eq("127.0.0.1")))
                 .thenThrow(new IllegalStateException("boom"));
         when(redirectService.buildFailureRedirectUrl(SocialProviderType.GOOGLE, AuthErrorCode.OAUTH2_PROCESSING_FAILED))
                 .thenReturn("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
@@ -93,7 +94,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         Authentication authentication = authentication(createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
 
-        when(oAuth2LoginService.login(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "구글사용자", "127.0.0.1"))
+        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class), org.mockito.Mockito.eq("127.0.0.1")))
                 .thenThrow(new BusinessException(MemberErrorCode.INACTIVE_MEMBER));
         when(redirectService.buildFailureRedirectUrl(SocialProviderType.GOOGLE, MemberErrorCode.INACTIVE_MEMBER))
                 .thenReturn("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=MEMBER_INACTIVE_MEMBER");
