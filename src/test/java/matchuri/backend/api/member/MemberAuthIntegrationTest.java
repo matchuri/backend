@@ -27,6 +27,7 @@ import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.SocialProviderType;
+import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.global.config.MatchuriProperties;
@@ -67,12 +68,16 @@ class MemberAuthIntegrationTest {
     private MemberTasteProfileRepository memberTasteProfileRepository;
 
     @Autowired
+    private MemberAgreementRepository memberAgreementRepository;
+
+    @Autowired
     private MatchuriProperties matchuriProperties;
 
     @BeforeEach
     void setUp() {
         authExchangeCodeRepository.deleteAll();
         authRefreshTokenRepository.deleteAll();
+        memberAgreementRepository.deleteAll();
         memberTasteProfileRepository.deleteAll();
         memberRepository.deleteAll();
     }
@@ -131,6 +136,8 @@ class MemberAuthIntegrationTest {
         createMemberThroughApi("tester01", "P@ssw0rd!");
         AuthSession authSession = login("tester01", "P@ssw0rd!");
         String accessToken = authSession.accessToken();
+
+        submitRequiredAgreements(accessToken);
 
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
@@ -357,6 +364,7 @@ class MemberAuthIntegrationTest {
     void withdrawnMemberCannotLoginAgain() throws Exception {
         createMemberThroughApi("withdrawn-user", "P@ssw0rd!");
         AuthSession authSession = login("withdrawn-user", "P@ssw0rd!");
+        submitRequiredAgreements(authSession.accessToken());
 
         mockMvc.perform(delete("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
@@ -419,6 +427,27 @@ class MemberAuthIntegrationTest {
                 body.path("data").path("accessToken").asText(),
                 result.getResponse().getCookie("matchuri_refresh_token")
         );
+    }
+
+    private void submitRequiredAgreements(String accessToken) throws Exception {
+        mockMvc.perform(post("/api/v1/member-agreements/consents")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "agreements": [
+                                    {
+                                      "agreementType": "TERMS_OF_SERVICE",
+                                      "agreementVersion": "2026-04-10"
+                                    },
+                                    {
+                                      "agreementType": "PRIVACY_POLICY",
+                                      "agreementVersion": "2026-04-10"
+                                    }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isOk());
     }
 
     private String bearer(String accessToken) {

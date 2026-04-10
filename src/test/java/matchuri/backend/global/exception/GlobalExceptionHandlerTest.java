@@ -41,6 +41,9 @@ class GlobalExceptionHandlerTest {
     @MockitoBean
     private matchuri.backend.global.security.JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @MockitoBean
+    private matchuri.backend.global.security.RequiredAgreementAccessFilter requiredAgreementAccessFilter;
+
     @Autowired
     private MockMvc mockMvc;
 
