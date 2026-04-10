@@ -10,6 +10,7 @@ import matchuri.backend.api.auth.dto.LoginResponse;
 import matchuri.backend.api.auth.dto.LogoutResponse;
 import matchuri.backend.api.auth.dto.OAuth2ExchangeRequest;
 import matchuri.backend.api.member.mapper.MemberMapper;
+import matchuri.backend.domain.auth.AuthErrorCode;
 import matchuri.backend.domain.auth.service.AuthService;
 import matchuri.backend.domain.auth.service.LoginResult;
 import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
@@ -48,7 +49,7 @@ public class AuthController implements AuthApi {
     @PostMapping("/logout")
     public ApiResponse<LogoutResponse> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         String refreshToken = refreshTokenCookieService.resolveRefreshToken(httpRequest)
-                .orElseThrow(() -> new matchuri.backend.global.exception.AuthenticationException(matchuri.backend.domain.auth.AuthErrorCode.LOGOUT_FAILED));
+                .orElseThrow(() -> new matchuri.backend.global.exception.AuthenticationException(AuthErrorCode.LOGOUT_FAILED));
 
         var result = authService.logout(refreshToken, resolveClientIp(httpRequest));
         LogoutResponse response = memberMapper.toLogoutResponse(result);

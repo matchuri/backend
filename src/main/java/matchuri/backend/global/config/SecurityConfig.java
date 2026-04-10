@@ -8,6 +8,7 @@ import matchuri.backend.global.security.MatchuriAccessDeniedHandler;
 import matchuri.backend.global.security.MatchuriAuthenticationEntryPoint;
 import matchuri.backend.global.security.OAuth2AuthenticationFailureHandler;
 import matchuri.backend.global.security.OAuth2AuthenticationSuccessHandler;
+import matchuri.backend.global.security.RequiredAgreementAccessFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -34,6 +35,7 @@ public class SecurityConfig {
     private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
+    private final RequiredAgreementAccessFilter requiredAgreementAccessFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -62,7 +64,8 @@ public class SecurityConfig {
                         .successHandler(oauth2AuthenticationSuccessHandler)
                         .failureHandler(oauth2AuthenticationFailureHandler)
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(requiredAgreementAccessFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

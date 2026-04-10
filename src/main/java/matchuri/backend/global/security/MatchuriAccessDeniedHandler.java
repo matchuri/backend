@@ -7,6 +7,7 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.auth.AuthErrorCode;
 import matchuri.backend.global.api.ApiResponse;
+import matchuri.backend.global.exception.ErrorCode;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -24,9 +25,14 @@ public class MatchuriAccessDeniedHandler implements AccessDeniedHandler {
             HttpServletResponse response,
             AccessDeniedException accessDeniedException
     ) throws IOException {
-        response.setStatus(AuthErrorCode.FORBIDDEN.getHttpStatus().value());
+        Object errorCodeAttribute = request.getAttribute(RequiredAgreementAccessFilter.AUTHORIZATION_ERROR_CODE_ATTRIBUTE);
+        ErrorCode errorCode = errorCodeAttribute instanceof ErrorCode customErrorCode
+                ? customErrorCode
+                : AuthErrorCode.FORBIDDEN;
+
+        response.setStatus(errorCode.getHttpStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        objectMapper.writeValue(response.getWriter(), ApiResponse.failure(AuthErrorCode.FORBIDDEN));
+        objectMapper.writeValue(response.getWriter(), ApiResponse.failure(errorCode));
     }
 }
