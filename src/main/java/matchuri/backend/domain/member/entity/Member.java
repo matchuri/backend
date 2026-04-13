@@ -43,7 +43,7 @@ public class Member extends BaseEntity {
     public static final int LOGIN_ID_MAX_SIZE = 50;
     public static final int PASSWORD_MIN_SIZE = 8;
     public static final int PASSWORD_MAX_SIZE = 100;
-    public static final int NICKNAME_MAX_SIZE = 50;
+    public static final int NICKNAME_MAX_SIZE = 100;
     public static final String LOGIN_ID_PATTERN = "^[A-Za-z0-9._-]+$";
 
     @Id
