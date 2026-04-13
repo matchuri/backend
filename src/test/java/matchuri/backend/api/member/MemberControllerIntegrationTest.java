@@ -127,6 +127,59 @@ class MemberControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("이미 존재하는 nickname은 exists=true로 반환한다")
+    void returnsTrueWhenNicknameExists() throws Exception {
+        Member member = Member.builder()
+                .loginId("tester01")
+                .passwordHash("hashed-password")
+                .nickname("example_google")
+                .email("tester01@example.com")
+                .social(false)
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .build();
+        memberRepository.save(member);
+
+        mockMvc.perform(get("/api/v1/members/exists/nickname/{nickname}", "example_google")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.nickname").value("example_google"))
+                .andExpect(jsonPath("$.data.exists").value(true))
+                .andDo(document("members/check-nickname",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(
+                                parameterWithName("nickname").description(
+                                        """
+                                        프로필 설정 시 사용할 닉네임입니다.
+                                        제약:
+                                        - 공백만으로 구성될 수 없음
+                                        - 최대 100자
+                                        허용 예시: 점심탐험가, example_google
+                                        """
+                                )
+                        ),
+                        RestDocsSupport.successResponse(
+                                fieldWithPath("data.nickname")
+                                        .description("중복 확인한 닉네임입니다. 요청 path variable과 동일한 값을 반환합니다."),
+                                fieldWithPath("data.exists")
+                                        .description("이미 존재하는 닉네임인지 여부입니다. true면 이미 사용 중이고, false면 사용할 수 있습니다.")
+                        )));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 nickname은 exists=false로 반환한다")
+    void returnsFalseWhenNicknameDoesNotExist() throws Exception {
+        mockMvc.perform(get("/api/v1/members/exists/nickname/{nickname}", "example_google")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.nickname").value("example_google"))
+                .andExpect(jsonPath("$.data.exists").value(false));
+    }
+
+    @Test
     @DisplayName("형식이 잘못된 loginId는 공통 경로 변수 오류 응답을 반환한다")
     void returnsPathValidationErrorForInvalidLoginId() throws Exception {
         mockMvc.perform(get("/api/v1/members/exists/{loginId}", "invalid login id")
@@ -147,6 +200,32 @@ class MemberControllerIntegrationTest {
                                         - 공백 포함
                                         - 허용되지 않은 문자 포함
                                         - 50자 초과
+                                        """
+                                )
+                        ),
+                        RestDocsSupport.errorResponse()));
+    }
+
+    @Test
+    @DisplayName("형식이 잘못된 nickname은 공통 경로 변수 오류 응답을 반환한다")
+    void returnsPathValidationErrorForInvalidNickname() throws Exception {
+        mockMvc.perform(get("/api/v1/members/exists/nickname/{nickname}", " ")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("COMMON_INVALID_PATH_VARIABLE"))
+                .andExpect(jsonPath("$.error.details[0].source").value("PATH"))
+                .andExpect(jsonPath("$.error.details[0].field").value("nickname"))
+                .andDo(document("members/check-nickname-invalid",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(
+                                parameterWithName("nickname").description(
+                                        """
+                                        형식 검증 대상 닉네임입니다.
+                                        대표 실패 케이스:
+                                        - 공백만 포함
+                                        - 100자 초과
                                         """
                                 )
                         ),

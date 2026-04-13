@@ -216,6 +216,32 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
+    @DisplayName("내 닉네임 수정 시 이미 존재하는 닉네임이면 MEMBER_DUPLICATE_NICKNAME을 반환한다")
+    void updateMyProfileFailsWhenNicknameAlreadyExists() throws Exception {
+        createMemberThroughApi("tester01", "P@ssw0rd!");
+        createMemberThroughApi("tester02", "P@ssw0rd!");
+
+        AuthSession authSession = login("tester01", "P@ssw0rd!");
+        String accessToken = authSession.accessToken();
+        submitRequiredAgreements(accessToken);
+
+        Member duplicateNicknameOwner = memberRepository.findByLoginId("tester02").orElseThrow();
+        duplicateNicknameOwner.updateNickname("점심탐험가");
+        memberRepository.saveAndFlush(duplicateNicknameOwner);
+
+        mockMvc.perform(patch("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nickname": "점심탐험가"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_DUPLICATE_NICKNAME"));
+    }
+
+    @Test
     @DisplayName("보호 API는 토큰 없이 접근하면 AUTH_TOKEN_MISSING을 반환한다")
     void protectedApiRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/api/v1/members/me"))
@@ -339,7 +365,7 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("유효한 소셜 교환 코드는 액세스 토큰으로 교환된다")
     void exchangeOAuth2Code() throws Exception {
-        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "구글사용자"));
+        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "example_google"));
         authExchangeCodeRepository.save(AuthExchangeCode.issue(
                 member,
                 SocialProviderType.GOOGLE,
@@ -364,7 +390,7 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("소셜 교환 코드는 한 번 사용 후 재사용할 수 없다")
     void exchangeOAuth2CodeCannotBeReused() throws Exception {
-        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-2", "google2@example.com", "구글사용자2"));
+        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-2", "google2@example.com", "google2_google"));
         authExchangeCodeRepository.save(AuthExchangeCode.issue(
                 member,
                 SocialProviderType.GOOGLE,
@@ -398,7 +424,7 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("만료된 소셜 교환 코드는 AUTH_OAUTH2_EXCHANGE_CODE_INVALID를 반환한다")
     void exchangeOAuth2CodeFailsWhenCodeIsExpired() throws Exception {
-        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-3", "google3@example.com", "구글사용자3"));
+        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-3", "google3@example.com", "google3_google"));
         authExchangeCodeRepository.save(AuthExchangeCode.issue(
                 member,
                 SocialProviderType.GOOGLE,

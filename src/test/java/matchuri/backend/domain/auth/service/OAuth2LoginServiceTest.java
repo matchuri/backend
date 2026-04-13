@@ -51,14 +51,14 @@ class OAuth2LoginServiceTest {
                 LocalDateTime.of(2026, 4, 9, 12, 0)
         );
 
-        when(oAuth2MemberService.findOrCreateMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "구글사용자"))
+        when(oAuth2MemberService.findOrCreateMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com"))
                 .thenReturn(member);
         when(sessionTokenService.issueLoginTokenPair(member)).thenReturn(tokenPair);
         when(sessionTokenService.createExchangeCode(member, SocialProviderType.GOOGLE)).thenReturn("exchange-code");
 
         OAuth2LoginResult result = service.login(SocialProviderType.GOOGLE, oauth2User, "127.0.0.1");
 
-        verify(oAuth2MemberService).findOrCreateMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "구글사용자");
+        verify(oAuth2MemberService).findOrCreateMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com");
         verify(sessionTokenService).issueLoginTokenPair(member);
         verify(sessionTokenService).createExchangeCode(member, SocialProviderType.GOOGLE);
         assertThat(result.refreshToken()).isEqualTo("refresh-token");

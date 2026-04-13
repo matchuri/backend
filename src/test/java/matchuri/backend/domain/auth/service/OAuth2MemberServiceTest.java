@@ -1,6 +1,7 @@
 package matchuri.backend.domain.auth.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -13,6 +14,7 @@ import matchuri.backend.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -45,17 +47,64 @@ class OAuth2MemberServiceTest {
         when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId))
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.of(existingMember));
-        when(memberRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(Member.class)))
+        when(memberRepository.existsByNickname("google_google")).thenReturn(false);
+        when(memberRepository.saveAndFlush(any(Member.class)))
                 .thenThrow(new DataIntegrityViolationException("duplicate social member"));
 
         Member resolvedMember = oAuth2MemberService.findOrCreateMember(
                 SocialProviderType.GOOGLE,
                 providerUserId,
-                "google@example.com",
-                "구글사용자"
+                "google@example.com"
         );
 
         assertThat(resolvedMember).isSameAs(existingMember);
-        verify(memberRepository).saveAndFlush(org.mockito.ArgumentMatchers.any(Member.class));
+        verify(memberRepository).saveAndFlush(any(Member.class));
+    }
+
+    @Test
+    @DisplayName("신규 소셜 회원은 이메일 로컬파트와 provider로 임시 닉네임을 생성한다")
+    void createsSocialMemberWithTemporaryNickname() {
+        String providerUserId = "google-user-1";
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
+
+        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId))
+                .thenReturn(Optional.empty());
+        when(memberRepository.existsByNickname("example_google")).thenReturn(false);
+        when(memberRepository.saveAndFlush(any(Member.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Member createdMember = oAuth2MemberService.findOrCreateMember(
+                SocialProviderType.GOOGLE,
+                providerUserId,
+                "example@google.com"
+        );
+
+        verify(memberRepository).saveAndFlush(memberCaptor.capture());
+        assertThat(memberCaptor.getValue().getNickname()).isEqualTo("example_google");
+        assertThat(createdMember.getNickname()).isEqualTo("example_google");
+    }
+
+    @Test
+    @DisplayName("임시 닉네임이 이미 존재하면 숫자 suffix를 붙여 유니크하게 저장한다")
+    void createsUniqueTemporaryNicknameWhenBaseNicknameAlreadyExists() {
+        String providerUserId = "google-user-2";
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
+
+        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId))
+                .thenReturn(Optional.empty());
+        when(memberRepository.existsByNickname("example_google")).thenReturn(true);
+        when(memberRepository.existsByNickname("example_google_1")).thenReturn(false);
+        when(memberRepository.saveAndFlush(any(Member.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Member createdMember = oAuth2MemberService.findOrCreateMember(
+                SocialProviderType.GOOGLE,
+                providerUserId,
+                "example@google.com"
+        );
+
+        verify(memberRepository).saveAndFlush(memberCaptor.capture());
+        assertThat(memberCaptor.getValue().getNickname()).isEqualTo("example_google_1");
+        assertThat(createdMember.getNickname()).isEqualTo("example_google_1");
     }
 }
