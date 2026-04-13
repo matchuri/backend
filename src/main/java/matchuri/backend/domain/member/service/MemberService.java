@@ -4,6 +4,8 @@ public interface MemberService {
 
     boolean existsByLoginId(String loginId);
 
+    boolean existsByNickname(String nickname);
+
     CreateMemberResult createMember(CreateMemberCommand command);
 
     MemberProfileResult getMyProfile();

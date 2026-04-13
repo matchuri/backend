@@ -31,6 +31,11 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public boolean existsByNickname(String nickname) {
+        return memberRepository.existsByNickname(nickname);
+    }
+
+    @Override
     @Transactional
     public CreateMemberResult createMember(CreateMemberCommand command) {
         if (memberRepository.existsByLoginId(command.loginId())) {
@@ -58,7 +63,18 @@ public class MemberServiceImpl implements MemberService {
         Member member = getCurrentActiveMember();
 
         if (command.nickname() != null) {
-            member.updateNickname(command.nickname().isBlank() ? null : command.nickname());
+            String nickname = command.nickname().isBlank() ? null : command.nickname();
+            validateNicknameDuplication(member, nickname);
+
+            try {
+                member.updateNickname(nickname);
+                memberRepository.flush();
+            } catch (DataIntegrityViolationException exception) {
+                throw new BusinessException(
+                        MemberErrorCode.DUPLICATE_NICKNAME,
+                        MemberErrorCode.DUPLICATE_NICKNAME.format(nickname)
+                );
+            }
         }
 
         return new UpdateMemberResult(member.getId(), member.getUpdatedAt());
@@ -114,6 +130,19 @@ public class MemberServiceImpl implements MemberService {
             throw new BusinessException(
                     MemberErrorCode.DUPLICATE_LOGIN_ID,
                     MemberErrorCode.DUPLICATE_LOGIN_ID.format(loginId)
+            );
+        }
+    }
+
+    private void validateNicknameDuplication(Member member, String nickname) {
+        if (nickname == null || nickname.equals(member.getNickname())) {
+            return;
+        }
+
+        if (memberRepository.existsByNickname(nickname)) {
+            throw new BusinessException(
+                    MemberErrorCode.DUPLICATE_NICKNAME,
+                    MemberErrorCode.DUPLICATE_NICKNAME.format(nickname)
             );
         }
     }

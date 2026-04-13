@@ -30,8 +30,7 @@ public class OAuth2LoginService {
         var member = oAuth2MemberService.findOrCreateMember(
                 provider,
                 userInfo.providerUserId(),
-                userInfo.email(),
-                userInfo.nickname()
+                userInfo.email()
         );
         TokenPair tokenPair = sessionTokenService.issueLoginTokenPair(member);
         String exchangeCode = sessionTokenService.createExchangeCode(member, provider);

@@ -11,6 +11,7 @@ import matchuri.backend.api.member.dto.CreateMemberRequest;
 import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
+import matchuri.backend.api.member.dto.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
@@ -154,6 +155,80 @@ public interface MemberApi {
                     example = "tester01"
             )
             String loginId
+    );
+
+    @Operation(
+            summary = "닉네임 중복 확인",
+            description = """
+                    프로필 설정 시 사용할 닉네임이 이미 사용 중인지 확인합니다.
+                    이 API는 인증 없이 호출할 수 있습니다.
+                    """,
+            security = {}
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "정상 조회",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = NicknameExistsResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "nickname": "example_google",
+                                                "exists": true
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "닉네임 형식이 올바르지 않은 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "invalidNickname",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 400,
+                                                "code": "COMMON_INVALID_PATH_VARIABLE",
+                                                "message": "경로 변수 형식이 올바르지 않습니다",
+                                                "details": [
+                                                  {
+                                                    "source": "PATH",
+                                                    "field": "nickname",
+                                                    "reason": "닉네임은 비어 있을 수 없습니다."
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    ApiResponse<NicknameExistsResponse> checkNicknameExists(
+            @Parameter(
+                    description = """
+                            프로필 설정 시 사용할 닉네임입니다.
+
+                            제약:
+                            - 공백만으로 구성될 수 없음
+                            - 최대 100자
+                            - 예시: 점심탐험가, example_google
+                            """,
+                    example = "example_google"
+            )
+            String nickname
     );
 
     @Operation(

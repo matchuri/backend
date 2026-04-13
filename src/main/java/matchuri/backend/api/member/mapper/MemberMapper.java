@@ -5,6 +5,7 @@ import matchuri.backend.api.auth.dto.LoginResponse;
 import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
+import matchuri.backend.api.member.dto.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.MemberTasteProfileSummaryResponse;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.WithdrawMemberResponse;
@@ -28,6 +29,10 @@ public class MemberMapper {
 
     public LoginIdExistsResponse toLoginIdExistsResponse(String loginId, boolean exists) {
         return new LoginIdExistsResponse(loginId, exists);
+    }
+
+    public NicknameExistsResponse toNicknameExistsResponse(String nickname, boolean exists) {
+        return new NicknameExistsResponse(nickname, exists);
     }
 
     public CreateMemberCommand toCreateMemberCommand(String loginId, String password) {
