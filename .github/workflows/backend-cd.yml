@@ -154,15 +154,20 @@ jobs:
       - name: Verify service health
         run: |
           set -euo pipefail
-          ssh -p "${EC2_PORT}" -i ~/.ssh/matchuri_ec2 "${EC2_USER}@${EC2_HOST}" <<EOF
+          ssh -p "${EC2_PORT}" -i ~/.ssh/matchuri_ec2 "${EC2_USER}@${EC2_HOST}" 'bash -se' <<'EOF'
           set -euo pipefail
+          success=0
           for attempt in {1..12}; do
             if curl --fail --silent --show-error http://127.0.0.1:8080/api/v1/health >/tmp/matchuri-health.json; then
               cat /tmp/matchuri-health.json
-              exit 0
+              success=1
+              break
             fi
             sleep 5
           done
+          if [ "$success" -eq 1 ]; then
+            exit 0
+          fi
           echo "Matchuri health check failed after waiting 60 seconds." >&2
           exit 1
           EOF
