@@ -56,6 +56,26 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
+    public LoginResult refresh(String refreshToken, String clientIp) {
+        Member member = sessionTokenService.validateRefreshToken(refreshToken);
+        ensureActive(member);
+        TokenPair tokenPair = sessionTokenService.rotateRefreshToken(refreshToken, member);
+
+        log.info("auth event=refresh_success memberId={} ip={}", member.getId(), clientIp);
+
+        return new LoginResult(
+                new LoginPayload(
+                        tokenPair.accessToken(),
+                        tokenPair.accessTokenExpiresIn(),
+                        member.getId(),
+                        member.getMemberRole().name()
+                ),
+                tokenPair.refreshToken()
+        );
+    }
+
+    @Override
+    @Transactional
     public LogoutResult logout(String refreshToken, String clientIp) {
         AuthenticatedMember authenticatedMember = authenticationFacade.getCurrentMember();
         sessionTokenService.revokeRefreshToken(refreshToken);

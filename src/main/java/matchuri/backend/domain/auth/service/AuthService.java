@@ -4,6 +4,8 @@ public interface AuthService {
 
     LoginResult login(LoginCommand command, String clientIp);
 
+    LoginResult refresh(String refreshToken, String clientIp);
+
     LogoutResult logout(String refreshToken, String clientIp);
 
     LoginPayload exchangeOAuth2Code(OAuth2ExchangeCommand command, String clientIp);

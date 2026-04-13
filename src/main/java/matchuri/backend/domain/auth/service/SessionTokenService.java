@@ -35,6 +35,39 @@ public class SessionTokenService {
     }
 
     @Transactional
+    public Member validateRefreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new AuthenticationException(AuthErrorCode.REFRESH_TOKEN_MISSING);
+        }
+
+        AuthRefreshToken storedRefreshToken = authRefreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new AuthenticationException(AuthErrorCode.REFRESH_TOKEN_INVALID));
+
+        LocalDateTime now = LocalDateTime.now(clock);
+        if (storedRefreshToken.isExpired(now)) {
+            throw new AuthenticationException(AuthErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
+        return storedRefreshToken.getMember();
+    }
+
+    @Transactional
+    public TokenPair rotateRefreshToken(String refreshToken, Member member) {
+        AuthRefreshToken storedRefreshToken = authRefreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new AuthenticationException(AuthErrorCode.REFRESH_TOKEN_INVALID));
+
+        TokenPair rotatedTokenPair = jwtTokenProvider.issueTokenPair(member);
+        authRefreshTokenRepository.delete(storedRefreshToken);
+        authRefreshTokenRepository.save(AuthRefreshToken.issue(
+                member,
+                rotatedTokenPair.refreshToken(),
+                rotatedTokenPair.refreshTokenExpiresAt()
+        ));
+
+        return rotatedTokenPair;
+    }
+
+    @Transactional
     public String createExchangeCode(Member member, SocialProviderType provider) {
         String code = UUID.randomUUID().toString().replace("-", "");
         LocalDateTime expiresAt = LocalDateTime.now(clock)

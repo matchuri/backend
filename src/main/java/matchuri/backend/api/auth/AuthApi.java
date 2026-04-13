@@ -86,6 +86,57 @@ public interface AuthApi {
     );
 
     @Operation(
+            summary = "리프레시 토큰으로 Access Token 재발급",
+            description = """
+                    `HttpOnly` 쿠키의 `refreshToken`으로 현재 로그인 세션을 검증한 뒤 새 Access Token을 발급합니다.
+
+                    - 요청 body는 없습니다.
+                    - `refreshToken`은 요청 body가 아니라 쿠키에서 읽습니다.
+                    - 성공 시 응답 body에는 새 `accessToken`과 회원 요약 정보가 포함됩니다.
+                    - 성공 시 현재 로그인 세션의 `refreshToken`도 새 값으로 회전하여 쿠키를 다시 설정합니다.
+                    - 유효하지 않거나 만료된 `refreshToken`이면 쿠키를 비우고 인증 실패를 반환합니다.
+                    """,
+            security = {}
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "재발급 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+                                                "refreshToken": null,
+                                                "expiresIn": 3600,
+                                                "member": {
+                                                  "id": 1,
+                                                  "role": "MEMBER"
+                                                }
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "refreshToken이 없거나, 유효하지 않거나, 만료됨"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "비활성 회원이라 재발급이 거절됨"
+            )
+    })
+    ApiResponse<LoginResponse> refresh(HttpServletRequest httpRequest, HttpServletResponse httpResponse);
+
+    @Operation(
             summary = "로그아웃",
             description = """
                     현재 로그인 세션의 `refreshToken`만 폐기합니다.

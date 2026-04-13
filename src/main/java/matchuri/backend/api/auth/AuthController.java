@@ -15,6 +15,8 @@ import matchuri.backend.domain.auth.service.AuthService;
 import matchuri.backend.domain.auth.service.LoginResult;
 import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
 import matchuri.backend.global.api.ApiResponse;
+import matchuri.backend.global.exception.AuthenticationException;
+import matchuri.backend.global.exception.BusinessException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,6 +45,24 @@ public class AuthController implements AuthApi {
 
         refreshTokenCookieService.addRefreshToken(httpResponse, loginResult.refreshToken());
         return ApiResponse.success(response);
+    }
+
+    @Override
+    @PostMapping("/refresh")
+    public ApiResponse<LoginResponse> refresh(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        String refreshToken = refreshTokenCookieService.resolveRefreshToken(httpRequest)
+                .orElseThrow(() -> new AuthenticationException(AuthErrorCode.REFRESH_TOKEN_MISSING));
+
+        try {
+            LoginResult loginResult = authService.refresh(refreshToken, resolveClientIp(httpRequest));
+            LoginResponse response = memberMapper.toLoginResponse(loginResult.payload());
+
+            refreshTokenCookieService.addRefreshToken(httpResponse, loginResult.refreshToken());
+            return ApiResponse.success(response);
+        } catch (AuthenticationException | BusinessException exception) {
+            refreshTokenCookieService.clearRefreshToken(httpResponse);
+            throw exception;
+        }
     }
 
     @Override
