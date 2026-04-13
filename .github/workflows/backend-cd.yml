@@ -16,19 +16,19 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     env:
-      INFISICAL_API_URL: ${{ vars.INFISICAL_API_URL || 'https://app.infisical.com' }}
-      INFISICAL_PROJECT_SLUG: ${{ vars.INFISICAL_PROJECT_SLUG }}
-      INFISICAL_ENV_SLUG: ${{ vars.INFISICAL_ENV_SLUG || 'staging' }}
-      INFISICAL_IDENTITY_ID: ${{ vars.INFISICAL_IDENTITY_ID }}
-      EC2_HOST: ${{ vars.EC2_HOST }}
-      EC2_PORT: ${{ vars.EC2_PORT || '22' }}
-      EC2_USER: ${{ vars.EC2_USER }}
-      MATCHURI_SPRING_PROFILE: ${{ vars.MATCHURI_SPRING_PROFILE }}
-      DEPLOY_RELEASE_PREFIX: ${{ vars.DEPLOY_RELEASE_PREFIX || 'backend-staging' }}
-      REMOTE_RELEASES_DIR: ${{ vars.REMOTE_RELEASES_DIR || '/opt/matchuri/backend/releases' }}
-      REMOTE_DEPLOY_SCRIPT: ${{ vars.REMOTE_DEPLOY_SCRIPT || '/opt/matchuri/backend/scripts/deploy.sh' }}
-      REMOTE_ENV_FILE: ${{ vars.REMOTE_ENV_FILE || '/etc/matchuri/backend.env' }}
-      REMOTE_SERVICE_NAME: ${{ vars.REMOTE_SERVICE_NAME || 'matchuri-backend' }}
+      INFISICAL_API_URL: ${{ secrets.INFISICAL_API_URL || 'https://app.infisical.com' }}
+      INFISICAL_PROJECT_SLUG: ${{ secrets.INFISICAL_PROJECT_SLUG }}
+      INFISICAL_ENV_SLUG: ${{ secrets.INFISICAL_ENV_SLUG || 'staging' }}
+      INFISICAL_IDENTITY_ID: ${{ secrets.INFISICAL_IDENTITY_ID }}
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_PORT: ${{ secrets.EC2_PORT || '22' }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+      MATCHURI_SPRING_PROFILE: ${{ secrets.MATCHURI_SPRING_PROFILE }}
+      DEPLOY_RELEASE_PREFIX: ${{ secrets.DEPLOY_RELEASE_PREFIX || 'backend-staging' }}
+      REMOTE_RELEASES_DIR: ${{ secrets.REMOTE_RELEASES_DIR || '/opt/matchuri/backend/releases' }}
+      REMOTE_DEPLOY_SCRIPT: ${{ secrets.REMOTE_DEPLOY_SCRIPT || '/opt/matchuri/backend/scripts/deploy.sh' }}
+      REMOTE_ENV_FILE: ${{ secrets.REMOTE_ENV_FILE || '/etc/matchuri/backend.env' }}
+      REMOTE_SERVICE_NAME: ${{ secrets.REMOTE_SERVICE_NAME || 'matchuri-backend' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
