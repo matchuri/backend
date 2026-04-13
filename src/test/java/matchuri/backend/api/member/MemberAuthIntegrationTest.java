@@ -27,6 +27,7 @@ import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
@@ -184,7 +185,7 @@ class MemberAuthIntegrationTest {
         assertThat(memberTasteProfileRepository.findByMemberId(memberRepository.findByLoginId("tester01").orElseThrow().getId()))
                 .isPresent()
                 .get()
-                .extracting(profile -> profile.getProfileVersion())
+                .extracting(MemberTasteProfile::getProfileVersion)
                 .isEqualTo("v1");
 
         mockMvc.perform(post("/api/v1/auth/logout")
@@ -279,7 +280,7 @@ class MemberAuthIntegrationTest {
         assertThat(authRefreshTokenRepository.findByToken(previousRefreshToken)).isEmpty();
         assertThat(authRefreshTokenRepository.findByMemberId(memberId))
                 .hasSize(1)
-                .extracting(token -> token.getToken())
+                .extracting(AuthRefreshToken::getToken)
                 .containsExactly(rotatedCookie.getValue());
     }
 
