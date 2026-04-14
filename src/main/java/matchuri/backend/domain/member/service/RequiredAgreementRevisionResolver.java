@@ -1,7 +1,7 @@
 package matchuri.backend.domain.member.service;
 
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.Comparator;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
@@ -13,14 +13,22 @@ public class RequiredAgreementRevisionResolver {
 
     private final MemberAgreementRepository memberAgreementRepository;
 
+    public RequiredAgreementStatusResult calculateStatus(Long memberId) {
+        List<AgreementType> missingTypes = RequiredAgreementVersions.requiredTypes().stream()
+                .filter(type -> !memberAgreementRepository.existsByMemberIdAndAgreementTypeAndAgreementVersion(
+                        memberId,
+                        type,
+                        RequiredAgreementVersions.getRequiredVersion(type)
+                ))
+                .sorted(Comparator.comparing(Enum::name))
+                .toList();
+
+        return new RequiredAgreementStatusResult(missingTypes.isEmpty(), missingTypes);
+    }
+
     public String resolve(Long memberId) {
-        Map<AgreementType, String> agreedVersions = new EnumMap<>(AgreementType.class);
-        memberAgreementRepository.findByMemberIdAndAgreementTypeIn(memberId, RequiredAgreementVersions.requiredTypes())
-                .forEach(agreement -> agreedVersions.put(agreement.getAgreementType(), agreement.getAgreementVersion()));
-
-        boolean completed = RequiredAgreementVersions.requiredTypes().stream()
-                .allMatch(type -> RequiredAgreementVersions.getRequiredVersion(type).equals(agreedVersions.get(type)));
-
-        return completed ? RequiredAgreementVersions.currentRevision() : null;
+        return calculateStatus(memberId).requiredAgreementsCompleted()
+                ? RequiredAgreementVersions.currentRevision()
+                : null;
     }
 }

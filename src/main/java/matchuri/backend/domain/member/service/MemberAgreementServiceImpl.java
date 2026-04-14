@@ -1,8 +1,5 @@
 package matchuri.backend.domain.member.service;
 
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.auth.service.IssuedAccessToken;
@@ -35,7 +32,7 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
     @Override
     public RequiredAgreementStatusResult getRequiredAgreementStatus() {
         Member member = getCurrentActiveMember();
-        return calculateStatus(member.getId());
+        return requiredAgreementRevisionResolver.calculateStatus(member.getId());
     }
 
     @Override
@@ -55,32 +52,19 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
             }
         }
 
-        RequiredAgreementStatusResult status = calculateStatus(member.getId());
+        RequiredAgreementStatusResult status = requiredAgreementRevisionResolver.calculateStatus(member.getId());
         IssuedAccessToken issuedAccessToken = jwtTokenProvider.issueAccessToken(member, RequiredAgreementVersions.currentRevision());
         return new SubmitRequiredAgreementsResult(status, issuedAccessToken);
     }
 
     @Override
     public boolean hasCompletedRequiredAgreements(Long memberId) {
-        return calculateStatus(memberId).requiredAgreementsCompleted();
+        return requiredAgreementRevisionResolver.calculateStatus(memberId).requiredAgreementsCompleted();
     }
 
     @Override
     public String resolveRequiredAgreementRevision(Long memberId) {
         return requiredAgreementRevisionResolver.resolve(memberId);
-    }
-
-    private RequiredAgreementStatusResult calculateStatus(Long memberId) {
-        Map<AgreementType, String> agreedVersions = new EnumMap<>(AgreementType.class);
-        memberAgreementRepository.findByMemberIdAndAgreementTypeIn(memberId, RequiredAgreementVersions.requiredTypes())
-                .forEach(agreement -> agreedVersions.put(agreement.getAgreementType(), agreement.getAgreementVersion()));
-
-        List<AgreementType> missingTypes = RequiredAgreementVersions.requiredTypes().stream()
-                .filter(type -> !RequiredAgreementVersions.getRequiredVersion(type).equals(agreedVersions.get(type)))
-                .sorted(Comparator.comparing(Enum::name))
-                .toList();
-
-        return new RequiredAgreementStatusResult(missingTypes.isEmpty(), missingTypes);
     }
 
     private Member getCurrentActiveMember() {
