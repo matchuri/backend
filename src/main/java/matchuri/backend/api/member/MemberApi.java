@@ -60,6 +60,30 @@ public interface MemberApi {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "필수 약관 동의 요청 누락 또는 형식 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "requiredAgreementTypesMissing",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "MEMBER_AGREEMENT_REQUIRED_TYPES_MISSING",
+                                                        "message": "필수 약관 동의 요청이 누락되었습니다. missingTypes : [PRIVACY_POLICY]",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
                     description = "이미 사용 중인 loginId 또는 nickname",
                     content = @Content(
