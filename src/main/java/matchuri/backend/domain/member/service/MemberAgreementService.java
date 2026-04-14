@@ -4,7 +4,9 @@ public interface MemberAgreementService {
 
     RequiredAgreementStatusResult getRequiredAgreementStatus();
 
-    RequiredAgreementStatusResult submitRequiredAgreements(SubmitRequiredAgreementsCommand command);
+    SubmitRequiredAgreementsResult submitRequiredAgreements(SubmitRequiredAgreementsCommand command);
 
     boolean hasCompletedRequiredAgreements(Long memberId);
+
+    String resolveRequiredAgreementRevision(Long memberId);
 }

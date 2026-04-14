@@ -5,6 +5,8 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.domain.auth.service.IssuedAccessToken;
+import matchuri.backend.domain.auth.service.JwtTokenProvider;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
@@ -27,6 +29,8 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
     private final MemberRepository memberRepository;
     private final RequiredAgreementRequestValidator requiredAgreementRequestValidator;
     private final AuthenticationFacade authenticationFacade;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RequiredAgreementRevisionResolver requiredAgreementRevisionResolver;
 
     @Override
     public RequiredAgreementStatusResult getRequiredAgreementStatus() {
@@ -36,7 +40,7 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
 
     @Override
     @Transactional
-    public RequiredAgreementStatusResult submitRequiredAgreements(SubmitRequiredAgreementsCommand command) {
+    public SubmitRequiredAgreementsResult submitRequiredAgreements(SubmitRequiredAgreementsCommand command) {
         Member member = getCurrentActiveMember();
 
         Map<AgreementType, String> requestedVersions = requiredAgreementRequestValidator.validateAndIndex(command.agreements());
@@ -51,12 +55,19 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
             }
         }
 
-        return calculateStatus(member.getId());
+        RequiredAgreementStatusResult status = calculateStatus(member.getId());
+        IssuedAccessToken issuedAccessToken = jwtTokenProvider.issueAccessToken(member, RequiredAgreementVersions.currentRevision());
+        return new SubmitRequiredAgreementsResult(status, issuedAccessToken);
     }
 
     @Override
     public boolean hasCompletedRequiredAgreements(Long memberId) {
         return calculateStatus(memberId).requiredAgreementsCompleted();
+    }
+
+    @Override
+    public String resolveRequiredAgreementRevision(Long memberId) {
+        return requiredAgreementRevisionResolver.resolve(memberId);
     }
 
     private RequiredAgreementStatusResult calculateStatus(Long memberId) {

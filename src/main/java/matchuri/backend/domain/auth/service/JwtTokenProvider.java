@@ -14,6 +14,7 @@ import java.util.UUID;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.service.RequiredAgreementRevisionResolver;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.springframework.stereotype.Component;
 
@@ -22,11 +23,16 @@ import org.springframework.stereotype.Component;
 public class JwtTokenProvider {
 
     private final MatchuriProperties matchuriProperties;
+    private final RequiredAgreementRevisionResolver requiredAgreementRevisionResolver;
     private final Clock clock = Clock.systemUTC();
 
     public TokenPair issueTokenPair(Member member) {
+        return issueTokenPair(member, requiredAgreementRevisionResolver.resolve(member.getId()));
+    }
+
+    public TokenPair issueTokenPair(Member member, String requiredAgreementRevision) {
         MatchuriProperties.Jwt jwt = matchuriProperties.getAuth().getJwt();
-        IssuedAccessToken issuedAccessToken = issueAccessToken(member);
+        IssuedAccessToken issuedAccessToken = issueAccessToken(member, requiredAgreementRevision);
         Instant now = clock.instant();
         Instant refreshTokenExpiresAt = now.plusSeconds(jwt.getRefreshTokenExpirationSeconds());
 
@@ -41,6 +47,10 @@ public class JwtTokenProvider {
     }
 
     public IssuedAccessToken issueAccessToken(Member member) {
+        return issueAccessToken(member, requiredAgreementRevisionResolver.resolve(member.getId()));
+    }
+
+    public IssuedAccessToken issueAccessToken(Member member, String requiredAgreementRevision) {
         Instant now = clock.instant();
         MatchuriProperties.Jwt jwt = matchuriProperties.getAuth().getJwt();
         Instant accessTokenExpiresAt = now.plusSeconds(jwt.getAccessTokenExpirationSeconds());
@@ -50,6 +60,7 @@ public class JwtTokenProvider {
                 .subject(String.valueOf(member.getId()))
                 .claim("role", member.getMemberRole().name())
                 .claim("loginId", member.getLoginId())
+                .claim("requiredAgreementRevision", requiredAgreementRevision)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(accessTokenExpiresAt))
                 .signWith(signingKey())
@@ -68,7 +79,8 @@ public class JwtTokenProvider {
         return new JwtClaims(
                 Long.parseLong(claims.getSubject()),
                 claims.get("role", String.class),
-                claims.get("loginId", String.class)
+                claims.get("loginId", String.class),
+                claims.get("requiredAgreementRevision", String.class)
         );
     }
 
@@ -79,7 +91,8 @@ public class JwtTokenProvider {
     public record JwtClaims(
             Long memberId,
             String role,
-            String loginId
+            String loginId,
+            String requiredAgreementRevision
     ) {
     }
 }

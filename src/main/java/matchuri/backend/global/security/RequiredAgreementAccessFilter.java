@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.member.MemberAgreementErrorCode;
-import matchuri.backend.domain.member.service.MemberAgreementService;
+import matchuri.backend.domain.member.service.RequiredAgreementVersions;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,7 +25,6 @@ public class RequiredAgreementAccessFilter extends OncePerRequestFilter {
 
     public static final String AUTHORIZATION_ERROR_CODE_ATTRIBUTE = "matchuri.authorization.error-code";
 
-    private final MemberAgreementService memberAgreementService;
     private final MatchuriProperties matchuriProperties;
     private final MatchuriAccessDeniedHandler accessDeniedHandler;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
@@ -47,7 +46,7 @@ public class RequiredAgreementAccessFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (!memberAgreementService.hasCompletedRequiredAgreements(authenticatedMember.memberId())) {
+        if (!RequiredAgreementVersions.currentRevision().equals(authenticatedMember.requiredAgreementRevision())) {
             request.setAttribute(AUTHORIZATION_ERROR_CODE_ATTRIBUTE, MemberAgreementErrorCode.REQUIRED);
             accessDeniedHandler.handle(request, response, new AccessDeniedException(MemberAgreementErrorCode.REQUIRED.getMessage()));
             return;

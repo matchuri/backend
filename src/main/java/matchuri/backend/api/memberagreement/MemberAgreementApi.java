@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import matchuri.backend.api.memberagreement.dto.RequiredAgreementStatusResponse;
+import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsResponse;
 import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsRequest;
 import matchuri.backend.global.api.ApiResponse;
 
@@ -66,7 +67,7 @@ public interface MemberAgreementApi {
                     description = "동의 저장 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = RequiredAgreementStatusResponse.class),
+                            schema = @Schema(implementation = SubmitRequiredAgreementsResponse.class),
                             examples = @ExampleObject(
                                     name = "completed",
                                     value = """
@@ -74,7 +75,9 @@ public interface MemberAgreementApi {
                                               "success": true,
                                               "data": {
                                                 "requiredAgreementsCompleted": true,
-                                                "missingAgreementTypes": []
+                                                "missingAgreementTypes": [],
+                                                "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+                                                "expiresIn": 3600
                                               },
                                               "error": null
                                             }
@@ -86,5 +89,5 @@ public interface MemberAgreementApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "최신 필수 버전과 불일치")
     })
-    ApiResponse<RequiredAgreementStatusResponse> submitRequiredAgreements(SubmitRequiredAgreementsRequest request);
+    ApiResponse<SubmitRequiredAgreementsResponse> submitRequiredAgreements(SubmitRequiredAgreementsRequest request);
 }

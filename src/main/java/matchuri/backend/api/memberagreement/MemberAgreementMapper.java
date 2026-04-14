@@ -1,8 +1,10 @@
 package matchuri.backend.api.memberagreement;
 
 import matchuri.backend.api.memberagreement.dto.RequiredAgreementStatusResponse;
+import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsResponse;
 import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsRequest;
 import matchuri.backend.domain.member.service.RequiredAgreementStatusResult;
+import matchuri.backend.domain.member.service.SubmitRequiredAgreementsResult;
 import matchuri.backend.domain.member.service.SubmitRequiredAgreementsCommand;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +28,17 @@ public class MemberAgreementMapper {
                 result.missingAgreementTypes().stream()
                         .map(Enum::name)
                         .toList()
+        );
+    }
+
+    public SubmitRequiredAgreementsResponse toResponse(SubmitRequiredAgreementsResult result) {
+        return new SubmitRequiredAgreementsResponse(
+                result.status().requiredAgreementsCompleted(),
+                result.status().missingAgreementTypes().stream()
+                        .map(Enum::name)
+                        .toList(),
+                result.issuedAccessToken().accessToken(),
+                result.issuedAccessToken().expiresIn()
         );
     }
 }

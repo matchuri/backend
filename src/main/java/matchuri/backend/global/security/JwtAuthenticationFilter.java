@@ -54,7 +54,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             AuthenticatedMember principal = new AuthenticatedMember(
                     claims.memberId(),
                     claims.loginId(),
-                    MemberRole.valueOf(claims.role())
+                    MemberRole.valueOf(claims.role()),
+                    claims.requiredAgreementRevision()
             );
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     principal,

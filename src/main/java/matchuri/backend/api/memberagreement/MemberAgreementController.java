@@ -3,6 +3,7 @@ package matchuri.backend.api.memberagreement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.memberagreement.dto.RequiredAgreementStatusResponse;
+import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsResponse;
 import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsRequest;
 import matchuri.backend.domain.member.service.MemberAgreementService;
 import matchuri.backend.global.api.ApiResponse;
@@ -30,7 +31,7 @@ public class MemberAgreementController implements MemberAgreementApi {
 
     @Override
     @PostMapping("/consents")
-    public ApiResponse<RequiredAgreementStatusResponse> submitRequiredAgreements(
+    public ApiResponse<SubmitRequiredAgreementsResponse> submitRequiredAgreements(
             @Valid @RequestBody SubmitRequiredAgreementsRequest request
     ) {
         return ApiResponse.success(
