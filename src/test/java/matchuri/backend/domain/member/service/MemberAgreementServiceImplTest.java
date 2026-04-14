@@ -6,6 +6,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
+import matchuri.backend.domain.auth.service.IssuedAccessToken;
+import matchuri.backend.domain.auth.service.JwtTokenProvider;
 import matchuri.backend.domain.member.MemberAgreementErrorCode;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
@@ -37,6 +39,12 @@ class MemberAgreementServiceImplTest {
     @Mock
     private AuthenticationFacade authenticationFacade;
 
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Mock
+    private RequiredAgreementRevisionResolver requiredAgreementRevisionResolver;
+
     @Spy
     private RequiredAgreementRequestValidator requiredAgreementRequestValidator;
 
@@ -47,7 +55,7 @@ class MemberAgreementServiceImplTest {
     @DisplayName("필수 약관 중 일부가 빠지면 MEMBER_AGREEMENT_REQUIRED_TYPES_MISSING을 반환한다")
     void submitRequiredAgreementsFailsWhenRequiredTypesMissing() {
         Member member = activeMember(1L);
-        when(authenticationFacade.getCurrentMember()).thenReturn(new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER));
+        when(authenticationFacade.getCurrentMember()).thenReturn(new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
 
         SubmitRequiredAgreementsCommand command = new SubmitRequiredAgreementsCommand(List.of(
@@ -64,7 +72,7 @@ class MemberAgreementServiceImplTest {
     @DisplayName("최신 필수 버전과 다르면 MEMBER_AGREEMENT_VERSION_MISMATCH를 반환한다")
     void submitRequiredAgreementsFailsWhenVersionMismatch() {
         Member member = activeMember(1L);
-        when(authenticationFacade.getCurrentMember()).thenReturn(new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER));
+        when(authenticationFacade.getCurrentMember()).thenReturn(new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
 
         SubmitRequiredAgreementsCommand command = new SubmitRequiredAgreementsCommand(List.of(
@@ -88,6 +96,32 @@ class MemberAgreementServiceImplTest {
                 ));
 
         assertThat(memberAgreementService.hasCompletedRequiredAgreements(1L)).isTrue();
+    }
+
+    @Test
+    @DisplayName("필수 약관 동의 제출 후 현재 revision으로 access token을 재발급한다")
+    void submitRequiredAgreementsIssuesAccessTokenWithCurrentRevision() {
+        Member member = activeMember(1L);
+        when(authenticationFacade.getCurrentMember()).thenReturn(new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(jwtTokenProvider.issueAccessToken(member, RequiredAgreementVersions.currentRevision()))
+                .thenReturn(new IssuedAccessToken("new-access-token", 3600));
+        when(memberAgreementRepository.findByMemberIdAndAgreementTypeIn(1L, RequiredAgreementVersions.requiredTypes()))
+                .thenReturn(List.of(
+                        MemberAgreement.create(activeMember(1L), AgreementType.TERMS_OF_SERVICE, "2026-04-10"),
+                        MemberAgreement.create(activeMember(1L), AgreementType.PRIVACY_POLICY, "2026-04-10")
+                ));
+
+        SubmitRequiredAgreementsCommand command = new SubmitRequiredAgreementsCommand(List.of(
+                new SubmitRequiredAgreementsCommand.AgreementConsentCommand("TERMS_OF_SERVICE", "2026-04-10"),
+                new SubmitRequiredAgreementsCommand.AgreementConsentCommand("PRIVACY_POLICY", "2026-04-10")
+        ));
+
+        SubmitRequiredAgreementsResult result = memberAgreementService.submitRequiredAgreements(command);
+
+        assertThat(result.status().requiredAgreementsCompleted()).isTrue();
+        assertThat(result.issuedAccessToken().accessToken()).isEqualTo("new-access-token");
+        assertThat(result.issuedAccessToken().expiresIn()).isEqualTo(3600);
     }
 
     @Test

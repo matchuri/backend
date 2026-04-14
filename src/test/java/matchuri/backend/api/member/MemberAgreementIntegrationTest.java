@@ -82,18 +82,29 @@ class MemberAgreementIntegrationTest {
         createMemberThroughApi("agreement-user-2", "P@ssw0rd!");
         AuthSession authSession = login("agreement-user-2", "P@ssw0rd!");
 
-        mockMvc.perform(post("/api/v1/member-agreements/consents")
+        MvcResult result = mockMvc.perform(post("/api/v1/member-agreements/consents")
                         .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validAgreementRequest()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.requiredAgreementsCompleted").value(true))
-                .andExpect(jsonPath("$.data.missingAgreementTypes").isEmpty());
+                .andExpect(jsonPath("$.data.missingAgreementTypes").isEmpty())
+                .andExpect(jsonPath("$.data.accessToken").isString())
+                .andExpect(jsonPath("$.data.expiresIn").isNumber())
+                .andReturn();
 
         assertThat(memberAgreementRepository.count()).isEqualTo(2);
 
+        JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+        String refreshedAccessToken = body.path("data").path("accessToken").asText();
+
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_AGREEMENT_REQUIRED"));
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(refreshedAccessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").isNumber());
     }
@@ -115,7 +126,8 @@ class MemberAgreementIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validAgreementRequest()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.requiredAgreementsCompleted").value(true));
+                .andExpect(jsonPath("$.data.requiredAgreementsCompleted").value(true))
+                .andExpect(jsonPath("$.data.accessToken").isString());
 
         assertThat(memberAgreementRepository.count()).isEqualTo(2);
     }

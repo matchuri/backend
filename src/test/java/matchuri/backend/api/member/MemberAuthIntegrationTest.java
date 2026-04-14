@@ -211,9 +211,7 @@ class MemberAuthIntegrationTest {
     void memberAuthLifecycle() throws Exception {
         createMemberThroughApi("tester01", "P@ssw0rd!");
         AuthSession authSession = login("tester01", "P@ssw0rd!");
-        String accessToken = authSession.accessToken();
-
-        submitRequiredAgreements(accessToken);
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
 
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
@@ -296,8 +294,7 @@ class MemberAuthIntegrationTest {
         createMemberThroughApi("tester02", "P@ssw0rd!");
 
         AuthSession authSession = login("tester01", "P@ssw0rd!");
-        String accessToken = authSession.accessToken();
-        submitRequiredAgreements(accessToken);
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
 
         Member duplicateNicknameOwner = memberRepository.findByLoginId("tester02").orElseThrow();
         duplicateNicknameOwner.updateNickname("점심탐험가");
@@ -382,6 +379,14 @@ class MemberAuthIntegrationTest {
                 .hasSize(1)
                 .extracting(AuthRefreshToken::getToken)
                 .containsExactly(rotatedCookie.getValue());
+
+        JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+        String refreshedAccessToken = body.path("data").path("accessToken").asText();
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(refreshedAccessToken)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_AGREEMENT_REQUIRED"));
     }
 
     @Test
@@ -447,7 +452,7 @@ class MemberAuthIntegrationTest {
                 LocalDateTime.now().plusMinutes(5)
         ));
 
-        mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -458,7 +463,16 @@ class MemberAuthIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").isString())
                 .andExpect(jsonPath("$.data.refreshToken").value(nullValue()))
-                .andExpect(jsonPath("$.data.member.id").value(member.getId()));
+                .andExpect(jsonPath("$.data.member.id").value(member.getId()))
+                .andReturn();
+
+        JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+        String accessToken = body.path("data").path("accessToken").asText();
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_AGREEMENT_REQUIRED"));
     }
 
     @Test
@@ -538,10 +552,10 @@ class MemberAuthIntegrationTest {
     void withdrawnMemberCannotLoginAgain() throws Exception {
         createMemberThroughApi("withdrawn-user", "P@ssw0rd!");
         AuthSession authSession = login("withdrawn-user", "P@ssw0rd!");
-        submitRequiredAgreements(authSession.accessToken());
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
 
         mockMvc.perform(delete("/api/v1/members/me")
-                        .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("INACTIVE"));
 
@@ -603,8 +617,8 @@ class MemberAuthIntegrationTest {
         );
     }
 
-    private void submitRequiredAgreements(String accessToken) throws Exception {
-        mockMvc.perform(post("/api/v1/member-agreements/consents")
+    private String submitRequiredAgreements(String accessToken) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/member-agreements/consents")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -621,7 +635,12 @@ class MemberAuthIntegrationTest {
                                   ]
                                 }
                                 """))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").isString())
+                .andReturn();
+
+        JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+        return body.path("data").path("accessToken").asText();
     }
 
     private String bearer(String accessToken) {
@@ -641,6 +660,7 @@ class MemberAuthIntegrationTest {
                 .subject(String.valueOf(member.getId()))
                 .claim("role", member.getMemberRole().name())
                 .claim("loginId", member.getLoginId())
+                .claim("requiredAgreementRevision", null)
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(expiredAt))
                 .signWith(signingKey)

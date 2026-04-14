@@ -124,7 +124,7 @@ class MemberServiceImplTest {
                 .build();
 
         when(authenticationFacade.getCurrentMember()).thenReturn(
-                new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER)
+                new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null)
         );
         when(memberRepository.findById(1L)).thenReturn(java.util.Optional.of(member));
         when(memberRepository.existsByNickname("중복닉네임")).thenReturn(true);
@@ -148,7 +148,7 @@ class MemberServiceImplTest {
                 .build();
 
         when(authenticationFacade.getCurrentMember()).thenReturn(
-                new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER)
+                new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null)
         );
         when(memberRepository.findById(1L)).thenReturn(java.util.Optional.of(member));
 
