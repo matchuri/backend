@@ -6,6 +6,8 @@ public interface MemberService {
 
     boolean existsByNickname(String nickname);
 
+    RegisterLocalMemberResult registerLocalMember(RegisterLocalMemberCommand command);
+
     CreateMemberResult createMember(CreateMemberCommand command);
 
     MemberProfileResult getMyProfile();

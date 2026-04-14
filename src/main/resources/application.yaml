@@ -45,6 +45,7 @@ matchuri:
       - /docs/**
       - /api/v1/health
     public-post-api-patterns:
+      - /api/v1/members/signup
       - /api/v1/members
       - /api/v1/auth/login
       - /api/v1/auth/refresh

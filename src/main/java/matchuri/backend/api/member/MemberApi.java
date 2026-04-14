@@ -12,6 +12,8 @@ import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
 import matchuri.backend.api.member.dto.NicknameExistsResponse;
+import matchuri.backend.api.member.dto.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.RegisterLocalMemberResponse;
 import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
@@ -22,11 +24,91 @@ import matchuri.backend.global.api.ApiResponse;
 public interface MemberApi {
 
     @Operation(
-            summary = "회원 가입",
+            summary = "자체 회원가입 통합",
             description = """
-                    일반 회원 계정을 생성합니다.
+                    자체 회원가입에서 `loginId`, `password`, 필수 약관 동의, `nickname`을 하나의 요청으로 원자적으로 처리합니다.
 
                     - 가입 성공 시 자동 로그인되지 않습니다.
+                    - 필수 약관 2종과 최신 버전이 모두 포함되어야 합니다.
+                    - 닉네임은 기본값 없이 필수 입력입니다.
+                    - 처리 중 하나라도 실패하면 회원과 약관 동의 기록은 저장되지 않습니다.
+                    """,
+            security = {}
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "통합 회원가입 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RegisterLocalMemberResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "memberId": 1,
+                                                "loginId": "tester01",
+                                                "nickname": "점심탐험가",
+                                                "createdAt": "2026-04-14T20:15:30"
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "이미 사용 중인 loginId 또는 nickname",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "duplicateLoginId",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 409,
+                                                        "code": "MEMBER_DUPLICATE_LOGIN_ID",
+                                                        "message": "이미 사용 중인 로그인 아이디입니다. loginId : tester01",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "duplicateNickname",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 409,
+                                                        "code": "MEMBER_DUPLICATE_NICKNAME",
+                                                        "message": "이미 사용 중인 닉네임입니다. nickname : 점심탐험가",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            )
+    })
+    ApiResponse<RegisterLocalMemberResponse> registerLocalMember(RegisterLocalMemberRequest request);
+
+    @Operation(
+            summary = "회원 가입 레거시 생성",
+            description = """
+                    일반 회원 계정을 최소 정보(`loginId`, `password`)만으로 생성합니다.
+
+                    - 가입 성공 시 자동 로그인되지 않습니다.
+                    - 필수 약관 동의와 닉네임 입력은 포함되지 않습니다.
+                    - 신규 구현은 `POST /api/v1/members/signup` 사용을 우선 권장합니다.
                     - 응답에는 생성된 회원의 `memberId`, `loginId`, `createdAt`이 포함됩니다.
                     - 가입 직후 로그인 화면으로 이동하거나, 같은 `loginId`로 로그인 API를 이어 호출하면 됩니다.
                     """,

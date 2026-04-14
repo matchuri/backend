@@ -7,6 +7,8 @@ import matchuri.backend.api.member.dto.CreateMemberResponse;
 import matchuri.backend.api.member.dto.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
 import matchuri.backend.api.member.dto.NicknameExistsResponse;
+import matchuri.backend.api.member.dto.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.RegisterLocalMemberResponse;
 import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.UpdateMemberTasteProfileRequest;
@@ -32,6 +34,18 @@ public class MemberController implements MemberApi {
 
     private final MemberService memberService;
     private final MemberMapper memberMapper;
+
+    @Override
+    @PostMapping("/signup")
+    public ApiResponse<RegisterLocalMemberResponse> registerLocalMember(
+            @Valid @RequestBody RegisterLocalMemberRequest request
+    ) {
+        var command = memberMapper.toRegisterLocalMemberCommand(request);
+        var result = memberService.registerLocalMember(command);
+        RegisterLocalMemberResponse response = memberMapper.toRegisterLocalMemberResponse(result);
+
+        return ApiResponse.success(response);
+    }
 
     @Override
     @PostMapping

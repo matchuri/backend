@@ -1,13 +1,10 @@
 package matchuri.backend.domain.member.service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.member.MemberAgreementErrorCode;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
@@ -28,6 +25,7 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
 
     private final MemberAgreementRepository memberAgreementRepository;
     private final MemberRepository memberRepository;
+    private final RequiredAgreementRequestValidator requiredAgreementRequestValidator;
     private final AuthenticationFacade authenticationFacade;
 
     @Override
@@ -41,7 +39,7 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
     public RequiredAgreementStatusResult submitRequiredAgreements(SubmitRequiredAgreementsCommand command) {
         Member member = getCurrentActiveMember();
 
-        Map<AgreementType, String> requestedVersions = validateAndIndex(command.agreements());
+        Map<AgreementType, String> requestedVersions = requiredAgreementRequestValidator.validateAndIndex(command.agreements());
         for (AgreementType requiredType : RequiredAgreementVersions.requiredTypes()) {
             String requiredVersion = RequiredAgreementVersions.getRequiredVersion(requiredType);
             if (!memberAgreementRepository.existsByMemberIdAndAgreementTypeAndAgreementVersion(
@@ -72,45 +70,6 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
                 .toList();
 
         return new RequiredAgreementStatusResult(missingTypes.isEmpty(), missingTypes);
-    }
-
-    private Map<AgreementType, String> validateAndIndex(List<SubmitRequiredAgreementsCommand.AgreementConsentCommand> agreements) {
-        Map<AgreementType, String> indexed = new EnumMap<>(AgreementType.class);
-        if (agreements != null) {
-            for (SubmitRequiredAgreementsCommand.AgreementConsentCommand agreement : agreements) {
-                AgreementType agreementType = AgreementType.from(agreement.agreementType());
-                if (agreementType == null) {
-                    throw new BusinessException(
-                            MemberAgreementErrorCode.INVALID_TYPE,
-                            MemberAgreementErrorCode.INVALID_TYPE.format(agreement.agreementType())
-                    );
-                }
-
-                String requiredVersion = RequiredAgreementVersions.getRequiredVersion(agreementType);
-                if (!requiredVersion.equals(agreement.agreementVersion())) {
-                    throw new BusinessException(
-                            MemberAgreementErrorCode.VERSION_MISMATCH,
-                            MemberAgreementErrorCode.VERSION_MISMATCH.format(agreementType.name(), agreement.agreementVersion())
-                    );
-                }
-
-                indexed.put(agreementType, agreement.agreementVersion());
-            }
-        }
-
-        Set<AgreementType> requiredTypes = RequiredAgreementVersions.requiredTypes();
-        List<AgreementType> missingTypes = new ArrayList<>(requiredTypes.stream()
-                .filter(type -> !indexed.containsKey(type))
-                .sorted(Comparator.comparing(Enum::name))
-                .toList());
-        if (!missingTypes.isEmpty()) {
-            throw new BusinessException(
-                    MemberAgreementErrorCode.REQUIRED_TYPES_MISSING,
-                    MemberAgreementErrorCode.REQUIRED_TYPES_MISSING.format(missingTypes)
-            );
-        }
-
-        return indexed;
     }
 
     private Member getCurrentActiveMember() {

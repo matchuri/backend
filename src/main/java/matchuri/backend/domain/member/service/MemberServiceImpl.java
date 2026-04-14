@@ -3,8 +3,10 @@ package matchuri.backend.domain.member.service;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.member.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.global.exception.BusinessException;
@@ -21,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
+    private final MemberAgreementRepository memberAgreementRepository;
     private final MemberTasteProfileRepository memberTasteProfileRepository;
+    private final RequiredAgreementRequestValidator requiredAgreementRequestValidator;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationFacade authenticationFacade;
 
@@ -37,6 +41,25 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
+    public RegisterLocalMemberResult registerLocalMember(RegisterLocalMemberCommand command) {
+        String passwordHash = passwordEncoder.encode(command.password());
+        Member member = createLocalMember(command.loginId(), passwordHash, command.nickname());
+
+        requiredAgreementRequestValidator.validateAndIndex(command.agreements())
+                .forEach((agreementType, agreementVersion) ->
+                        memberAgreementRepository.save(MemberAgreement.create(member, agreementType, agreementVersion))
+                );
+
+        return new RegisterLocalMemberResult(
+                member.getId(),
+                member.getLoginId(),
+                member.getNickname(),
+                member.getCreatedAt()
+        );
+    }
+
+    @Override
+    @Transactional
     public CreateMemberResult createMember(CreateMemberCommand command) {
         if (memberRepository.existsByLoginId(command.loginId())) {
             throw new BusinessException(
@@ -46,7 +69,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         String passwordHash = passwordEncoder.encode(command.password());
-        Member member = createLocalMember(command.loginId(), passwordHash);
+        Member member = createLocalMember(command.loginId(), passwordHash, null);
 
         return new CreateMemberResult(member.getId(), member.getLoginId(), member.getCreatedAt());
     }
@@ -122,11 +145,18 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
-    private Member createLocalMember(String loginId, String passwordHash) {
+    private Member createLocalMember(String loginId, String passwordHash, String nickname) {
+        validateNicknameDuplication(null, nickname);
         try {
-            Member newMember = Member.createWithEncodedPassword(loginId, passwordHash);
+            Member newMember = Member.createWithEncodedPassword(loginId, passwordHash, nickname);
             return memberRepository.saveAndFlush(newMember);
         } catch (DataIntegrityViolationException exception) {
+            if (nickname != null && memberRepository.existsByNickname(nickname)) {
+                throw new BusinessException(
+                        MemberErrorCode.DUPLICATE_NICKNAME,
+                        MemberErrorCode.DUPLICATE_NICKNAME.format(nickname)
+                );
+            }
             throw new BusinessException(
                     MemberErrorCode.DUPLICATE_LOGIN_ID,
                     MemberErrorCode.DUPLICATE_LOGIN_ID.format(loginId)
@@ -135,7 +165,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     private void validateNicknameDuplication(Member member, String nickname) {
-        if (nickname == null || nickname.equals(member.getNickname())) {
+        if (nickname == null || (member != null && nickname.equals(member.getNickname()))) {
             return;
         }
 

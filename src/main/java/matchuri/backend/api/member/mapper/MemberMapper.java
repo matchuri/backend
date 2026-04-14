@@ -7,6 +7,8 @@ import matchuri.backend.api.member.dto.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
 import matchuri.backend.api.member.dto.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.MemberTasteProfileSummaryResponse;
+import matchuri.backend.api.member.dto.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.RegisterLocalMemberResponse;
 import matchuri.backend.api.member.dto.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.WithdrawMemberResponse;
 import matchuri.backend.domain.auth.service.LoginCommand;
@@ -16,6 +18,9 @@ import matchuri.backend.domain.auth.service.OAuth2ExchangeCommand;
 import matchuri.backend.domain.member.service.CreateMemberCommand;
 import matchuri.backend.domain.member.service.CreateMemberResult;
 import matchuri.backend.domain.member.service.MemberProfileResult;
+import matchuri.backend.domain.member.service.RegisterLocalMemberCommand;
+import matchuri.backend.domain.member.service.RegisterLocalMemberResult;
+import matchuri.backend.domain.member.service.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.service.UpdateMemberBasicInfoCommand;
 import matchuri.backend.domain.member.service.UpdateMemberResult;
 import matchuri.backend.domain.member.service.UpdateMemberTasteProfileCommand;
@@ -41,6 +46,29 @@ public class MemberMapper {
 
     public CreateMemberResponse toCreateMemberResponse(CreateMemberResult result) {
         return new CreateMemberResponse(result.memberId(), result.loginId(), result.createdAt());
+    }
+
+    public RegisterLocalMemberCommand toRegisterLocalMemberCommand(RegisterLocalMemberRequest request) {
+        return new RegisterLocalMemberCommand(
+                request.loginId(),
+                request.password(),
+                request.nickname(),
+                request.agreements().stream()
+                        .map(agreement -> new SubmitRequiredAgreementsCommand.AgreementConsentCommand(
+                                agreement.agreementType(),
+                                agreement.agreementVersion()
+                        ))
+                        .toList()
+        );
+    }
+
+    public RegisterLocalMemberResponse toRegisterLocalMemberResponse(RegisterLocalMemberResult result) {
+        return new RegisterLocalMemberResponse(
+                result.memberId(),
+                result.loginId(),
+                result.nickname(),
+                result.createdAt()
+        );
     }
 
     public LoginCommand toLoginCommand(String loginId, String password) {
