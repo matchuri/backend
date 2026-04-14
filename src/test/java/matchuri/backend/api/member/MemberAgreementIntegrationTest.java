@@ -11,6 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
+import matchuri.backend.domain.member.entity.AgreementType;
+import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
@@ -225,6 +228,39 @@ class MemberAgreementIntegrationTest {
                         .cookie(authSession.refreshTokenCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.loggedOut").value(true));
+    }
+
+    @Test
+    @DisplayName("과거 버전과 최신 버전 이력이 함께 있어도 상태 조회와 재발급 token은 최신 버전 기준으로 완료 상태를 유지한다")
+    void requiredStatusAndRefreshedTokenUseCurrentVersionExistenceCheck() throws Exception {
+        createMemberThroughApi("agreement-user-8", "P@ssw0rd!");
+        AuthSession authSession = login("agreement-user-8", "P@ssw0rd!");
+
+        MvcResult consentResult = mockMvc.perform(post("/api/v1/member-agreements/consents")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validAgreementRequest()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requiredAgreementsCompleted").value(true))
+                .andReturn();
+
+        JsonNode consentBody = objectMapper.readTree(consentResult.getResponse().getContentAsString());
+        String refreshedAccessToken = consentBody.path("data").path("accessToken").asText();
+
+        Member member = memberRepository.findByLoginId("agreement-user-8").orElseThrow();
+        memberAgreementRepository.save(MemberAgreement.create(member, AgreementType.TERMS_OF_SERVICE, "2026-03-01"));
+        memberAgreementRepository.save(MemberAgreement.create(member, AgreementType.PRIVACY_POLICY, "2026-03-01"));
+
+        mockMvc.perform(get("/api/v1/member-agreements/required-status")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(refreshedAccessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requiredAgreementsCompleted").value(true))
+                .andExpect(jsonPath("$.data.missingAgreementTypes").isEmpty());
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(refreshedAccessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").isNumber());
     }
 
     private void createMemberThroughApi(String loginId, String password) throws Exception {

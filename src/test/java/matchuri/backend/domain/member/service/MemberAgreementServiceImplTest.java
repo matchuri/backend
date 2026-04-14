@@ -2,6 +2,8 @@ package matchuri.backend.domain.member.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -89,11 +91,8 @@ class MemberAgreementServiceImplTest {
     @Test
     @DisplayName("최신 필수 버전 이력이 모두 있으면 필수 약관 완료 상태를 반환한다")
     void hasCompletedRequiredAgreementsReturnsTrueWhenAllRequiredVersionsExist() {
-        when(memberAgreementRepository.findByMemberIdAndAgreementTypeIn(1L, RequiredAgreementVersions.requiredTypes()))
-                .thenReturn(List.of(
-                        MemberAgreement.create(activeMember(1L), AgreementType.TERMS_OF_SERVICE, "2026-04-10"),
-                        MemberAgreement.create(activeMember(1L), AgreementType.PRIVACY_POLICY, "2026-04-10")
-                ));
+        when(requiredAgreementRevisionResolver.calculateStatus(1L))
+                .thenReturn(new RequiredAgreementStatusResult(true, List.of()));
 
         assertThat(memberAgreementService.hasCompletedRequiredAgreements(1L)).isTrue();
     }
@@ -104,13 +103,12 @@ class MemberAgreementServiceImplTest {
         Member member = activeMember(1L);
         when(authenticationFacade.getCurrentMember()).thenReturn(new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(memberAgreementRepository.existsByMemberIdAndAgreementTypeAndAgreementVersion(anyLong(), any(), any()))
+                .thenReturn(false);
         when(jwtTokenProvider.issueAccessToken(member, RequiredAgreementVersions.currentRevision()))
                 .thenReturn(new IssuedAccessToken("new-access-token", 3600));
-        when(memberAgreementRepository.findByMemberIdAndAgreementTypeIn(1L, RequiredAgreementVersions.requiredTypes()))
-                .thenReturn(List.of(
-                        MemberAgreement.create(activeMember(1L), AgreementType.TERMS_OF_SERVICE, "2026-04-10"),
-                        MemberAgreement.create(activeMember(1L), AgreementType.PRIVACY_POLICY, "2026-04-10")
-                ));
+        when(requiredAgreementRevisionResolver.calculateStatus(1L))
+                .thenReturn(new RequiredAgreementStatusResult(true, List.of()));
 
         SubmitRequiredAgreementsCommand command = new SubmitRequiredAgreementsCommand(List.of(
                 new SubmitRequiredAgreementsCommand.AgreementConsentCommand("TERMS_OF_SERVICE", "2026-04-10"),
@@ -127,13 +125,26 @@ class MemberAgreementServiceImplTest {
     @Test
     @DisplayName("이전 버전만 동의한 경우 필수 약관 완료가 아니다")
     void hasCompletedRequiredAgreementsReturnsFalseForOlderVersions() {
-        when(memberAgreementRepository.findByMemberIdAndAgreementTypeIn(1L, RequiredAgreementVersions.requiredTypes()))
-                .thenReturn(List.of(
-                        MemberAgreement.create(activeMember(1L), AgreementType.TERMS_OF_SERVICE, "2026-03-01"),
-                        MemberAgreement.create(activeMember(1L), AgreementType.PRIVACY_POLICY, "2026-03-01")
-                ));
+        when(requiredAgreementRevisionResolver.calculateStatus(1L))
+                .thenReturn(new RequiredAgreementStatusResult(false, List.of(
+                        AgreementType.TERMS_OF_SERVICE,
+                        AgreementType.PRIVACY_POLICY
+                )));
 
         assertThat(memberAgreementService.hasCompletedRequiredAgreements(1L)).isFalse();
+    }
+
+    @Test
+    @DisplayName("과거 버전과 최신 버전 이력이 함께 있어도 최신 버전 존재 여부만으로 완료를 판단한다")
+    void hasCompletedRequiredAgreementsIgnoresOlderAgreementHistory() {
+        when(requiredAgreementRevisionResolver.calculateStatus(1L))
+                .thenReturn(new RequiredAgreementStatusResult(true, List.of()));
+        when(requiredAgreementRevisionResolver.resolve(1L))
+                .thenReturn(RequiredAgreementVersions.currentRevision());
+
+        assertThat(memberAgreementService.hasCompletedRequiredAgreements(1L)).isTrue();
+        assertThat(requiredAgreementRevisionResolver.resolve(1L))
+                .isEqualTo(RequiredAgreementVersions.currentRevision());
     }
 
     private Member activeMember(Long memberId) {

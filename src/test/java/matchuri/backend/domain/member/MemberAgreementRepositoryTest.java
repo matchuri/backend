@@ -3,7 +3,6 @@ package matchuri.backend.domain.member;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.util.List;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
@@ -31,8 +30,8 @@ class MemberAgreementRepositoryTest {
     private MemberAgreementRepository memberAgreementRepository;
 
     @Test
-    @DisplayName("회원별 약관 동의 이력을 타입 기준으로 조회할 수 있다")
-    void findByMemberIdAndAgreementTypeIn() {
+    @DisplayName("회원별 약관 타입과 버전 존재 여부를 조회할 수 있다")
+    void existsByMemberIdAndAgreementTypeAndAgreementVersion() {
         Member member = memberRepository.save(new Member(
                 "agreement-user",
                 "hashed-password",
@@ -46,12 +45,13 @@ class MemberAgreementRepositoryTest {
         memberAgreementRepository.save(MemberAgreement.create(member, AgreementType.TERMS_OF_SERVICE, "2026-04-10"));
         memberAgreementRepository.save(MemberAgreement.create(member, AgreementType.PRIVACY_POLICY, "2026-04-10"));
 
-        List<MemberAgreement> agreements = memberAgreementRepository.findByMemberIdAndAgreementTypeIn(
+        boolean exists = memberAgreementRepository.existsByMemberIdAndAgreementTypeAndAgreementVersion(
                 member.getId(),
-                List.of(AgreementType.TERMS_OF_SERVICE, AgreementType.PRIVACY_POLICY)
+                AgreementType.TERMS_OF_SERVICE,
+                "2026-04-10"
         );
 
-        assertThat(agreements).hasSize(2);
+        assertThat(exists).isTrue();
     }
 
     @Test
