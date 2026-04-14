@@ -9,6 +9,26 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import matchuri.backend.domain.member.entity.Member;
 
+@Schema(
+        name = "RegisterLocalMemberRequest",
+        example = """
+                {
+                  "loginId": "tester2372",
+                  "password": "P@ssw0rd!",
+                  "nickname": "점심탐험가123",
+                  "agreements": [
+                    {
+                      "agreementType": "TERMS_OF_SERVICE",
+                      "agreementVersion": "2026-04-10"
+                    },
+                    {
+                      "agreementType": "PRIVACY_POLICY",
+                      "agreementVersion": "2026-04-10"
+                    }
+                  ]
+                }
+                """
+)
 public record RegisterLocalMemberRequest(
         @Schema(
                 description = "회원 가입에 사용할 loginId입니다. 영문, 숫자, 점(.), 밑줄(_), 하이픈(-)만 사용할 수 있습니다.",
@@ -44,13 +64,36 @@ public record RegisterLocalMemberRequest(
         @Size(max = Member.NICKNAME_MAX_SIZE, message = "nickname은 " + Member.NICKNAME_MAX_SIZE + "자를 초과할 수 없습니다.")
         String nickname,
 
+        @Schema(
+                description = "필수 약관 동의 목록입니다. 현재는 서비스 이용약관과 개인정보 처리방침 2종을 모두 포함해야 합니다.",
+                example = """
+                        [
+                          {
+                            "agreementType": "TERMS_OF_SERVICE",
+                            "agreementVersion": "2026-04-10"
+                          },
+                          {
+                            "agreementType": "PRIVACY_POLICY",
+                            "agreementVersion": "2026-04-10"
+                          }
+                        ]
+                        """
+        )
         @NotEmpty(message = "agreements는 비어 있을 수 없습니다.")
         List<@Valid AgreementConsentRequest> agreements
 ) {
 
     public record AgreementConsentRequest(
+            @Schema(
+                    description = "약관 종류입니다.",
+                    example = "TERMS_OF_SERVICE"
+            )
             @NotBlank(message = "agreementType은 비어 있을 수 없습니다.")
             String agreementType,
+            @Schema(
+                    description = "동의한 약관 버전입니다.",
+                    example = "2026-04-10"
+            )
             @NotBlank(message = "agreementVersion은 비어 있을 수 없습니다.")
             String agreementVersion
     ) {
