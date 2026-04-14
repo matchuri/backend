@@ -85,6 +85,80 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
+    @DisplayName("자체 회원가입 통합 API는 약관과 닉네임을 함께 저장하지만 로그인 상태는 만들지 않는다")
+    void registerLocalMember() throws Exception {
+        mockMvc.perform(post("/api/v1/members/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "signup-user",
+                                  "password": "P@ssw0rd!",
+                                  "nickname": "점심탐험가",
+                                  "agreements": [
+                                    {
+                                      "agreementType": "TERMS_OF_SERVICE",
+                                      "agreementVersion": "2026-04-10"
+                                    },
+                                    {
+                                      "agreementType": "PRIVACY_POLICY",
+                                      "agreementVersion": "2026-04-10"
+                                    }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.loginId").value("signup-user"))
+                .andExpect(jsonPath("$.data.nickname").value("점심탐험가"))
+                .andExpect(jsonPath("$.data.memberId").isNumber())
+                .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE));
+
+        Member member = memberRepository.findByLoginId("signup-user").orElseThrow();
+        assertThat(member.getPasswordHash()).isNotEqualTo("P@ssw0rd!");
+        assertThat(member.getNickname()).isEqualTo("점심탐험가");
+        assertThat(memberAgreementRepository.count()).isEqualTo(2);
+
+        mockMvc.perform(get("/api/v1/members/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_TOKEN_MISSING"));
+
+        AuthSession authSession = login("signup-user", "P@ssw0rd!");
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.nickname").value("점심탐험가"));
+    }
+
+    @Test
+    @DisplayName("자체 회원가입 통합 API에서 약관 검증이 실패하면 회원과 약관 기록이 남지 않는다")
+    void registerLocalMemberRollsBackWhenAgreementValidationFails() throws Exception {
+        mockMvc.perform(post("/api/v1/members/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "rollback-user",
+                                  "password": "P@ssw0rd!",
+                                  "nickname": "롤백검증",
+                                  "agreements": [
+                                    {
+                                      "agreementType": "TERMS_OF_SERVICE",
+                                      "agreementVersion": "2026-03-01"
+                                    },
+                                    {
+                                      "agreementType": "PRIVACY_POLICY",
+                                      "agreementVersion": "2026-04-10"
+                                    }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_AGREEMENT_VERSION_MISMATCH"));
+
+        assertThat(memberRepository.findByLoginId("rollback-user")).isEmpty();
+        assertThat(memberAgreementRepository.count()).isZero();
+    }
+
+    @Test
     @DisplayName("회원 가입 시 비밀번호는 해시로 저장되고 생성 응답을 반환한다")
     void createMember() throws Exception {
         mockMvc.perform(post("/api/v1/members")

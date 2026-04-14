@@ -2,14 +2,20 @@ package matchuri.backend.domain.member.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Map;
 import matchuri.backend.domain.member.MemberErrorCode;
+import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.global.exception.BusinessException;
@@ -31,7 +37,13 @@ class MemberServiceImplTest {
     private MemberRepository memberRepository;
 
     @Mock
+    private MemberAgreementRepository memberAgreementRepository;
+
+    @Mock
     private MemberTasteProfileRepository memberTasteProfileRepository;
+
+    @Mock
+    private RequiredAgreementRequestValidator requiredAgreementRequestValidator;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -41,6 +53,47 @@ class MemberServiceImplTest {
 
     @InjectMocks
     private MemberServiceImpl memberService;
+
+    @Test
+    @DisplayName("자체 회원가입 통합은 회원과 필수 약관을 함께 저장한다")
+    void registerLocalMemberSavesMemberAndRequiredAgreements() {
+        RegisterLocalMemberCommand command = new RegisterLocalMemberCommand(
+                "tester01",
+                "P@ssw0rd!",
+                "점심탐험가",
+                List.of(
+                        new SubmitRequiredAgreementsCommand.AgreementConsentCommand("TERMS_OF_SERVICE", "2026-04-10"),
+                        new SubmitRequiredAgreementsCommand.AgreementConsentCommand("PRIVACY_POLICY", "2026-04-10")
+                )
+        );
+
+        Member savedMember = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .passwordHash("encoded-password")
+                .nickname("점심탐험가")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+
+        when(memberRepository.existsByNickname("점심탐험가")).thenReturn(false);
+        when(passwordEncoder.encode("P@ssw0rd!")).thenReturn("encoded-password");
+        when(memberRepository.saveAndFlush(any(Member.class))).thenReturn(savedMember);
+        when(requiredAgreementRequestValidator.validateAndIndex(any())).thenReturn(Map.of(
+                AgreementType.TERMS_OF_SERVICE, "2026-04-10",
+                AgreementType.PRIVACY_POLICY, "2026-04-10"
+        ));
+
+        RegisterLocalMemberResult result = memberService.registerLocalMember(command);
+
+        assertThat(result.memberId()).isEqualTo(1L);
+        assertThat(result.loginId()).isEqualTo("tester01");
+        assertThat(result.nickname()).isEqualTo("점심탐험가");
+        verify(memberRepository).saveAndFlush(any(Member.class));
+        verify(requiredAgreementRequestValidator).validateAndIndex(command.agreements());
+        verify(memberAgreementRepository, times(2)).save(any(MemberAgreement.class));
+    }
 
     @Test
     @DisplayName("회원 가입 저장 충돌은 MEMBER_DUPLICATE_LOGIN_ID로 번역한다")
