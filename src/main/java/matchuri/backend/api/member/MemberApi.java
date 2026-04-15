@@ -6,12 +6,17 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import matchuri.backend.api.member.dto.CreateMemberRequest;
+import matchuri.backend.api.member.dto.CreateMemberApiResponse;
 import matchuri.backend.api.member.dto.CreateMemberResponse;
+import matchuri.backend.api.member.dto.LoginIdExistsApiResponse;
 import matchuri.backend.api.member.dto.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.MemberProfileResponse;
+import matchuri.backend.api.member.dto.NicknameExistsApiResponse;
 import matchuri.backend.api.member.dto.NicknameExistsResponse;
+import matchuri.backend.api.member.dto.RegisterLocalMemberApiResponse;
 import matchuri.backend.api.member.dto.RegisterLocalMemberRequest;
 import matchuri.backend.api.member.dto.RegisterLocalMemberResponse;
 import matchuri.backend.api.member.dto.UpdateMemberBasicInfoRequest;
@@ -32,16 +37,16 @@ public interface MemberApi {
                     - 필수 약관 2종과 최신 버전이 모두 포함되어야 합니다.
                     - 닉네임은 기본값 없이 필수 입력입니다.
                     - 처리 중 하나라도 실패하면 회원과 약관 동의 기록은 저장되지 않습니다.
-                    """,
-            security = {}
+                    """
     )
+    @SecurityRequirements
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "통합 회원가입 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = RegisterLocalMemberResponse.class),
+                            schema = @Schema(implementation = RegisterLocalMemberApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
                                     value = """
@@ -135,16 +140,16 @@ public interface MemberApi {
                     - 신규 구현은 `POST /api/v1/members/signup` 사용을 우선 권장합니다.
                     - 응답에는 생성된 회원의 `memberId`, `loginId`, `createdAt`이 포함됩니다.
                     - 가입 직후 로그인 화면으로 이동하거나, 같은 `loginId`로 로그인 API를 이어 호출하면 됩니다.
-                    """,
-            security = {}
+                    """
     )
+    @SecurityRequirements
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "회원 가입 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CreateMemberResponse.class),
+                            schema = @Schema(implementation = CreateMemberApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
                                     value = """
@@ -191,16 +196,16 @@ public interface MemberApi {
             description = """
                     회원 가입 시 사용할 로그인 ID가 이미 사용 중인지 확인합니다.
                     이 API는 인증 없이 호출할 수 있습니다.
-                    """,
-            security = {}
+                    """
     )
+    @SecurityRequirements
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "정상 조회",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = LoginIdExistsResponse.class),
+                            schema = @Schema(implementation = LoginIdExistsApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
                                     value = """
@@ -268,16 +273,16 @@ public interface MemberApi {
             description = """
                     프로필 설정 시 사용할 닉네임이 이미 사용 중인지 확인합니다.
                     이 API는 인증 없이 호출할 수 있습니다.
-                    """,
-            security = {}
+                    """
     )
+    @SecurityRequirements
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "정상 조회",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = NicknameExistsResponse.class),
+                            schema = @Schema(implementation = NicknameExistsApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
                                     value = """

@@ -35,7 +35,7 @@ class OpenApiDocumentationIntegrationTest {
                         .value(org.hamcrest.Matchers.containsString("1자 이상 50자 이하")))
                 .andExpect(jsonPath("$.paths['/api/v1/members/exists/{loginId}'].get.parameters[0].example")
                         .value("tester01"))
-                .andExpect(jsonPath("$.paths['/api/v1/members/exists/{loginId}'].get.security").doesNotExist())
+                .andExpect(jsonPath("$.paths['/api/v1/members/exists/{loginId}'].get.security").isEmpty())
                 .andExpect(jsonPath("$.components.schemas.LoginIdExistsResponse.properties.loginId.description")
                         .value("중복 확인한 로그인 ID"))
                 .andExpect(jsonPath("$.components.schemas.LoginIdExistsResponse.properties.exists.description")
@@ -62,5 +62,25 @@ class OpenApiDocumentationIntegrationTest {
                         .value("#/components/schemas/LoginApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/auth/logout'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/LogoutApiResponse"));
+    }
+
+    @Test
+    @DisplayName("OpenAPI 문서에 Member 공개 API의 비인증 정책과 envelope 응답 스키마가 노출된다")
+    void exposesMemberPublicApiMetadataInOpenApi() throws Exception {
+        mockMvc.perform(get("/docs/openapi"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.paths['/api/v1/members/signup'].post.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/members/signup'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/RegisterLocalMemberApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/members'].post.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/members'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/CreateMemberApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/members/exists/{loginId}'].get.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/members/exists/{loginId}'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/LoginIdExistsApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/members/exists/nickname/{nickname}'].get.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/members/exists/nickname/{nickname}'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/NicknameExistsApiResponse"));
     }
 }
