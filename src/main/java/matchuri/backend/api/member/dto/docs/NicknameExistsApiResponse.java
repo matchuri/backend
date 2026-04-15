@@ -1,6 +1,7 @@
-package matchuri.backend.api.member.dto;
+package matchuri.backend.api.member.dto.docs;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
 import matchuri.backend.global.api.ErrorResponse;
 
 @Schema(description = "닉네임 중복 확인 API의 공통 응답 envelope입니다.")

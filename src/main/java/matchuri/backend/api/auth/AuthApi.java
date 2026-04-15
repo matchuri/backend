@@ -10,12 +10,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import matchuri.backend.api.auth.dto.LoginRequest;
-import matchuri.backend.api.auth.dto.LoginResponse;
-import matchuri.backend.api.auth.dto.LoginApiResponse;
-import matchuri.backend.api.auth.dto.LogoutResponse;
-import matchuri.backend.api.auth.dto.LogoutApiResponse;
-import matchuri.backend.api.auth.dto.OAuth2ExchangeRequest;
+import matchuri.backend.api.auth.dto.docs.LoginApiResponse;
+import matchuri.backend.api.auth.dto.docs.LogoutApiResponse;
+import matchuri.backend.api.auth.dto.request.LoginRequest;
+import matchuri.backend.api.auth.dto.request.OAuth2ExchangeRequest;
+import matchuri.backend.api.auth.dto.response.LoginResponse;
+import matchuri.backend.api.auth.dto.response.LogoutResponse;
 import matchuri.backend.global.api.ApiResponse;
 
 @Tag(name = "Auth", description = "로그인, 로그아웃, Google OAuth2 로그인 관련 API")

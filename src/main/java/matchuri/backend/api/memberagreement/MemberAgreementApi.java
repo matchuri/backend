@@ -6,11 +6,11 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import matchuri.backend.api.memberagreement.dto.RequiredAgreementStatusApiResponse;
-import matchuri.backend.api.memberagreement.dto.RequiredAgreementStatusResponse;
-import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsApiResponse;
-import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsResponse;
-import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsRequest;
+import matchuri.backend.api.memberagreement.dto.docs.RequiredAgreementStatusApiResponse;
+import matchuri.backend.api.memberagreement.dto.docs.SubmitRequiredAgreementsApiResponse;
+import matchuri.backend.api.memberagreement.dto.request.SubmitRequiredAgreementsRequest;
+import matchuri.backend.api.memberagreement.dto.response.RequiredAgreementStatusResponse;
+import matchuri.backend.api.memberagreement.dto.response.SubmitRequiredAgreementsResponse;
 import matchuri.backend.global.api.ApiResponse;
 
 @Tag(name = "Member Agreement", description = "회원 필수 약관 상태 조회 및 동의 API")

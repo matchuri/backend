@@ -1,6 +1,7 @@
-package matchuri.backend.api.memberagreement.dto;
+package matchuri.backend.api.memberagreement.dto.docs;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import matchuri.backend.api.memberagreement.dto.response.SubmitRequiredAgreementsResponse;
 import matchuri.backend.global.api.ErrorResponse;
 
 @Schema(description = "필수 약관 동의 제출 API의 공통 응답 envelope입니다.")

@@ -1,16 +1,17 @@
 package matchuri.backend.api.member.mapper;
 
 import java.util.List;
-import matchuri.backend.api.auth.dto.LoginResponse;
-import matchuri.backend.api.member.dto.CreateMemberResponse;
-import matchuri.backend.api.member.dto.LoginIdExistsResponse;
-import matchuri.backend.api.member.dto.MemberProfileResponse;
-import matchuri.backend.api.member.dto.NicknameExistsResponse;
-import matchuri.backend.api.member.dto.MemberTasteProfileSummaryResponse;
-import matchuri.backend.api.member.dto.RegisterLocalMemberRequest;
-import matchuri.backend.api.member.dto.RegisterLocalMemberResponse;
-import matchuri.backend.api.member.dto.UpdateMemberResponse;
-import matchuri.backend.api.member.dto.WithdrawMemberResponse;
+import matchuri.backend.api.auth.dto.response.LoginResponse;
+import matchuri.backend.api.auth.dto.response.LogoutResponse;
+import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.response.CreateMemberResponse;
+import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
+import matchuri.backend.api.member.dto.response.MemberProfileResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
+import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
+import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
+import matchuri.backend.api.member.dto.response.UpdateMemberResponse;
+import matchuri.backend.api.member.dto.response.WithdrawMemberResponse;
 import matchuri.backend.domain.auth.service.LoginCommand;
 import matchuri.backend.domain.auth.service.LoginPayload;
 import matchuri.backend.domain.auth.service.LogoutResult;
@@ -88,8 +89,8 @@ public class MemberMapper {
         );
     }
 
-    public matchuri.backend.api.auth.dto.LogoutResponse toLogoutResponse(LogoutResult result) {
-        return new matchuri.backend.api.auth.dto.LogoutResponse(result.loggedOut());
+    public LogoutResponse toLogoutResponse(LogoutResult result) {
+        return new LogoutResponse(result.loggedOut());
     }
 
     public CreateMemberResponse toCreateMemberResponse(Member member) {

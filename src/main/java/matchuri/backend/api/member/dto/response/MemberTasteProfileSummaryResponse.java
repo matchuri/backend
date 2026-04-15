@@ -1,4 +1,4 @@
-package matchuri.backend.api.member.dto;
+package matchuri.backend.api.member.dto.response;
 
 import java.util.List;
 

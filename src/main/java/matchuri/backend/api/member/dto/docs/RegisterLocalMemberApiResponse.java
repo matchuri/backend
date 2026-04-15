@@ -1,6 +1,7 @@
-package matchuri.backend.api.member.dto;
+package matchuri.backend.api.member.dto.docs;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
 import matchuri.backend.global.api.ErrorResponse;
 
 @Schema(description = "자체 회원가입 통합 API의 공통 응답 envelope입니다.")

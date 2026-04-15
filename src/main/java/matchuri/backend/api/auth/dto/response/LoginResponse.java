@@ -1,4 +1,4 @@
-package matchuri.backend.api.auth.dto;
+package matchuri.backend.api.auth.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

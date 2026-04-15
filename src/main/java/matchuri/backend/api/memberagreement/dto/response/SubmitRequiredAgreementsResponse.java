@@ -1,4 +1,4 @@
-package matchuri.backend.api.memberagreement.dto;
+package matchuri.backend.api.memberagreement.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;

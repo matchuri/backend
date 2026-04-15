@@ -1,8 +1,8 @@
 package matchuri.backend.api.memberagreement;
 
-import matchuri.backend.api.memberagreement.dto.RequiredAgreementStatusResponse;
-import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsResponse;
-import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsRequest;
+import matchuri.backend.api.memberagreement.dto.request.SubmitRequiredAgreementsRequest;
+import matchuri.backend.api.memberagreement.dto.response.RequiredAgreementStatusResponse;
+import matchuri.backend.api.memberagreement.dto.response.SubmitRequiredAgreementsResponse;
 import matchuri.backend.domain.member.service.RequiredAgreementStatusResult;
 import matchuri.backend.domain.member.service.SubmitRequiredAgreementsResult;
 import matchuri.backend.domain.member.service.SubmitRequiredAgreementsCommand;

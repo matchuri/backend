@@ -2,9 +2,9 @@ package matchuri.backend.api.memberagreement;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.api.memberagreement.dto.RequiredAgreementStatusResponse;
-import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsResponse;
-import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsRequest;
+import matchuri.backend.api.memberagreement.dto.request.SubmitRequiredAgreementsRequest;
+import matchuri.backend.api.memberagreement.dto.response.RequiredAgreementStatusResponse;
+import matchuri.backend.api.memberagreement.dto.response.SubmitRequiredAgreementsResponse;
 import matchuri.backend.domain.member.service.MemberAgreementService;
 import matchuri.backend.global.api.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;

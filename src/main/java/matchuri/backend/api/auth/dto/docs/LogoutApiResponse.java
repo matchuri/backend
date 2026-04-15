@@ -1,6 +1,7 @@
-package matchuri.backend.api.auth.dto;
+package matchuri.backend.api.auth.dto.docs;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import matchuri.backend.api.auth.dto.response.LogoutResponse;
 import matchuri.backend.global.api.ErrorResponse;
 
 @Schema(description = "로그아웃 API의 공통 응답 envelope입니다.")

@@ -1,6 +1,7 @@
-package matchuri.backend.api.member.dto;
+package matchuri.backend.api.member.dto.docs;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.global.api.ErrorResponse;
 
 @Schema(description = "레거시 회원 가입 API의 공통 응답 envelope입니다.")

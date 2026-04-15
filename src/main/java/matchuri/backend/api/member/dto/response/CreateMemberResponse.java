@@ -1,4 +1,4 @@
-package matchuri.backend.api.member.dto;
+package matchuri.backend.api.member.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
