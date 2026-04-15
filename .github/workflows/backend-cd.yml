@@ -146,6 +146,7 @@ jobs:
           import json
           import os
           from pathlib import Path
+          import shlex
 
           bucket = os.environ["DEPLOY_S3_BUCKET"]
           prefix = os.environ["DEPLOY_S3_PREFIX"].strip("/")
@@ -156,7 +157,7 @@ jobs:
           remote_service_name = os.environ["REMOTE_SERVICE_NAME"]
           tmp_root_ref = "${TMP_ROOT}"
 
-          commands = [
+          script_lines = [
               "set -euo pipefail",
               'TMP_ROOT="/tmp/matchuri-deploy"',
               f'RELEASE_FILE="{release}"',
@@ -181,6 +182,8 @@ jobs:
               '  exit 1',
               'fi',
           ]
+          script = "\n".join(script_lines)
+          commands = [f"bash -lc {shlex.quote(script)}"]
 
           Path("ssm-parameters.json").write_text(
               json.dumps({"commands": commands}),
