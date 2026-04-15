@@ -83,4 +83,22 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/v1/members/exists/nickname/{nickname}'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/NicknameExistsApiResponse"));
     }
+
+    @Test
+    @DisplayName("OpenAPI 문서에 Member Agreement API의 envelope 응답 스키마가 노출된다")
+    void exposesMemberAgreementApiMetadataInOpenApi() throws Exception {
+        mockMvc.perform(get("/docs/openapi"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.paths['/api/v1/member-agreements/required-status'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/RequiredAgreementStatusApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/member-agreements/consents'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/SubmitRequiredAgreementsApiResponse"))
+                .andExpect(jsonPath("$.components.schemas.SubmitRequiredAgreementsRequest.properties.agreements.description")
+                        .value(org.hamcrest.Matchers.containsString("필수 약관 동의 목록")))
+                .andExpect(jsonPath("$.components.schemas.AgreementConsentRequest.properties.agreementType.description")
+                        .value("약관 종류입니다."))
+                .andExpect(jsonPath("$.components.schemas.SubmitRequiredAgreementsResponse.properties.accessToken.description")
+                        .value(org.hamcrest.Matchers.containsString("새 access token")));
+    }
 }

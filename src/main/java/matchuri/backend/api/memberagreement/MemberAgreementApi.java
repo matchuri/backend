@@ -6,7 +6,9 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import matchuri.backend.api.memberagreement.dto.RequiredAgreementStatusApiResponse;
 import matchuri.backend.api.memberagreement.dto.RequiredAgreementStatusResponse;
+import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsApiResponse;
 import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsResponse;
 import matchuri.backend.api.memberagreement.dto.SubmitRequiredAgreementsRequest;
 import matchuri.backend.global.api.ApiResponse;
@@ -29,7 +31,7 @@ public interface MemberAgreementApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = RequiredAgreementStatusResponse.class),
+                            schema = @Schema(implementation = RequiredAgreementStatusApiResponse.class),
                             examples = @ExampleObject(
                                     name = "pending",
                                     value = """
@@ -67,7 +69,7 @@ public interface MemberAgreementApi {
                     description = "동의 저장 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = SubmitRequiredAgreementsResponse.class),
+                            schema = @Schema(implementation = SubmitRequiredAgreementsApiResponse.class),
                             examples = @ExampleObject(
                                     name = "completed",
                                     value = """
