@@ -5,13 +5,16 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import matchuri.backend.api.auth.dto.LoginRequest;
 import matchuri.backend.api.auth.dto.LoginResponse;
+import matchuri.backend.api.auth.dto.LoginApiResponse;
 import matchuri.backend.api.auth.dto.LogoutResponse;
+import matchuri.backend.api.auth.dto.LogoutApiResponse;
 import matchuri.backend.api.auth.dto.OAuth2ExchangeRequest;
 import matchuri.backend.global.api.ApiResponse;
 
@@ -26,16 +29,16 @@ public interface AuthApi {
                     - 응답 body에는 `accessToken`과 회원 요약 정보가 포함됩니다.
                     - `refreshToken`은 응답 body가 아니라 `HttpOnly` 쿠키로 내려갑니다.
                     - 프론트는 이후 보호 API 호출 시 `Authorization: Bearer <accessToken>` 헤더를 사용합니다.
-                    """,
-            security = {}
+                    """
     )
+    @SecurityRequirements
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "로그인 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = LoginResponse.class),
+                            schema = @Schema(implementation = LoginApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
                                     value = """
@@ -95,16 +98,16 @@ public interface AuthApi {
                     - 성공 시 응답 body에는 새 `accessToken`과 회원 요약 정보가 포함됩니다.
                     - 성공 시 현재 로그인 세션의 `refreshToken`도 새 값으로 회전하여 쿠키를 다시 설정합니다.
                     - 유효하지 않거나 만료된 `refreshToken`이면 쿠키를 비우고 인증 실패를 반환합니다.
-                    """,
-            security = {}
+                    """
     )
+    @SecurityRequirements
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "재발급 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = LoginResponse.class),
+                            schema = @Schema(implementation = LoginApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
                                     value = """
@@ -151,7 +154,7 @@ public interface AuthApi {
                     description = "로그아웃 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = LogoutResponse.class),
+                            schema = @Schema(implementation = LogoutApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
                                     value = """
@@ -203,9 +206,9 @@ public interface AuthApi {
                     - 일반 JSON API가 아니라 `302 Redirect` 응답입니다.
                     - 브라우저 이동 또는 팝업/리다이렉트 흐름에서 사용합니다.
                     - 로그인 성공 후 프론트는 최종적으로 `code`를 전달받고, 별도 교환 API를 호출해 `accessToken`을 받습니다.
-                    """,
-            security = {}
+                    """
     )
+    @SecurityRequirements
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "302",
@@ -223,16 +226,16 @@ public interface AuthApi {
                     - `refreshToken`은 이미 OAuth2 성공 리다이렉트 단계에서 `HttpOnly` 쿠키로 처리되므로 body에는 포함되지 않습니다.
                     - 같은 교환 코드는 한 번만 사용할 수 있습니다.
                     - 만료되었거나 이미 사용한 코드는 `AUTH_OAUTH2_EXCHANGE_CODE_INVALID`를 반환합니다.
-                    """,
-            security = {}
+                    """
     )
+    @SecurityRequirements
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "교환 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = LoginResponse.class),
+                            schema = @Schema(implementation = LoginApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
                                     value = """

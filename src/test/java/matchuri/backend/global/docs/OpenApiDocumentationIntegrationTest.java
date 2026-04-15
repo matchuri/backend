@@ -41,4 +41,26 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.components.schemas.LoginIdExistsResponse.properties.exists.description")
                         .value(org.hamcrest.Matchers.containsString("이미 존재하는 로그인 ID인지 여부")));
     }
+
+    @Test
+    @DisplayName("OpenAPI 문서에 Auth 공개 API의 비인증 정책과 envelope 응답 스키마가 노출된다")
+    void exposesAuthPublicApiMetadataInOpenApi() throws Exception {
+        mockMvc.perform(get("/docs/openapi"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/login'].post.summary")
+                        .value("로컬 로그인"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/login'].post.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/auth/login'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/LoginApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/refresh'].post.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/auth/refresh'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/LoginApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/google'].get.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/exchange'].post.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/exchange'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/LoginApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/logout'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/LogoutApiResponse"));
+    }
 }
