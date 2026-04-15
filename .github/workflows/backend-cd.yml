@@ -154,16 +154,17 @@ jobs:
           remote_releases_dir = os.environ["REMOTE_RELEASES_DIR"]
           remote_deploy_script = os.environ["REMOTE_DEPLOY_SCRIPT"]
           remote_service_name = os.environ["REMOTE_SERVICE_NAME"]
+          tmp_root_ref = "${TMP_ROOT}"
 
           commands = [
               "set -euo pipefail",
               'TMP_ROOT="/tmp/matchuri-deploy"',
               f'RELEASE_FILE="{release}"',
               'mkdir -p "${TMP_ROOT}"',
-              f'aws s3 cp "s3://{bucket}/{prefix}/{release}" "${{TMP_ROOT}}/{release}"',
-              f'aws s3 cp "s3://{bucket}/{prefix}/backend.env" "${{TMP_ROOT}}/backend.env"',
-              f'sudo install -m 600 "${{TMP_ROOT}}/backend.env" "{remote_env_file}"',
-              f'sudo mv "${{TMP_ROOT}}/{release}" "{remote_releases_dir}/{release}"',
+              f'aws s3 cp "s3://{bucket}/{prefix}/{release}" "{tmp_root_ref}/{release}"',
+              f'aws s3 cp "s3://{bucket}/{prefix}/backend.env" "{tmp_root_ref}/backend.env"',
+              f'sudo install -m 600 "{tmp_root_ref}/backend.env" "{remote_env_file}"',
+              f'sudo mv "{tmp_root_ref}/{release}" "{remote_releases_dir}/{release}"',
               f'sudo chown matchuri:matchuri "{remote_releases_dir}/{release}"',
               f'sudo MATCHURI_RELEASE_FILE="{release}" "{remote_deploy_script}"',
               f'sudo systemctl status "{remote_service_name}" --no-pager',
