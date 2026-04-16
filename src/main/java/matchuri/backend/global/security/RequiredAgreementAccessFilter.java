@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.member.MemberAgreementErrorCode;
+import matchuri.backend.domain.member.service.RequiredAgreementRevisionResolver;
 import matchuri.backend.domain.member.service.RequiredAgreementVersions;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.springframework.http.HttpMethod;
@@ -27,6 +28,7 @@ public class RequiredAgreementAccessFilter extends OncePerRequestFilter {
 
     private final MatchuriProperties matchuriProperties;
     private final MatchuriAccessDeniedHandler accessDeniedHandler;
+    private final RequiredAgreementRevisionResolver requiredAgreementRevisionResolver;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     @Override
@@ -46,13 +48,23 @@ public class RequiredAgreementAccessFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (!RequiredAgreementVersions.currentRevision().equals(authenticatedMember.requiredAgreementRevision())) {
+        if (!hasSatisfiedRequiredAgreements(authenticatedMember)) {
             request.setAttribute(AUTHORIZATION_ERROR_CODE_ATTRIBUTE, MemberAgreementErrorCode.REQUIRED);
             accessDeniedHandler.handle(request, response, new AccessDeniedException(MemberAgreementErrorCode.REQUIRED.getMessage()));
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean hasSatisfiedRequiredAgreements(AuthenticatedMember authenticatedMember) {
+        if (RequiredAgreementVersions.currentRevision().equals(authenticatedMember.requiredAgreementRevision())) {
+            return true;
+        }
+
+        return RequiredAgreementVersions.currentRevision().equals(
+                requiredAgreementRevisionResolver.resolve(authenticatedMember.memberId())
+        );
     }
 
     private boolean shouldSkip(HttpServletRequest request) {

@@ -103,8 +103,8 @@ class MemberAgreementIntegrationTest {
 
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error.code").value("MEMBER_AGREEMENT_REQUIRED"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").isNumber());
 
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(refreshedAccessToken)))

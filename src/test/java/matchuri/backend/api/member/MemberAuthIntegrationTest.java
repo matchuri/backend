@@ -24,7 +24,9 @@ import matchuri.backend.domain.auth.entity.AuthRefreshToken;
 import matchuri.backend.domain.auth.entity.AuthExchangeCode;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
+import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
@@ -390,6 +392,30 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
+    @DisplayName("최신 필수 약관 동의 기록이 있으면 구 access token claim도 fallback 검증으로 허용한다")
+    void protectedApiAllowsLegacyTokenWhenRequiredAgreementsAlreadyCompleted() throws Exception {
+        Member member = memberRepository.save(new Member(
+                "legacy-agreement-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+        memberAgreementRepository.save(MemberAgreement.create(member, AgreementType.TERMS_OF_SERVICE, "2026-04-10"));
+        memberAgreementRepository.save(MemberAgreement.create(member, AgreementType.PRIVACY_POLICY, "2026-04-10"));
+
+        String legacyAccessToken = accessToken(member, null, Instant.now().plusSeconds(1800));
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(legacyAccessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(member.getId()));
+    }
+
+    @Test
     @DisplayName("refresh token 쿠키가 없으면 AUTH_REFRESH_TOKEN_MISSING을 반환한다")
     void refreshFailsWhenRefreshTokenCookieIsMissing() throws Exception {
         mockMvc.perform(post("/api/v1/auth/refresh"))
@@ -651,6 +677,14 @@ class MemberAuthIntegrationTest {
         Instant now = Instant.now();
         Instant issuedAt = now.minusSeconds(3600);
         Instant expiredAt = now.minusSeconds(1800);
+        return accessToken(member, null, expiredAt, issuedAt);
+    }
+
+    private String accessToken(Member member, String requiredAgreementRevision, Instant expiresAt) {
+        return accessToken(member, requiredAgreementRevision, expiresAt, Instant.now());
+    }
+
+    private String accessToken(Member member, String requiredAgreementRevision, Instant expiresAt, Instant issuedAt) {
         SecretKey signingKey = Keys.hmacShaKeyFor(
                 matchuriProperties.getAuth().getJwt().getSecret().getBytes(StandardCharsets.UTF_8)
         );
@@ -660,9 +694,9 @@ class MemberAuthIntegrationTest {
                 .subject(String.valueOf(member.getId()))
                 .claim("role", member.getMemberRole().name())
                 .claim("loginId", member.getLoginId())
-                .claim("requiredAgreementRevision", null)
+                .claim("requiredAgreementRevision", requiredAgreementRevision)
                 .issuedAt(Date.from(issuedAt))
-                .expiration(Date.from(expiredAt))
+                .expiration(Date.from(expiresAt))
                 .signWith(signingKey)
                 .compact();
     }
