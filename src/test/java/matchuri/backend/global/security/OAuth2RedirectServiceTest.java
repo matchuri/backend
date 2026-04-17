@@ -2,7 +2,7 @@ package matchuri.backend.global.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import matchuri.backend.domain.auth.AuthErrorCode;
+import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.DisplayName;

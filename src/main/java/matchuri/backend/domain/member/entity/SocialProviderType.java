@@ -2,7 +2,7 @@ package matchuri.backend.domain.member.entity;
 
 import java.util.Arrays;
 import java.util.Locale;
-import matchuri.backend.domain.auth.AuthErrorCode;
+import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.global.exception.AuthenticationException;
 
 public enum SocialProviderType {

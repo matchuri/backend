@@ -1,4 +1,4 @@
-package matchuri.backend.domain.auth.service;
+package matchuri.backend.domain.auth.command;
 
 public record LoginCommand(
         String loginId,

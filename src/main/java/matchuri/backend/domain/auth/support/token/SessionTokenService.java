@@ -1,14 +1,15 @@
-package matchuri.backend.domain.auth.service;
+package matchuri.backend.domain.auth.support.token;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.auth.AuthErrorCode;
+import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.auth.entity.AuthExchangeCode;
 import matchuri.backend.domain.auth.entity.AuthRefreshToken;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
+import matchuri.backend.domain.auth.result.TokenPair;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.config.MatchuriProperties;

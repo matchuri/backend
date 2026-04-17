@@ -2,7 +2,16 @@ package matchuri.backend.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import matchuri.backend.domain.auth.AuthErrorCode;
+import matchuri.backend.domain.auth.command.LoginCommand;
+import matchuri.backend.domain.auth.command.OAuth2ExchangeCommand;
+import matchuri.backend.domain.auth.exception.AuthErrorCode;
+import matchuri.backend.domain.auth.result.IssuedAccessToken;
+import matchuri.backend.domain.auth.result.LoginPayload;
+import matchuri.backend.domain.auth.result.LoginResult;
+import matchuri.backend.domain.auth.result.LogoutResult;
+import matchuri.backend.domain.auth.result.TokenPair;
+import matchuri.backend.domain.auth.support.token.JwtTokenProvider;
+import matchuri.backend.domain.auth.support.token.SessionTokenService;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberStatus;

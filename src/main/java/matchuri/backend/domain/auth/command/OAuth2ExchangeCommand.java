@@ -1,4 +1,4 @@
-package matchuri.backend.domain.auth.service;
+package matchuri.backend.domain.auth.command;
 
 import matchuri.backend.domain.member.entity.SocialProviderType;
 

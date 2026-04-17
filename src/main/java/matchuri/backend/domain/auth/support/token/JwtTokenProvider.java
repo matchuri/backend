@@ -1,4 +1,4 @@
-package matchuri.backend.domain.auth.service;
+package matchuri.backend.domain.auth.support.token;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.domain.auth.result.IssuedAccessToken;
+import matchuri.backend.domain.auth.result.TokenPair;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRevisionResolver;
 import matchuri.backend.global.config.MatchuriProperties;

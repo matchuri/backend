@@ -6,10 +6,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
-import matchuri.backend.domain.auth.AuthErrorCode;
-import matchuri.backend.domain.auth.service.OAuth2LoginResult;
+import matchuri.backend.domain.auth.exception.AuthErrorCode;
+import matchuri.backend.domain.auth.result.OAuth2LoginResult;
 import matchuri.backend.domain.auth.service.OAuth2LoginService;
-import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
+import matchuri.backend.domain.auth.support.token.RefreshTokenCookieService;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.exception.BusinessException;

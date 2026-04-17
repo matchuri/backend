@@ -1,8 +1,8 @@
-package matchuri.backend.domain.auth.service;
+package matchuri.backend.domain.auth.support.oauth2;
 
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.auth.AuthErrorCode;
+import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberStatus;

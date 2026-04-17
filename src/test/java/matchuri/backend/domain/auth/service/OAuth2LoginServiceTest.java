@@ -6,6 +6,11 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import matchuri.backend.domain.auth.result.OAuth2LoginResult;
+import matchuri.backend.domain.auth.result.TokenPair;
+import matchuri.backend.domain.auth.support.oauth2.GoogleOAuth2UserInfoResolver;
+import matchuri.backend.domain.auth.support.oauth2.OAuth2MemberService;
+import matchuri.backend.domain.auth.support.token.SessionTokenService;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import org.junit.jupiter.api.DisplayName;

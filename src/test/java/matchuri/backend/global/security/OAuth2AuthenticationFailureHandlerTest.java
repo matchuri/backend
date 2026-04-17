@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import matchuri.backend.domain.auth.AuthErrorCode;
-import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
+import matchuri.backend.domain.auth.exception.AuthErrorCode;
+import matchuri.backend.domain.auth.support.token.RefreshTokenCookieService;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

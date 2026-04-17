@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.auth.AuthErrorCode;
+import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.global.api.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;

@@ -1,4 +1,4 @@
-package matchuri.backend.domain.auth.service;
+package matchuri.backend.domain.auth.support.token;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

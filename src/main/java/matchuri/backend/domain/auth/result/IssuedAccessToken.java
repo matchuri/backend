@@ -1,4 +1,4 @@
-package matchuri.backend.domain.auth.service;
+package matchuri.backend.domain.auth.result;
 
 public record IssuedAccessToken(
         String accessToken,

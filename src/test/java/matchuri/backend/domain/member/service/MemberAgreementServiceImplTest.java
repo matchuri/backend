@@ -7,8 +7,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import matchuri.backend.domain.auth.service.IssuedAccessToken;
-import matchuri.backend.domain.auth.service.JwtTokenProvider;
+import matchuri.backend.domain.auth.result.IssuedAccessToken;
+import matchuri.backend.domain.auth.support.token.JwtTokenProvider;
 import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;

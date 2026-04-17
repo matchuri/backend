@@ -2,8 +2,8 @@ package matchuri.backend.domain.member.service;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.auth.service.IssuedAccessToken;
-import matchuri.backend.domain.auth.service.JwtTokenProvider;
+import matchuri.backend.domain.auth.result.IssuedAccessToken;
+import matchuri.backend.domain.auth.support.token.JwtTokenProvider;
 import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
