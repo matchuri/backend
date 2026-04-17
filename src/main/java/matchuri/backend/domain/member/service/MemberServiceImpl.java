@@ -58,12 +58,7 @@ public class MemberServiceImpl implements MemberService {
                         memberAgreementRepository.save(MemberAgreement.create(member, agreementType, agreementVersion))
                 );
 
-        return new RegisterLocalMemberResult(
-                member.getId(),
-                member.getLoginId(),
-                member.getNickname(),
-                member.getCreatedAt()
-        );
+        return RegisterLocalMemberResult.from(member);
     }
 
     @Override
@@ -79,13 +74,14 @@ public class MemberServiceImpl implements MemberService {
         String passwordHash = passwordEncoder.encode(command.password());
         Member member = createLocalMember(command.loginId(), passwordHash, null);
 
-        return new CreateMemberResult(member.getId(), member.getLoginId(), member.getCreatedAt());
+        return CreateMemberResult.from(member);
     }
 
     @Override
     public MemberProfileResult getMyProfile() {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        return new MemberProfileResult(member.getId(), member.getNickname());
+
+        return MemberProfileResult.from(member);
     }
 
     @Override
@@ -108,7 +104,7 @@ public class MemberServiceImpl implements MemberService {
             }
         }
 
-        return new UpdateMemberResult(member.getId(), member.getUpdatedAt());
+        return UpdateMemberResult.from(member);
     }
 
     @Override
@@ -122,7 +118,7 @@ public class MemberServiceImpl implements MemberService {
                 ));
         tasteProfile.updateProfileVersion(command.profileVersion());
 
-        return new UpdateMemberResult(member.getId(), member.getUpdatedAt());
+        return UpdateMemberResult.from(member);
     }
 
     @Override
@@ -130,7 +126,8 @@ public class MemberServiceImpl implements MemberService {
     public WithdrawMemberResult withdraw() {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         member.withdraw();
-        return new WithdrawMemberResult(member.getId(), member.getStatus().name());
+
+        return WithdrawMemberResult.from(member);
     }
 
     private Member createLocalMember(String loginId, String passwordHash, String nickname) {

@@ -23,6 +23,7 @@ import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
 import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
@@ -76,7 +77,7 @@ public class MemberMapper {
         return new LoginCommand(loginId, password);
     }
 
-    public OAuth2ExchangeCommand toOAuth2ExchangeCommand(matchuri.backend.domain.member.entity.SocialProviderType provider, String code) {
+    public OAuth2ExchangeCommand toOAuth2ExchangeCommand(SocialProviderType provider, String code) {
         return new OAuth2ExchangeCommand(provider, code);
     }
 
