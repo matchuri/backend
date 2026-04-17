@@ -1,4 +1,4 @@
-package matchuri.backend.domain.member.service;
+package matchuri.backend.domain.member.result;
 
 import java.time.LocalDateTime;
 

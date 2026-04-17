@@ -1,4 +1,4 @@
-package matchuri.backend.domain.member.service;
+package matchuri.backend.domain.member.command;
 
 public record CreateMemberCommand(
         String loginId,

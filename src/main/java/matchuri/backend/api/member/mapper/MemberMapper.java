@@ -16,18 +16,18 @@ import matchuri.backend.domain.auth.service.LoginCommand;
 import matchuri.backend.domain.auth.service.LoginPayload;
 import matchuri.backend.domain.auth.service.LogoutResult;
 import matchuri.backend.domain.auth.service.OAuth2ExchangeCommand;
-import matchuri.backend.domain.member.service.CreateMemberCommand;
-import matchuri.backend.domain.member.service.CreateMemberResult;
-import matchuri.backend.domain.member.service.MemberProfileResult;
-import matchuri.backend.domain.member.service.RegisterLocalMemberCommand;
-import matchuri.backend.domain.member.service.RegisterLocalMemberResult;
-import matchuri.backend.domain.member.service.SubmitRequiredAgreementsCommand;
-import matchuri.backend.domain.member.service.UpdateMemberBasicInfoCommand;
-import matchuri.backend.domain.member.service.UpdateMemberResult;
-import matchuri.backend.domain.member.service.UpdateMemberTasteProfileCommand;
-import matchuri.backend.domain.member.service.WithdrawMemberResult;
+import matchuri.backend.domain.member.command.CreateMemberCommand;
+import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
+import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
+import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
+import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.result.CreateMemberResult;
+import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
+import matchuri.backend.domain.member.result.UpdateMemberResult;
+import matchuri.backend.domain.member.result.WithdrawMemberResult;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -1,4 +1,4 @@
-package matchuri.backend.domain.member.service;
+package matchuri.backend.domain.member.support.agreement;
 
 import java.util.EnumMap;
 import java.util.Map;

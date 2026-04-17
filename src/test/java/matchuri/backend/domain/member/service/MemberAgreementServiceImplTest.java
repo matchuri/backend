@@ -7,20 +7,22 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Optional;
 import matchuri.backend.domain.auth.service.IssuedAccessToken;
 import matchuri.backend.domain.auth.service.JwtTokenProvider;
-import matchuri.backend.domain.member.MemberAgreementErrorCode;
+import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
-import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.exception.MemberAgreementErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
-import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.result.RequiredAgreementStatusResult;
+import matchuri.backend.domain.member.result.SubmitRequiredAgreementsResult;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementRevisionResolver;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersions;
+import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.global.exception.BusinessException;
-import matchuri.backend.global.security.AuthenticatedMember;
-import matchuri.backend.global.security.AuthenticationFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,10 +38,7 @@ class MemberAgreementServiceImplTest {
     private MemberAgreementRepository memberAgreementRepository;
 
     @Mock
-    private MemberRepository memberRepository;
-
-    @Mock
-    private AuthenticationFacade authenticationFacade;
+    private ActiveMemberReader activeMemberReader;
 
     @Mock
     private JwtTokenProvider jwtTokenProvider;
@@ -57,8 +56,7 @@ class MemberAgreementServiceImplTest {
     @DisplayName("필수 약관 중 일부가 빠지면 MEMBER_AGREEMENT_REQUIRED_TYPES_MISSING을 반환한다")
     void submitRequiredAgreementsFailsWhenRequiredTypesMissing() {
         Member member = activeMember(1L);
-        when(authenticationFacade.getCurrentMember()).thenReturn(new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null));
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
 
         SubmitRequiredAgreementsCommand command = new SubmitRequiredAgreementsCommand(List.of(
                 new SubmitRequiredAgreementsCommand.AgreementConsentCommand("TERMS_OF_SERVICE", "2026-04-10")
@@ -74,8 +72,7 @@ class MemberAgreementServiceImplTest {
     @DisplayName("최신 필수 버전과 다르면 MEMBER_AGREEMENT_VERSION_MISMATCH를 반환한다")
     void submitRequiredAgreementsFailsWhenVersionMismatch() {
         Member member = activeMember(1L);
-        when(authenticationFacade.getCurrentMember()).thenReturn(new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null));
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
 
         SubmitRequiredAgreementsCommand command = new SubmitRequiredAgreementsCommand(List.of(
                 new SubmitRequiredAgreementsCommand.AgreementConsentCommand("TERMS_OF_SERVICE", "2026-03-01"),
@@ -101,8 +98,7 @@ class MemberAgreementServiceImplTest {
     @DisplayName("필수 약관 동의 제출 후 현재 revision으로 access token을 재발급한다")
     void submitRequiredAgreementsIssuesAccessTokenWithCurrentRevision() {
         Member member = activeMember(1L);
-        when(authenticationFacade.getCurrentMember()).thenReturn(new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null));
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
         when(memberAgreementRepository.existsByMemberIdAndAgreementTypeAndAgreementVersion(anyLong(), any(), any()))
                 .thenReturn(false);
         when(jwtTokenProvider.issueAccessToken(member, RequiredAgreementVersions.currentRevision()))

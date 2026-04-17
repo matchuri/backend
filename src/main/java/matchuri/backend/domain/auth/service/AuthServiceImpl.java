@@ -3,7 +3,7 @@ package matchuri.backend.domain.auth.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import matchuri.backend.domain.auth.AuthErrorCode;
-import matchuri.backend.domain.member.MemberErrorCode;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.SocialProviderType;

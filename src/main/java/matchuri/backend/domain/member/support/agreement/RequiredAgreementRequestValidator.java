@@ -1,4 +1,4 @@
-package matchuri.backend.domain.member.service;
+package matchuri.backend.domain.member.support.agreement;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -6,8 +6,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import matchuri.backend.domain.member.MemberAgreementErrorCode;
+import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
+import matchuri.backend.domain.member.exception.MemberAgreementErrorCode;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.stereotype.Component;
 

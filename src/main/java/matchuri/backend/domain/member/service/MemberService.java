@@ -1,5 +1,15 @@
 package matchuri.backend.domain.member.service;
 
+import matchuri.backend.domain.member.command.CreateMemberCommand;
+import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
+import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
+import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
+import matchuri.backend.domain.member.result.CreateMemberResult;
+import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
+import matchuri.backend.domain.member.result.UpdateMemberResult;
+import matchuri.backend.domain.member.result.WithdrawMemberResult;
+
 public interface MemberService {
 
     boolean existsByLoginId(String loginId);

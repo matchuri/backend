@@ -1,4 +1,4 @@
-package matchuri.backend.domain.member;
+package matchuri.backend.domain.member.exception;
 
 import java.text.MessageFormat;
 import lombok.Getter;

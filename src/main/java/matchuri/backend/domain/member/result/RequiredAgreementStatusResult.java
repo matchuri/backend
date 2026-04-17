@@ -1,4 +1,4 @@
-package matchuri.backend.domain.member.service;
+package matchuri.backend.domain.member.result;
 
 import java.util.List;
 import matchuri.backend.domain.member.entity.AgreementType;

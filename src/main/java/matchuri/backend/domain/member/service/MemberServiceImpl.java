@@ -1,17 +1,25 @@
 package matchuri.backend.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.member.MemberErrorCode;
+import matchuri.backend.domain.member.command.CreateMemberCommand;
+import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
+import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
+import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
-import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.domain.member.result.CreateMemberResult;
+import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
+import matchuri.backend.domain.member.result.UpdateMemberResult;
+import matchuri.backend.domain.member.result.WithdrawMemberResult;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
+import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.global.exception.BusinessException;
-import matchuri.backend.global.security.AuthenticatedMember;
-import matchuri.backend.global.security.AuthenticationFacade;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,7 +35,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberTasteProfileRepository memberTasteProfileRepository;
     private final RequiredAgreementRequestValidator requiredAgreementRequestValidator;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationFacade authenticationFacade;
+    private final ActiveMemberReader activeMemberReader;
 
     @Override
     public boolean existsByLoginId(String loginId) {
@@ -76,14 +84,14 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberProfileResult getMyProfile() {
-        Member member = getCurrentActiveMember();
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         return new MemberProfileResult(member.getId(), member.getNickname());
     }
 
     @Override
     @Transactional
     public UpdateMemberResult updateMyProfile(UpdateMemberBasicInfoCommand command) {
-        Member member = getCurrentActiveMember();
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
 
         if (command.nickname() != null) {
             String nickname = command.nickname().isBlank() ? null : command.nickname();
@@ -106,7 +114,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public UpdateMemberResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command) {
-        Member member = getCurrentActiveMember();
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
 
         MemberTasteProfile tasteProfile = memberTasteProfileRepository.findByMemberId(member.getId())
                 .orElseGet(() -> memberTasteProfileRepository.save(
@@ -120,29 +128,9 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public WithdrawMemberResult withdraw() {
-        Member member = getCurrentActiveMember();
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         member.withdraw();
         return new WithdrawMemberResult(member.getId(), member.getStatus().name());
-    }
-
-    private Member getCurrentActiveMember() {
-        AuthenticatedMember authenticatedMember = authenticationFacade.getCurrentMember();
-        Member member = memberRepository.findById(authenticatedMember.memberId())
-                .orElseThrow(() -> new BusinessException(
-                        MemberErrorCode.NOT_FOUND,
-                        MemberErrorCode.NOT_FOUND.format(authenticatedMember.memberId())
-                ));
-        ensureActive(member);
-        return member;
-    }
-
-    private void ensureActive(Member member) {
-        if (member.getStatus() != MemberStatus.ACTIVE) {
-            throw new BusinessException(
-                    MemberErrorCode.INACTIVE_MEMBER,
-                    MemberErrorCode.INACTIVE_MEMBER.format(member.getId())
-            );
-        }
     }
 
     private Member createLocalMember(String loginId, String passwordHash, String nickname) {

@@ -10,7 +10,7 @@ import matchuri.backend.domain.auth.AuthErrorCode;
 import matchuri.backend.domain.auth.service.OAuth2LoginResult;
 import matchuri.backend.domain.auth.service.OAuth2LoginService;
 import matchuri.backend.domain.auth.service.RefreshTokenCookieService;
-import matchuri.backend.domain.member.MemberErrorCode;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;

@@ -9,18 +9,24 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
-import matchuri.backend.domain.member.MemberErrorCode;
+import matchuri.backend.domain.member.command.CreateMemberCommand;
+import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
+import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
+import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
+import matchuri.backend.domain.member.result.UpdateMemberResult;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
+import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.global.exception.BusinessException;
-import matchuri.backend.global.security.AuthenticatedMember;
-import matchuri.backend.global.security.AuthenticationFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,7 +55,7 @@ class MemberServiceImplTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private AuthenticationFacade authenticationFacade;
+    private ActiveMemberReader activeMemberReader;
 
     @InjectMocks
     private MemberServiceImpl memberService;
@@ -123,10 +129,7 @@ class MemberServiceImplTest {
                 .social(false)
                 .build();
 
-        when(authenticationFacade.getCurrentMember()).thenReturn(
-                new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null)
-        );
-        when(memberRepository.findById(1L)).thenReturn(java.util.Optional.of(member));
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
         when(memberRepository.existsByNickname("중복닉네임")).thenReturn(true);
 
         assertThatThrownBy(() -> memberService.updateMyProfile(new UpdateMemberBasicInfoCommand("중복닉네임")))
@@ -147,10 +150,7 @@ class MemberServiceImplTest {
                 .social(false)
                 .build();
 
-        when(authenticationFacade.getCurrentMember()).thenReturn(
-                new AuthenticatedMember(1L, "tester01", MemberRole.MEMBER, null)
-        );
-        when(memberRepository.findById(1L)).thenReturn(java.util.Optional.of(member));
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
 
         UpdateMemberResult result = memberService.updateMyProfile(new UpdateMemberBasicInfoCommand("현재닉네임"));
 

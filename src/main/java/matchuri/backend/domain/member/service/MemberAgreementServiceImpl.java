@@ -4,16 +4,17 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.auth.service.IssuedAccessToken;
 import matchuri.backend.domain.auth.service.JwtTokenProvider;
-import matchuri.backend.domain.member.MemberErrorCode;
+import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
-import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
-import matchuri.backend.domain.member.repository.MemberRepository;
-import matchuri.backend.global.exception.BusinessException;
-import matchuri.backend.global.security.AuthenticatedMember;
-import matchuri.backend.global.security.AuthenticationFacade;
+import matchuri.backend.domain.member.result.RequiredAgreementStatusResult;
+import matchuri.backend.domain.member.result.SubmitRequiredAgreementsResult;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementRevisionResolver;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersions;
+import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,22 +24,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberAgreementServiceImpl implements MemberAgreementService {
 
     private final MemberAgreementRepository memberAgreementRepository;
-    private final MemberRepository memberRepository;
     private final RequiredAgreementRequestValidator requiredAgreementRequestValidator;
-    private final AuthenticationFacade authenticationFacade;
     private final JwtTokenProvider jwtTokenProvider;
     private final RequiredAgreementRevisionResolver requiredAgreementRevisionResolver;
+    private final ActiveMemberReader activeMemberReader;
 
     @Override
     public RequiredAgreementStatusResult getRequiredAgreementStatus() {
-        Member member = getCurrentActiveMember();
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         return requiredAgreementRevisionResolver.calculateStatus(member.getId());
     }
 
     @Override
     @Transactional
     public SubmitRequiredAgreementsResult submitRequiredAgreements(SubmitRequiredAgreementsCommand command) {
-        Member member = getCurrentActiveMember();
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
 
         Map<AgreementType, String> requestedVersions = requiredAgreementRequestValidator.validateAndIndex(command.agreements());
         for (AgreementType requiredType : RequiredAgreementVersions.requiredTypes()) {
@@ -65,21 +65,5 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
     @Override
     public String resolveRequiredAgreementRevision(Long memberId) {
         return requiredAgreementRevisionResolver.resolve(memberId);
-    }
-
-    private Member getCurrentActiveMember() {
-        AuthenticatedMember authenticatedMember = authenticationFacade.getCurrentMember();
-        Member member = memberRepository.findById(authenticatedMember.memberId())
-                .orElseThrow(() -> new BusinessException(
-                        MemberErrorCode.NOT_FOUND,
-                        MemberErrorCode.NOT_FOUND.format(authenticatedMember.memberId())
-                ));
-        if (member.getStatus() != MemberStatus.ACTIVE) {
-            throw new BusinessException(
-                    MemberErrorCode.INACTIVE_MEMBER,
-                    MemberErrorCode.INACTIVE_MEMBER.format(member.getId())
-            );
-        }
-        return member;
     }
 }

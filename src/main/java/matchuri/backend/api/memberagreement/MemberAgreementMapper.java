@@ -3,9 +3,9 @@ package matchuri.backend.api.memberagreement;
 import matchuri.backend.api.memberagreement.dto.request.SubmitRequiredAgreementsRequest;
 import matchuri.backend.api.memberagreement.dto.response.RequiredAgreementStatusResponse;
 import matchuri.backend.api.memberagreement.dto.response.SubmitRequiredAgreementsResponse;
-import matchuri.backend.domain.member.service.RequiredAgreementStatusResult;
-import matchuri.backend.domain.member.service.SubmitRequiredAgreementsResult;
-import matchuri.backend.domain.member.service.SubmitRequiredAgreementsCommand;
+import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
+import matchuri.backend.domain.member.result.RequiredAgreementStatusResult;
+import matchuri.backend.domain.member.result.SubmitRequiredAgreementsResult;
 import org.springframework.stereotype.Component;
 
 @Component

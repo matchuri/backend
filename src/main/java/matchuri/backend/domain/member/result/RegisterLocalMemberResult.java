@@ -1,10 +1,11 @@
-package matchuri.backend.domain.member.service;
+package matchuri.backend.domain.member.result;
 
 import java.time.LocalDateTime;
 
-public record CreateMemberResult(
+public record RegisterLocalMemberResult(
         Long memberId,
         String loginId,
+        String nickname,
         LocalDateTime createdAt
 ) {
 }

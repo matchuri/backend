@@ -14,7 +14,7 @@ import java.util.UUID;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.member.entity.Member;
-import matchuri.backend.domain.member.service.RequiredAgreementRevisionResolver;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementRevisionResolver;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.springframework.stereotype.Component;
 
