@@ -1,0 +1,46 @@
+package matchuri.backend.domain.menu.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import matchuri.backend.domain.common.BaseEntity;
+
+@Getter
+@Entity
+@Table(
+    name = "ingredients",
+    comment = "재료",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_ingredients_code", columnNames = "code")
+    }
+)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Ingredient extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(comment = "재료 ID")
+    private Long id;
+
+    @Column(nullable = false, length = 50, comment = "재료 코드")
+    private String code;
+
+    @Column(nullable = false, length = 100, comment = "재료명")
+    private String name;
+
+    @Column(name = "is_allergen", nullable = false, comment = "알레르기 유발 여부")
+    private boolean allergen;
+
+    public Ingredient(String code, String name, boolean allergen) {
+        this.code = code;
+        this.name = name;
+        this.allergen = allergen;
+    }
+}
