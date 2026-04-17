@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -17,6 +18,9 @@ import matchuri.backend.domain.common.BaseEntity;
 @Table(
     name = "ingredients",
     comment = "재료",
+    indexes = {
+        @Index(name = "idx_ingredients_active", columnList = "is_active")
+    },
     uniqueConstraints = {
         @UniqueConstraint(name = "uk_ingredients_code", columnNames = "code")
     }
@@ -38,9 +42,21 @@ public class Ingredient extends BaseEntity {
     @Column(name = "is_allergen", nullable = false, comment = "알레르기 유발 여부")
     private boolean allergen;
 
-    public Ingredient(String code, String name, boolean allergen) {
+    @Column(name = "sort_order", nullable = false, comment = "정렬 순서")
+    private int sortOrder;
+
+    @Column(name = "is_active", nullable = false, comment = "활성 여부")
+    private boolean active;
+
+    public Ingredient(String code, String name, boolean allergen, int sortOrder) {
         this.code = code;
         this.name = name;
         this.allergen = allergen;
+        this.sortOrder = sortOrder;
+        this.active = true;
+    }
+
+    public void deactivate() {
+        this.active = false;
     }
 }

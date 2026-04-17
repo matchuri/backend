@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -19,6 +20,10 @@ import matchuri.backend.domain.common.BaseEntity;
 @Table(
     name = "attribute_categories",
     comment = "공통 속성 카테고리",
+    indexes = {
+        @Index(name = "idx_attribute_categories_active", columnList = "is_active"),
+        @Index(name = "idx_attribute_categories_type_active", columnList = "category_type,is_active")
+    },
     uniqueConstraints = {
         @UniqueConstraint(name = "uk_attribute_categories_type_code", columnNames = {"category_type", "code"})
     }
@@ -41,9 +46,21 @@ public class AttributeCategory extends BaseEntity {
     @Column(nullable = false, length = 100, comment = "카테고리명")
     private String name;
 
-    public AttributeCategory(CategoryType categoryType, String code, String name) {
+    @Column(name = "sort_order", nullable = false, comment = "정렬 순서")
+    private int sortOrder;
+
+    @Column(name = "is_active", nullable = false, comment = "활성 여부")
+    private boolean active;
+
+    public AttributeCategory(CategoryType categoryType, String code, String name, int sortOrder) {
         this.categoryType = categoryType;
         this.code = code;
         this.name = name;
+        this.sortOrder = sortOrder;
+        this.active = true;
+    }
+
+    public void deactivate() {
+        this.active = false;
     }
 }
