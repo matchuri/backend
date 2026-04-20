@@ -22,7 +22,9 @@ import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersion
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
+import matchuri.backend.domain.menu.entity.Ingredient;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +49,9 @@ class MenuAdminReferenceIntegrationTest {
     private AttributeCategoryRepository attributeCategoryRepository;
 
     @Autowired
+    private IngredientRepository ingredientRepository;
+
+    @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
@@ -55,6 +60,7 @@ class MenuAdminReferenceIntegrationTest {
     @BeforeEach
     void setUp() {
         attributeCategoryRepository.deleteAll();
+        ingredientRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
@@ -96,6 +102,44 @@ class MenuAdminReferenceIntegrationTest {
     }
 
     @Test
+    @DisplayName("관리자 ingredient 목록 조회는 활성과 비활성 데이터를 함께 정렬해서 반환한다")
+    void getAdminIngredientsReturnsAllRowsInSortedOrder() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        Ingredient peanut = ingredientRepository.save(new Ingredient("PEANUT", "땅콩", true, 10));
+        Ingredient pork = new Ingredient("PORK", "돼지고기", false, 10);
+        pork.deactivate();
+        pork = ingredientRepository.save(pork);
+        Ingredient milk = ingredientRepository.save(new Ingredient("MILK", "우유", true, 30));
+
+        mockMvc.perform(get("/api/v1/admin/ingredients")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.length()").value(3))
+                .andExpect(jsonPath("$.data[0].id").value(peanut.getId()))
+                .andExpect(jsonPath("$.data[0].code").value("PEANUT"))
+                .andExpect(jsonPath("$.data[0].allergen").value(true))
+                .andExpect(jsonPath("$.data[0].isActive").value(true))
+                .andExpect(jsonPath("$.data[1].id").value(pork.getId()))
+                .andExpect(jsonPath("$.data[1].code").value("PORK"))
+                .andExpect(jsonPath("$.data[1].allergen").value(false))
+                .andExpect(jsonPath("$.data[1].isActive").value(false))
+                .andExpect(jsonPath("$.data[2].code").value("MILK"))
+                .andExpect(jsonPath("$.data[2].isActive").value(true));
+    }
+
+    @Test
     @DisplayName("일반 회원은 관리자 attribute category 목록 조회에 접근할 수 없다")
     void getAdminAttributeCategoriesRejectsNonAdminMember() throws Exception {
         Member member = memberRepository.save(new Member(
@@ -110,6 +154,28 @@ class MenuAdminReferenceIntegrationTest {
         ));
 
         mockMvc.perform(get("/api/v1/admin/attribute-categories")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("AUTH_FORBIDDEN"));
+    }
+
+    @Test
+    @DisplayName("일반 회원은 관리자 ingredient 목록 조회에 접근할 수 없다")
+    void getAdminIngredientsRejectsNonAdminMember() throws Exception {
+        Member member = memberRepository.save(new Member(
+                "member-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+
+        mockMvc.perform(get("/api/v1/admin/ingredients")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())

@@ -131,6 +131,11 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.security[0].bearerAuth").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminAttributeCategoryListApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].get.summary")
+                        .value("관리자 ingredient 목록 조회"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].get.security[0].bearerAuth").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/AdminIngredientListApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.summary")
                         .value("관리자 attribute category 생성"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.security[0].bearerAuth").exists())
@@ -152,6 +157,8 @@ class OpenApiDocumentationIntegrationTest {
                         .value("수정할 활성 여부입니다. null이면 활성 상태를 변경하지 않습니다."))
                 .andExpect(jsonPath("$.components.schemas.CreateAdminAttributeCategoryRequest.properties.categoryType.description")
                         .value(org.hamcrest.Matchers.containsString("허용 값은 FLAVOR")))
+                .andExpect(jsonPath("$.components.schemas.AdminIngredientResponse.properties.isActive.description")
+                        .value("운영 기준 활성 여부입니다."))
                 .andExpect(jsonPath("$.components.schemas.AdminAttributeCategoryResponse.properties.isActive.description")
                         .value("운영 기준 활성 여부입니다."));
     }
