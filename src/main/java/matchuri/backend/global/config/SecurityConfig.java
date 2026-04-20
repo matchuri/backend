@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, authProps.getPublicGetApiPatterns().toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.POST, authProps.getPublicPostApiPatterns().toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, authProps.getPublicOptionsApiPatterns().toArray(String[]::new)).permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
