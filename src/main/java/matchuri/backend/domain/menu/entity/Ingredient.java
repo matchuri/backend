@@ -28,15 +28,18 @@ import matchuri.backend.domain.common.BaseEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Ingredient extends BaseEntity {
 
+    public static final int CODE_MAX_LENGTH = 50;
+    public static final int NAME_MAX_LENGTH = 100;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(comment = "재료 ID")
     private Long id;
 
-    @Column(nullable = false, length = 50, comment = "재료 코드")
+    @Column(nullable = false, length = CODE_MAX_LENGTH, comment = "재료 코드")
     private String code;
 
-    @Column(nullable = false, length = 100, comment = "재료명")
+    @Column(nullable = false, length = NAME_MAX_LENGTH, comment = "재료명")
     private String name;
 
     @Column(name = "is_allergen", nullable = false, comment = "알레르기 유발 여부")
