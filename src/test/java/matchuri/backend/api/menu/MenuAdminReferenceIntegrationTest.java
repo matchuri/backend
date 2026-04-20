@@ -3,6 +3,7 @@ package matchuri.backend.api.menu;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -220,6 +221,139 @@ class MenuAdminReferenceIntegrationTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.error.code").value("COMMON_INVALID_BODY_FIELD"))
                 .andExpect(jsonPath("$.error.details[0].field").value("categoryType"));
+    }
+
+    @Test
+    @DisplayName("관리자는 attribute category의 수정 가능 필드를 갱신할 수 있다")
+    void updateAdminAttributeCategory() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-update-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        AttributeCategory attributeCategory = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10)
+        );
+
+        mockMvc.perform(patch("/api/v1/admin/attribute-categories/{attributeCategoryId}", attributeCategory.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "순한맛",
+                                  "sortOrder": 20,
+                                  "isActive": false
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.id").value(attributeCategory.getId()))
+                .andExpect(jsonPath("$.data.code").value("SPICY"))
+                .andExpect(jsonPath("$.data.name").value("순한맛"))
+                .andExpect(jsonPath("$.data.sortOrder").value(20))
+                .andExpect(jsonPath("$.data.isActive").value(false));
+
+        AttributeCategory updated = attributeCategoryRepository.findById(attributeCategory.getId()).orElseThrow();
+        assertThat(updated.getName()).isEqualTo("순한맛");
+        assertThat(updated.getSortOrder()).isEqualTo(20);
+        assertThat(updated.isActive()).isFalse();
+        assertThat(updated.getCode()).isEqualTo("SPICY");
+        assertThat(updated.getCategoryType()).isEqualTo(CategoryType.FLAVOR);
+    }
+
+    @Test
+    @DisplayName("관리자 attribute category 수정은 비활성 데이터를 다시 활성화할 수 있다")
+    void updateAdminAttributeCategoryCanReactivate() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-reactivate-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        AttributeCategory attributeCategory = new AttributeCategory(CategoryType.FLAVOR, "MILD", "순한맛", 10);
+        attributeCategory.deactivate();
+        attributeCategory = attributeCategoryRepository.save(attributeCategory);
+
+        mockMvc.perform(patch("/api/v1/admin/attribute-categories/{attributeCategoryId}", attributeCategory.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "isActive": true
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(attributeCategory.getId()))
+                .andExpect(jsonPath("$.data.isActive").value(true))
+                .andExpect(jsonPath("$.data.name").value("순한맛"))
+                .andExpect(jsonPath("$.data.sortOrder").value(10));
+    }
+
+    @Test
+    @DisplayName("관리자 attribute category 수정은 존재하지 않는 대상을 거절한다")
+    void updateAdminAttributeCategoryRejectsNotFound() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-not-found-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+
+        mockMvc.perform(patch("/api/v1/admin/attribute-categories/{attributeCategoryId}", 999L)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "새 이름"
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MENU_ATTRIBUTE_CATEGORY_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("일반 회원은 관리자 attribute category 수정에 접근할 수 없다")
+    void updateAdminAttributeCategoryRejectsNonAdminMember() throws Exception {
+        Member member = memberRepository.save(new Member(
+                "member-patch-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+        AttributeCategory attributeCategory = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10)
+        );
+
+        mockMvc.perform(patch("/api/v1/admin/attribute-categories/{attributeCategoryId}", attributeCategory.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "순한맛"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("AUTH_FORBIDDEN"));
     }
 
     private String bearer(String accessToken) {
