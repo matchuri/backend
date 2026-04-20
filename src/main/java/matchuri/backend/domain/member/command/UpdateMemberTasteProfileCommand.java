@@ -1,6 +1,9 @@
 package matchuri.backend.domain.member.command;
 
+import java.util.List;
+
 public record UpdateMemberTasteProfileCommand(
-        String profileVersion
+        List<Long> attributeCategoryIds,
+        List<Long> restrictionIngredientIds
 ) {
 }

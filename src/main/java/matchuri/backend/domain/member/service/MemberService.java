@@ -27,7 +27,7 @@ public interface MemberService {
 
     UpdateMemberResult updateMyProfile(UpdateMemberBasicInfoCommand command);
 
-    UpdateMemberResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command);
+    MemberTasteProfileSummaryResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command);
 
     WithdrawMemberResult withdraw();
 }

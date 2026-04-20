@@ -363,7 +363,8 @@ public interface MemberApi {
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
                     - 프로필이 아직 없어도 빈 배열 기반의 정상 응답을 반환합니다.
                     - 선택된 `attribute category`, `restriction ingredient`는 표시용 최소 메타데이터와 함께 반환합니다.
-                    - `profileVersion`은 현재 서버가 관리하는 버전 문자열입니다.
+                    - `profileVersion`은 현재 프로필 정책/구조가 어떤 버전을 따르는지 나타내는 서버 관리 버전입니다.
+                    - 단순 사용자 입력 변경만으로는 `profileVersion`이 바뀌지 않습니다.
                     """
     )
     @ApiResponses({
@@ -441,14 +442,99 @@ public interface MemberApi {
     ApiResponse<UpdateMemberResponse> updateMyProfile(UpdateMemberBasicInfoRequest request);
 
     @Operation(
-            summary = "내 취향 프로필 수정",
+            summary = "내 취향 프로필 전체 교체 저장",
             description = """
-                    현재 로그인한 회원의 취향 프로필 최소 정보(`profileVersion`)를 수정합니다.
+                    현재 로그인한 회원의 취향 프로필을 전체 교체 방식으로 저장합니다.
 
-                    - 현재 단계에서는 취향 프로필 전체가 아니라 서버가 이해하는 버전 문자열만 받습니다.
-                    - 취향 설문 결과를 저장한 뒤 이 API로 버전을 연결하는 식으로 사용할 수 있습니다.
+                    - `attributeCategoryIds`, `restrictionIngredientIds`는 각각 최신 입력 기준으로 전체 교체됩니다.
+                    - 특정 목록을 비우려면 빈 배열을 보내야 합니다.
+                    - 존재하지 않거나 비활성화된 참조 데이터 ID는 거절됩니다.
+                    - 성공 시 조회 API와 동일한 구조를 반환합니다.
+                    - `profileVersion`은 수정 시각 대체값이 아니라 프로필 정책/구조 버전이므로, 단순 저장만으로는 바뀌지 않습니다.
                     """)
-    ApiResponse<UpdateMemberResponse> updateMyTasteProfile(UpdateMemberTasteProfileRequest request);
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "저장 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MemberTasteProfileSummaryApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "saved",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "memberId": 1,
+                                                "profileVersion": "v1",
+                                                "attributeCategories": [
+                                                  {
+                                                    "id": 1,
+                                                    "categoryType": "FLAVOR",
+                                                    "code": "SPICY",
+                                                    "name": "매운맛",
+                                                    "sortOrder": 10
+                                                  }
+                                                ],
+                                                "restrictionIngredients": [
+                                                  {
+                                                    "id": 101,
+                                                    "code": "PEANUT",
+                                                    "name": "땅콩",
+                                                    "allergen": true,
+                                                    "sortOrder": 10
+                                                  }
+                                                ],
+                                                "updatedAt": "2026-04-20T18:00:00"
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "중복 ID 또는 잘못된 참조 데이터 입력",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "duplicateAttributeCategory",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "MEMBER_DUPLICATE_TASTE_ATTRIBUTE_CATEGORY",
+                                                        "message": "중복된 attribute category ID가 포함되어 있습니다. attributeCategoryIds : [1, 1]",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidRestrictionIngredient",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "MEMBER_INVALID_TASTE_RESTRICTION_INGREDIENT",
+                                                        "message": "유효하지 않거나 비활성화된 restriction ingredient ID가 포함되어 있습니다. restrictionIngredientIds : [999]",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    ApiResponse<MemberTasteProfileSummaryResponse> updateMyTasteProfile(UpdateMemberTasteProfileRequest request);
 
     @Operation(
             summary = "회원 탈퇴",

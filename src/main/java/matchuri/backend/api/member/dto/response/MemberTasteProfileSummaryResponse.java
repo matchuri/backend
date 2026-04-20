@@ -8,7 +8,7 @@ public record MemberTasteProfileSummaryResponse(
         @Schema(description = "현재 로그인한 회원 ID입니다.", example = "1")
         Long memberId,
 
-        @Schema(description = "현재 서버가 관리하는 취향 프로필 버전 문자열입니다.", example = "v1")
+        @Schema(description = "현재 프로필 정책/구조가 어떤 버전을 따르는지 나타내는 서버 관리 버전입니다.", example = "v1")
         String profileVersion,
 
         @Schema(description = "현재 선택된 attribute category 목록입니다.")

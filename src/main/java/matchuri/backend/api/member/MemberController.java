@@ -110,10 +110,10 @@ public class MemberController implements MemberApi {
 
     @Override
     @PatchMapping("/me/taste-profile")
-    public ApiResponse<UpdateMemberResponse> updateMyTasteProfile(@Valid @RequestBody UpdateMemberTasteProfileRequest request) {
-        var command = memberMapper.toUpdateMemberTasteProfileCommand(request.profileVersion());
+    public ApiResponse<MemberTasteProfileSummaryResponse> updateMyTasteProfile(@Valid @RequestBody UpdateMemberTasteProfileRequest request) {
+        var command = memberMapper.toUpdateMemberTasteProfileCommand(request);
         var result = memberService.updateMyTasteProfile(command);
-        UpdateMemberResponse response = memberMapper.toUpdateMemberResponse(result);
+        MemberTasteProfileSummaryResponse response = memberMapper.toMemberTasteProfileSummaryResponse(result);
 
         return ApiResponse.success(response);
     }

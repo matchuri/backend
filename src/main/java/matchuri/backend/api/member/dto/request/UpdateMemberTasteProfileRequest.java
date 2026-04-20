@@ -1,21 +1,22 @@
 package matchuri.backend.api.member.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
 
 public record UpdateMemberTasteProfileRequest(
         @Schema(
-                description = "현재 프론트가 저장한 취향 프로필 버전입니다.",
-                example = "v1",
-                maxLength = MemberTasteProfile.PROFILE_VERSION_MAX_SIZE
+                description = "현재 선택한 attribute category ID 목록입니다. 전체 교체형 저장이므로 비우려면 빈 배열을 보내야 합니다.",
+                example = "[1, 2]"
         )
-        @NotBlank(message = "profileVersion은 비어 있을 수 없습니다.")
-        @Size(
-                max = MemberTasteProfile.PROFILE_VERSION_MAX_SIZE,
-                message = "profileVersion은 " + MemberTasteProfile.PROFILE_VERSION_MAX_SIZE + "자를 초과할 수 없습니다."
+        @NotNull(message = "attributeCategoryIds는 null일 수 없습니다.")
+        List<@NotNull(message = "attributeCategoryIds 항목은 null일 수 없습니다.") Long> attributeCategoryIds,
+
+        @Schema(
+                description = "현재 선택한 restriction ingredient ID 목록입니다. 전체 교체형 저장이므로 비우려면 빈 배열을 보내야 합니다.",
+                example = "[101]"
         )
-        String profileVersion
+        @NotNull(message = "restrictionIngredientIds는 null일 수 없습니다.")
+        List<@NotNull(message = "restrictionIngredientIds 항목은 null일 수 없습니다.") Long> restrictionIngredientIds
 ) {
 }

@@ -1,5 +1,10 @@
 package matchuri.backend.domain.member.service;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
@@ -8,6 +13,8 @@ import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
+import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
@@ -22,6 +29,10 @@ import matchuri.backend.domain.member.result.WithdrawMemberResult;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
+import matchuri.backend.domain.menu.entity.AttributeCategory;
+import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,6 +49,8 @@ public class MemberServiceImpl implements MemberService {
     private final MemberTasteProfileRepository memberTasteProfileRepository;
     private final MemberTasteProfileCategoryRepository memberTasteProfileCategoryRepository;
     private final MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
+    private final AttributeCategoryRepository attributeCategoryRepository;
+    private final IngredientRepository ingredientRepository;
     private final RequiredAgreementRequestValidator requiredAgreementRequestValidator;
     private final PasswordEncoder passwordEncoder;
     private final ActiveMemberReader activeMemberReader;
@@ -124,16 +137,37 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public UpdateMemberResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command) {
+    public MemberTasteProfileSummaryResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        List<Long> attributeCategoryIds = command.attributeCategoryIds();
+        List<Long> restrictionIngredientIds = command.restrictionIngredientIds();
+
+        validateNoDuplicateIds(
+                attributeCategoryIds,
+                MemberErrorCode.DUPLICATE_TASTE_ATTRIBUTE_CATEGORY
+        );
+        validateNoDuplicateIds(
+                restrictionIngredientIds,
+                MemberErrorCode.DUPLICATE_TASTE_RESTRICTION_INGREDIENT
+        );
+
+        Map<Long, AttributeCategory> attributeCategoriesById = loadActiveAttributeCategories(attributeCategoryIds);
+        Map<Long, Ingredient> ingredientsById = loadActiveIngredients(restrictionIngredientIds);
 
         MemberTasteProfile tasteProfile = memberTasteProfileRepository.findByMemberId(member.getId())
-                .orElseGet(() -> memberTasteProfileRepository.save(
-                        new MemberTasteProfile(member, command.profileVersion())
+                .orElseGet(() -> memberTasteProfileRepository.saveAndFlush(
+                        new MemberTasteProfile(member, MemberTasteProfileSummaryResult.DEFAULT_PROFILE_VERSION)
                 ));
-        tasteProfile.updateProfileVersion(command.profileVersion());
 
-        return UpdateMemberResult.from(member);
+        replaceAttributeCategoryMappings(tasteProfile, attributeCategoryIds, attributeCategoriesById);
+        replaceRestrictionIngredientMappings(tasteProfile, restrictionIngredientIds, ingredientsById);
+
+        return MemberTasteProfileSummaryResult.of(
+                member.getId(),
+                tasteProfile,
+                memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
+                memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId())
+        );
     }
 
     @Override
@@ -178,5 +212,79 @@ public class MemberServiceImpl implements MemberService {
         if (memberRepository.existsByNickname(nickname)) {
             throw new BusinessException(MemberErrorCode.DUPLICATE_NICKNAME, nickname);
         }
+    }
+
+    private void validateNoDuplicateIds(List<Long> ids, MemberErrorCode errorCode) {
+        if (ids.size() == new LinkedHashSet<>(ids).size()) {
+            return;
+        }
+
+        throw new BusinessException(errorCode, ids);
+    }
+
+    private Map<Long, AttributeCategory> loadActiveAttributeCategories(List<Long> attributeCategoryIds) {
+        List<AttributeCategory> attributeCategories = attributeCategoryRepository.findAllByIdInAndActiveTrue(attributeCategoryIds);
+        if (attributeCategories.size() != attributeCategoryIds.size()) {
+            throw new BusinessException(MemberErrorCode.INVALID_TASTE_ATTRIBUTE_CATEGORY, attributeCategoryIds);
+        }
+
+        return attributeCategories.stream()
+                .collect(Collectors.toMap(AttributeCategory::getId, Function.identity()));
+    }
+
+    private Map<Long, Ingredient> loadActiveIngredients(List<Long> restrictionIngredientIds) {
+        List<Ingredient> ingredients = ingredientRepository.findAllByIdInAndActiveTrue(restrictionIngredientIds);
+        if (ingredients.size() != restrictionIngredientIds.size()) {
+            throw new BusinessException(MemberErrorCode.INVALID_TASTE_RESTRICTION_INGREDIENT, restrictionIngredientIds);
+        }
+
+        return ingredients.stream()
+                .collect(Collectors.toMap(Ingredient::getId, Function.identity()));
+    }
+
+    private void replaceAttributeCategoryMappings(
+            MemberTasteProfile tasteProfile,
+            List<Long> attributeCategoryIds,
+            Map<Long, AttributeCategory> attributeCategoriesById
+    ) {
+        memberTasteProfileCategoryRepository.deleteAllInBatch(
+                memberTasteProfileCategoryRepository.findAllByProfileId(tasteProfile.getId())
+        );
+
+        if (attributeCategoryIds.isEmpty()) {
+            return;
+        }
+
+        memberTasteProfileCategoryRepository.saveAll(
+                attributeCategoryIds.stream()
+                        .map(attributeCategoryId -> new MemberTasteProfileCategory(
+                                tasteProfile,
+                                attributeCategoriesById.get(attributeCategoryId)
+                        ))
+                        .toList()
+        );
+    }
+
+    private void replaceRestrictionIngredientMappings(
+            MemberTasteProfile tasteProfile,
+            List<Long> restrictionIngredientIds,
+            Map<Long, Ingredient> ingredientsById
+    ) {
+        memberTasteProfileRestrictionIngredientRepository.deleteAllInBatch(
+                memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(tasteProfile.getId())
+        );
+
+        if (restrictionIngredientIds.isEmpty()) {
+            return;
+        }
+
+        memberTasteProfileRestrictionIngredientRepository.saveAll(
+                restrictionIngredientIds.stream()
+                        .map(restrictionIngredientId -> new MemberTasteProfileRestrictionIngredient(
+                                tasteProfile,
+                                ingredientsById.get(restrictionIngredientId)
+                        ))
+                        .toList()
+        );
     }
 }

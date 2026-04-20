@@ -3,6 +3,7 @@ package matchuri.backend.api.member.mapper;
 import matchuri.backend.api.auth.dto.response.LoginResponse;
 import matchuri.backend.api.auth.dto.response.LogoutResponse;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteAttributeCategoryResponse;
@@ -128,8 +129,11 @@ public class MemberMapper {
         return new UpdateMemberBasicInfoCommand(nickname);
     }
 
-    public UpdateMemberTasteProfileCommand toUpdateMemberTasteProfileCommand(String profileVersion) {
-        return new UpdateMemberTasteProfileCommand(profileVersion);
+    public UpdateMemberTasteProfileCommand toUpdateMemberTasteProfileCommand(UpdateMemberTasteProfileRequest request) {
+        return new UpdateMemberTasteProfileCommand(
+                request.attributeCategoryIds(),
+                request.restrictionIngredientIds()
+        );
     }
 
     public UpdateMemberResponse toUpdateMemberResponse(UpdateMemberResult result) {
