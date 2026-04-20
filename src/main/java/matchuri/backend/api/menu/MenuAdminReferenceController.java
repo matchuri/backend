@@ -1,12 +1,16 @@
 package matchuri.backend.api.menu;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.mapper.MenuReferenceMapper;
 import matchuri.backend.domain.menu.service.MenuAdminReferenceService;
 import matchuri.backend.global.api.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,6 +28,20 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
         return ApiResponse.success(
                 menuReferenceMapper.toAdminAttributeCategoryResponses(
                         menuAdminReferenceService.getAttributeCategories()
+                )
+        );
+    }
+
+    @Override
+    @PostMapping("/attribute-categories")
+    public ApiResponse<AdminAttributeCategoryResponse> createAdminAttributeCategory(
+            @Valid @RequestBody CreateAdminAttributeCategoryRequest request
+    ) {
+        return ApiResponse.success(
+                menuReferenceMapper.toAdminAttributeCategoryResponse(
+                        menuAdminReferenceService.createAttributeCategory(
+                                menuReferenceMapper.toCreateAdminAttributeCategoryCommand(request)
+                        )
                 )
         );
     }

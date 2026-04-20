@@ -1,16 +1,29 @@
 package matchuri.backend.api.menu.mapper;
 
 import java.util.List;
+import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
+import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
+import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AttributeCategoryResult;
 import matchuri.backend.domain.menu.result.RestrictionIngredientResult;
+import matchuri.backend.global.exception.RequestValidationException;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MenuReferenceMapper {
+
+    public CreateAdminAttributeCategoryCommand toCreateAdminAttributeCategoryCommand(CreateAdminAttributeCategoryRequest request) {
+        return new CreateAdminAttributeCategoryCommand(
+                toCategoryType(request.categoryType()),
+                request.code().trim(),
+                request.name().trim(),
+                request.sortOrder()
+        );
+    }
 
     public List<AdminAttributeCategoryResponse> toAdminAttributeCategoryResponses(List<AdminAttributeCategoryResult> results) {
         return results.stream()
@@ -40,7 +53,7 @@ public class MenuReferenceMapper {
         );
     }
 
-    private AdminAttributeCategoryResponse toAdminAttributeCategoryResponse(AdminAttributeCategoryResult result) {
+    public AdminAttributeCategoryResponse toAdminAttributeCategoryResponse(AdminAttributeCategoryResult result) {
         return new AdminAttributeCategoryResponse(
                 result.id(),
                 result.categoryType(),
@@ -59,5 +72,16 @@ public class MenuReferenceMapper {
                 result.allergen(),
                 result.sortOrder()
         );
+    }
+
+    private CategoryType toCategoryType(String rawCategoryType) {
+        try {
+            return CategoryType.valueOf(rawCategoryType.trim().toUpperCase());
+        } catch (IllegalArgumentException exception) {
+            throw RequestValidationException.invalidBodyField(
+                    "categoryType",
+                    "허용되지 않은 categoryType 입니다. 허용 값: FLAVOR, COOKING_METHOD, FOOD_CATEGORY, TEXTURE, TEMPERATURE"
+            );
+        }
     }
 }

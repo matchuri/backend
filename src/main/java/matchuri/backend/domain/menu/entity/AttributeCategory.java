@@ -31,6 +31,9 @@ import matchuri.backend.domain.common.BaseEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AttributeCategory extends BaseEntity {
 
+    public static final int CODE_MAX_LENGTH = 50;
+    public static final int NAME_MAX_LENGTH = 100;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(comment = "속성 카테고리 ID")
@@ -40,10 +43,10 @@ public class AttributeCategory extends BaseEntity {
     @Column(name = "category_type", nullable = false, length = 30, comment = "카테고리 유형")
     private CategoryType categoryType;
 
-    @Column(nullable = false, length = 50, comment = "카테고리 코드")
+    @Column(nullable = false, length = CODE_MAX_LENGTH, comment = "카테고리 코드")
     private String code;
 
-    @Column(nullable = false, length = 100, comment = "카테고리명")
+    @Column(nullable = false, length = NAME_MAX_LENGTH, comment = "카테고리명")
     private String name;
 
     @Column(name = "sort_order", nullable = false, comment = "정렬 순서")
