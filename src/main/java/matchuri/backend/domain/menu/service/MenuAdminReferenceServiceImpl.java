@@ -8,6 +8,8 @@ import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
+import matchuri.backend.domain.menu.repository.IngredientRepository;
+import matchuri.backend.domain.menu.result.AdminIngredientResult;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +20,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class MenuAdminReferenceServiceImpl implements MenuAdminReferenceService {
 
     private final AttributeCategoryRepository attributeCategoryRepository;
+    private final IngredientRepository ingredientRepository;
 
     @Override
     public List<AdminAttributeCategoryResult> getAttributeCategories() {
         return attributeCategoryRepository.findAllByOrderByCategoryTypeAscSortOrderAscIdAsc().stream()
                 .map(AdminAttributeCategoryResult::from)
+                .toList();
+    }
+
+    @Override
+    public List<AdminIngredientResult> getIngredients() {
+        return ingredientRepository.findAllByOrderBySortOrderAscIdAsc().stream()
+                .map(AdminIngredientResult::from)
                 .toList();
     }
 

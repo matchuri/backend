@@ -10,9 +10,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryListApiResponse;
+import matchuri.backend.api.menu.dto.docs.AdminIngredientListApiResponse;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
+import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.global.api.ApiResponse;
 
 @Tag(name = "Menu Admin Reference", description = "참조 데이터 운영 관리를 위한 관리자 전용 API")
@@ -90,6 +92,61 @@ public interface MenuAdminReferenceApi {
             )
     })
     ApiResponse<List<AdminAttributeCategoryResponse>> getAdminAttributeCategories();
+
+    @Operation(
+            summary = "관리자 ingredient 목록 조회",
+            description = """
+                    운영 관리용 `ingredient` 목록을 조회합니다.
+
+                    - `ADMIN` 권한이 필요합니다.
+                    - 활성/비활성 데이터를 모두 반환합니다.
+                    - 별도 `includeInactive` 파라미터 없이 전체 운영 상태를 기본 노출합니다.
+                    - 정렬 기준은 `sortOrder`, `id`입니다.
+                    - 응답에는 `allergen`, `isActive`를 함께 포함합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminIngredientListApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": [
+                                                {
+                                                  "id": 101,
+                                                  "code": "PEANUT",
+                                                  "name": "땅콩",
+                                                  "allergen": true,
+                                                  "sortOrder": 10,
+                                                  "isActive": true
+                                                },
+                                                {
+                                                  "id": 102,
+                                                  "code": "PORK",
+                                                  "name": "돼지고기",
+                                                  "allergen": false,
+                                                  "sortOrder": 20,
+                                                  "isActive": false
+                                                }
+                                              ],
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음"
+            )
+    })
+    ApiResponse<List<AdminIngredientResponse>> getAdminIngredients();
 
     @Operation(
             summary = "관리자 attribute category 생성",

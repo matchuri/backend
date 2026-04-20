@@ -9,6 +9,8 @@ public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
 
     boolean existsByCode(String code);
 
+    List<Ingredient> findAllByOrderBySortOrderAscIdAsc();
+
     List<Ingredient> findAllByActiveTrueOrderBySortOrderAscIdAsc();
 
     List<Ingredient> findAllByIdInAndActiveTrue(Collection<Long> ids);

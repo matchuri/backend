@@ -4,12 +4,14 @@ import java.util.List;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
+import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
+import matchuri.backend.domain.menu.result.AdminIngredientResult;
 import matchuri.backend.domain.menu.result.AttributeCategoryResult;
 import matchuri.backend.domain.menu.result.RestrictionIngredientResult;
 import matchuri.backend.global.exception.RequestValidationException;
@@ -45,6 +47,12 @@ public class MenuReferenceMapper {
                 .toList();
     }
 
+    public List<AdminIngredientResponse> toAdminIngredientResponses(List<AdminIngredientResult> results) {
+        return results.stream()
+                .map(this::toAdminIngredientResponse)
+                .toList();
+    }
+
     public List<AttributeCategoryResponse> toAttributeCategoryResponses(List<AttributeCategoryResult> results) {
         return results.stream()
                 .map(this::toAttributeCategoryResponse)
@@ -73,6 +81,17 @@ public class MenuReferenceMapper {
                 result.categoryType(),
                 result.code(),
                 result.name(),
+                result.sortOrder(),
+                result.isActive()
+        );
+    }
+
+    public AdminIngredientResponse toAdminIngredientResponse(AdminIngredientResult result) {
+        return new AdminIngredientResponse(
+                result.id(),
+                result.code(),
+                result.name(),
+                result.allergen(),
                 result.sortOrder(),
                 result.isActive()
         );

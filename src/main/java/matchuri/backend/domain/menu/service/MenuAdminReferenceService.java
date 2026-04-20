@@ -4,10 +4,13 @@ import java.util.List;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
+import matchuri.backend.domain.menu.result.AdminIngredientResult;
 
 public interface MenuAdminReferenceService {
 
     List<AdminAttributeCategoryResult> getAttributeCategories();
+
+    List<AdminIngredientResult> getIngredients();
 
     AdminAttributeCategoryResult createAttributeCategory(CreateAdminAttributeCategoryCommand command);
 

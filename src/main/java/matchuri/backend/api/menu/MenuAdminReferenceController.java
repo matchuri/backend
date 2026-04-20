@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
+import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.api.menu.mapper.MenuReferenceMapper;
 import matchuri.backend.domain.menu.service.MenuAdminReferenceService;
 import matchuri.backend.global.api.ApiResponse;
@@ -32,6 +33,16 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
 
         var results = menuAdminReferenceService.getAttributeCategories();
         var responses = menuReferenceMapper.toAdminAttributeCategoryResponses(results);
+
+        return ApiResponse.success(responses);
+    }
+
+    @Override
+    @GetMapping("/ingredients")
+    public ApiResponse<List<AdminIngredientResponse>> getAdminIngredients() {
+
+        var results = menuAdminReferenceService.getIngredients();
+        var responses = menuReferenceMapper.toAdminIngredientResponses(results);
 
         return ApiResponse.success(responses);
     }
