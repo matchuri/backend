@@ -9,6 +9,7 @@ import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.response.MemberProfileResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
 import matchuri.backend.api.member.dto.response.UpdateMemberResponse;
@@ -84,6 +85,15 @@ public class MemberController implements MemberApi {
     public ApiResponse<MemberProfileResponse> getMyProfile() {
         var myProfile = memberService.getMyProfile();
         MemberProfileResponse response = memberMapper.toMemberProfileResponse(myProfile);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @GetMapping("/me/taste-profile")
+    public ApiResponse<MemberTasteProfileSummaryResponse> getMyTasteProfile() {
+        var myTasteProfile = memberService.getMyTasteProfile();
+        MemberTasteProfileSummaryResponse response = memberMapper.toMemberTasteProfileSummaryResponse(myTasteProfile);
 
         return ApiResponse.success(response);
     }

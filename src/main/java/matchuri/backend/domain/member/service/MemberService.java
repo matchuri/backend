@@ -6,6 +6,7 @@ import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
 import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
@@ -21,6 +22,8 @@ public interface MemberService {
     CreateMemberResult createMember(CreateMemberCommand command);
 
     MemberProfileResult getMyProfile();
+
+    MemberTasteProfileSummaryResult getMyTasteProfile();
 
     UpdateMemberResult updateMyProfile(UpdateMemberBasicInfoCommand command);
 

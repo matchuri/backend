@@ -5,7 +5,10 @@ import matchuri.backend.api.auth.dto.response.LogoutResponse;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteAttributeCategoryResponse;
 import matchuri.backend.api.member.dto.response.MemberProfileResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteRestrictionIngredientResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
 import matchuri.backend.api.member.dto.response.UpdateMemberResponse;
@@ -22,6 +25,7 @@ import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
@@ -92,6 +96,32 @@ public class MemberMapper {
 
     public MemberProfileResponse toMemberProfileResponse(MemberProfileResult result) {
         return new MemberProfileResponse(result.id(), result.nickname());
+    }
+
+    public MemberTasteProfileSummaryResponse toMemberTasteProfileSummaryResponse(MemberTasteProfileSummaryResult result) {
+        return new MemberTasteProfileSummaryResponse(
+                result.memberId(),
+                result.profileVersion(),
+                result.attributeCategories().stream()
+                        .map(item -> new MemberTasteAttributeCategoryResponse(
+                                item.id(),
+                                item.categoryType(),
+                                item.code(),
+                                item.name(),
+                                item.sortOrder()
+                        ))
+                        .toList(),
+                result.restrictionIngredients().stream()
+                        .map(item -> new MemberTasteRestrictionIngredientResponse(
+                                item.id(),
+                                item.code(),
+                                item.name(),
+                                item.allergen(),
+                                item.sortOrder()
+                        ))
+                        .toList(),
+                result.updatedAt()
+        );
     }
 
     public UpdateMemberBasicInfoCommand toUpdateMemberBasicInfoCommand(String nickname) {

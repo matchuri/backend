@@ -8,15 +8,18 @@ import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
+import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.global.exception.BusinessException;
@@ -33,6 +36,8 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final MemberAgreementRepository memberAgreementRepository;
     private final MemberTasteProfileRepository memberTasteProfileRepository;
+    private final MemberTasteProfileCategoryRepository memberTasteProfileCategoryRepository;
+    private final MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
     private final RequiredAgreementRequestValidator requiredAgreementRequestValidator;
     private final PasswordEncoder passwordEncoder;
     private final ActiveMemberReader activeMemberReader;
@@ -81,6 +86,20 @@ public class MemberServiceImpl implements MemberService {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
 
         return MemberProfileResult.from(member);
+    }
+
+    @Override
+    public MemberTasteProfileSummaryResult getMyTasteProfile() {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+
+        return memberTasteProfileRepository.findByMemberId(member.getId())
+                .map(tasteProfile -> MemberTasteProfileSummaryResult.of(
+                        member.getId(),
+                        tasteProfile,
+                        memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
+                        memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId())
+                ))
+                .orElseGet(() -> MemberTasteProfileSummaryResult.empty(member.getId()));
     }
 
     @Override

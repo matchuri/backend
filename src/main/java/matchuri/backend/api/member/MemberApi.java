@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import matchuri.backend.api.member.dto.docs.CreateMemberApiResponse;
 import matchuri.backend.api.member.dto.docs.LoginIdExistsApiResponse;
+import matchuri.backend.api.member.dto.docs.MemberTasteProfileSummaryApiResponse;
 import matchuri.backend.api.member.dto.docs.NicknameExistsApiResponse;
 import matchuri.backend.api.member.dto.docs.RegisterLocalMemberApiResponse;
 import matchuri.backend.api.member.dto.request.CreateMemberRequest;
@@ -19,6 +20,7 @@ import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.response.MemberProfileResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
 import matchuri.backend.api.member.dto.response.UpdateMemberResponse;
@@ -352,6 +354,80 @@ public interface MemberApi {
                     - `loginId`, `email`, 취향 프로필 상세 필드는 이 응답에 포함되지 않습니다.
                     """)
     ApiResponse<MemberProfileResponse> getMyProfile();
+
+    @Operation(
+            summary = "내 취향 프로필 조회",
+            description = """
+                    현재 로그인한 회원의 취향 프로필을 조회합니다.
+
+                    - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
+                    - 프로필이 아직 없어도 빈 배열 기반의 정상 응답을 반환합니다.
+                    - 선택된 `attribute category`, `restriction ingredient`는 표시용 최소 메타데이터와 함께 반환합니다.
+                    - `profileVersion`은 현재 서버가 관리하는 버전 문자열입니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MemberTasteProfileSummaryApiResponse.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "profileExists",
+                                            value = """
+                                                    {
+                                                      "success": true,
+                                                      "data": {
+                                                        "memberId": 1,
+                                                        "profileVersion": "v1",
+                                                        "attributeCategories": [
+                                                          {
+                                                            "id": 1,
+                                                            "categoryType": "FLAVOR",
+                                                            "code": "SPICY",
+                                                            "name": "매운맛",
+                                                            "sortOrder": 10
+                                                          }
+                                                        ],
+                                                        "restrictionIngredients": [
+                                                          {
+                                                            "id": 101,
+                                                            "code": "PEANUT",
+                                                            "name": "땅콩",
+                                                            "allergen": true,
+                                                            "sortOrder": 10
+                                                          }
+                                                        ],
+                                                        "updatedAt": "2026-04-17T12:30:45"
+                                                      },
+                                                      "error": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "emptyProfile",
+                                            value = """
+                                                    {
+                                                      "success": true,
+                                                      "data": {
+                                                        "memberId": 1,
+                                                        "profileVersion": "v1",
+                                                        "attributeCategories": [],
+                                                        "restrictionIngredients": [],
+                                                        "updatedAt": null
+                                                      },
+                                                      "error": null
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    ApiResponse<MemberTasteProfileSummaryResponse> getMyTasteProfile();
 
     @Operation(
             summary = "내 기본 정보 수정",
