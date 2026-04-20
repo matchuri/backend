@@ -64,7 +64,9 @@ public class MemberController implements MemberApi {
     ) {
         validateLoginId(loginId);
         boolean exists = memberService.existsByLoginId(loginId);
-        return ApiResponse.success(memberMapper.toLoginIdExistsResponse(loginId, exists));
+        LoginIdExistsResponse response = memberMapper.toLoginIdExistsResponse(loginId, exists);
+
+        return ApiResponse.success(response);
     }
 
     @Override
@@ -72,13 +74,18 @@ public class MemberController implements MemberApi {
     public ApiResponse<NicknameExistsResponse> checkNicknameExists(@PathVariable String nickname) {
         validateNickname(nickname);
         boolean exists = memberService.existsByNickname(nickname);
-        return ApiResponse.success(memberMapper.toNicknameExistsResponse(nickname, exists));
+        NicknameExistsResponse response = memberMapper.toNicknameExistsResponse(nickname, exists);
+
+        return ApiResponse.success(response);
     }
 
     @Override
     @GetMapping("/me")
     public ApiResponse<MemberProfileResponse> getMyProfile() {
-        return ApiResponse.success(memberMapper.toMemberProfileResponse(memberService.getMyProfile()));
+        var myProfile = memberService.getMyProfile();
+        MemberProfileResponse response = memberMapper.toMemberProfileResponse(myProfile);
+
+        return ApiResponse.success(response);
     }
 
     @Override
@@ -104,7 +111,10 @@ public class MemberController implements MemberApi {
     @Override
     @DeleteMapping("/me")
     public ApiResponse<WithdrawMemberResponse> withdraw() {
-        return ApiResponse.success(memberMapper.toWithdrawMemberResponse(memberService.withdraw()));
+        var withdraw = memberService.withdraw();
+        WithdrawMemberResponse response = memberMapper.toWithdrawMemberResponse(withdraw);
+
+        return ApiResponse.success(response);
     }
 
     private void validateLoginId(String loginId) {

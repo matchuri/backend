@@ -11,7 +11,6 @@ import matchuri.backend.api.auth.dto.response.LoginResponse;
 import matchuri.backend.api.auth.dto.response.LogoutResponse;
 import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.auth.exception.AuthErrorCode;
-import matchuri.backend.domain.auth.result.LoginResult;
 import matchuri.backend.domain.auth.service.AuthService;
 import matchuri.backend.domain.auth.support.token.RefreshTokenCookieService;
 import matchuri.backend.global.api.ApiResponse;
@@ -40,10 +39,10 @@ public class AuthController implements AuthApi {
             HttpServletResponse httpResponse
     ) {
         var command = memberMapper.toLoginCommand(request.loginId(), request.password());
-        LoginResult loginResult = authService.login(command, resolveClientIp(httpRequest));
-        LoginResponse response = memberMapper.toLoginResponse(loginResult.payload());
+        var result = authService.login(command, resolveClientIp(httpRequest));
+        LoginResponse response = memberMapper.toLoginResponse(result.payload());
 
-        refreshTokenCookieService.addRefreshToken(httpResponse, loginResult.refreshToken());
+        refreshTokenCookieService.addRefreshToken(httpResponse, result.refreshToken());
         return ApiResponse.success(response);
     }
 
@@ -54,10 +53,10 @@ public class AuthController implements AuthApi {
                 .orElseThrow(() -> new AuthenticationException(AuthErrorCode.REFRESH_TOKEN_MISSING));
 
         try {
-            LoginResult loginResult = authService.refresh(refreshToken, resolveClientIp(httpRequest));
-            LoginResponse response = memberMapper.toLoginResponse(loginResult.payload());
+            var result = authService.refresh(refreshToken, resolveClientIp(httpRequest));
+            LoginResponse response = memberMapper.toLoginResponse(result.payload());
 
-            refreshTokenCookieService.addRefreshToken(httpResponse, loginResult.refreshToken());
+            refreshTokenCookieService.addRefreshToken(httpResponse, result.refreshToken());
             return ApiResponse.success(response);
         } catch (AuthenticationException | BusinessException exception) {
             refreshTokenCookieService.clearRefreshToken(httpResponse);
