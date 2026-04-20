@@ -16,16 +16,25 @@ import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
+import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
+import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
+import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
+import matchuri.backend.domain.menu.entity.AttributeCategory;
+import matchuri.backend.domain.menu.entity.CategoryType;
+import matchuri.backend.domain.menu.entity.Ingredient;
 import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +56,12 @@ class MemberServiceImplTest {
 
     @Mock
     private MemberTasteProfileRepository memberTasteProfileRepository;
+
+    @Mock
+    private MemberTasteProfileCategoryRepository memberTasteProfileCategoryRepository;
+
+    @Mock
+    private MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
 
     @Mock
     private RequiredAgreementRequestValidator requiredAgreementRequestValidator;
@@ -157,5 +172,69 @@ class MemberServiceImplTest {
         assertThat(result.id()).isEqualTo(1L);
         assertThat(member.getNickname()).isEqualTo("현재닉네임");
         verify(memberRepository).flush();
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 조회 시 프로필이 없으면 빈 배열 기반 응답을 반환한다")
+    void getMyTasteProfileReturnsEmptyProfileWhenProfileDoesNotExist() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(memberTasteProfileRepository.findByMemberId(1L)).thenReturn(java.util.Optional.empty());
+
+        MemberTasteProfileSummaryResult result = memberService.getMyTasteProfile();
+
+        assertThat(result.memberId()).isEqualTo(1L);
+        assertThat(result.profileVersion()).isEqualTo(MemberTasteProfileSummaryResult.DEFAULT_PROFILE_VERSION);
+        assertThat(result.attributeCategories()).isEmpty();
+        assertThat(result.restrictionIngredients()).isEmpty();
+        assertThat(result.updatedAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 조회 시 저장된 선택 항목을 표시용 메타데이터와 함께 반환한다")
+    void getMyTasteProfileReturnsSelectedItems() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+        MemberTasteProfile profile = new MemberTasteProfile(member, "v2");
+        AttributeCategory attributeCategory = new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10);
+        Ingredient ingredient = new Ingredient("PEANUT", "땅콩", true, 10);
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(memberTasteProfileRepository.findByMemberId(1L)).thenReturn(java.util.Optional.of(profile));
+        when(memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(profile.getId()))
+                .thenReturn(List.of(new MemberTasteProfileCategory(profile, attributeCategory)));
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(profile.getId()))
+                .thenReturn(List.of(new MemberTasteProfileRestrictionIngredient(profile, ingredient)));
+
+        MemberTasteProfileSummaryResult result = memberService.getMyTasteProfile();
+
+        assertThat(result.memberId()).isEqualTo(1L);
+        assertThat(result.profileVersion()).isEqualTo("v2");
+        assertThat(result.attributeCategories()).singleElement()
+                .extracting(
+                        MemberTasteProfileSummaryResult.AttributeCategoryItem::categoryType,
+                        MemberTasteProfileSummaryResult.AttributeCategoryItem::code,
+                        MemberTasteProfileSummaryResult.AttributeCategoryItem::name
+                )
+                .containsExactly(CategoryType.FLAVOR, "SPICY", "매운맛");
+        assertThat(result.restrictionIngredients()).singleElement()
+                .extracting(
+                        MemberTasteProfileSummaryResult.RestrictionIngredientItem::code,
+                        MemberTasteProfileSummaryResult.RestrictionIngredientItem::name,
+                        MemberTasteProfileSummaryResult.RestrictionIngredientItem::allergen
+                )
+                .containsExactly("PEANUT", "땅콩", true);
     }
 }

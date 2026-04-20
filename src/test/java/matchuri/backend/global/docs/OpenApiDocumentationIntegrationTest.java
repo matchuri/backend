@@ -81,7 +81,15 @@ class OpenApiDocumentationIntegrationTest {
                         .value("#/components/schemas/LoginIdExistsApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/members/exists/nickname/{nickname}'].get.security").isEmpty())
                 .andExpect(jsonPath("$.paths['/api/v1/members/exists/nickname/{nickname}'].get.responses['200'].content['application/json'].schema.$ref")
-                        .value("#/components/schemas/NicknameExistsApiResponse"));
+                        .value("#/components/schemas/NicknameExistsApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/MemberTasteProfileSummaryApiResponse"))
+                .andExpect(jsonPath("$.components.schemas.MemberTasteProfileSummaryResponse.properties.memberId.description")
+                        .value("현재 로그인한 회원 ID입니다."))
+                .andExpect(jsonPath("$.components.schemas.MemberTasteAttributeCategoryResponse.properties.categoryType.description")
+                        .value("선택된 attribute category의 상위 유형입니다."))
+                .andExpect(jsonPath("$.components.schemas.MemberTasteRestrictionIngredientResponse.properties.allergen.description")
+                        .value("알레르기 유발 재료 여부입니다."));
     }
 
     @Test

@@ -30,10 +30,19 @@ import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
+import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
+import matchuri.backend.domain.menu.entity.AttributeCategory;
+import matchuri.backend.domain.menu.entity.CategoryType;
+import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -72,7 +81,19 @@ class MemberAuthIntegrationTest {
     private MemberTasteProfileRepository memberTasteProfileRepository;
 
     @Autowired
+    private MemberTasteProfileCategoryRepository memberTasteProfileCategoryRepository;
+
+    @Autowired
+    private MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
+
+    @Autowired
     private MemberAgreementRepository memberAgreementRepository;
+
+    @Autowired
+    private AttributeCategoryRepository attributeCategoryRepository;
+
+    @Autowired
+    private IngredientRepository ingredientRepository;
 
     @Autowired
     private MatchuriProperties matchuriProperties;
@@ -82,7 +103,11 @@ class MemberAuthIntegrationTest {
         authExchangeCodeRepository.deleteAll();
         authRefreshTokenRepository.deleteAll();
         memberAgreementRepository.deleteAll();
+        memberTasteProfileCategoryRepository.deleteAll();
+        memberTasteProfileRestrictionIngredientRepository.deleteAll();
         memberTasteProfileRepository.deleteAll();
+        attributeCategoryRepository.deleteAll();
+        ingredientRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
@@ -287,6 +312,60 @@ class MemberAuthIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("MEMBER_INACTIVE_MEMBER"));
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 조회는 프로필이 없어도 빈 배열 기반 응답을 반환한다")
+    void getMyTasteProfileReturnsEmptyProfile() throws Exception {
+        createMemberThroughApi("taste-user-empty", "P@ssw0rd!");
+        AuthSession authSession = login("taste-user-empty", "P@ssw0rd!");
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
+        Long memberId = memberRepository.findByLoginId("taste-user-empty").orElseThrow().getId();
+
+        mockMvc.perform(get("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.memberId").value(memberId))
+                .andExpect(jsonPath("$.data.profileVersion").value("v1"))
+                .andExpect(jsonPath("$.data.attributeCategories.length()").value(0))
+                .andExpect(jsonPath("$.data.restrictionIngredients.length()").value(0))
+                .andExpect(jsonPath("$.data.updatedAt").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 조회는 저장된 선택 항목을 표시용 메타데이터와 함께 반환한다")
+    void getMyTasteProfileReturnsSelectedItems() throws Exception {
+        createMemberThroughApi("taste-user-full", "P@ssw0rd!");
+        AuthSession authSession = login("taste-user-full", "P@ssw0rd!");
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
+        Member member = memberRepository.findByLoginId("taste-user-full").orElseThrow();
+
+        AttributeCategory attributeCategory = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10)
+        );
+        Ingredient ingredient = ingredientRepository.save(
+                new Ingredient("PEANUT", "땅콩", true, 10)
+        );
+        MemberTasteProfile tasteProfile = memberTasteProfileRepository.save(new MemberTasteProfile(member, "v2"));
+        memberTasteProfileCategoryRepository.save(new MemberTasteProfileCategory(tasteProfile, attributeCategory));
+        memberTasteProfileRestrictionIngredientRepository.save(
+                new MemberTasteProfileRestrictionIngredient(tasteProfile, ingredient)
+        );
+
+        mockMvc.perform(get("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.memberId").value(member.getId()))
+                .andExpect(jsonPath("$.data.profileVersion").value("v2"))
+                .andExpect(jsonPath("$.data.attributeCategories[0].id").value(attributeCategory.getId()))
+                .andExpect(jsonPath("$.data.attributeCategories[0].categoryType").value("FLAVOR"))
+                .andExpect(jsonPath("$.data.attributeCategories[0].code").value("SPICY"))
+                .andExpect(jsonPath("$.data.restrictionIngredients[0].id").value(ingredient.getId()))
+                .andExpect(jsonPath("$.data.restrictionIngredients[0].code").value("PEANUT"))
+                .andExpect(jsonPath("$.data.restrictionIngredients[0].allergen").value(true))
+                .andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
     }
 
     @Test
