@@ -239,6 +239,12 @@ class MemberAuthIntegrationTest {
         createMemberThroughApi("tester01", "P@ssw0rd!");
         AuthSession authSession = login("tester01", "P@ssw0rd!");
         String accessToken = submitRequiredAgreements(authSession.accessToken());
+        AttributeCategory attributeCategory = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10)
+        );
+        Ingredient ingredient = ingredientRepository.save(
+                new Ingredient("PEANUT", "땅콩", true, 10)
+        );
 
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
@@ -266,11 +272,15 @@ class MemberAuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "profileVersion": "v1"
+                                  "attributeCategoryIds": [%d],
+                                  "restrictionIngredientIds": [%d]
                                 }
-                                """))
+                                """.formatted(attributeCategory.getId(), ingredient.getId())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.memberId").isNumber())
+                .andExpect(jsonPath("$.data.profileVersion").value("v1"))
+                .andExpect(jsonPath("$.data.attributeCategories[0].code").value("SPICY"))
+                .andExpect(jsonPath("$.data.restrictionIngredients[0].code").value("PEANUT"))
                 .andExpect(jsonPath("$.data.updatedAt").exists());
 
         mockMvc.perform(get("/api/v1/members/me")
@@ -366,6 +376,46 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.restrictionIngredients[0].code").value("PEANUT"))
                 .andExpect(jsonPath("$.data.restrictionIngredients[0].allergen").value(true))
                 .andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 잘못된 참조 데이터 ID를 거절한다")
+    void updateMyTasteProfileRejectsInvalidReferenceData() throws Exception {
+        createMemberThroughApi("taste-user-invalid", "P@ssw0rd!");
+        AuthSession authSession = login("taste-user-invalid", "P@ssw0rd!");
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
+
+        mockMvc.perform(patch("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "attributeCategoryIds": [999],
+                                  "restrictionIngredientIds": []
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_INVALID_TASTE_ATTRIBUTE_CATEGORY"));
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 중복된 참조 데이터 ID를 거절한다")
+    void updateMyTasteProfileRejectsDuplicateIds() throws Exception {
+        createMemberThroughApi("taste-user-duplicate", "P@ssw0rd!");
+        AuthSession authSession = login("taste-user-duplicate", "P@ssw0rd!");
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
+
+        mockMvc.perform(patch("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "attributeCategoryIds": [1, 1],
+                                  "restrictionIngredientIds": []
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_DUPLICATE_TASTE_ATTRIBUTE_CATEGORY"));
     }
 
     @Test

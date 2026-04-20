@@ -7,12 +7,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
 import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
+import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
@@ -35,6 +38,8 @@ import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,6 +67,12 @@ class MemberServiceImplTest {
 
     @Mock
     private MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
+
+    @Mock
+    private AttributeCategoryRepository attributeCategoryRepository;
+
+    @Mock
+    private IngredientRepository ingredientRepository;
 
     @Mock
     private RequiredAgreementRequestValidator requiredAgreementRequestValidator;
@@ -236,5 +247,117 @@ class MemberServiceImplTest {
                         MemberTasteProfileSummaryResult.RestrictionIngredientItem::allergen
                 )
                 .containsExactly("PEANUT", "땅콩", true);
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 프로필이 없어도 헤더와 매핑을 함께 생성한다")
+    void updateMyTasteProfileCreatesProfileAndMappings() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+        AttributeCategory attributeCategory = new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10);
+        Ingredient ingredient = new Ingredient("PEANUT", "땅콩", true, 10);
+        MemberTasteProfile savedProfile = new MemberTasteProfile(member, "v1");
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(memberTasteProfileRepository.findByMemberId(1L)).thenReturn(Optional.empty());
+        when(memberTasteProfileRepository.saveAndFlush(any(MemberTasteProfile.class))).thenReturn(savedProfile);
+        when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of(1L))).thenReturn(List.of(attributeCategory));
+        when(ingredientRepository.findAllByIdInAndActiveTrue(List.of(101L))).thenReturn(List.of(ingredient));
+        when(memberTasteProfileCategoryRepository.findAllByProfileId(savedProfile.getId())).thenReturn(Collections.emptyList());
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(savedProfile.getId())).thenReturn(Collections.emptyList());
+        when(memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(savedProfile.getId()))
+                .thenReturn(List.of(new MemberTasteProfileCategory(savedProfile, attributeCategory)));
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(savedProfile.getId()))
+                .thenReturn(List.of(new MemberTasteProfileRestrictionIngredient(savedProfile, ingredient)));
+
+        MemberTasteProfileSummaryResult result = memberService.updateMyTasteProfile(
+                new UpdateMemberTasteProfileCommand(List.of(1L), List.of(101L))
+        );
+
+        assertThat(result.profileVersion()).isEqualTo("v1");
+        assertThat(result.attributeCategories()).hasSize(1);
+        assertThat(result.restrictionIngredients()).hasSize(1);
+        verify(memberTasteProfileRepository).saveAndFlush(any(MemberTasteProfile.class));
+        verify(memberTasteProfileCategoryRepository).saveAll(any());
+        verify(memberTasteProfileRestrictionIngredientRepository).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 중복 attribute category ID를 거절한다")
+    void updateMyTasteProfileRejectsDuplicateAttributeCategoryIds() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+
+        assertThatThrownBy(() -> memberService.updateMyTasteProfile(
+                new UpdateMemberTasteProfileCommand(List.of(1L, 1L), List.of())
+        ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.DUPLICATE_TASTE_ATTRIBUTE_CATEGORY);
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 비활성 또는 존재하지 않는 restriction ingredient ID를 거절한다")
+    void updateMyTasteProfileRejectsInvalidRestrictionIngredientIds() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
+        when(ingredientRepository.findAllByIdInAndActiveTrue(List.of(999L))).thenReturn(List.of());
+
+        assertThatThrownBy(() -> memberService.updateMyTasteProfile(
+                new UpdateMemberTasteProfileCommand(List.of(), List.of(999L))
+        ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.INVALID_TASTE_RESTRICTION_INGREDIENT);
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 빈 배열로 전체 비우기를 허용한다")
+    void updateMyTasteProfileAllowsEmptyLists() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+        MemberTasteProfile profile = new MemberTasteProfile(member, "v1");
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(memberTasteProfileRepository.findByMemberId(1L)).thenReturn(Optional.of(profile));
+        when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
+        when(ingredientRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
+        when(memberTasteProfileCategoryRepository.findAllByProfileId(profile.getId())).thenReturn(Collections.emptyList());
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(profile.getId())).thenReturn(Collections.emptyList());
+        when(memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(List.of());
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(List.of());
+
+        MemberTasteProfileSummaryResult result = memberService.updateMyTasteProfile(
+                new UpdateMemberTasteProfileCommand(List.of(), List.of())
+        );
+
+        assertThat(result.profileVersion()).isEqualTo("v1");
+        assertThat(result.attributeCategories()).isEmpty();
+        assertThat(result.restrictionIngredients()).isEmpty();
     }
 }
