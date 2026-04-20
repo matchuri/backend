@@ -12,4 +12,6 @@ public interface MenuAdminReferenceService {
     AdminAttributeCategoryResult createAttributeCategory(CreateAdminAttributeCategoryCommand command);
 
     AdminAttributeCategoryResult updateAttributeCategory(UpdateAdminAttributeCategoryCommand command);
+
+    AdminAttributeCategoryResult deactivateAttributeCategory(Long attributeCategoryId);
 }

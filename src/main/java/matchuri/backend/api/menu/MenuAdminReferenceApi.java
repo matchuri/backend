@@ -253,4 +253,70 @@ public interface MenuAdminReferenceApi {
             Long attributeCategoryId,
             UpdateAdminAttributeCategoryRequest request
     );
+
+    @Operation(
+            summary = "관리자 attribute category 비활성화",
+            description = """
+                    운영 관리용 `attribute category`를 비활성화합니다.
+
+                    - `ADMIN` 권한이 필요합니다.
+                    - 물리 삭제가 아니라 `isActive=false` 비활성화로 처리합니다.
+                    - 이미 비활성 상태여도 실패시키지 않고 현재 상태를 그대로 반환합니다.
+                    - 성공 시 최신 단건 상태를 반환합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "비활성화 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminAttributeCategoryApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "id": 10,
+                                                "categoryType": "FLAVOR",
+                                                "code": "SPICY",
+                                                "name": "매운맛",
+                                                "sortOrder": 10,
+                                                "isActive": false
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 attribute category",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 404,
+                                                "code": "MENU_ATTRIBUTE_CATEGORY_NOT_FOUND",
+                                                "message": "속성 카테고리를 찾을 수 없습니다. attributeCategoryId : 999",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음"
+            )
+    })
+    ApiResponse<AdminAttributeCategoryResponse> deactivateAdminAttributeCategory(Long attributeCategoryId);
 }

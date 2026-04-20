@@ -7,11 +7,9 @@ import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.mapper.MenuReferenceMapper;
-import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
-import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
-import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.service.MenuAdminReferenceService;
 import matchuri.backend.global.api.ApiResponse;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,17 +49,28 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
         return ApiResponse.success(response);
     }
 
-        @Override
-        @PatchMapping("/attribute-categories/{attributeCategoryId}")
-        public ApiResponse<AdminAttributeCategoryResponse> updateAdminAttributeCategory(
-                @PathVariable Long attributeCategoryId,
-                @Valid @RequestBody UpdateAdminAttributeCategoryRequest request
+    @Override
+    @PatchMapping("/attribute-categories/{attributeCategoryId}")
+    public ApiResponse<AdminAttributeCategoryResponse> updateAdminAttributeCategory(
+            @PathVariable Long attributeCategoryId,
+            @Valid @RequestBody UpdateAdminAttributeCategoryRequest request
     ) {
 
-            var command = menuReferenceMapper.toUpdateAdminAttributeCategoryCommand(attributeCategoryId, request);
-            var result = menuAdminReferenceService.updateAttributeCategory(command);
-            var response = menuReferenceMapper.toAdminAttributeCategoryResponse(result);
+        var command = menuReferenceMapper.toUpdateAdminAttributeCategoryCommand(attributeCategoryId, request);
+        var result = menuAdminReferenceService.updateAttributeCategory(command);
+        var response = menuReferenceMapper.toAdminAttributeCategoryResponse(result);
 
-            return ApiResponse.success(response);
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @DeleteMapping("/attribute-categories/{attributeCategoryId}")
+    public ApiResponse<AdminAttributeCategoryResponse> deactivateAdminAttributeCategory(
+            @PathVariable Long attributeCategoryId
+    ) {
+        var result = menuAdminReferenceService.deactivateAttributeCategory(attributeCategoryId);
+        var response = menuReferenceMapper.toAdminAttributeCategoryResponse(result);
+
+        return ApiResponse.success(response);
     }
 }

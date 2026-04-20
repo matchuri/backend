@@ -67,4 +67,20 @@ public class MenuAdminReferenceServiceImpl implements MenuAdminReferenceService 
 
         return AdminAttributeCategoryResult.from(attributeCategory);
     }
+
+    @Override
+    @Transactional
+    public AdminAttributeCategoryResult deactivateAttributeCategory(Long attributeCategoryId) {
+        AttributeCategory attributeCategory = attributeCategoryRepository.findById(attributeCategoryId)
+                .orElseThrow(() -> new BusinessException(
+                        MenuErrorCode.ATTRIBUTE_CATEGORY_NOT_FOUND,
+                        attributeCategoryId
+                ));
+
+        if (attributeCategory.isActive()) {
+            attributeCategory.deactivate();
+        }
+
+        return AdminAttributeCategoryResult.from(attributeCategory);
+    }
 }
