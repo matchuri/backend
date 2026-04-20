@@ -14,6 +14,7 @@ import matchuri.backend.api.menu.dto.docs.AdminIngredientApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminIngredientListApiResponse;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
@@ -215,6 +216,141 @@ public interface MenuAdminReferenceApi {
             )
     })
     ApiResponse<AdminIngredientResponse> createAdminIngredient(CreateAdminIngredientRequest request);
+
+    @Operation(
+            summary = "관리자 ingredient 수정",
+            description = """
+                    운영 관리용 `ingredient`의 수정 가능 필드만 갱신합니다.
+
+                    - `ADMIN` 권한이 필요합니다.
+                    - 수정 가능 필드는 `name`, `allergen`, `sortOrder`, `isActive`입니다.
+                    - `isActive=true`로 비활성 데이터를 다시 활성화할 수 있습니다.
+                    - 요청에 포함하지 않은 필드는 유지됩니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "수정 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminIngredientApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "id": 101,
+                                                "code": "PEANUT",
+                                                "name": "새 땅콩",
+                                                "allergen": false,
+                                                "sortOrder": 20,
+                                                "isActive": false
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 ingredient",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 404,
+                                                "code": "MENU_INGREDIENT_NOT_FOUND",
+                                                "message": "재료를 찾을 수 없습니다. ingredientId : 999",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음"
+            )
+    })
+    ApiResponse<AdminIngredientResponse> updateAdminIngredient(
+            Long ingredientId,
+            UpdateAdminIngredientRequest request
+    );
+
+    @Operation(
+            summary = "관리자 ingredient 비활성화",
+            description = """
+                    운영 관리용 `ingredient`를 비활성화합니다.
+
+                    - `ADMIN` 권한이 필요합니다.
+                    - 물리 삭제가 아니라 `isActive=false` 비활성화로 처리합니다.
+                    - 이미 비활성 상태여도 실패시키지 않고 현재 상태를 그대로 반환합니다.
+                    - 성공 시 최신 단건 상태를 반환합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "비활성화 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminIngredientApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "id": 101,
+                                                "code": "PEANUT",
+                                                "name": "땅콩",
+                                                "allergen": true,
+                                                "sortOrder": 10,
+                                                "isActive": false
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 ingredient",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 404,
+                                                "code": "MENU_INGREDIENT_NOT_FOUND",
+                                                "message": "재료를 찾을 수 없습니다. ingredientId : 999",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음"
+            )
+    })
+    ApiResponse<AdminIngredientResponse> deactivateAdminIngredient(Long ingredientId);
 
     @Operation(
             summary = "관리자 attribute category 생성",

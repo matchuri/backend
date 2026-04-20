@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
@@ -56,6 +57,31 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
 
         var command = menuReferenceMapper.toCreateAdminIngredientCommand(request);
         var result = menuAdminReferenceService.createIngredient(command);
+        var response = menuReferenceMapper.toAdminIngredientResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PatchMapping("/ingredients/{ingredientId}")
+    public ApiResponse<AdminIngredientResponse> updateAdminIngredient(
+            @PathVariable Long ingredientId,
+            @Valid @RequestBody UpdateAdminIngredientRequest request
+    ) {
+
+        var command = menuReferenceMapper.toUpdateAdminIngredientCommand(ingredientId, request);
+        var result = menuAdminReferenceService.updateIngredient(command);
+        var response = menuReferenceMapper.toAdminIngredientResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @DeleteMapping("/ingredients/{ingredientId}")
+    public ApiResponse<AdminIngredientResponse> deactivateAdminIngredient(
+            @PathVariable Long ingredientId
+    ) {
+        var result = menuAdminReferenceService.deactivateIngredient(ingredientId);
         var response = menuReferenceMapper.toAdminIngredientResponse(result);
 
         return ApiResponse.success(response);

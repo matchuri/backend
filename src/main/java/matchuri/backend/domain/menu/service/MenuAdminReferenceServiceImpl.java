@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.menu.MenuErrorCode;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
+import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.Ingredient;
@@ -96,6 +97,38 @@ public class MenuAdminReferenceServiceImpl implements MenuAdminReferenceService 
 
     @Override
     @Transactional
+    public AdminIngredientResult updateIngredient(UpdateAdminIngredientCommand command) {
+        Ingredient ingredient = ingredientRepository.findById(command.ingredientId())
+                .orElseThrow(() -> new BusinessException(
+                        MenuErrorCode.INGREDIENT_NOT_FOUND,
+                        command.ingredientId()
+                ));
+
+        if (command.name() != null) {
+            ingredient.updateName(command.name());
+        }
+
+        if (command.allergen() != null) {
+            ingredient.updateAllergen(command.allergen());
+        }
+
+        if (command.sortOrder() != null) {
+            ingredient.updateSortOrder(command.sortOrder());
+        }
+
+        if (command.isActive() != null) {
+            if (command.isActive()) {
+                ingredient.activate();
+            } else {
+                ingredient.deactivate();
+            }
+        }
+
+        return AdminIngredientResult.from(ingredient);
+    }
+
+    @Override
+    @Transactional
     public AdminAttributeCategoryResult deactivateAttributeCategory(Long attributeCategoryId) {
         AttributeCategory attributeCategory = attributeCategoryRepository.findById(attributeCategoryId)
                 .orElseThrow(() -> new BusinessException(
@@ -108,5 +141,18 @@ public class MenuAdminReferenceServiceImpl implements MenuAdminReferenceService 
         }
 
         return AdminAttributeCategoryResult.from(attributeCategory);
+    }
+
+    @Override
+    @Transactional
+    public AdminIngredientResult deactivateIngredient(Long ingredientId) {
+        Ingredient ingredient = ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> new BusinessException(MenuErrorCode.INGREDIENT_NOT_FOUND, ingredientId));
+
+        if (ingredient.isActive()) {
+            ingredient.deactivate();
+        }
+
+        return AdminIngredientResult.from(ingredient);
     }
 }
