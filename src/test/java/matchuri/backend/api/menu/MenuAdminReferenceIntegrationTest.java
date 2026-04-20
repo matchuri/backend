@@ -261,6 +261,239 @@ class MenuAdminReferenceIntegrationTest {
     }
 
     @Test
+    @DisplayName("관리자는 ingredient의 수정 가능 필드를 갱신할 수 있다")
+    void updateAdminIngredient() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-update-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        Ingredient ingredient = ingredientRepository.save(new Ingredient("PEANUT", "땅콩", true, 10));
+
+        mockMvc.perform(patch("/api/v1/admin/ingredients/{ingredientId}", ingredient.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "새 땅콩",
+                                  "allergen": false,
+                                  "sortOrder": 20,
+                                  "isActive": false
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.id").value(ingredient.getId()))
+                .andExpect(jsonPath("$.data.code").value("PEANUT"))
+                .andExpect(jsonPath("$.data.name").value("새 땅콩"))
+                .andExpect(jsonPath("$.data.allergen").value(false))
+                .andExpect(jsonPath("$.data.sortOrder").value(20))
+                .andExpect(jsonPath("$.data.isActive").value(false));
+
+        Ingredient updated = ingredientRepository.findById(ingredient.getId()).orElseThrow();
+        assertThat(updated.getCode()).isEqualTo("PEANUT");
+        assertThat(updated.getName()).isEqualTo("새 땅콩");
+        assertThat(updated.isAllergen()).isFalse();
+        assertThat(updated.getSortOrder()).isEqualTo(20);
+        assertThat(updated.isActive()).isFalse();
+    }
+
+    @Test
+    @DisplayName("관리자 ingredient 수정은 비활성 데이터를 다시 활성화할 수 있다")
+    void updateAdminIngredientCanReactivate() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-reactivate-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        Ingredient ingredient = new Ingredient("PORK", "돼지고기", false, 10);
+        ingredient.deactivate();
+        ingredient = ingredientRepository.save(ingredient);
+
+        mockMvc.perform(patch("/api/v1/admin/ingredients/{ingredientId}", ingredient.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "isActive": true
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(ingredient.getId()))
+                .andExpect(jsonPath("$.data.isActive").value(true))
+                .andExpect(jsonPath("$.data.name").value("돼지고기"))
+                .andExpect(jsonPath("$.data.allergen").value(false));
+    }
+
+    @Test
+    @DisplayName("관리자 ingredient 수정은 존재하지 않는 대상을 거절한다")
+    void updateAdminIngredientRejectsNotFound() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-not-found-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+
+        mockMvc.perform(patch("/api/v1/admin/ingredients/{ingredientId}", 999L)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "새 이름"
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MENU_INGREDIENT_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("일반 회원은 관리자 ingredient 수정에 접근할 수 없다")
+    void updateAdminIngredientRejectsNonAdminMember() throws Exception {
+        Member member = memberRepository.save(new Member(
+                "member-patch-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+        Ingredient ingredient = ingredientRepository.save(new Ingredient("PEANUT", "땅콩", true, 10));
+
+        mockMvc.perform(patch("/api/v1/admin/ingredients/{ingredientId}", ingredient.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "새 땅콩"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("AUTH_FORBIDDEN"));
+    }
+
+    @Test
+    @DisplayName("관리자는 ingredient를 비활성화할 수 있다")
+    void deactivateAdminIngredient() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-delete-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        Ingredient ingredient = ingredientRepository.save(new Ingredient("PEANUT", "땅콩", true, 10));
+
+        mockMvc.perform(delete("/api/v1/admin/ingredients/{ingredientId}", ingredient.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.id").value(ingredient.getId()))
+                .andExpect(jsonPath("$.data.code").value("PEANUT"))
+                .andExpect(jsonPath("$.data.isActive").value(false));
+
+        Ingredient deactivated = ingredientRepository.findById(ingredient.getId()).orElseThrow();
+        assertThat(deactivated.isActive()).isFalse();
+        assertThat(deactivated.getName()).isEqualTo("땅콩");
+        assertThat(deactivated.isAllergen()).isTrue();
+    }
+
+    @Test
+    @DisplayName("관리자 ingredient 비활성화는 이미 비활성 상태여도 현재 상태를 반환한다")
+    void deactivateAdminIngredientReturnsCurrentStateWhenAlreadyInactive() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-delete-inactive-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        Ingredient ingredient = new Ingredient("PORK", "돼지고기", false, 10);
+        ingredient.deactivate();
+        ingredient = ingredientRepository.save(ingredient);
+
+        mockMvc.perform(delete("/api/v1/admin/ingredients/{ingredientId}", ingredient.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(ingredient.getId()))
+                .andExpect(jsonPath("$.data.isActive").value(false))
+                .andExpect(jsonPath("$.data.name").value("돼지고기"));
+    }
+
+    @Test
+    @DisplayName("관리자 ingredient 비활성화는 존재하지 않는 대상을 거절한다")
+    void deactivateAdminIngredientRejectsNotFound() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-delete-not-found-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+
+        mockMvc.perform(delete("/api/v1/admin/ingredients/{ingredientId}", 999L)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MENU_INGREDIENT_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("일반 회원은 관리자 ingredient 비활성화에 접근할 수 없다")
+    void deactivateAdminIngredientRejectsNonAdminMember() throws Exception {
+        Member member = memberRepository.save(new Member(
+                "member-delete-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+        Ingredient ingredient = ingredientRepository.save(new Ingredient("PEANUT", "땅콩", true, 10));
+
+        mockMvc.perform(delete("/api/v1/admin/ingredients/{ingredientId}", ingredient.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("AUTH_FORBIDDEN"));
+    }
+
+    @Test
     @DisplayName("관리자는 attribute category를 생성할 수 있다")
     void createAdminAttributeCategory() throws Exception {
         Member admin = memberRepository.save(new Member(
