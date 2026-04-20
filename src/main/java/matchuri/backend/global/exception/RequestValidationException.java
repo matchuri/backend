@@ -19,6 +19,13 @@ public class RequestValidationException extends MatchuriException {
         );
     }
 
+    public static RequestValidationException invalidBodyField(String field, String reason) {
+        return new RequestValidationException(
+                CommonErrorCode.INVALID_BODY_FIELD,
+                new ValidationErrorDetail("BODY", field, reason)
+        );
+    }
+
     public ValidationErrorDetail getDetail() {
         return detail;
     }
