@@ -184,6 +184,83 @@ class MenuAdminReferenceIntegrationTest {
     }
 
     @Test
+    @DisplayName("관리자는 ingredient를 생성할 수 있다")
+    void createAdminIngredient() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-create-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+
+        mockMvc.perform(post("/api/v1/admin/ingredients")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "code": "PEANUT",
+                                  "name": " 땅콩 ",
+                                  "allergen": true,
+                                  "sortOrder": 10
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.code").value("PEANUT"))
+                .andExpect(jsonPath("$.data.name").value("땅콩"))
+                .andExpect(jsonPath("$.data.allergen").value(true))
+                .andExpect(jsonPath("$.data.sortOrder").value(10))
+                .andExpect(jsonPath("$.data.isActive").value(true));
+
+        assertThat(ingredientRepository.findAll())
+                .hasSize(1)
+                .first()
+                .satisfies(ingredient -> {
+                    assertThat(ingredient.getCode()).isEqualTo("PEANUT");
+                    assertThat(ingredient.getName()).isEqualTo("땅콩");
+                    assertThat(ingredient.isAllergen()).isTrue();
+                    assertThat(ingredient.getSortOrder()).isEqualTo(10);
+                    assertThat(ingredient.isActive()).isTrue();
+                });
+    }
+
+    @Test
+    @DisplayName("관리자 ingredient 생성은 같은 code 중복을 거절한다")
+    void createAdminIngredientRejectsDuplicate() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-duplicate-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        ingredientRepository.save(new Ingredient("PEANUT", "땅콩", true, 10));
+
+        mockMvc.perform(post("/api/v1/admin/ingredients")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "code": "PEANUT",
+                                  "name": "새 땅콩",
+                                  "allergen": false,
+                                  "sortOrder": 20
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MENU_INGREDIENT_DUPLICATE"));
+    }
+
+    @Test
     @DisplayName("관리자는 attribute category를 생성할 수 있다")
     void createAdminAttributeCategory() throws Exception {
         Member admin = memberRepository.save(new Member(
