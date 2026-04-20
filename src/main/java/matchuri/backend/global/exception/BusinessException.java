@@ -6,10 +6,6 @@ public class BusinessException extends MatchuriException {
         super(errorCode, errorCode.getMessage());
     }
 
-    public BusinessException(ErrorCode errorCode, String message) {
-        super(errorCode, message);
-    }
-
     public BusinessException(ErrorCode errorCode, Object... args) {
         super(errorCode, args);
     }
