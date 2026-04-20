@@ -63,6 +63,18 @@ public class AttributeCategory extends BaseEntity {
         this.active = true;
     }
 
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public void activate() {
+        this.active = true;
+    }
+
     public void deactivate() {
         this.active = false;
     }

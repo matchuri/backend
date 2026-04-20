@@ -11,6 +11,7 @@ import java.util.List;
 import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryListApiResponse;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.global.api.ApiResponse;
 
@@ -183,4 +184,73 @@ public interface MenuAdminReferenceApi {
             )
     })
     ApiResponse<AdminAttributeCategoryResponse> createAdminAttributeCategory(CreateAdminAttributeCategoryRequest request);
+
+    @Operation(
+            summary = "관리자 attribute category 수정",
+            description = """
+                    운영 관리용 `attribute category`의 수정 가능 필드만 갱신합니다.
+
+                    - `ADMIN` 권한이 필요합니다.
+                    - 수정 가능 필드는 `name`, `sortOrder`, `isActive`입니다.
+                    - `isActive=true`로 비활성 데이터를 다시 활성화할 수 있습니다.
+                    - 요청에 포함하지 않은 필드는 유지됩니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "수정 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminAttributeCategoryApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "id": 10,
+                                                "categoryType": "FLAVOR",
+                                                "code": "SPICY",
+                                                "name": "순한맛",
+                                                "sortOrder": 20,
+                                                "isActive": false
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 attribute category",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 404,
+                                                "code": "MENU_ATTRIBUTE_CATEGORY_NOT_FOUND",
+                                                "message": "속성 카테고리를 찾을 수 없습니다. attributeCategoryId : 999",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음"
+            )
+    })
+    ApiResponse<AdminAttributeCategoryResponse> updateAdminAttributeCategory(
+            Long attributeCategoryId,
+            UpdateAdminAttributeCategoryRequest request
+    );
 }

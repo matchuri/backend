@@ -2,10 +2,12 @@ package matchuri.backend.api.menu.mapper;
 
 import java.util.List;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
+import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AttributeCategoryResult;
@@ -22,6 +24,18 @@ public class MenuReferenceMapper {
                 request.code().trim(),
                 request.name().trim(),
                 request.sortOrder()
+        );
+    }
+
+    public UpdateAdminAttributeCategoryCommand toUpdateAdminAttributeCategoryCommand(
+            Long attributeCategoryId,
+            UpdateAdminAttributeCategoryRequest request
+    ) {
+        return new UpdateAdminAttributeCategoryCommand(
+                attributeCategoryId,
+                trimNullable(request.name()),
+                request.sortOrder(),
+                request.isActive()
         );
     }
 
@@ -83,5 +97,9 @@ public class MenuReferenceMapper {
                     "허용되지 않은 categoryType 입니다. 허용 값: FLAVOR, COOKING_METHOD, FOOD_CATEGORY, TEXTURE, TEMPERATURE"
             );
         }
+    }
+
+    private String trimNullable(String value) {
+        return value == null ? null : value.trim();
     }
 }

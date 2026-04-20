@@ -4,11 +4,14 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.mapper.MenuReferenceMapper;
 import matchuri.backend.domain.menu.service.MenuAdminReferenceService;
 import matchuri.backend.global.api.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +44,21 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
                 menuReferenceMapper.toAdminAttributeCategoryResponse(
                         menuAdminReferenceService.createAttributeCategory(
                                 menuReferenceMapper.toCreateAdminAttributeCategoryCommand(request)
+                        )
+                )
+        );
+    }
+
+        @Override
+        @PatchMapping("/attribute-categories/{attributeCategoryId}")
+        public ApiResponse<AdminAttributeCategoryResponse> updateAdminAttributeCategory(
+                @PathVariable Long attributeCategoryId,
+                @Valid @RequestBody UpdateAdminAttributeCategoryRequest request
+    ) {
+            return ApiResponse.success(
+                    menuReferenceMapper.toAdminAttributeCategoryResponse(
+                            menuAdminReferenceService.updateAttributeCategory(
+                                    menuReferenceMapper.toUpdateAdminAttributeCategoryCommand(attributeCategoryId, request)
                         )
                 )
         );

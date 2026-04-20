@@ -4,6 +4,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.menu.MenuErrorCode;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
+import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
@@ -35,6 +36,34 @@ public class MenuAdminReferenceServiceImpl implements MenuAdminReferenceService 
         AttributeCategory attributeCategory = attributeCategoryRepository.saveAndFlush(
                 new AttributeCategory(command.categoryType(), command.code(), command.name(), command.sortOrder())
         );
+
+        return AdminAttributeCategoryResult.from(attributeCategory);
+    }
+
+    @Override
+    @Transactional
+    public AdminAttributeCategoryResult updateAttributeCategory(UpdateAdminAttributeCategoryCommand command) {
+        AttributeCategory attributeCategory = attributeCategoryRepository.findById(command.attributeCategoryId())
+                .orElseThrow(() -> new BusinessException(
+                        MenuErrorCode.ATTRIBUTE_CATEGORY_NOT_FOUND,
+                        command.attributeCategoryId()
+                ));
+
+        if (command.name() != null) {
+            attributeCategory.updateName(command.name());
+        }
+
+        if (command.sortOrder() != null) {
+            attributeCategory.updateSortOrder(command.sortOrder());
+        }
+
+        if (command.isActive() != null) {
+            if (command.isActive()) {
+                attributeCategory.activate();
+            } else {
+                attributeCategory.deactivate();
+            }
+        }
 
         return AdminAttributeCategoryResult.from(attributeCategory);
     }
