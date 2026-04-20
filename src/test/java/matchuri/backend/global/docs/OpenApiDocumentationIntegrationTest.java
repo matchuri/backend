@@ -121,6 +121,21 @@ class OpenApiDocumentationIntegrationTest {
     }
 
     @Test
+    @DisplayName("OpenAPI 문서에 관리자 attribute category 조회 API의 보안 요구와 envelope 응답 스키마가 노출된다")
+    void exposesMenuAdminReferenceApiMetadataInOpenApi() throws Exception {
+        mockMvc.perform(get("/docs/openapi"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.summary")
+                        .value("관리자 attribute category 목록 조회"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.security[0].bearerAuth").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/AdminAttributeCategoryListApiResponse"))
+                .andExpect(jsonPath("$.components.schemas.AdminAttributeCategoryResponse.properties.isActive.description")
+                        .value("운영 기준 활성 여부입니다."));
+    }
+
+    @Test
     @DisplayName("OpenAPI 문서에 Member Agreement API의 envelope 응답 스키마가 노출된다")
     void exposesMemberAgreementApiMetadataInOpenApi() throws Exception {
         mockMvc.perform(get("/docs/openapi"))
