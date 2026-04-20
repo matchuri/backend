@@ -52,15 +52,7 @@ public class AuthServiceImpl implements AuthService {
         TokenPair tokenPair = sessionTokenService.issueLoginTokenPair(member);
         log.info("auth event=login_success provider=local memberId={} ip={}", member.getId(), clientIp);
 
-        return new LoginResult(
-                new LoginPayload(
-                        tokenPair.accessToken(),
-                        tokenPair.accessTokenExpiresIn(),
-                        member.getId(),
-                        member.getMemberRole().name()
-                ),
-                tokenPair.refreshToken()
-        );
+        return LoginResult.from(tokenPair, member);
     }
 
     @Override
@@ -111,12 +103,7 @@ public class AuthServiceImpl implements AuthService {
                 clientIp
         );
 
-        return new LoginPayload(
-                issuedAccessToken.accessToken(),
-                issuedAccessToken.expiresIn(),
-                member.getId(),
-                member.getMemberRole().name()
-        );
+        return LoginPayload.from(issuedAccessToken, member);
     }
 
     private void ensureActive(Member member) {
