@@ -131,6 +131,15 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.security[0].bearerAuth").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminAttributeCategoryListApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.summary")
+                        .value("관리자 attribute category 생성"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.security[0].bearerAuth").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.requestBody.required")
+                        .value(true))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/AdminAttributeCategoryApiResponse"))
+                .andExpect(jsonPath("$.components.schemas.CreateAdminAttributeCategoryRequest.properties.categoryType.description")
+                        .value(org.hamcrest.Matchers.containsString("허용 값은 FLAVOR")))
                 .andExpect(jsonPath("$.components.schemas.AdminAttributeCategoryResponse.properties.isActive.description")
                         .value("운영 기준 활성 여부입니다."));
     }
