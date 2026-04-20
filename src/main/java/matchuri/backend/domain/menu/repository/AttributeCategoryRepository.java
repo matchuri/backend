@@ -10,6 +10,8 @@ public interface AttributeCategoryRepository extends JpaRepository<AttributeCate
 
     boolean existsByCategoryTypeAndCode(CategoryType categoryType, String code);
 
+    List<AttributeCategory> findAllByOrderByCategoryTypeAscSortOrderAscIdAsc();
+
     List<AttributeCategory> findAllByActiveTrueOrderByCategoryTypeAscSortOrderAscIdAsc();
 
     List<AttributeCategory> findAllByIdInAndActiveTrue(Collection<Long> ids);
