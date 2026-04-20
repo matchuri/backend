@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface MemberTasteProfileRestrictionIngredientRepository extends JpaRepository<MemberTasteProfileRestrictionIngredient, Long> {
 
+    List<MemberTasteProfileRestrictionIngredient> findAllByProfileId(Long profileId);
+
     @Query("""
             select mapping
             from MemberTasteProfileRestrictionIngredient mapping

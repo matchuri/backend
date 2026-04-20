@@ -1,5 +1,6 @@
 package matchuri.backend.domain.menu.repository;
 
+import java.util.Collection;
 import java.util.List;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
@@ -10,4 +11,6 @@ public interface AttributeCategoryRepository extends JpaRepository<AttributeCate
     boolean existsByCategoryTypeAndCode(CategoryType categoryType, String code);
 
     List<AttributeCategory> findAllByActiveTrueOrderByCategoryTypeAscSortOrderAscIdAsc();
+
+    List<AttributeCategory> findAllByIdInAndActiveTrue(Collection<Long> ids);
 }
