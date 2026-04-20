@@ -21,15 +21,11 @@ public class ActiveMemberReader {
         AuthenticatedMember authenticatedMember = authenticationFacade.getCurrentMember();
         Member member = memberRepository.findById(authenticatedMember.memberId())
                 .orElseThrow(() -> new BusinessException(
-                        MemberErrorCode.NOT_FOUND,
-                        MemberErrorCode.NOT_FOUND.format(authenticatedMember.memberId())
+                        MemberErrorCode.NOT_FOUND, authenticatedMember.memberId()
                 ));
 
         if (member.getStatus() != MemberStatus.ACTIVE) {
-            throw new BusinessException(
-                    MemberErrorCode.INACTIVE_MEMBER,
-                    MemberErrorCode.INACTIVE_MEMBER.format(member.getId())
-            );
+            throw new BusinessException(MemberErrorCode.INACTIVE_MEMBER, member.getId());
         }
 
         return member;

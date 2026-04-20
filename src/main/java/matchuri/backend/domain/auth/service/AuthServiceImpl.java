@@ -108,10 +108,7 @@ public class AuthServiceImpl implements AuthService {
 
     private void ensureActive(Member member) {
         if (member.getStatus() != MemberStatus.ACTIVE) {
-            throw new BusinessException(
-                    MemberErrorCode.INACTIVE_MEMBER,
-                    MemberErrorCode.INACTIVE_MEMBER.format(member.getId())
-            );
+            throw new BusinessException(MemberErrorCode.INACTIVE_MEMBER, member.getId());
         }
     }
 }

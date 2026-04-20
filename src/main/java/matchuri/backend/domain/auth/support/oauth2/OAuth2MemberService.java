@@ -31,7 +31,7 @@ public class OAuth2MemberService {
                 .orElseGet(() -> createSocialMember(provider, providerUserId, email));
 
         if (member.getStatus() != MemberStatus.ACTIVE) {
-            throw new BusinessException(MemberErrorCode.INACTIVE_MEMBER, MemberErrorCode.INACTIVE_MEMBER.format(member.getId()));
+            throw new BusinessException(MemberErrorCode.INACTIVE_MEMBER, member.getId());
         }
 
         return member;

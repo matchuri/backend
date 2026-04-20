@@ -50,8 +50,9 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public RegisterLocalMemberResult registerLocalMember(RegisterLocalMemberCommand command) {
+        String loginId = command.loginId();
         String passwordHash = passwordEncoder.encode(command.password());
-        Member member = createLocalMember(command.loginId(), passwordHash, command.nickname());
+        Member member = createLocalMember(loginId, passwordHash, command.nickname());
 
         requiredAgreementRequestValidator.validateAndIndex(command.agreements())
                 .forEach((agreementType, agreementVersion) ->
@@ -64,15 +65,13 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public CreateMemberResult createMember(CreateMemberCommand command) {
-        if (memberRepository.existsByLoginId(command.loginId())) {
-            throw new BusinessException(
-                    MemberErrorCode.DUPLICATE_LOGIN_ID,
-                    MemberErrorCode.DUPLICATE_LOGIN_ID.format(command.loginId())
-            );
+        String loginId = command.loginId();
+        if (memberRepository.existsByLoginId(loginId)) {
+            throw new BusinessException(MemberErrorCode.DUPLICATE_LOGIN_ID, loginId);
         }
 
         String passwordHash = passwordEncoder.encode(command.password());
-        Member member = createLocalMember(command.loginId(), passwordHash, null);
+        Member member = createLocalMember(loginId, passwordHash, null);
 
         return CreateMemberResult.from(member);
     }
@@ -97,10 +96,7 @@ public class MemberServiceImpl implements MemberService {
                 member.updateNickname(nickname);
                 memberRepository.flush();
             } catch (DataIntegrityViolationException exception) {
-                throw new BusinessException(
-                        MemberErrorCode.DUPLICATE_NICKNAME,
-                        MemberErrorCode.DUPLICATE_NICKNAME.format(nickname)
-                );
+                throw new BusinessException(MemberErrorCode.DUPLICATE_NICKNAME, nickname);
             }
         }
 
@@ -131,21 +127,27 @@ public class MemberServiceImpl implements MemberService {
     }
 
     private Member createLocalMember(String loginId, String passwordHash, String nickname) {
+        validateLoginIdDuplication(null, loginId);
         validateNicknameDuplication(null, nickname);
+
         try {
             Member newMember = Member.createWithEncodedPassword(loginId, passwordHash, nickname);
             return memberRepository.saveAndFlush(newMember);
         } catch (DataIntegrityViolationException exception) {
             if (nickname != null && memberRepository.existsByNickname(nickname)) {
-                throw new BusinessException(
-                        MemberErrorCode.DUPLICATE_NICKNAME,
-                        MemberErrorCode.DUPLICATE_NICKNAME.format(nickname)
-                );
+                throw new BusinessException(MemberErrorCode.DUPLICATE_NICKNAME, nickname);
             }
-            throw new BusinessException(
-                    MemberErrorCode.DUPLICATE_LOGIN_ID,
-                    MemberErrorCode.DUPLICATE_LOGIN_ID.format(loginId)
-            );
+            throw new BusinessException(MemberErrorCode.DUPLICATE_LOGIN_ID, loginId);
+        }
+    }
+
+    private void validateLoginIdDuplication(Member member, String loginId) {
+        if (loginId == null || (member != null && loginId.equals(member.getLoginId()))) {
+            return;
+        }
+
+        if (memberRepository.existsByLoginId(loginId)) {
+            throw new BusinessException(MemberErrorCode.DUPLICATE_LOGIN_ID, loginId);
         }
     }
 
@@ -155,10 +157,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         if (memberRepository.existsByNickname(nickname)) {
-            throw new BusinessException(
-                    MemberErrorCode.DUPLICATE_NICKNAME,
-                    MemberErrorCode.DUPLICATE_NICKNAME.format(nickname)
-            );
+            throw new BusinessException(MemberErrorCode.DUPLICATE_NICKNAME, nickname);
         }
     }
 }

@@ -21,18 +21,15 @@ public class RequiredAgreementRequestValidator {
             for (SubmitRequiredAgreementsCommand.AgreementConsentCommand agreement : agreements) {
                 AgreementType agreementType = AgreementType.from(agreement.agreementType());
                 if (agreementType == null) {
-                    throw new BusinessException(
-                            MemberAgreementErrorCode.INVALID_TYPE,
-                            MemberAgreementErrorCode.INVALID_TYPE.format(agreement.agreementType())
-                    );
+                    throw new BusinessException(MemberAgreementErrorCode.INVALID_TYPE, agreement.agreementType());
                 }
 
                 String requiredVersion = RequiredAgreementVersions.getRequiredVersion(agreementType);
                 if (!requiredVersion.equals(agreement.agreementVersion())) {
                     throw new BusinessException(
                             MemberAgreementErrorCode.VERSION_MISMATCH,
-                            MemberAgreementErrorCode.VERSION_MISMATCH.format(agreementType.name(), agreement.agreementVersion())
-                    );
+                            agreementType.name(),
+                            agreement.agreementVersion());
                 }
 
                 indexed.put(agreementType, agreement.agreementVersion());
@@ -46,9 +43,7 @@ public class RequiredAgreementRequestValidator {
                 .toList());
         if (!missingTypes.isEmpty()) {
             throw new BusinessException(
-                    MemberAgreementErrorCode.REQUIRED_TYPES_MISSING,
-                    MemberAgreementErrorCode.REQUIRED_TYPES_MISSING.format(missingTypes)
-            );
+                    MemberAgreementErrorCode.REQUIRED_TYPES_MISSING, missingTypes);
         }
 
         return indexed;
