@@ -85,6 +85,28 @@ class OpenApiDocumentationIntegrationTest {
     }
 
     @Test
+    @DisplayName("OpenAPI 문서에 Menu Reference 공개 API의 비인증 정책과 envelope 응답 스키마가 노출된다")
+    void exposesMenuReferenceApiMetadataInOpenApi() throws Exception {
+        mockMvc.perform(get("/docs/openapi"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.paths['/api/v1/attribute-categories'].get.summary")
+                        .value("attribute category 목록 조회"))
+                .andExpect(jsonPath("$.paths['/api/v1/attribute-categories'].get.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/attribute-categories'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/AttributeCategoryListApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/restriction-ingredients'].get.summary")
+                        .value("restriction ingredient 목록 조회"))
+                .andExpect(jsonPath("$.paths['/api/v1/restriction-ingredients'].get.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/restriction-ingredients'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/RestrictionIngredientListApiResponse"))
+                .andExpect(jsonPath("$.components.schemas.AttributeCategoryResponse.properties.categoryType.description")
+                        .value("attribute category의 상위 유형입니다."))
+                .andExpect(jsonPath("$.components.schemas.RestrictionIngredientResponse.properties.allergen.description")
+                        .value("알레르기 유발 재료 여부입니다."));
+    }
+
+    @Test
     @DisplayName("OpenAPI 문서에 Member Agreement API의 envelope 응답 스키마가 노출된다")
     void exposesMemberAgreementApiMetadataInOpenApi() throws Exception {
         mockMvc.perform(get("/docs/openapi"))
