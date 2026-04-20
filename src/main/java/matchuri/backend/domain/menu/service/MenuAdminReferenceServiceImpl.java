@@ -4,8 +4,10 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.menu.MenuErrorCode;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
+import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
+import matchuri.backend.domain.menu.entity.Ingredient;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
@@ -48,6 +50,20 @@ public class MenuAdminReferenceServiceImpl implements MenuAdminReferenceService 
         );
 
         return AdminAttributeCategoryResult.from(attributeCategory);
+    }
+
+    @Override
+    @Transactional
+    public AdminIngredientResult createIngredient(CreateAdminIngredientCommand command) {
+        if (ingredientRepository.existsByCode(command.code())) {
+            throw new BusinessException(MenuErrorCode.INGREDIENT_DUPLICATE, command.code());
+        }
+
+        Ingredient ingredient = ingredientRepository.saveAndFlush(
+                new Ingredient(command.code(), command.name(), command.allergen(), command.sortOrder())
+        );
+
+        return AdminIngredientResult.from(ingredient);
     }
 
     @Override

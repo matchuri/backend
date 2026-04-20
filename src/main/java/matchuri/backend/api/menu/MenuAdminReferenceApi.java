@@ -10,8 +10,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryListApiResponse;
+import matchuri.backend.api.menu.dto.docs.AdminIngredientApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminIngredientListApiResponse;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
@@ -147,6 +149,72 @@ public interface MenuAdminReferenceApi {
             )
     })
     ApiResponse<List<AdminIngredientResponse>> getAdminIngredients();
+
+    @Operation(
+            summary = "관리자 ingredient 생성",
+            description = """
+                    운영 관리용 `ingredient`를 새로 생성합니다.
+
+                    - `ADMIN` 권한이 필요합니다.
+                    - 생성 직후 기본 활성 상태는 `true`입니다.
+                    - 중복 기준은 `code`입니다.
+                    - 성공 시 최신 단건 상태를 반환합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "생성 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminIngredientApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "id": 101,
+                                                "code": "PEANUT",
+                                                "name": "땅콩",
+                                                "allergen": true,
+                                                "sortOrder": 10,
+                                                "isActive": true
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "중복된 ingredient",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "duplicate",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 409,
+                                                "code": "MENU_INGREDIENT_DUPLICATE",
+                                                "message": "재료가 이미 존재합니다. code : PEANUT",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음"
+            )
+    })
+    ApiResponse<AdminIngredientResponse> createAdminIngredient(CreateAdminIngredientRequest request);
 
     @Operation(
             summary = "관리자 attribute category 생성",

@@ -2,12 +2,14 @@ package matchuri.backend.api.menu.mapper;
 
 import java.util.List;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
+import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
@@ -25,6 +27,15 @@ public class MenuReferenceMapper {
                 toCategoryType(request.categoryType()),
                 request.code().trim(),
                 request.name().trim(),
+                request.sortOrder()
+        );
+    }
+
+    public CreateAdminIngredientCommand toCreateAdminIngredientCommand(CreateAdminIngredientRequest request) {
+        return new CreateAdminIngredientCommand(
+                request.code().trim(),
+                request.name().trim(),
+                request.allergen(),
                 request.sortOrder()
         );
     }

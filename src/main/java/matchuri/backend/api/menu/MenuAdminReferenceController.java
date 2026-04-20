@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
@@ -45,6 +46,19 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
         var responses = menuReferenceMapper.toAdminIngredientResponses(results);
 
         return ApiResponse.success(responses);
+    }
+
+    @Override
+    @PostMapping("/ingredients")
+    public ApiResponse<AdminIngredientResponse> createAdminIngredient(
+            @Valid @RequestBody CreateAdminIngredientRequest request
+    ) {
+
+        var command = menuReferenceMapper.toCreateAdminIngredientCommand(request);
+        var result = menuAdminReferenceService.createIngredient(command);
+        var response = menuReferenceMapper.toAdminIngredientResponse(result);
+
+        return ApiResponse.success(response);
     }
 
     @Override
