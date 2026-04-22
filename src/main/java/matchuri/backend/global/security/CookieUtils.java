@@ -4,12 +4,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Optional;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-import org.springframework.util.SerializationUtils;
 
 public final class CookieUtils {
 
@@ -61,12 +59,4 @@ public final class CookieUtils {
         response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
     }
 
-    public static String serialize(Object value) {
-        return Base64.getUrlEncoder().encodeToString(SerializationUtils.serialize(value));
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T deserialize(Cookie cookie, Class<T> cls) {
-        return (T) SerializationUtils.deserialize(Base64.getUrlDecoder().decode(cookie.getValue()));
-    }
 }
