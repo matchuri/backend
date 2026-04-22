@@ -36,7 +36,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
     private RefreshTokenCookieService refreshTokenCookieService;
 
     @Mock
-    private HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
+    private MatchuriOAuth2AuthorizationRequestRepository authorizationRequestRepository;
 
     @Mock
     private OAuth2RedirectService redirectService;
@@ -59,7 +59,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
-        verify(authorizationRequestRepository).removeAuthorizationRequestCookies(request, response);
+        verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).addRefreshToken(response, "refresh-token");
         assertThat(response.getRedirectedUrl())
                 .isEqualTo("http://localhost:3000/auth/callback/google?loginResult=success&provider=google&code=exchange-code");
@@ -80,7 +80,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
-        verify(authorizationRequestRepository).removeAuthorizationRequestCookies(request, response);
+        verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).clearRefreshToken(response);
         assertThat(response.getRedirectedUrl())
                 .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
@@ -101,7 +101,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
-        verify(authorizationRequestRepository).removeAuthorizationRequestCookies(request, response);
+        verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).clearRefreshToken(response);
         assertThat(response.getRedirectedUrl())
                 .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=MEMBER_INACTIVE_MEMBER");

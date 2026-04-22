@@ -597,6 +597,22 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
+    @DisplayName("Spring Security OAuth2 authorization 엔드포인트는 서버 세션을 사용하고 대형 커스텀 쿠키를 만들지 않는다")
+    void authorizationEndpointUsesServerSideSessionStorage() throws Exception {
+        MvcResult result = mockMvc.perform(get("/oauth2/authorization/google"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string(HttpHeaders.LOCATION, org.hamcrest.Matchers.containsString("https://accounts.google.com/o/oauth2/v2/auth")))
+                .andReturn();
+
+        assertThat(result.getRequest().getSession(false)).isNotNull();
+        assertThat(result.getResponse().getCookie("matchuri_oauth2_auth_request")).isNull();
+        if (result.getResponse().getHeader(HttpHeaders.SET_COOKIE) != null) {
+            assertThat(result.getResponse().getHeader(HttpHeaders.SET_COOKIE))
+                    .doesNotContain("matchuri_oauth2_auth_request=");
+        }
+    }
+
+    @Test
     @DisplayName("유효한 소셜 교환 코드는 액세스 토큰으로 교환된다")
     void exchangeOAuth2Code() throws Exception {
         Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "example_google"));

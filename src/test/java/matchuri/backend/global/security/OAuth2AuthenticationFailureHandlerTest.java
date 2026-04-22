@@ -23,7 +23,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 class OAuth2AuthenticationFailureHandlerTest {
 
     @Mock
-    private HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
+    private MatchuriOAuth2AuthorizationRequestRepository authorizationRequestRepository;
 
     @Mock
     private RefreshTokenCookieService refreshTokenCookieService;
@@ -48,7 +48,7 @@ class OAuth2AuthenticationFailureHandlerTest {
 
         failureHandler.onAuthenticationFailure(request, response, exception);
 
-        verify(authorizationRequestRepository).removeAuthorizationRequestCookies(request, response);
+        verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).clearRefreshToken(response);
         assertThat(response.getRedirectedUrl())
                 .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROVIDER_REJECTED");
@@ -68,7 +68,7 @@ class OAuth2AuthenticationFailureHandlerTest {
 
         failureHandler.onAuthenticationFailure(request, response, exception);
 
-        verify(authorizationRequestRepository).removeAuthorizationRequestCookies(request, response);
+        verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).clearRefreshToken(response);
         assertThat(response.getRedirectedUrl())
                 .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=naver&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");

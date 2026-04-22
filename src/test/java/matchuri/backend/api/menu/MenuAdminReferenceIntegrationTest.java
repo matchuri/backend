@@ -494,6 +494,58 @@ class MenuAdminReferenceIntegrationTest {
     }
 
     @Test
+    @DisplayName("관리자 비활성화 이후 ingredient는 공개 조회에서 제외되고 취향 프로필 저장도 거절된다")
+    void deactivatedIngredientIsExcludedFromPublicListAndRejectedByTasteProfileSave() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-public-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        Member member = memberRepository.save(new Member(
+                "member-public-ingredient-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+        Ingredient ingredient = ingredientRepository.save(new Ingredient("PEANUT", "땅콩", true, 10));
+
+        mockMvc.perform(delete("/api/v1/admin/ingredients/{ingredientId}", ingredient.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(ingredient.getId()))
+                .andExpect(jsonPath("$.data.isActive").value(false));
+
+        mockMvc.perform(get("/api/v1/restriction-ingredients")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.length()").value(0));
+
+        mockMvc.perform(patch("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "attributeCategoryIds": [],
+                                  "restrictionIngredientIds": [%d]
+                                }
+                                """.formatted(ingredient.getId())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MEMBER_INVALID_TASTE_RESTRICTION_INGREDIENT"));
+    }
+
+    @Test
     @DisplayName("관리자는 attribute category를 생성할 수 있다")
     void createAdminAttributeCategory() throws Exception {
         Member admin = memberRepository.save(new Member(
@@ -837,6 +889,60 @@ class MenuAdminReferenceIntegrationTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.error.code").value("AUTH_FORBIDDEN"));
+    }
+
+    @Test
+    @DisplayName("관리자 비활성화 이후 attribute category는 공개 조회에서 제외되고 취향 프로필 저장도 거절된다")
+    void deactivatedAttributeCategoryIsExcludedFromPublicListAndRejectedByTasteProfileSave() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-public-category-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        Member member = memberRepository.save(new Member(
+                "member-public-category-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+        AttributeCategory attributeCategory = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10)
+        );
+
+        mockMvc.perform(delete("/api/v1/admin/attribute-categories/{attributeCategoryId}", attributeCategory.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(attributeCategory.getId()))
+                .andExpect(jsonPath("$.data.isActive").value(false));
+
+        mockMvc.perform(get("/api/v1/attribute-categories")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.length()").value(0));
+
+        mockMvc.perform(patch("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "attributeCategoryIds": [%d],
+                                  "restrictionIngredientIds": []
+                                }
+                                """.formatted(attributeCategory.getId())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MEMBER_INVALID_TASTE_ATTRIBUTE_CATEGORY"));
     }
 
     private String bearer(String accessToken) {
