@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
 
-    private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
+    private final MatchuriOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final RefreshTokenCookieService refreshTokenCookieService;
     private final OAuth2RedirectService redirectService;
 
@@ -29,7 +29,7 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
             HttpServletResponse response,
             AuthenticationException exception
     ) throws IOException, ServletException {
-        authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+        authorizationRequestRepository.clearAuthorizationRequest(request, response);
         refreshTokenCookieService.clearRefreshToken(response);
 
         SocialProviderType provider = resolveProvider(request);

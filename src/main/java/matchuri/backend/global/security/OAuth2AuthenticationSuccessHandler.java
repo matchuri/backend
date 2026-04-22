@@ -26,7 +26,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
     private final OAuth2LoginService oAuth2LoginService;
     private final RefreshTokenCookieService refreshTokenCookieService;
-    private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
+    private final MatchuriOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final OAuth2RedirectService redirectService;
 
     @Override
@@ -44,7 +44,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                     request.getRemoteAddr()
             );
 
-            authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+            authorizationRequestRepository.clearAuthorizationRequest(request, response);
             refreshTokenCookieService.addRefreshToken(response, loginResult.refreshToken());
 
             String redirectUrl = redirectService.buildSuccessRedirectUrl(provider, loginResult.exchangeCode());
@@ -59,7 +59,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                     errorCode.getCode(),
                     exception.getMessage()
             );
-            authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+            authorizationRequestRepository.clearAuthorizationRequest(request, response);
             refreshTokenCookieService.clearRefreshToken(response);
 
             String redirectUrl = redirectService.buildFailureRedirectUrl(provider, errorCode);

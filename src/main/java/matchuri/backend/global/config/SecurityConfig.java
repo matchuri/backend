@@ -2,10 +2,10 @@ package matchuri.backend.global.config;
 
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.global.config.MatchuriProperties.Auth;
-import matchuri.backend.global.security.HttpCookieOAuth2AuthorizationRequestRepository;
 import matchuri.backend.global.security.JwtAuthenticationFilter;
 import matchuri.backend.global.security.MatchuriAccessDeniedHandler;
 import matchuri.backend.global.security.MatchuriAuthenticationEntryPoint;
+import matchuri.backend.global.security.MatchuriOAuth2AuthorizationRequestRepository;
 import matchuri.backend.global.security.OAuth2AuthenticationFailureHandler;
 import matchuri.backend.global.security.OAuth2AuthenticationSuccessHandler;
 import matchuri.backend.global.security.RequiredAgreementAccessFilter;
@@ -32,7 +32,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final MatchuriAuthenticationEntryPoint authenticationEntryPoint;
     private final MatchuriAccessDeniedHandler accessDeniedHandler;
-    private final HttpCookieOAuth2AuthorizationRequestRepository authorizationRequestRepository;
+    private final MatchuriOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
     private final RequiredAgreementAccessFilter requiredAgreementAccessFilter;
