@@ -7,6 +7,7 @@ import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteDislikedMenuItemResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteAttributeCategoryResponse;
 import matchuri.backend.api.member.dto.response.MemberProfileResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
@@ -124,6 +125,13 @@ public class MemberMapper {
                                 item.sortOrder()
                         ))
                         .toList(),
+                result.dislikedMenuItems().stream()
+                        .map(item -> new MemberTasteDislikedMenuItemResponse(
+                                item.id(),
+                                item.code(),
+                                item.name()
+                        ))
+                        .toList(),
                 result.updatedAt()
         );
     }
@@ -135,7 +143,8 @@ public class MemberMapper {
     public UpdateMemberTasteProfileCommand toUpdateMemberTasteProfileCommand(UpdateMemberTasteProfileRequest request) {
         return new UpdateMemberTasteProfileCommand(
                 request.attributeCategoryIds(),
-                request.restrictionIngredientIds()
+                request.restrictionIngredientIds(),
+                request.dislikedMenuItemIds()
         );
     }
 

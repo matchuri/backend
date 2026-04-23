@@ -16,8 +16,10 @@ public enum MemberErrorCode implements ErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다. nickname : {0}"),
     DUPLICATE_TASTE_ATTRIBUTE_CATEGORY(HttpStatus.BAD_REQUEST, "중복된 attribute category ID가 포함되어 있습니다. attributeCategoryIds : {0}"),
     DUPLICATE_TASTE_RESTRICTION_INGREDIENT(HttpStatus.BAD_REQUEST, "중복된 restriction ingredient ID가 포함되어 있습니다. restrictionIngredientIds : {0}"),
+    DUPLICATE_TASTE_DISLIKED_MENU_ITEM(HttpStatus.BAD_REQUEST, "중복된 disliked menu item ID가 포함되어 있습니다. dislikedMenuItemIds : {0}"),
     INVALID_TASTE_ATTRIBUTE_CATEGORY(HttpStatus.BAD_REQUEST, "유효하지 않거나 비활성화된 attribute category ID가 포함되어 있습니다. attributeCategoryIds : {0}"),
     INVALID_TASTE_RESTRICTION_INGREDIENT(HttpStatus.BAD_REQUEST, "유효하지 않거나 비활성화된 restriction ingredient ID가 포함되어 있습니다. restrictionIngredientIds : {0}"),
+    INVALID_TASTE_DISLIKED_MENU_ITEM(HttpStatus.BAD_REQUEST, "유효하지 않거나 비활성화된 disliked menu item ID가 포함되어 있습니다. dislikedMenuItemIds : {0}"),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다."),
     NICKNAME_REQUIRED(HttpStatus.FORBIDDEN, "닉네임 설정이 필요합니다."),
     INACTIVE_MEMBER(HttpStatus.FORBIDDEN, "비활성화된 회원입니다. memberId : {0}");

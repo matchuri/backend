@@ -362,7 +362,7 @@ public interface MemberApi {
 
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
                     - 프로필이 아직 없어도 빈 배열 기반의 정상 응답을 반환합니다.
-                    - 선택된 `attribute category`, `restriction ingredient`는 표시용 최소 메타데이터와 함께 반환합니다.
+                    - 선택된 `attribute category`, `restriction ingredient`, `disliked menu item`은 표시용 최소 메타데이터와 함께 반환합니다.
                     - `profileVersion`은 현재 프로필 정책/구조가 어떤 버전을 따르는지 나타내는 서버 관리 버전입니다.
                     - 단순 사용자 입력 변경만으로는 `profileVersion`이 바뀌지 않습니다.
                     """
@@ -401,6 +401,13 @@ public interface MemberApi {
                                                             "sortOrder": 10
                                                           }
                                                         ],
+                                                        "dislikedMenuItems": [
+                                                          {
+                                                            "id": 1001,
+                                                            "code": "PORK_CUTLET",
+                                                            "name": "돈까스"
+                                                          }
+                                                        ],
                                                         "updatedAt": "2026-04-17T12:30:45"
                                                       },
                                                       "error": null
@@ -417,6 +424,7 @@ public interface MemberApi {
                                                         "profileVersion": "v1",
                                                         "attributeCategories": [],
                                                         "restrictionIngredients": [],
+                                                        "dislikedMenuItems": [],
                                                         "updatedAt": null
                                                       },
                                                       "error": null
@@ -448,9 +456,10 @@ public interface MemberApi {
             description = """
                     현재 로그인한 회원의 취향 프로필을 전체 교체 방식으로 저장합니다.
 
-                    - `attributeCategoryIds`, `restrictionIngredientIds`는 각각 최신 입력 기준으로 전체 교체됩니다.
+                    - `attributeCategoryIds`, `restrictionIngredientIds`, `dislikedMenuItemIds`는 각각 최신 입력 기준으로 전체 교체됩니다.
                     - 특정 목록을 비우려면 빈 배열을 보내야 합니다.
                     - 존재하지 않거나 비활성화된 참조 데이터 ID는 거절됩니다.
+                    - `dislikedMenuItemIds`는 활성 `MenuItem` 검색/선택 결과의 ID 목록입니다.
                     - 성공 시 조회 API와 동일한 구조를 반환합니다.
                     - `profileVersion`은 수정 시각 대체값이 아니라 프로필 정책/구조 버전이므로, 단순 저장만으로는 바뀌지 않습니다.
                     """)
@@ -485,6 +494,13 @@ public interface MemberApi {
                                                     "name": "땅콩",
                                                     "allergen": true,
                                                     "sortOrder": 10
+                                                  }
+                                                ],
+                                                "dislikedMenuItems": [
+                                                  {
+                                                    "id": 1001,
+                                                    "code": "PORK_CUTLET",
+                                                    "name": "돈까스"
                                                   }
                                                 ],
                                                 "updatedAt": "2026-04-20T18:00:00"
@@ -526,6 +542,36 @@ public interface MemberApi {
                                                         "status": 400,
                                                         "code": "MEMBER_INVALID_TASTE_RESTRICTION_INGREDIENT",
                                                         "message": "유효하지 않거나 비활성화된 restriction ingredient ID가 포함되어 있습니다. restrictionIngredientIds : [999]",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "duplicateDislikedMenuItem",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "MEMBER_DUPLICATE_TASTE_DISLIKED_MENU_ITEM",
+                                                        "message": "중복된 disliked menu item ID가 포함되어 있습니다. dislikedMenuItemIds : [1001, 1001]",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidDislikedMenuItem",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "MEMBER_INVALID_TASTE_DISLIKED_MENU_ITEM",
+                                                        "message": "유효하지 않거나 비활성화된 disliked menu item ID가 포함되어 있습니다. dislikedMenuItemIds : [999]",
                                                         "details": []
                                                       }
                                                     }

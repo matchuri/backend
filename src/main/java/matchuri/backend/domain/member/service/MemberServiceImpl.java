@@ -14,8 +14,10 @@ import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
+import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
@@ -32,8 +34,10 @@ import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolver;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,8 +54,10 @@ public class MemberServiceImpl implements MemberService {
     private final MemberTasteProfileRepository memberTasteProfileRepository;
     private final MemberTasteProfileCategoryRepository memberTasteProfileCategoryRepository;
     private final MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
+    private final MemberTasteProfileDislikedMenuItemRepository memberTasteProfileDislikedMenuItemRepository;
     private final AttributeCategoryRepository attributeCategoryRepository;
     private final IngredientRepository ingredientRepository;
+    private final MenuItemRepository menuItemRepository;
     private final RequiredAgreementRequestValidator requiredAgreementRequestValidator;
     private final PasswordEncoder passwordEncoder;
     private final ActiveMemberReader activeMemberReader;
@@ -112,7 +118,8 @@ public class MemberServiceImpl implements MemberService {
                         member.getId(),
                         tasteProfile,
                         memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
-                        memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId())
+                        memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
+                        memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId())
                 ))
                 .orElseGet(() -> MemberTasteProfileSummaryResult.empty(member.getId()));
     }
@@ -143,6 +150,7 @@ public class MemberServiceImpl implements MemberService {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         List<Long> attributeCategoryIds = command.attributeCategoryIds();
         List<Long> restrictionIngredientIds = command.restrictionIngredientIds();
+        List<Long> dislikedMenuItemIds = command.dislikedMenuItemIds();
 
         validateNoDuplicateIds(
                 attributeCategoryIds,
@@ -152,9 +160,14 @@ public class MemberServiceImpl implements MemberService {
                 restrictionIngredientIds,
                 MemberErrorCode.DUPLICATE_TASTE_RESTRICTION_INGREDIENT
         );
+        validateNoDuplicateIds(
+                dislikedMenuItemIds,
+                MemberErrorCode.DUPLICATE_TASTE_DISLIKED_MENU_ITEM
+        );
 
         Map<Long, AttributeCategory> attributeCategoriesById = loadActiveAttributeCategories(attributeCategoryIds);
         Map<Long, Ingredient> ingredientsById = loadActiveIngredients(restrictionIngredientIds);
+        Map<Long, MenuItem> menuItemsById = loadActiveMenuItems(dislikedMenuItemIds);
 
         MemberTasteProfile tasteProfile = memberTasteProfileRepository.findByMemberId(member.getId())
                 .orElseGet(() -> memberTasteProfileRepository.saveAndFlush(
@@ -163,12 +176,14 @@ public class MemberServiceImpl implements MemberService {
 
         replaceAttributeCategoryMappings(tasteProfile, attributeCategoryIds, attributeCategoriesById);
         replaceRestrictionIngredientMappings(tasteProfile, restrictionIngredientIds, ingredientsById);
+        replaceDislikedMenuItemMappings(tasteProfile, dislikedMenuItemIds, menuItemsById);
 
         return MemberTasteProfileSummaryResult.of(
                 member.getId(),
                 tasteProfile,
                 memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
-                memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId())
+                memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
+                memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId())
         );
     }
 
@@ -244,6 +259,16 @@ public class MemberServiceImpl implements MemberService {
                 .collect(Collectors.toMap(Ingredient::getId, Function.identity()));
     }
 
+    private Map<Long, MenuItem> loadActiveMenuItems(List<Long> dislikedMenuItemIds) {
+        List<MenuItem> menuItems = menuItemRepository.findAllByIdInAndActiveTrue(dislikedMenuItemIds);
+        if (menuItems.size() != dislikedMenuItemIds.size()) {
+            throw new BusinessException(MemberErrorCode.INVALID_TASTE_DISLIKED_MENU_ITEM, dislikedMenuItemIds);
+        }
+
+        return menuItems.stream()
+                .collect(Collectors.toMap(MenuItem::getId, Function.identity()));
+    }
+
     private void replaceAttributeCategoryMappings(
             MemberTasteProfile tasteProfile,
             List<Long> attributeCategoryIds,
@@ -285,6 +310,29 @@ public class MemberServiceImpl implements MemberService {
                         .map(restrictionIngredientId -> new MemberTasteProfileRestrictionIngredient(
                                 tasteProfile,
                                 ingredientsById.get(restrictionIngredientId)
+                        ))
+                        .toList()
+        );
+    }
+
+    private void replaceDislikedMenuItemMappings(
+            MemberTasteProfile tasteProfile,
+            List<Long> dislikedMenuItemIds,
+            Map<Long, MenuItem> menuItemsById
+    ) {
+        memberTasteProfileDislikedMenuItemRepository.deleteAllInBatch(
+                memberTasteProfileDislikedMenuItemRepository.findAllByProfileId(tasteProfile.getId())
+        );
+
+        if (dislikedMenuItemIds.isEmpty()) {
+            return;
+        }
+
+        memberTasteProfileDislikedMenuItemRepository.saveAll(
+                dislikedMenuItemIds.stream()
+                        .map(dislikedMenuItemId -> new MemberTasteProfileDislikedMenuItem(
+                                tasteProfile,
+                                menuItemsById.get(dislikedMenuItemId)
                         ))
                         .toList()
         );

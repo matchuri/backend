@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
+import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.menu.entity.CategoryType;
 
@@ -12,6 +13,7 @@ public record MemberTasteProfileSummaryResult(
         String profileVersion,
         List<AttributeCategoryItem> attributeCategories,
         List<RestrictionIngredientItem> restrictionIngredients,
+        List<DislikedMenuItem> dislikedMenuItems,
         LocalDateTime updatedAt
 ) {
 
@@ -23,6 +25,7 @@ public record MemberTasteProfileSummaryResult(
                 DEFAULT_PROFILE_VERSION,
                 List.of(),
                 List.of(),
+                List.of(),
                 null
         );
     }
@@ -31,7 +34,8 @@ public record MemberTasteProfileSummaryResult(
             Long memberId,
             MemberTasteProfile profile,
             List<MemberTasteProfileCategory> attributeCategories,
-            List<MemberTasteProfileRestrictionIngredient> restrictionIngredients
+            List<MemberTasteProfileRestrictionIngredient> restrictionIngredients,
+            List<MemberTasteProfileDislikedMenuItem> dislikedMenuItems
     ) {
         return new MemberTasteProfileSummaryResult(
                 memberId,
@@ -41,6 +45,9 @@ public record MemberTasteProfileSummaryResult(
                         .toList(),
                 restrictionIngredients.stream()
                         .map(RestrictionIngredientItem::from)
+                        .toList(),
+                dislikedMenuItems.stream()
+                        .map(DislikedMenuItem::from)
                         .toList(),
                 profile.getUpdatedAt()
         );
@@ -82,6 +89,22 @@ public record MemberTasteProfileSummaryResult(
                     ingredient.getName(),
                     ingredient.isAllergen(),
                     ingredient.getSortOrder()
+            );
+        }
+    }
+
+    public record DislikedMenuItem(
+            Long id,
+            String code,
+            String name
+    ) {
+
+        public static DislikedMenuItem from(MemberTasteProfileDislikedMenuItem mapping) {
+            var menuItem = mapping.getMenuItem();
+            return new DislikedMenuItem(
+                    menuItem.getId(),
+                    menuItem.getCode(),
+                    menuItem.getName()
             );
         }
     }
