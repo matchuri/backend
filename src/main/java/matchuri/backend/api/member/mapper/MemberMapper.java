@@ -1,6 +1,7 @@
 package matchuri.backend.api.member.mapper;
 
 import matchuri.backend.api.auth.dto.response.LoginResponse;
+import matchuri.backend.api.common.dto.OnboardingStatusResponse;
 import matchuri.backend.api.auth.dto.response.LogoutResponse;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
@@ -27,6 +28,7 @@ import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
+import matchuri.backend.domain.member.result.OnboardingStatusResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
@@ -88,12 +90,7 @@ public class MemberMapper {
                 null,
                 payload.expiresIn(),
                 new LoginResponse.LoginMemberSummary(payload.memberId(), payload.role(), payload.nickname()),
-                new LoginResponse.LoginOnboardingStatus(
-                        payload.onboarding().requiredAgreementsCompleted(),
-                        payload.onboarding().nicknameCompleted(),
-                        payload.onboarding().completed(),
-                        payload.onboarding().nextStep().name()
-                )
+                toOnboardingResponse(payload.onboarding())
         );
     }
 
@@ -143,10 +140,19 @@ public class MemberMapper {
     }
 
     public UpdateMemberResponse toUpdateMemberResponse(UpdateMemberResult result) {
-        return new UpdateMemberResponse(result.id(), result.updatedAt());
+        return new UpdateMemberResponse(result.id(), result.updatedAt(), toOnboardingResponse(result.onboarding()));
     }
 
     public WithdrawMemberResponse toWithdrawMemberResponse(WithdrawMemberResult result) {
         return new WithdrawMemberResponse(result.id(), result.status());
+    }
+
+    private OnboardingStatusResponse toOnboardingResponse(OnboardingStatusResult result) {
+        return new OnboardingStatusResponse(
+                result.requiredAgreementsCompleted(),
+                result.nicknameCompleted(),
+                result.completed(),
+                result.nextStep().name()
+        );
     }
 }

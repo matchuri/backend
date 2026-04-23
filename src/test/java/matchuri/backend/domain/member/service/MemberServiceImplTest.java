@@ -31,10 +31,13 @@ import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepos
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
+import matchuri.backend.domain.member.result.OnboardingNextStep;
+import matchuri.backend.domain.member.result.OnboardingStatusResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
+import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolver;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
@@ -82,6 +85,9 @@ class MemberServiceImplTest {
 
     @Mock
     private ActiveMemberReader activeMemberReader;
+
+    @Mock
+    private OnboardingStatusResolver onboardingStatusResolver;
 
     @InjectMocks
     private MemberServiceImpl memberService;
@@ -177,10 +183,13 @@ class MemberServiceImplTest {
                 .build();
 
         when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(onboardingStatusResolver.resolve(member))
+                .thenReturn(new OnboardingStatusResult(true, true, true, OnboardingNextStep.READY));
 
         UpdateMemberResult result = memberService.updateMyProfile(new UpdateMemberBasicInfoCommand("현재닉네임"));
 
         assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.onboarding().nextStep()).isEqualTo(OnboardingNextStep.READY);
         assertThat(member.getNickname()).isEqualTo("현재닉네임");
         verify(memberRepository).flush();
     }

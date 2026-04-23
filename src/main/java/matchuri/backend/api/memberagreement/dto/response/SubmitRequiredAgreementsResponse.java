@@ -2,6 +2,7 @@ package matchuri.backend.api.memberagreement.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
+import matchuri.backend.api.common.dto.OnboardingStatusResponse;
 
 public record SubmitRequiredAgreementsResponse(
         @Schema(description = "제출 후 현재 로그인한 회원의 필수 약관 완료 여부입니다.", example = "true")
@@ -10,14 +11,8 @@ public record SubmitRequiredAgreementsResponse(
         @Schema(description = "제출 후에도 누락된 약관 종류 목록입니다. 완료되면 빈 배열입니다.", example = "[]")
         List<String> missingAgreementTypes,
 
-        @Schema(description = "사용자가 닉네임 온보딩을 완료했는지 여부입니다.", example = "false")
-        boolean nicknameCompleted,
-
-        @Schema(description = "필수 온보딩 전체 완료 여부입니다.", example = "false")
-        boolean completed,
-
-        @Schema(description = "프론트가 이동해야 하는 다음 필수 단계입니다.", example = "REQUIRED_NICKNAME")
-        String nextStep,
+        @Schema(description = "동의 제출 후 프론트가 다음 온보딩 화면을 판단하기 위한 상태입니다.")
+        OnboardingStatusResponse onboarding,
 
         @Schema(description = "필수 약관 revision이 반영된 새 access token입니다. 프론트는 성공 시 이 토큰으로 즉시 교체해야 합니다.", example = "eyJhbGciOiJIUzI1NiJ9...")
         String accessToken,

@@ -706,7 +706,11 @@ class MemberAuthIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").isNumber());
+                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.onboarding.requiredAgreementsCompleted").value(true))
+                .andExpect(jsonPath("$.data.onboarding.nicknameCompleted").value(true))
+                .andExpect(jsonPath("$.data.onboarding.completed").value(true))
+                .andExpect(jsonPath("$.data.onboarding.nextStep").value("READY"));
 
         assertThat(memberRepository.findById(member.getId()).orElseThrow().isNicknameCompleted()).isTrue();
 

@@ -29,6 +29,7 @@ import matchuri.backend.domain.member.result.WithdrawMemberResult;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
+import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolver;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.Ingredient;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
@@ -54,6 +55,7 @@ public class MemberServiceImpl implements MemberService {
     private final RequiredAgreementRequestValidator requiredAgreementRequestValidator;
     private final PasswordEncoder passwordEncoder;
     private final ActiveMemberReader activeMemberReader;
+    private final OnboardingStatusResolver onboardingStatusResolver;
 
     @Override
     public boolean existsByLoginId(String loginId) {
@@ -132,7 +134,7 @@ public class MemberServiceImpl implements MemberService {
             }
         }
 
-        return UpdateMemberResult.from(member);
+        return UpdateMemberResult.from(member, onboardingStatusResolver.resolve(member));
     }
 
     @Override

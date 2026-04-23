@@ -92,6 +92,8 @@ class MemberAgreementIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.requiredAgreementsCompleted").value(true))
                 .andExpect(jsonPath("$.data.missingAgreementTypes").isEmpty())
+                .andExpect(jsonPath("$.data.onboarding.requiredAgreementsCompleted").value(true))
+                .andExpect(jsonPath("$.data.onboarding.nextStep").exists())
                 .andExpect(jsonPath("$.data.accessToken").isString())
                 .andExpect(jsonPath("$.data.expiresIn").isNumber())
                 .andReturn();

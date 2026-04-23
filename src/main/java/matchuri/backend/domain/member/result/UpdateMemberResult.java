@@ -5,13 +5,15 @@ import matchuri.backend.domain.member.entity.Member;
 
 public record UpdateMemberResult(
         Long id,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        OnboardingStatusResult onboarding
 ) {
 
-    public static UpdateMemberResult from(Member member) {
+    public static UpdateMemberResult from(Member member, OnboardingStatusResult onboarding) {
         return new UpdateMemberResult(
                 member.getId(),
-                member.getUpdatedAt()
+                member.getUpdatedAt(),
+                onboarding
         );
     }
 }
