@@ -537,7 +537,8 @@ class MenuAdminReferenceIntegrationTest {
                         .content("""
                                 {
                                   "attributeCategoryIds": [],
-                                  "restrictionIngredientIds": [%d]
+                                  "restrictionIngredientIds": [%d],
+                                  "dislikedMenuItemIds": []
                                 }
                                 """.formatted(ingredient.getId())))
                 .andExpect(status().isBadRequest())
@@ -937,7 +938,8 @@ class MenuAdminReferenceIntegrationTest {
                         .content("""
                                 {
                                   "attributeCategoryIds": [%d],
-                                  "restrictionIngredientIds": []
+                                  "restrictionIngredientIds": [],
+                                  "dislikedMenuItemIds": []
                                 }
                                 """.formatted(attributeCategory.getId())))
                 .andExpect(status().isBadRequest())

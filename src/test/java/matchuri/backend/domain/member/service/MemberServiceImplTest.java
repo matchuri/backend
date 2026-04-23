@@ -21,6 +21,7 @@ import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
+import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
@@ -28,6 +29,7 @@ import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
@@ -41,8 +43,10 @@ import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolve
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,10 +76,16 @@ class MemberServiceImplTest {
     private MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
 
     @Mock
+    private MemberTasteProfileDislikedMenuItemRepository memberTasteProfileDislikedMenuItemRepository;
+
+    @Mock
     private AttributeCategoryRepository attributeCategoryRepository;
 
     @Mock
     private IngredientRepository ingredientRepository;
+
+    @Mock
+    private MenuItemRepository menuItemRepository;
 
     @Mock
     private RequiredAgreementRequestValidator requiredAgreementRequestValidator;
@@ -214,6 +224,7 @@ class MemberServiceImplTest {
         assertThat(result.profileVersion()).isEqualTo(MemberTasteProfileSummaryResult.DEFAULT_PROFILE_VERSION);
         assertThat(result.attributeCategories()).isEmpty();
         assertThat(result.restrictionIngredients()).isEmpty();
+        assertThat(result.dislikedMenuItems()).isEmpty();
         assertThat(result.updatedAt()).isNull();
     }
 
@@ -230,6 +241,7 @@ class MemberServiceImplTest {
         MemberTasteProfile profile = new MemberTasteProfile(member, "v2");
         AttributeCategory attributeCategory = new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10);
         Ingredient ingredient = new Ingredient("PEANUT", "땅콩", true, 10);
+        MenuItem menuItem = new MenuItem("PORK_CUTLET", "돈까스", "바삭한 돼지고기 튀김");
 
         when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
         when(memberTasteProfileRepository.findByMemberId(1L)).thenReturn(java.util.Optional.of(profile));
@@ -237,6 +249,8 @@ class MemberServiceImplTest {
                 .thenReturn(List.of(new MemberTasteProfileCategory(profile, attributeCategory)));
         when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(profile.getId()))
                 .thenReturn(List.of(new MemberTasteProfileRestrictionIngredient(profile, ingredient)));
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(profile.getId()))
+                .thenReturn(List.of(new MemberTasteProfileDislikedMenuItem(profile, menuItem)));
 
         MemberTasteProfileSummaryResult result = memberService.getMyTasteProfile();
 
@@ -256,6 +270,12 @@ class MemberServiceImplTest {
                         MemberTasteProfileSummaryResult.RestrictionIngredientItem::allergen
                 )
                 .containsExactly("PEANUT", "땅콩", true);
+        assertThat(result.dislikedMenuItems()).singleElement()
+                .extracting(
+                        MemberTasteProfileSummaryResult.DislikedMenuItem::code,
+                        MemberTasteProfileSummaryResult.DislikedMenuItem::name
+                )
+                .containsExactly("PORK_CUTLET", "돈까스");
     }
 
     @Test
@@ -270,6 +290,7 @@ class MemberServiceImplTest {
                 .build();
         AttributeCategory attributeCategory = new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10);
         Ingredient ingredient = new Ingredient("PEANUT", "땅콩", true, 10);
+        MenuItem menuItem = new MenuItem("PORK_CUTLET", "돈까스", "바삭한 돼지고기 튀김");
         MemberTasteProfile savedProfile = new MemberTasteProfile(member, "v1");
 
         when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
@@ -277,23 +298,29 @@ class MemberServiceImplTest {
         when(memberTasteProfileRepository.saveAndFlush(any(MemberTasteProfile.class))).thenReturn(savedProfile);
         when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of(1L))).thenReturn(List.of(attributeCategory));
         when(ingredientRepository.findAllByIdInAndActiveTrue(List.of(101L))).thenReturn(List.of(ingredient));
+        when(menuItemRepository.findAllByIdInAndActiveTrue(List.of(1001L))).thenReturn(List.of(menuItem));
         when(memberTasteProfileCategoryRepository.findAllByProfileId(savedProfile.getId())).thenReturn(Collections.emptyList());
         when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(savedProfile.getId())).thenReturn(Collections.emptyList());
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileId(savedProfile.getId())).thenReturn(Collections.emptyList());
         when(memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(savedProfile.getId()))
                 .thenReturn(List.of(new MemberTasteProfileCategory(savedProfile, attributeCategory)));
         when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(savedProfile.getId()))
                 .thenReturn(List.of(new MemberTasteProfileRestrictionIngredient(savedProfile, ingredient)));
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(savedProfile.getId()))
+                .thenReturn(List.of(new MemberTasteProfileDislikedMenuItem(savedProfile, menuItem)));
 
         MemberTasteProfileSummaryResult result = memberService.updateMyTasteProfile(
-                new UpdateMemberTasteProfileCommand(List.of(1L), List.of(101L))
+                new UpdateMemberTasteProfileCommand(List.of(1L), List.of(101L), List.of(1001L))
         );
 
         assertThat(result.profileVersion()).isEqualTo("v1");
         assertThat(result.attributeCategories()).hasSize(1);
         assertThat(result.restrictionIngredients()).hasSize(1);
+        assertThat(result.dislikedMenuItems()).hasSize(1);
         verify(memberTasteProfileRepository).saveAndFlush(any(MemberTasteProfile.class));
         verify(memberTasteProfileCategoryRepository).saveAll(any());
         verify(memberTasteProfileRestrictionIngredientRepository).saveAll(any());
+        verify(memberTasteProfileDislikedMenuItemRepository).saveAll(any());
     }
 
     @Test
@@ -310,11 +337,32 @@ class MemberServiceImplTest {
         when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
 
         assertThatThrownBy(() -> memberService.updateMyTasteProfile(
-                new UpdateMemberTasteProfileCommand(List.of(1L, 1L), List.of())
+                new UpdateMemberTasteProfileCommand(List.of(1L, 1L), List.of(), List.of())
         ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(MemberErrorCode.DUPLICATE_TASTE_ATTRIBUTE_CATEGORY);
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 중복 disliked menu item ID를 거절한다")
+    void updateMyTasteProfileRejectsDuplicateDislikedMenuItemIds() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+
+        assertThatThrownBy(() -> memberService.updateMyTasteProfile(
+                new UpdateMemberTasteProfileCommand(List.of(), List.of(), List.of(1001L, 1001L))
+        ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.DUPLICATE_TASTE_DISLIKED_MENU_ITEM);
     }
 
     @Test
@@ -333,11 +381,35 @@ class MemberServiceImplTest {
         when(ingredientRepository.findAllByIdInAndActiveTrue(List.of(999L))).thenReturn(List.of());
 
         assertThatThrownBy(() -> memberService.updateMyTasteProfile(
-                new UpdateMemberTasteProfileCommand(List.of(), List.of(999L))
+                new UpdateMemberTasteProfileCommand(List.of(), List.of(999L), List.of())
         ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(MemberErrorCode.INVALID_TASTE_RESTRICTION_INGREDIENT);
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 비활성 또는 존재하지 않는 disliked menu item ID를 거절한다")
+    void updateMyTasteProfileRejectsInvalidDislikedMenuItemIds() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
+        when(ingredientRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
+        when(menuItemRepository.findAllByIdInAndActiveTrue(List.of(999L))).thenReturn(List.of());
+
+        assertThatThrownBy(() -> memberService.updateMyTasteProfile(
+                new UpdateMemberTasteProfileCommand(List.of(), List.of(), List.of(999L))
+        ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.INVALID_TASTE_DISLIKED_MENU_ITEM);
     }
 
     @Test
@@ -356,17 +428,21 @@ class MemberServiceImplTest {
         when(memberTasteProfileRepository.findByMemberId(1L)).thenReturn(Optional.of(profile));
         when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
         when(ingredientRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
+        when(menuItemRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
         when(memberTasteProfileCategoryRepository.findAllByProfileId(profile.getId())).thenReturn(Collections.emptyList());
         when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(profile.getId())).thenReturn(Collections.emptyList());
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileId(profile.getId())).thenReturn(Collections.emptyList());
         when(memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(List.of());
         when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(List.of());
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(List.of());
 
         MemberTasteProfileSummaryResult result = memberService.updateMyTasteProfile(
-                new UpdateMemberTasteProfileCommand(List.of(), List.of())
+                new UpdateMemberTasteProfileCommand(List.of(), List.of(), List.of())
         );
 
         assertThat(result.profileVersion()).isEqualTo("v1");
         assertThat(result.attributeCategories()).isEmpty();
         assertThat(result.restrictionIngredients()).isEmpty();
+        assertThat(result.dislikedMenuItems()).isEmpty();
     }
 }

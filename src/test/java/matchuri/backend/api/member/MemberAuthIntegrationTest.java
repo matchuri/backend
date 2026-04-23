@@ -31,18 +31,22 @@ import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
+import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -87,6 +91,9 @@ class MemberAuthIntegrationTest {
     private MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
 
     @Autowired
+    private MemberTasteProfileDislikedMenuItemRepository memberTasteProfileDislikedMenuItemRepository;
+
+    @Autowired
     private MemberAgreementRepository memberAgreementRepository;
 
     @Autowired
@@ -94,6 +101,9 @@ class MemberAuthIntegrationTest {
 
     @Autowired
     private IngredientRepository ingredientRepository;
+
+    @Autowired
+    private MenuItemRepository menuItemRepository;
 
     @Autowired
     private MatchuriProperties matchuriProperties;
@@ -105,9 +115,11 @@ class MemberAuthIntegrationTest {
         memberAgreementRepository.deleteAll();
         memberTasteProfileCategoryRepository.deleteAll();
         memberTasteProfileRestrictionIngredientRepository.deleteAll();
+        memberTasteProfileDislikedMenuItemRepository.deleteAll();
         memberTasteProfileRepository.deleteAll();
         attributeCategoryRepository.deleteAll();
         ingredientRepository.deleteAll();
+        menuItemRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
@@ -247,6 +259,9 @@ class MemberAuthIntegrationTest {
         Ingredient ingredient = ingredientRepository.save(
                 new Ingredient("PEANUT", "땅콩", true, 10)
         );
+        MenuItem menuItem = menuItemRepository.save(
+                new MenuItem("PORK_CUTLET", "돈까스", "바삭한 돼지고기 튀김")
+        );
 
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
@@ -275,14 +290,16 @@ class MemberAuthIntegrationTest {
                         .content("""
                                 {
                                   "attributeCategoryIds": [%d],
-                                  "restrictionIngredientIds": [%d]
+                                  "restrictionIngredientIds": [%d],
+                                  "dislikedMenuItemIds": [%d]
                                 }
-                                """.formatted(attributeCategory.getId(), ingredient.getId())))
+                                """.formatted(attributeCategory.getId(), ingredient.getId(), menuItem.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.memberId").isNumber())
                 .andExpect(jsonPath("$.data.profileVersion").value("v1"))
                 .andExpect(jsonPath("$.data.attributeCategories[0].code").value("SPICY"))
                 .andExpect(jsonPath("$.data.restrictionIngredients[0].code").value("PEANUT"))
+                .andExpect(jsonPath("$.data.dislikedMenuItems[0].code").value("PORK_CUTLET"))
                 .andExpect(jsonPath("$.data.updatedAt").exists());
 
         mockMvc.perform(get("/api/v1/members/me")
@@ -342,6 +359,7 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.profileVersion").value("v1"))
                 .andExpect(jsonPath("$.data.attributeCategories.length()").value(0))
                 .andExpect(jsonPath("$.data.restrictionIngredients.length()").value(0))
+                .andExpect(jsonPath("$.data.dislikedMenuItems.length()").value(0))
                 .andExpect(jsonPath("$.data.updatedAt").value(nullValue()));
     }
 
@@ -359,10 +377,16 @@ class MemberAuthIntegrationTest {
         Ingredient ingredient = ingredientRepository.save(
                 new Ingredient("PEANUT", "땅콩", true, 10)
         );
+        MenuItem menuItem = menuItemRepository.save(
+                new MenuItem("PORK_CUTLET", "돈까스", "바삭한 돼지고기 튀김")
+        );
         MemberTasteProfile tasteProfile = memberTasteProfileRepository.save(new MemberTasteProfile(member, "v2"));
         memberTasteProfileCategoryRepository.save(new MemberTasteProfileCategory(tasteProfile, attributeCategory));
         memberTasteProfileRestrictionIngredientRepository.save(
                 new MemberTasteProfileRestrictionIngredient(tasteProfile, ingredient)
+        );
+        memberTasteProfileDislikedMenuItemRepository.save(
+                new MemberTasteProfileDislikedMenuItem(tasteProfile, menuItem)
         );
 
         mockMvc.perform(get("/api/v1/members/me/taste-profile")
@@ -377,6 +401,9 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.restrictionIngredients[0].id").value(ingredient.getId()))
                 .andExpect(jsonPath("$.data.restrictionIngredients[0].code").value("PEANUT"))
                 .andExpect(jsonPath("$.data.restrictionIngredients[0].allergen").value(true))
+                .andExpect(jsonPath("$.data.dislikedMenuItems[0].id").value(menuItem.getId()))
+                .andExpect(jsonPath("$.data.dislikedMenuItems[0].code").value("PORK_CUTLET"))
+                .andExpect(jsonPath("$.data.dislikedMenuItems[0].name").value("돈까스"))
                 .andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
     }
 
@@ -393,7 +420,8 @@ class MemberAuthIntegrationTest {
                         .content("""
                                 {
                                   "attributeCategoryIds": [999],
-                                  "restrictionIngredientIds": []
+                                  "restrictionIngredientIds": [],
+                                  "dislikedMenuItemIds": []
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
@@ -413,11 +441,54 @@ class MemberAuthIntegrationTest {
                         .content("""
                                 {
                                   "attributeCategoryIds": [1, 1],
-                                  "restrictionIngredientIds": []
+                                  "restrictionIngredientIds": [],
+                                  "dislikedMenuItemIds": []
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("MEMBER_DUPLICATE_TASTE_ATTRIBUTE_CATEGORY"));
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 잘못된 disliked menu item ID를 거절한다")
+    void updateMyTasteProfileRejectsInvalidDislikedMenuItem() throws Exception {
+        createMemberThroughApi("taste-user-invalid-menu", "P@ssw0rd!");
+        AuthSession authSession = login("taste-user-invalid-menu", "P@ssw0rd!");
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
+
+        mockMvc.perform(patch("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "attributeCategoryIds": [],
+                                  "restrictionIngredientIds": [],
+                                  "dislikedMenuItemIds": [999]
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_INVALID_TASTE_DISLIKED_MENU_ITEM"));
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 중복 disliked menu item ID를 거절한다")
+    void updateMyTasteProfileRejectsDuplicateDislikedMenuItemIds() throws Exception {
+        createMemberThroughApi("taste-user-duplicate-menu", "P@ssw0rd!");
+        AuthSession authSession = login("taste-user-duplicate-menu", "P@ssw0rd!");
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
+
+        mockMvc.perform(patch("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "attributeCategoryIds": [],
+                                  "restrictionIngredientIds": [],
+                                  "dislikedMenuItemIds": [1001, 1001]
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_DUPLICATE_TASTE_DISLIKED_MENU_ITEM"));
     }
 
     @Test

@@ -90,12 +90,16 @@ class OpenApiDocumentationIntegrationTest {
                         .value(org.hamcrest.Matchers.containsString("attribute category ID 목록")))
                 .andExpect(jsonPath("$.components.schemas.UpdateMemberTasteProfileRequest.properties.restrictionIngredientIds.description")
                         .value(org.hamcrest.Matchers.containsString("restriction ingredient ID 목록")))
+                .andExpect(jsonPath("$.components.schemas.UpdateMemberTasteProfileRequest.properties.dislikedMenuItemIds.description")
+                        .value(org.hamcrest.Matchers.containsString("disliked menu item ID 목록")))
                 .andExpect(jsonPath("$.components.schemas.MemberTasteProfileSummaryResponse.properties.memberId.description")
                         .value("현재 로그인한 회원 ID입니다."))
                 .andExpect(jsonPath("$.components.schemas.MemberTasteAttributeCategoryResponse.properties.categoryType.description")
                         .value("선택된 attribute category의 상위 유형입니다."))
                 .andExpect(jsonPath("$.components.schemas.MemberTasteRestrictionIngredientResponse.properties.allergen.description")
-                        .value("알레르기 유발 재료 여부입니다."));
+                        .value("알레르기 유발 재료 여부입니다."))
+                .andExpect(jsonPath("$.components.schemas.MemberTasteDislikedMenuItemResponse.properties.code.description")
+                        .value("선택된 disliked menu item 코드입니다."));
     }
 
     @Test
