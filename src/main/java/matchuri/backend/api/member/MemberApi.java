@@ -350,7 +350,7 @@ public interface MemberApi {
                     현재 로그인한 회원의 기본 프로필 정보를 조회합니다.
 
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
-                    - 현재 단계에서는 최소 프로필만 반환하므로 `id`, `nickname`만 사용하면 됩니다.
+                    - 현재 단계에서는 최소 프로필과 로그인 유형 판단에 필요한 `id`, `nickname`, `isSocial`을 반환합니다.
                     - `loginId`, `email`, 취향 프로필 상세 필드는 이 응답에 포함되지 않습니다.
                     """)
     ApiResponse<MemberProfileResponse> getMyProfile();
