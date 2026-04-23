@@ -446,6 +446,18 @@ public interface MemberApi {
                                     @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
                             }
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "필수 온보딩 미완료 또는 비활성 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "requiredAgreement", value = ErrorExamples.MEMBER_AGREEMENT_REQUIRED),
+                                    @ExampleObject(name = "nicknameRequired", value = ErrorExamples.MEMBER_NICKNAME_REQUIRED),
+                                    @ExampleObject(name = "inactiveMember", value = ErrorExamples.MEMBER_INACTIVE)
+                            }
+                    )
             )
     })
     ApiResponse<MemberTasteProfileSummaryResponse> getMyTasteProfile();
