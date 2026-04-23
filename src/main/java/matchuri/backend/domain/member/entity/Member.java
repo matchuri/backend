@@ -62,6 +62,10 @@ public class Member extends BaseEntity {
     @Column(name = "nickname", length = NICKNAME_MAX_SIZE, comment = "닉네임 (자체 로그인은 수집)")
     private String nickname;
 
+    @Builder.Default
+    @Column(name = "nickname_completed", nullable = false, comment = "닉네임 온보딩 확인 여부")
+    private boolean nicknameCompleted = false;
+
     @Column(length = 150, comment = "이메일")
     private String email;
 
@@ -105,6 +109,7 @@ public class Member extends BaseEntity {
         this.socialProviderUserId = socialProviderUserId;
         this.memberRole = memberRole;
         this.status = status;
+        this.nicknameCompleted = !social;
     }
 
     public static Member createWithEncodedPassword(String loginId, String passwordHash) {
@@ -116,6 +121,7 @@ public class Member extends BaseEntity {
                 .loginId(loginId)
                 .passwordHash(passwordHash)
                 .nickname(nickname)
+                .nicknameCompleted(true)
                 .social(false)
                 .socialProviderType(null)
                 .socialProviderUserId(null)
@@ -130,6 +136,7 @@ public class Member extends BaseEntity {
                 .passwordHash(null)
                 .email(email)
                 .nickname(nickname)
+                .nicknameCompleted(false)
                 .social(true)
                 .socialProviderType(provider)
                 .socialProviderUserId(providerUserId)
@@ -148,6 +155,7 @@ public class Member extends BaseEntity {
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+        this.nicknameCompleted = true;
     }
 
     public void withdraw() {
