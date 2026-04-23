@@ -99,7 +99,7 @@ public class MemberMapper {
     }
 
     public MemberProfileResponse toMemberProfileResponse(MemberProfileResult result) {
-        return new MemberProfileResponse(result.id(), result.nickname());
+        return new MemberProfileResponse(result.id(), result.nickname(), result.isSocial());
     }
 
     public MemberTasteProfileSummaryResponse toMemberTasteProfileSummaryResponse(MemberTasteProfileSummaryResult result) {

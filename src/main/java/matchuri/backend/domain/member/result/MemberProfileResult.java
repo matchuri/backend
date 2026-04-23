@@ -4,13 +4,15 @@ import matchuri.backend.domain.member.entity.Member;
 
 public record MemberProfileResult(
         Long id,
-        String nickname
+        String nickname,
+        boolean isSocial
 ) {
 
     public static MemberProfileResult from(Member member) {
         return new MemberProfileResult(
                 member.getId(),
-                member.getNickname()
+                member.getNickname(),
+                member.isSocial()
         );
     }
 }
