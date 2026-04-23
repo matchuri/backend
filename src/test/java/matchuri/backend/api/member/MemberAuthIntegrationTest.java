@@ -154,7 +154,8 @@ class MemberAuthIntegrationTest {
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.nickname").value("점심탐험가"));
+                .andExpect(jsonPath("$.data.nickname").value("점심탐험가"))
+                .andExpect(jsonPath("$.data.isSocial").value(false));
     }
 
     @Test
@@ -717,7 +718,8 @@ class MemberAuthIntegrationTest {
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.nickname").value("점심결정러"));
+                .andExpect(jsonPath("$.data.nickname").value("점심결정러"))
+                .andExpect(jsonPath("$.data.isSocial").value(true));
     }
 
     @Test
