@@ -143,6 +143,7 @@ class MemberAuthIntegrationTest {
         Member member = memberRepository.findByLoginId("signup-user").orElseThrow();
         assertThat(member.getPasswordHash()).isNotEqualTo("P@ssw0rd!");
         assertThat(member.getNickname()).isEqualTo("점심탐험가");
+        assertThat(member.isNicknameCompleted()).isTrue();
         assertThat(memberAgreementRepository.count()).isEqualTo(2);
 
         mockMvc.perform(get("/api/v1/members/me"))
@@ -498,6 +499,10 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.accessToken").isString())
                 .andExpect(jsonPath("$.data.refreshToken").value(nullValue()))
                 .andExpect(jsonPath("$.data.member.id").value(memberId))
+                .andExpect(jsonPath("$.data.onboarding.requiredAgreementsCompleted").value(false))
+                .andExpect(jsonPath("$.data.onboarding.nicknameCompleted").value(true))
+                .andExpect(jsonPath("$.data.onboarding.completed").value(false))
+                .andExpect(jsonPath("$.data.onboarding.nextStep").value("REQUIRED_AGREEMENTS"))
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("matchuri_refresh_token=")))
                 .andReturn();
 
@@ -635,6 +640,11 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.accessToken").isString())
                 .andExpect(jsonPath("$.data.refreshToken").value(nullValue()))
                 .andExpect(jsonPath("$.data.member.id").value(member.getId()))
+                .andExpect(jsonPath("$.data.member.nickname").value("example_google"))
+                .andExpect(jsonPath("$.data.onboarding.requiredAgreementsCompleted").value(false))
+                .andExpect(jsonPath("$.data.onboarding.nicknameCompleted").value(false))
+                .andExpect(jsonPath("$.data.onboarding.completed").value(false))
+                .andExpect(jsonPath("$.data.onboarding.nextStep").value("REQUIRED_AGREEMENTS"))
                 .andReturn();
 
         JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
@@ -644,6 +654,66 @@ class MemberAuthIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("MEMBER_AGREEMENT_REQUIRED"));
+    }
+
+    @Test
+    @DisplayName("약관 완료 후 닉네임 미완료 회원은 핵심 API에서 차단되지만 닉네임 수정은 가능하다")
+    void nicknameIncompleteMemberCanPatchProfileBeforeProtectedApiAccess() throws Exception {
+        Member member = memberRepository.save(Member.createSocialMember(
+                SocialProviderType.GOOGLE,
+                "google-user-nickname-required",
+                "nickname-required@example.com",
+                "nickname_required_google"
+        ));
+        memberAgreementRepository.save(MemberAgreement.create(member, AgreementType.TERMS_OF_SERVICE, "2026-04-10"));
+        memberAgreementRepository.save(MemberAgreement.create(member, AgreementType.PRIVACY_POLICY, "2026-04-10"));
+        authExchangeCodeRepository.save(AuthExchangeCode.issue(
+                member,
+                SocialProviderType.GOOGLE,
+                "nickname-required-code",
+                LocalDateTime.now().plusMinutes(5)
+        ));
+
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "provider": "GOOGLE",
+                                  "code": "nickname-required-code"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.onboarding.requiredAgreementsCompleted").value(true))
+                .andExpect(jsonPath("$.data.onboarding.nicknameCompleted").value(false))
+                .andExpect(jsonPath("$.data.onboarding.completed").value(false))
+                .andExpect(jsonPath("$.data.onboarding.nextStep").value("REQUIRED_NICKNAME"))
+                .andReturn();
+
+        JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+        String accessToken = body.path("data").path("accessToken").asText();
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_NICKNAME_REQUIRED"));
+
+        mockMvc.perform(patch("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nickname": "점심결정러"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").isNumber());
+
+        assertThat(memberRepository.findById(member.getId()).orElseThrow().isNicknameCompleted()).isTrue();
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.nickname").value("점심결정러"));
     }
 
     @Test
@@ -778,6 +848,7 @@ class MemberAuthIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").isString())
                 .andExpect(jsonPath("$.data.refreshToken").value(nullValue()))
+                .andExpect(jsonPath("$.data.onboarding.nextStep").exists())
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("matchuri_refresh_token=")))
                 .andReturn();
 

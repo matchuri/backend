@@ -17,11 +17,14 @@ import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.exception.MemberAgreementErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.result.RequiredAgreementStatusResult;
+import matchuri.backend.domain.member.result.OnboardingNextStep;
+import matchuri.backend.domain.member.result.OnboardingStatusResult;
 import matchuri.backend.domain.member.result.SubmitRequiredAgreementsResult;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRevisionResolver;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersions;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
+import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolver;
 import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,6 +48,9 @@ class MemberAgreementServiceImplTest {
 
     @Mock
     private RequiredAgreementRevisionResolver requiredAgreementRevisionResolver;
+
+    @Mock
+    private OnboardingStatusResolver onboardingStatusResolver;
 
     @Spy
     private RequiredAgreementRequestValidator requiredAgreementRequestValidator;
@@ -105,6 +111,8 @@ class MemberAgreementServiceImplTest {
                 .thenReturn(new IssuedAccessToken("new-access-token", 3600));
         when(requiredAgreementRevisionResolver.calculateStatus(1L))
                 .thenReturn(new RequiredAgreementStatusResult(true, List.of()));
+        when(onboardingStatusResolver.resolve(member))
+                .thenReturn(new OnboardingStatusResult(true, true, true, OnboardingNextStep.READY));
 
         SubmitRequiredAgreementsCommand command = new SubmitRequiredAgreementsCommand(List.of(
                 new SubmitRequiredAgreementsCommand.AgreementConsentCommand("TERMS_OF_SERVICE", "2026-04-10"),
@@ -116,6 +124,7 @@ class MemberAgreementServiceImplTest {
         assertThat(result.status().requiredAgreementsCompleted()).isTrue();
         assertThat(result.issuedAccessToken().accessToken()).isEqualTo("new-access-token");
         assertThat(result.issuedAccessToken().expiresIn()).isEqualTo(3600);
+        assertThat(result.onboarding().completed()).isTrue();
     }
 
     @Test
