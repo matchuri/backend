@@ -42,7 +42,7 @@ public class MemberAgreementMapper {
                         result.onboarding().requiredAgreementsCompleted(),
                         result.onboarding().nicknameCompleted(),
                         result.onboarding().completed(),
-                        result.onboarding().nextStep().name()
+                        result.onboarding().nextStep()
                 ),
                 result.issuedAccessToken().accessToken(),
                 result.issuedAccessToken().expiresIn()

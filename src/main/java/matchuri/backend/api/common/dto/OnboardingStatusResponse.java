@@ -1,6 +1,7 @@
 package matchuri.backend.api.common.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import matchuri.backend.domain.member.result.OnboardingNextStep;
 
 public record OnboardingStatusResponse(
         @Schema(description = "최신 필수 약관 동의를 완료했는지 여부입니다.", example = "true")
@@ -13,6 +14,6 @@ public record OnboardingStatusResponse(
         boolean completed,
 
         @Schema(description = "프론트가 이동해야 하는 다음 필수 단계입니다.", example = "READY")
-        String nextStep
+        OnboardingNextStep nextStep
 ) {
 }

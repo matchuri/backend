@@ -152,7 +152,7 @@ public class MemberMapper {
                 result.requiredAgreementsCompleted(),
                 result.nicknameCompleted(),
                 result.completed(),
-                result.nextStep().name()
+                result.nextStep()
         );
     }
 }
