@@ -87,7 +87,13 @@ public class MemberMapper {
                 payload.accessToken(),
                 null,
                 payload.expiresIn(),
-                new LoginResponse.LoginMemberSummary(payload.memberId(), payload.role())
+                new LoginResponse.LoginMemberSummary(payload.memberId(), payload.role(), payload.nickname()),
+                new LoginResponse.LoginOnboardingStatus(
+                        payload.onboarding().requiredAgreementsCompleted(),
+                        payload.onboarding().nicknameCompleted(),
+                        payload.onboarding().completed(),
+                        payload.onboarding().nextStep().name()
+                )
         );
     }
 

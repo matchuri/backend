@@ -50,7 +50,14 @@ public interface AuthApi {
                                                 "expiresIn": 3600,
                                                 "member": {
                                                   "id": 1,
-                                                  "role": "MEMBER"
+                                                  "role": "MEMBER",
+                                                  "nickname": "점심탐험가"
+                                                },
+                                                "onboarding": {
+                                                  "requiredAgreementsCompleted": true,
+                                                  "nicknameCompleted": true,
+                                                  "completed": true,
+                                                  "nextStep": "READY"
                                                 }
                                               },
                                               "error": null
@@ -119,7 +126,14 @@ public interface AuthApi {
                                                 "expiresIn": 3600,
                                                 "member": {
                                                   "id": 1,
-                                                  "role": "MEMBER"
+                                                  "role": "MEMBER",
+                                                  "nickname": "점심탐험가"
+                                                },
+                                                "onboarding": {
+                                                  "requiredAgreementsCompleted": true,
+                                                  "nicknameCompleted": true,
+                                                  "completed": true,
+                                                  "nextStep": "READY"
                                                 }
                                               },
                                               "error": null
@@ -247,7 +261,14 @@ public interface AuthApi {
                                                 "expiresIn": 3600,
                                                 "member": {
                                                   "id": 7,
-                                                  "role": "MEMBER"
+                                                  "role": "MEMBER",
+                                                  "nickname": "example_google"
+                                                },
+                                                "onboarding": {
+                                                  "requiredAgreementsCompleted": false,
+                                                  "nicknameCompleted": false,
+                                                  "completed": false,
+                                                  "nextStep": "REQUIRED_AGREEMENTS"
                                                 }
                                               },
                                               "error": null

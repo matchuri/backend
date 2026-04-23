@@ -17,6 +17,7 @@ import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolver;
 import matchuri.backend.global.exception.AuthenticationException;
 import matchuri.backend.global.exception.BusinessException;
 import matchuri.backend.global.security.AuthenticatedMember;
@@ -36,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private final SessionTokenService sessionTokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationFacade authenticationFacade;
+    private final OnboardingStatusResolver onboardingStatusResolver;
 
     @Override
     @Transactional
@@ -52,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
         TokenPair tokenPair = sessionTokenService.issueLoginTokenPair(member);
         log.info("auth event=login_success provider=local memberId={} ip={}", member.getId(), clientIp);
 
-        return LoginResult.from(tokenPair, member);
+        return LoginResult.from(tokenPair, member, onboardingStatusResolver.resolve(member));
     }
 
     @Override
@@ -64,15 +66,7 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("auth event=refresh_success memberId={} ip={}", member.getId(), clientIp);
 
-        return new LoginResult(
-                new LoginPayload(
-                        tokenPair.accessToken(),
-                        tokenPair.accessTokenExpiresIn(),
-                        member.getId(),
-                        member.getMemberRole().name()
-                ),
-                tokenPair.refreshToken()
-        );
+        return LoginResult.from(tokenPair, member, onboardingStatusResolver.resolve(member));
     }
 
     @Override
@@ -103,7 +97,7 @@ public class AuthServiceImpl implements AuthService {
                 clientIp
         );
 
-        return LoginPayload.from(issuedAccessToken, member);
+        return LoginPayload.from(issuedAccessToken, member, onboardingStatusResolver.resolve(member));
     }
 
     private void ensureActive(Member member) {

@@ -15,6 +15,7 @@ import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequest
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRevisionResolver;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersions;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
+import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RequiredAgreementRevisionResolver requiredAgreementRevisionResolver;
     private final ActiveMemberReader activeMemberReader;
+    private final OnboardingStatusResolver onboardingStatusResolver;
 
     @Override
     public RequiredAgreementStatusResult getRequiredAgreementStatus() {
@@ -54,7 +56,7 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
 
         RequiredAgreementStatusResult status = requiredAgreementRevisionResolver.calculateStatus(member.getId());
         IssuedAccessToken issuedAccessToken = jwtTokenProvider.issueAccessToken(member, RequiredAgreementVersions.currentRevision());
-        return new SubmitRequiredAgreementsResult(status, issuedAccessToken);
+        return new SubmitRequiredAgreementsResult(status, issuedAccessToken, onboardingStatusResolver.resolve(member));
     }
 
     @Override

@@ -4,6 +4,7 @@ import matchuri.backend.domain.auth.result.IssuedAccessToken;
 
 public record SubmitRequiredAgreementsResult(
         RequiredAgreementStatusResult status,
-        IssuedAccessToken issuedAccessToken
+        IssuedAccessToken issuedAccessToken,
+        OnboardingStatusResult onboarding
 ) {
 }

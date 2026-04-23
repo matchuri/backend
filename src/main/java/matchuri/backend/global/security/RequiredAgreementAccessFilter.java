@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.member.exception.MemberAgreementErrorCode;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
+import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRevisionResolver;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersions;
 import matchuri.backend.global.config.MatchuriProperties;
@@ -29,6 +31,7 @@ public class RequiredAgreementAccessFilter extends OncePerRequestFilter {
     private final MatchuriProperties matchuriProperties;
     private final MatchuriAccessDeniedHandler accessDeniedHandler;
     private final RequiredAgreementRevisionResolver requiredAgreementRevisionResolver;
+    private final MemberRepository memberRepository;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     @Override
@@ -54,6 +57,12 @@ public class RequiredAgreementAccessFilter extends OncePerRequestFilter {
             return;
         }
 
+        if (!hasCompletedNickname(authenticatedMember)) {
+            request.setAttribute(AUTHORIZATION_ERROR_CODE_ATTRIBUTE, MemberErrorCode.NICKNAME_REQUIRED);
+            accessDeniedHandler.handle(request, response, new AccessDeniedException(MemberErrorCode.NICKNAME_REQUIRED.getMessage()));
+            return;
+        }
+
         filterChain.doFilter(request, response);
     }
 
@@ -65,6 +74,10 @@ public class RequiredAgreementAccessFilter extends OncePerRequestFilter {
         return RequiredAgreementVersions.currentRevision().equals(
                 requiredAgreementRevisionResolver.resolve(authenticatedMember.memberId())
         );
+    }
+
+    private boolean hasCompletedNickname(AuthenticatedMember authenticatedMember) {
+        return memberRepository.existsByIdAndNicknameCompletedTrue(authenticatedMember.memberId());
     }
 
     private boolean shouldSkip(HttpServletRequest request) {
@@ -87,6 +100,7 @@ public class RequiredAgreementAccessFilter extends OncePerRequestFilter {
         matchers.add(new AllowedRequest(HttpMethod.POST, "/api/v1/auth/logout"));
         matchers.add(new AllowedRequest(HttpMethod.GET, "/api/v1/member-agreements/required-status"));
         matchers.add(new AllowedRequest(HttpMethod.POST, "/api/v1/member-agreements/consents"));
+        matchers.add(new AllowedRequest(HttpMethod.PATCH, "/api/v1/members/me"));
         return matchers;
     }
 

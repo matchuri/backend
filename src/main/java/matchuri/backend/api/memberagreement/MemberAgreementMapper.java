@@ -37,6 +37,9 @@ public class MemberAgreementMapper {
                 result.status().missingAgreementTypes().stream()
                         .map(Enum::name)
                         .toList(),
+                result.onboarding().nicknameCompleted(),
+                result.onboarding().completed(),
+                result.onboarding().nextStep().name(),
                 result.issuedAccessToken().accessToken(),
                 result.issuedAccessToken().expiresIn()
         );
