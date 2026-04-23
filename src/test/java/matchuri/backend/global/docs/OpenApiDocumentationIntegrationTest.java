@@ -94,6 +94,8 @@ class OpenApiDocumentationIntegrationTest {
                         .value("#/components/schemas/MemberTasteProfileSummaryApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
                         .value("AUTH_TOKEN_MISSING"))
+                .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].get.responses['403'].content['application/json'].examples.requiredAgreement.value.error.code")
+                        .value("MEMBER_AGREEMENT_REQUIRED"))
                 .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].patch.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/MemberTasteProfileSummaryApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].patch.responses['400'].content['application/json'].examples.invalidAttributeCategory.value.error.code")
