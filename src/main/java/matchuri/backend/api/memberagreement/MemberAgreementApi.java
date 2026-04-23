@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import matchuri.backend.api.common.docs.ErrorExamples;
 import matchuri.backend.api.memberagreement.dto.docs.RequiredAgreementStatusApiResponse;
 import matchuri.backend.api.memberagreement.dto.docs.SubmitRequiredAgreementsApiResponse;
 import matchuri.backend.api.memberagreement.dto.request.SubmitRequiredAgreementsRequest;
@@ -50,7 +51,18 @@ public interface MemberAgreementApi {
                             )
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            )
     })
     ApiResponse<RequiredAgreementStatusResponse> getRequiredAgreementStatus();
 
@@ -93,9 +105,100 @@ public interface MemberAgreementApi {
                             )
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 약관 종류 또는 필수 약관 누락"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "최신 필수 버전과 불일치")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "요청 바디 형식 오류, 잘못된 약관 종류, 또는 필수 약관 누락",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "invalidBodyField",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "COMMON_INVALID_BODY_FIELD",
+                                                        "message": "요청 바디 필드가 올바르지 않습니다.",
+                                                        "details": [
+                                                          {
+                                                            "source": "BODY",
+                                                            "field": "agreements",
+                                                            "reason": "agreements는 비어 있을 수 없습니다."
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidAgreementType",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "MEMBER_AGREEMENT_INVALID_TYPE",
+                                                        "message": "유효하지 않은 약관 종류입니다. agreementType : MARKETING",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "requiredTypesMissing",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "MEMBER_AGREEMENT_REQUIRED_TYPES_MISSING",
+                                                        "message": "필수 약관 동의 요청이 누락되었습니다. missingTypes : [PRIVACY_POLICY]",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "최신 필수 버전과 불일치",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "versionMismatch",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 409,
+                                                "code": "MEMBER_AGREEMENT_VERSION_MISMATCH",
+                                                "message": "최신 필수 약관 버전과 일치하지 않습니다. agreementType : TERMS_OF_SERVICE, requestedVersion : 2026-01-01",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            )
     })
     ApiResponse<SubmitRequiredAgreementsResponse> submitRequiredAgreements(SubmitRequiredAgreementsRequest request);
 }

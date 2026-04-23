@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import matchuri.backend.api.common.docs.ErrorExamples;
 import matchuri.backend.api.member.dto.docs.CreateMemberApiResponse;
 import matchuri.backend.api.member.dto.docs.LoginIdExistsApiResponse;
 import matchuri.backend.api.member.dto.docs.MemberTasteProfileSummaryApiResponse;
@@ -434,7 +435,18 @@ public interface MemberApi {
                             }
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            )
     })
     ApiResponse<MemberTasteProfileSummaryResponse> getMyTasteProfile();
 
@@ -533,6 +545,21 @@ public interface MemberApi {
                                                     """
                                     ),
                                     @ExampleObject(
+                                            name = "invalidAttributeCategory",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "MEMBER_INVALID_TASTE_ATTRIBUTE_CATEGORY",
+                                                        "message": "유효하지 않거나 비활성화된 attribute category ID가 포함되어 있습니다. attributeCategoryIds : [999]",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
                                             name = "invalidRestrictionIngredient",
                                             value = """
                                                     {
@@ -542,6 +569,21 @@ public interface MemberApi {
                                                         "status": 400,
                                                         "code": "MEMBER_INVALID_TASTE_RESTRICTION_INGREDIENT",
                                                         "message": "유효하지 않거나 비활성화된 restriction ingredient ID가 포함되어 있습니다. restrictionIngredientIds : [999]",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "duplicateRestrictionIngredient",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "MEMBER_DUPLICATE_TASTE_RESTRICTION_INGREDIENT",
+                                                        "message": "중복된 restriction ingredient ID가 포함되어 있습니다. restrictionIngredientIds : [101, 101]",
                                                         "details": []
                                                       }
                                                     }
@@ -576,11 +618,38 @@ public interface MemberApi {
                                                       }
                                                     }
                                                     """
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidBodyField",
+                                            value = ErrorExamples.COMMON_INVALID_BODY_FIELD
                                     )
                             }
                     )
             ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 필요")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "필수 온보딩 미완료 또는 비활성 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "requiredAgreement", value = ErrorExamples.MEMBER_AGREEMENT_REQUIRED),
+                                    @ExampleObject(name = "nicknameRequired", value = ErrorExamples.MEMBER_NICKNAME_REQUIRED),
+                                    @ExampleObject(name = "inactiveMember", value = ErrorExamples.MEMBER_INACTIVE)
+                            }
+                    )
+            )
     })
     ApiResponse<MemberTasteProfileSummaryResponse> updateMyTasteProfile(UpdateMemberTasteProfileRequest request);
 

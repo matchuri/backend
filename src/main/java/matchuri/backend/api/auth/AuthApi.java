@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import matchuri.backend.api.common.docs.ErrorExamples;
 import matchuri.backend.api.auth.dto.docs.LoginApiResponse;
 import matchuri.backend.api.auth.dto.docs.LogoutApiResponse;
 import matchuri.backend.api.auth.dto.request.LoginRequest;
@@ -144,11 +145,23 @@ public interface AuthApi {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
-                    description = "refreshToken이 없거나, 유효하지 않거나, 만료됨"
+                    description = "refreshToken이 없거나, 유효하지 않거나, 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "refreshTokenMissing", value = ErrorExamples.AUTH_REFRESH_TOKEN_MISSING),
+                                    @ExampleObject(name = "refreshTokenInvalid", value = ErrorExamples.AUTH_REFRESH_TOKEN_INVALID),
+                                    @ExampleObject(name = "refreshTokenExpired", value = ErrorExamples.AUTH_REFRESH_TOKEN_EXPIRED)
+                            }
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "403",
-                    description = "비활성 회원이라 재발급이 거절됨"
+                    description = "비활성 회원이라 재발급이 거절됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(name = "inactiveMember", value = ErrorExamples.MEMBER_INACTIVE)
+                    )
             )
     })
     ApiResponse<LoginResponse> refresh(HttpServletRequest httpRequest, HttpServletResponse httpResponse);
@@ -207,7 +220,15 @@ public interface AuthApi {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
-                    description = "accessToken이 없거나 유효하지 않음"
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
             )
     })
     ApiResponse<LogoutResponse> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse);
@@ -279,7 +300,48 @@ public interface AuthApi {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "지원하지 않는 소셜 로그인 provider"
+                    description = "지원하지 않는 소셜 로그인 provider 또는 요청 바디 형식 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "providerNotSupported",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "AUTH_OAUTH2_PROVIDER_NOT_SUPPORTED",
+                                                        "message": "지원하지 않는 소셜 로그인 제공자입니다.",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidBodyField",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "COMMON_INVALID_BODY_FIELD",
+                                                        "message": "요청 바디 필드가 올바르지 않습니다.",
+                                                        "details": [
+                                                          {
+                                                            "source": "BODY",
+                                                            "field": "code",
+                                                            "reason": "code는 비어 있을 수 없습니다."
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
