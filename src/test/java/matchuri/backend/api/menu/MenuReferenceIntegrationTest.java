@@ -90,6 +90,49 @@ class MenuReferenceIntegrationTest {
     }
 
     @Test
+    @DisplayName("attribute category 목록 조회는 categoryTypes로 취향 입력에 필요한 유형만 반환한다")
+    void getAttributeCategoriesFiltersByCategoryTypes() throws Exception {
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 20));
+        AttributeCategory sweet = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SWEET", "달콤함", 10));
+        AttributeCategory crispy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.TEXTURE, "CRISPY", "바삭함", 10));
+        attributeCategoryRepository.save(new AttributeCategory(CategoryType.COOKING_METHOD, "GRILLED", "구이", 10));
+        AttributeCategory inactive = new AttributeCategory(CategoryType.FLAVOR, "MILD", "순한맛", 5);
+        inactive.deactivate();
+        attributeCategoryRepository.save(inactive);
+
+        mockMvc.perform(get("/api/v1/attribute-categories")
+                        .param("categoryTypes", "FLAVOR", "TEXTURE")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.length()").value(3))
+                .andExpect(jsonPath("$.data[0].id").value(sweet.getId()))
+                .andExpect(jsonPath("$.data[0].categoryType").value("FLAVOR"))
+                .andExpect(jsonPath("$.data[0].code").value("SWEET"))
+                .andExpect(jsonPath("$.data[1].id").value(spicy.getId()))
+                .andExpect(jsonPath("$.data[1].categoryType").value("FLAVOR"))
+                .andExpect(jsonPath("$.data[1].code").value("SPICY"))
+                .andExpect(jsonPath("$.data[2].id").value(crispy.getId()))
+                .andExpect(jsonPath("$.data[2].categoryType").value("TEXTURE"))
+                .andExpect(jsonPath("$.data[2].code").value("CRISPY"));
+    }
+
+    @Test
+    @DisplayName("attribute category 목록 조회는 잘못된 categoryTypes 값을 거절한다")
+    void getAttributeCategoriesRejectsInvalidCategoryTypes() throws Exception {
+        mockMvc.perform(get("/api/v1/attribute-categories")
+                        .param("categoryTypes", "UNKNOWN")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("COMMON_INVALID_QUERY_PARAMETER"));
+    }
+
+    @Test
     @DisplayName("restriction ingredient 목록 조회는 공개 API로 활성 데이터만 정렬해서 반환한다")
     void getRestrictionIngredientsReturnsOnlyActiveRowsInSortedOrder() throws Exception {
         Ingredient peanut = ingredientRepository.save(new Ingredient("PEANUT", "땅콩", true, 10));
