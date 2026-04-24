@@ -120,7 +120,7 @@ class MenuAdminReferenceIntegrationTest {
         Ingredient pork = new Ingredient("PORK", "돼지고기", false, 10);
         pork.deactivate();
         pork = ingredientRepository.save(pork);
-        Ingredient milk = ingredientRepository.save(new Ingredient("MILK", "우유", true, 30));
+        ingredientRepository.save(new Ingredient("MILK", "우유", true, 30));
 
         mockMvc.perform(get("/api/v1/admin/ingredients")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))

@@ -10,6 +10,7 @@ import matchuri.backend.domain.common.CommonErrorCode;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.ErrorResponse;
 import matchuri.backend.global.api.ValidationErrorDetail;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -26,6 +27,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
+@NullMarked
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RequestValidationException.class)
@@ -188,6 +190,6 @@ public class GlobalExceptionHandler {
     }
 
     private boolean isPathVariable(MethodArgumentTypeMismatchException exception) {
-        return exception.getParameter() != null && exception.getParameter().hasParameterAnnotation(PathVariable.class);
+        return exception.getParameter().hasParameterAnnotation(PathVariable.class);
     }
 }

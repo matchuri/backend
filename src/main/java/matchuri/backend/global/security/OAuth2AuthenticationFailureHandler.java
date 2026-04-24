@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.auth.support.token.RefreshTokenCookieService;
 import matchuri.backend.domain.member.entity.SocialProviderType;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@NullMarked
 public class OAuth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
 
     private final MatchuriOAuth2AuthorizationRequestRepository authorizationRequestRepository;

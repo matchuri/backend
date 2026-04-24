@@ -14,6 +14,7 @@ import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRevisionResolver;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersions;
 import matchuri.backend.global.config.MatchuriProperties;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -24,6 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 @RequiredArgsConstructor
+@NullMarked
 public class RequiredAgreementAccessFilter extends OncePerRequestFilter {
 
     public static final String AUTHORIZATION_ERROR_CODE_ATTRIBUTE = "matchuri.authorization.error-code";

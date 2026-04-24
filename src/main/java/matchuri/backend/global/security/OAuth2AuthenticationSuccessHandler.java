@@ -13,6 +13,7 @@ import matchuri.backend.domain.auth.support.token.RefreshTokenCookieService;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.exception.ErrorCode;
 import matchuri.backend.global.exception.MatchuriException;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@NullMarked
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final OAuth2LoginService oAuth2LoginService;
