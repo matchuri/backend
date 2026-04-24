@@ -77,9 +77,7 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
 
         int activeCount = attributeCategoryRepository.findAllByIdInAndActiveTrue(attributeCategoryIds).size();
         if (activeCount != attributeCategoryIds.size()) {
-            throw new BusinessException(MenuErrorCode.INVALID_FILTER,
-                    "유효하지 않거나 비활성화된 attributeCategoryIds가 포함되어 있습니다. attributeCategoryIds : "
-                            + attributeCategoryIds);
+            throw new BusinessException(MenuErrorCode.INVALID_FILTER, "attributeCategoryIds", attributeCategoryIds);
         }
     }
 
@@ -90,9 +88,7 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
 
         int activeCount = ingredientRepository.findAllByIdInAndActiveTrue(ingredientIds).size();
         if (activeCount != ingredientIds.size()) {
-            throw new BusinessException(MenuErrorCode.INVALID_FILTER,
-                    "유효하지 않거나 비활성화된 ingredientIds가 포함되어 있습니다. ingredientIds : "
-                            + ingredientIds);
+            throw new BusinessException(MenuErrorCode.INVALID_FILTER, "ingredientIds", ingredientIds);
         }
     }
 
