@@ -8,6 +8,7 @@ import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
+import matchuri.backend.api.menu.dto.response.MenuItemDetailResponse;
 import matchuri.backend.api.menu.dto.response.MenuItemSummaryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
@@ -19,6 +20,7 @@ import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AdminIngredientResult;
 import matchuri.backend.domain.menu.result.AttributeCategoryResult;
+import matchuri.backend.domain.menu.result.MenuItemDetailResult;
 import matchuri.backend.domain.menu.result.MenuItemSummaryResult;
 import matchuri.backend.domain.menu.result.RestrictionIngredientResult;
 import matchuri.backend.global.exception.RequestValidationException;
@@ -113,6 +115,17 @@ public class MenuReferenceMapper {
         return results.stream()
                 .map(this::toMenuItemSummaryResponse)
                 .toList();
+    }
+
+    public MenuItemDetailResponse toMenuItemDetailResponse(MenuItemDetailResult result) {
+        return new MenuItemDetailResponse(
+                result.id(),
+                result.code(),
+                result.name(),
+                result.description(),
+                toAttributeCategoryResponses(result.attributeCategories()),
+                toRestrictionIngredientResponses(result.ingredients())
+        );
     }
 
     private AttributeCategoryResponse toAttributeCategoryResponse(AttributeCategoryResult result) {
