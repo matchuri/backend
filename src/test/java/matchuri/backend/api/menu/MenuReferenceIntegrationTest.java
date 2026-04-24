@@ -156,6 +156,40 @@ class MenuReferenceIntegrationTest {
     }
 
     @Test
+    @DisplayName("restriction ingredient 목록 조회는 query와 allergen으로 취향 입력에 필요한 재료만 반환한다")
+    void getRestrictionIngredientsFiltersByQueryAndAllergen() throws Exception {
+        Ingredient peanut = ingredientRepository.save(new Ingredient("PEANUT", "땅콩", true, 10));
+        ingredientRepository.save(new Ingredient("PEANUT_OIL", "땅콩기름", false, 20));
+        ingredientRepository.save(new Ingredient("SHRIMP", "새우", true, 30));
+        Ingredient inactive = new Ingredient("PEANUT_POWDER", "땅콩가루", true, 5);
+        inactive.deactivate();
+        ingredientRepository.save(inactive);
+
+        mockMvc.perform(get("/api/v1/restriction-ingredients")
+                        .param("query", "땅콩")
+                        .param("allergen", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].id").value(peanut.getId()))
+                .andExpect(jsonPath("$.data[0].code").value("PEANUT"))
+                .andExpect(jsonPath("$.data[0].allergen").value(true));
+    }
+
+    @Test
+    @DisplayName("restriction ingredient 목록 조회는 잘못된 allergen 값을 거절한다")
+    void getRestrictionIngredientsRejectsInvalidAllergen() throws Exception {
+        mockMvc.perform(get("/api/v1/restriction-ingredients")
+                        .param("allergen", "UNKNOWN")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("COMMON_INVALID_QUERY_PARAMETER"));
+    }
+
+    @Test
     @DisplayName("메뉴 목록 조회는 활성 메뉴의 id, code, name만 반환한다")
     void searchMenuItemsReturnsOnlyActiveMenuSummaries() throws Exception {
         MenuItem kimchiStew = menuItemRepository.save(
