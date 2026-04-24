@@ -6,8 +6,11 @@ import matchuri.backend.domain.menu.MenuErrorCode;
 import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.domain.menu.result.AttributeCategoryResult;
+import matchuri.backend.domain.menu.result.MenuItemDetailResult;
 import matchuri.backend.domain.menu.result.MenuItemSummaryResult;
 import matchuri.backend.domain.menu.result.RestrictionIngredientResult;
 import matchuri.backend.global.exception.BusinessException;
@@ -22,6 +25,8 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
     private final AttributeCategoryRepository attributeCategoryRepository;
     private final IngredientRepository ingredientRepository;
     private final MenuItemRepository menuItemRepository;
+    private final MenuAttributeCategoryRepository menuAttributeCategoryRepository;
+    private final MenuIngredientRepository menuIngredientRepository;
 
     @Override
     public List<AttributeCategoryResult> getActiveAttributeCategories() {
@@ -58,6 +63,25 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
                 .stream()
                 .map(MenuItemSummaryResult::from)
                 .toList();
+    }
+
+    @Override
+    public MenuItemDetailResult getMenuItem(Long menuItemId) {
+        var menuItem = menuItemRepository.findByIdAndActiveTrue(menuItemId)
+                .orElseThrow(() -> new BusinessException(MenuErrorCode.NOT_FOUND, menuItemId));
+        var attributeCategories = menuAttributeCategoryRepository
+                .findAllByMenuIdAndAttributeCategoryActiveTrueOrderByAttributeCategoryCategoryTypeAscAttributeCategorySortOrderAscAttributeCategoryIdAsc(
+                        menuItemId)
+                .stream()
+                .map(menuAttributeCategory -> AttributeCategoryResult.from(menuAttributeCategory.getAttributeCategory()))
+                .toList();
+        var ingredients = menuIngredientRepository
+                .findAllByMenuIdAndIngredientActiveTrueOrderByIngredientSortOrderAscIngredientIdAsc(menuItemId)
+                .stream()
+                .map(menuIngredient -> RestrictionIngredientResult.from(menuIngredient.getIngredient()))
+                .toList();
+
+        return MenuItemDetailResult.of(menuItem, attributeCategories, ingredients);
     }
 
     private List<Long> distinctIds(List<Long> ids) {

@@ -2,6 +2,7 @@ package matchuri.backend.domain.menu.repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import matchuri.backend.domain.menu.entity.MenuItem;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +15,8 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     boolean existsByCode(String code);
 
     List<MenuItem> findAllByIdInAndActiveTrue(Collection<Long> ids);
+
+    Optional<MenuItem> findByIdAndActiveTrue(Long id);
 
     @Query("""
             select distinct menu

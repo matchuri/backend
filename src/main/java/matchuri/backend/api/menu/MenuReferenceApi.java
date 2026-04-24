@@ -9,9 +9,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import matchuri.backend.api.menu.dto.docs.AttributeCategoryListApiResponse;
+import matchuri.backend.api.menu.dto.docs.MenuItemDetailApiResponse;
 import matchuri.backend.api.menu.dto.docs.MenuItemSummaryListApiResponse;
 import matchuri.backend.api.menu.dto.docs.RestrictionIngredientListApiResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
+import matchuri.backend.api.menu.dto.response.MenuItemDetailResponse;
 import matchuri.backend.api.menu.dto.response.MenuItemSummaryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.global.api.ApiResponse;
@@ -149,4 +151,82 @@ public interface MenuReferenceApi {
             List<Long> attributeCategoryIds,
             List<Long> ingredientIds
     );
+
+    @Operation(
+            summary = "메뉴 상세 조회",
+            description = """
+                    활성 메뉴의 상세 정보를 조회합니다.
+                    
+                    - 인증 없이 호출할 수 있습니다.
+                    - 비활성 메뉴 또는 존재하지 않는 메뉴 ID는 404로 응답합니다.
+                    - 상세 응답은 메뉴 기본 정보와 연결된 활성 `attribute category`, `ingredient` 목록을 포함합니다.
+                    """
+    )
+    @SecurityRequirements
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MenuItemDetailApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "id": 1001,
+                                                "code": "PORK_CUTLET",
+                                                "name": "돈까스",
+                                                "description": "돼지고기를 튀겨 소스와 함께 먹는 바삭한 메뉴입니다.",
+                                                "attributeCategories": [
+                                                  {
+                                                    "id": 1,
+                                                    "categoryType": "TEXTURE",
+                                                    "code": "CRISPY",
+                                                    "name": "바삭함",
+                                                    "sortOrder": 10
+                                                  }
+                                                ],
+                                                "ingredients": [
+                                                  {
+                                                    "id": 101,
+                                                    "code": "PORK",
+                                                    "name": "돼지고기",
+                                                    "allergen": false,
+                                                    "sortOrder": 10
+                                                  }
+                                                ]
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "메뉴 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "menuNotFound",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 404,
+                                                "code": "MENU_NOT_FOUND",
+                                                "message": "메뉴를 찾을 수 없습니다. menuId : 999",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    ApiResponse<MenuItemDetailResponse> getMenuItem(Long menuItemId);
 }
