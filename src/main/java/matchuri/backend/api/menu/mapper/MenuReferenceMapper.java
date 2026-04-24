@@ -8,15 +8,18 @@ import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
+import matchuri.backend.api.menu.dto.response.MenuItemSummaryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
+import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AdminIngredientResult;
 import matchuri.backend.domain.menu.result.AttributeCategoryResult;
+import matchuri.backend.domain.menu.result.MenuItemSummaryResult;
 import matchuri.backend.domain.menu.result.RestrictionIngredientResult;
 import matchuri.backend.global.exception.RequestValidationException;
 import org.springframework.stereotype.Component;
@@ -68,6 +71,18 @@ public class MenuReferenceMapper {
         );
     }
 
+    public SearchMenuItemsCommand toSearchMenuItemsCommand(
+            String query,
+            List<Long> attributeCategoryIds,
+            List<Long> ingredientIds
+    ) {
+        return new SearchMenuItemsCommand(
+                trimNullable(query),
+                attributeCategoryIds == null ? List.of() : attributeCategoryIds,
+                ingredientIds == null ? List.of() : ingredientIds
+        );
+    }
+
     public List<AdminAttributeCategoryResponse> toAdminAttributeCategoryResponses(
             List<AdminAttributeCategoryResult> results) {
         return results.stream()
@@ -91,6 +106,12 @@ public class MenuReferenceMapper {
             List<RestrictionIngredientResult> results) {
         return results.stream()
                 .map(this::toRestrictionIngredientResponse)
+                .toList();
+    }
+
+    public List<MenuItemSummaryResponse> toMenuItemSummaryResponses(List<MenuItemSummaryResult> results) {
+        return results.stream()
+                .map(this::toMenuItemSummaryResponse)
                 .toList();
     }
 
@@ -133,6 +154,14 @@ public class MenuReferenceMapper {
                 result.name(),
                 result.allergen(),
                 result.sortOrder()
+        );
+    }
+
+    private MenuItemSummaryResponse toMenuItemSummaryResponse(MenuItemSummaryResult result) {
+        return new MenuItemSummaryResponse(
+                result.id(),
+                result.code(),
+                result.name()
         );
     }
 
