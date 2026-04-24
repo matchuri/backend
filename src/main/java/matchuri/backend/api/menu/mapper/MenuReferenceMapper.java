@@ -13,6 +13,7 @@ import matchuri.backend.api.menu.dto.response.MenuItemSummaryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
+import matchuri.backend.domain.menu.command.GetAttributeCategoriesCommand;
 import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
@@ -83,6 +84,10 @@ public class MenuReferenceMapper {
                 attributeCategoryIds == null ? List.of() : attributeCategoryIds,
                 ingredientIds == null ? List.of() : ingredientIds
         );
+    }
+
+    public GetAttributeCategoriesCommand toGetAttributeCategoriesCommand(List<CategoryType> categoryTypes) {
+        return new GetAttributeCategoriesCommand(categoryTypes == null ? List.of() : categoryTypes);
     }
 
     public List<AdminAttributeCategoryResponse> toAdminAttributeCategoryResponses(
