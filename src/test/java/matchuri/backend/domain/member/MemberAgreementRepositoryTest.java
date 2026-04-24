@@ -67,7 +67,8 @@ class MemberAgreementRepositoryTest {
                 MemberRole.MEMBER,
                 MemberStatus.ACTIVE
         ));
-        memberAgreementRepository.saveAndFlush(MemberAgreement.create(member, AgreementType.TERMS_OF_SERVICE, "2026-04-10"));
+        memberAgreementRepository.saveAndFlush(
+                MemberAgreement.create(member, AgreementType.TERMS_OF_SERVICE, "2026-04-10"));
 
         assertThatThrownBy(() -> memberAgreementRepository.saveAndFlush(
                 MemberAgreement.create(member, AgreementType.TERMS_OF_SERVICE, "2026-04-10")

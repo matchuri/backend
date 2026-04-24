@@ -35,7 +35,7 @@ public interface MemberApi {
             summary = "자체 회원가입 통합",
             description = """
                     자체 회원가입에서 `loginId`, `password`, 필수 약관 동의, `nickname`을 하나의 요청으로 원자적으로 처리합니다.
-
+                    
                     - 가입 성공 시 자동 로그인되지 않습니다.
                     - 필수 약관 2종과 최신 버전이 모두 포함되어야 합니다.
                     - 닉네임은 기본값 없이 필수 입력입니다.
@@ -137,7 +137,7 @@ public interface MemberApi {
             summary = "회원 가입 레거시 생성",
             description = """
                     일반 회원 계정을 최소 정보(`loginId`, `password`)만으로 생성합니다.
-
+                    
                     - 가입 성공 시 자동 로그인되지 않습니다.
                     - 필수 약관 동의와 닉네임 입력은 포함되지 않습니다.
                     - 신규 구현은 `POST /api/v1/members/signup` 사용을 우선 권장합니다.
@@ -257,7 +257,7 @@ public interface MemberApi {
             @Parameter(
                     description = """
                             회원 가입 시 사용할 로그인 ID입니다.
-
+                            
                             제약:
                             - 1자 이상 50자 이하
                             - 공백 불가
@@ -334,7 +334,7 @@ public interface MemberApi {
             @Parameter(
                     description = """
                             프로필 설정 시 사용할 닉네임입니다.
-
+                            
                             제약:
                             - 공백만으로 구성될 수 없음
                             - 최대 100자
@@ -349,7 +349,7 @@ public interface MemberApi {
             summary = "내 프로필 조회",
             description = """
                     현재 로그인한 회원의 기본 프로필 정보를 조회합니다.
-
+                    
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
                     - 현재 단계에서는 최소 프로필과 로그인 유형 판단에 필요한 `id`, `nickname`, `isSocial`을 반환합니다.
                     - `loginId`, `email`, 취향 프로필 상세 필드는 이 응답에 포함되지 않습니다.
@@ -360,7 +360,7 @@ public interface MemberApi {
             summary = "내 취향 프로필 조회",
             description = """
                     현재 로그인한 회원의 취향 프로필을 조회합니다.
-
+                    
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
                     - 프로필이 아직 없어도 빈 배열 기반의 정상 응답을 반환합니다.
                     - 선택된 `attribute category`, `restriction ingredient`, `disliked menu item`은 표시용 최소 메타데이터와 함께 반환합니다.
@@ -466,7 +466,7 @@ public interface MemberApi {
             summary = "내 기본 정보 수정",
             description = """
                     현재 로그인한 회원의 기본 정보 중 `nickname`만 수정합니다.
-
+                    
                     - 부분 수정 API이므로 필요한 필드만 보내면 됩니다.
                     - `nickname`을 보내지 않으면 변경하지 않습니다.
                     - 약관 또는 닉네임 온보딩 미완료 상태에서도 인증된 회원이면 닉네임 확정을 위해 호출할 수 있습니다.
@@ -479,7 +479,7 @@ public interface MemberApi {
             summary = "내 취향 프로필 전체 교체 저장",
             description = """
                     현재 로그인한 회원의 취향 프로필을 전체 교체 방식으로 저장합니다.
-
+                    
                     - `attributeCategoryIds`, `restrictionIngredientIds`, `dislikedMenuItemIds`는 각각 최신 입력 기준으로 전체 교체됩니다.
                     - 특정 목록을 비우려면 빈 배열을 보내야 합니다.
                     - 존재하지 않거나 비활성화된 참조 데이터 ID는 거절됩니다.
@@ -669,7 +669,7 @@ public interface MemberApi {
             summary = "회원 탈퇴",
             description = """
                     현재 로그인한 회원을 비활성화 처리합니다.
-
+                    
                     - 물리 삭제가 아니라 `status=INACTIVE`로 전환됩니다.
                     - 탈퇴 후 같은 계정으로 다시 로그인할 수 없습니다.
                     - 이미 발급된 access token이 남아 있어도 이후 보호 API에서는 비활성 회원으로 거절됩니다.

@@ -3,16 +3,16 @@ package matchuri.backend.api.menu.mapper;
 import java.util.List;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
-import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
-import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
+import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AdminIngredientResult;
@@ -24,7 +24,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MenuReferenceMapper {
 
-    public CreateAdminAttributeCategoryCommand toCreateAdminAttributeCategoryCommand(CreateAdminAttributeCategoryRequest request) {
+    public CreateAdminAttributeCategoryCommand toCreateAdminAttributeCategoryCommand(
+            CreateAdminAttributeCategoryRequest request) {
         return new CreateAdminAttributeCategoryCommand(
                 toCategoryType(request.categoryType()),
                 request.code().trim(),
@@ -67,7 +68,8 @@ public class MenuReferenceMapper {
         );
     }
 
-    public List<AdminAttributeCategoryResponse> toAdminAttributeCategoryResponses(List<AdminAttributeCategoryResult> results) {
+    public List<AdminAttributeCategoryResponse> toAdminAttributeCategoryResponses(
+            List<AdminAttributeCategoryResult> results) {
         return results.stream()
                 .map(this::toAdminAttributeCategoryResponse)
                 .toList();
@@ -85,7 +87,8 @@ public class MenuReferenceMapper {
                 .toList();
     }
 
-    public List<RestrictionIngredientResponse> toRestrictionIngredientResponses(List<RestrictionIngredientResult> results) {
+    public List<RestrictionIngredientResponse> toRestrictionIngredientResponses(
+            List<RestrictionIngredientResult> results) {
         return results.stream()
                 .map(this::toRestrictionIngredientResponse)
                 .toList();

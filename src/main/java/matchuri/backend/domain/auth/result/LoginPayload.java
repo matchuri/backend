@@ -12,7 +12,8 @@ public record LoginPayload(
         OnboardingStatusResult onboarding
 ) {
 
-    public static LoginPayload from(IssuedAccessToken issuedAccessToken, Member member, OnboardingStatusResult onboarding) {
+    public static LoginPayload from(IssuedAccessToken issuedAccessToken, Member member,
+                                    OnboardingStatusResult onboarding) {
         return new LoginPayload(
                 issuedAccessToken.accessToken(),
                 issuedAccessToken.expiresIn(),

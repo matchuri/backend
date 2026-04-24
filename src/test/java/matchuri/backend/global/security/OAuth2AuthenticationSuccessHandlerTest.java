@@ -10,8 +10,8 @@ import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.auth.result.OAuth2LoginResult;
 import matchuri.backend.domain.auth.service.OAuth2LoginService;
 import matchuri.backend.domain.auth.support.token.RefreshTokenCookieService;
-import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.entity.SocialProviderType;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,19 +50,23 @@ class OAuth2AuthenticationSuccessHandlerTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("127.0.0.1");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        Authentication authentication = authentication(createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
+        Authentication authentication = authentication(
+                createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
 
-        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class), org.mockito.Mockito.eq("127.0.0.1")))
+        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class),
+                org.mockito.Mockito.eq("127.0.0.1")))
                 .thenReturn(new OAuth2LoginResult(1L, "refresh-token", "exchange-code"));
         when(redirectService.buildSuccessRedirectUrl(SocialProviderType.GOOGLE, "exchange-code"))
-                .thenReturn("http://localhost:3000/auth/callback/google?loginResult=success&provider=google&code=exchange-code");
+                .thenReturn(
+                        "http://localhost:3000/auth/callback/google?loginResult=success&provider=google&code=exchange-code");
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
         verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).addRefreshToken(response, "refresh-token");
         assertThat(response.getRedirectedUrl())
-                .isEqualTo("http://localhost:3000/auth/callback/google?loginResult=success&provider=google&code=exchange-code");
+                .isEqualTo(
+                        "http://localhost:3000/auth/callback/google?loginResult=success&provider=google&code=exchange-code");
     }
 
     @Test
@@ -71,19 +75,23 @@ class OAuth2AuthenticationSuccessHandlerTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("127.0.0.1");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        Authentication authentication = authentication(createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
+        Authentication authentication = authentication(
+                createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
 
-        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class), org.mockito.Mockito.eq("127.0.0.1")))
+        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class),
+                org.mockito.Mockito.eq("127.0.0.1")))
                 .thenThrow(new IllegalStateException("boom"));
         when(redirectService.buildFailureRedirectUrl(SocialProviderType.GOOGLE, AuthErrorCode.OAUTH2_PROCESSING_FAILED))
-                .thenReturn("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
+                .thenReturn(
+                        "http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
         verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).clearRefreshToken(response);
         assertThat(response.getRedirectedUrl())
-                .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
+                .isEqualTo(
+                        "http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
     }
 
     @Test
@@ -92,19 +100,23 @@ class OAuth2AuthenticationSuccessHandlerTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("127.0.0.1");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        Authentication authentication = authentication(createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
+        Authentication authentication = authentication(
+                createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
 
-        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class), org.mockito.Mockito.eq("127.0.0.1")))
+        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class),
+                org.mockito.Mockito.eq("127.0.0.1")))
                 .thenThrow(new BusinessException(MemberErrorCode.INACTIVE_MEMBER));
         when(redirectService.buildFailureRedirectUrl(SocialProviderType.GOOGLE, MemberErrorCode.INACTIVE_MEMBER))
-                .thenReturn("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=MEMBER_INACTIVE_MEMBER");
+                .thenReturn(
+                        "http://localhost:3000/login?loginResult=failed&provider=google&errorCode=MEMBER_INACTIVE_MEMBER");
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
         verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).clearRefreshToken(response);
         assertThat(response.getRedirectedUrl())
-                .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=MEMBER_INACTIVE_MEMBER");
+                .isEqualTo(
+                        "http://localhost:3000/login?loginResult=failed&provider=google&errorCode=MEMBER_INACTIVE_MEMBER");
     }
 
     private Authentication authentication(OAuth2User principal) {

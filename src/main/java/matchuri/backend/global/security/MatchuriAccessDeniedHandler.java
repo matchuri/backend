@@ -25,7 +25,8 @@ public class MatchuriAccessDeniedHandler implements AccessDeniedHandler {
             HttpServletResponse response,
             AccessDeniedException accessDeniedException
     ) throws IOException {
-        Object errorCodeAttribute = request.getAttribute(RequiredAgreementAccessFilter.AUTHORIZATION_ERROR_CODE_ATTRIBUTE);
+        Object errorCodeAttribute = request.getAttribute(
+                RequiredAgreementAccessFilter.AUTHORIZATION_ERROR_CODE_ATTRIBUTE);
         ErrorCode errorCode = errorCodeAttribute instanceof ErrorCode customErrorCode
                 ? customErrorCode
                 : AuthErrorCode.FORBIDDEN;

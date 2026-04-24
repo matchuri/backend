@@ -3,9 +3,9 @@ package matchuri.backend.domain.member.support.agreement;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.member.result.RequiredAgreementStatusResult;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
+import matchuri.backend.domain.member.result.RequiredAgreementStatusResult;
 import org.springframework.stereotype.Component;
 
 @Component

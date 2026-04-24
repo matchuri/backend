@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class RequiredAgreementRequestValidator {
 
-    public Map<AgreementType, String> validateAndIndex(List<SubmitRequiredAgreementsCommand.AgreementConsentCommand> agreements) {
+    public Map<AgreementType, String> validateAndIndex(
+            List<SubmitRequiredAgreementsCommand.AgreementConsentCommand> agreements) {
         Map<AgreementType, String> indexed = new EnumMap<>(AgreementType.class);
         if (agreements != null) {
             for (SubmitRequiredAgreementsCommand.AgreementConsentCommand agreement : agreements) {

@@ -19,15 +19,16 @@ import matchuri.backend.domain.common.BaseEntity;
 @Getter
 @Entity
 @Table(
-    name = "menu_attribute_categories",
-    comment = "메뉴-속성 카테고리 매핑",
-    indexes = {
-        @Index(name = "idx_menu_attr_categories_menu_id", columnList = "menu_id"),
-        @Index(name = "idx_menu_attr_categories_category_id", columnList = "attribute_category_id")
-    },
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_menu_attribute_category", columnNames = {"menu_id", "attribute_category_id"})
-    }
+        name = "menu_attribute_categories",
+        comment = "메뉴-속성 카테고리 매핑",
+        indexes = {
+                @Index(name = "idx_menu_attr_categories_menu_id", columnList = "menu_id"),
+                @Index(name = "idx_menu_attr_categories_category_id", columnList = "attribute_category_id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_menu_attribute_category", columnNames = {"menu_id",
+                        "attribute_category_id"})
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MenuAttributeCategory extends BaseEntity {

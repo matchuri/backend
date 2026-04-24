@@ -20,18 +20,18 @@ import matchuri.backend.domain.menu.entity.MenuItem;
 @Getter
 @Entity
 @Table(
-    name = "member_taste_profile_disliked_menu_items",
-    comment = "회원 취향 프로필 비선호 메뉴 매핑",
-    indexes = {
-        @Index(name = "idx_member_profile_disliked_menu_profile", columnList = "profile_id"),
-        @Index(name = "idx_member_profile_disliked_menu_menu", columnList = "menu_id")
-    },
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_member_profile_disliked_menu_item",
-            columnNames = {"profile_id", "menu_id"}
-        )
-    }
+        name = "member_taste_profile_disliked_menu_items",
+        comment = "회원 취향 프로필 비선호 메뉴 매핑",
+        indexes = {
+                @Index(name = "idx_member_profile_disliked_menu_profile", columnList = "profile_id"),
+                @Index(name = "idx_member_profile_disliked_menu_menu", columnList = "menu_id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_member_profile_disliked_menu_item",
+                        columnNames = {"profile_id", "menu_id"}
+                )
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberTasteProfileDislikedMenuItem extends BaseEntity {

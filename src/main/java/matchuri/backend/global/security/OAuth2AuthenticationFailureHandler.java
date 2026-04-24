@@ -34,7 +34,8 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
 
         SocialProviderType provider = resolveProvider(request);
         AuthErrorCode errorCode = resolveErrorCode(exception);
-        log.warn("auth event=oauth2_provider_failed provider={} ip={} code={}", provider.toRegistrationId(), request.getRemoteAddr(), errorCode.getCode());
+        log.warn("auth event=oauth2_provider_failed provider={} ip={} code={}", provider.toRegistrationId(),
+                request.getRemoteAddr(), errorCode.getCode());
 
         response.sendRedirect(redirectService.buildFailureRedirectUrl(provider, errorCode));
     }

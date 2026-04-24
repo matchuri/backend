@@ -11,7 +11,8 @@ public class AuthenticationFacade {
 
     public AuthenticatedMember getCurrentMember() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedMember authenticatedMember)) {
+        if (authentication == null
+                || !(authentication.getPrincipal() instanceof AuthenticatedMember authenticatedMember)) {
             throw new AuthenticationException(AuthErrorCode.TOKEN_MISSING);
         }
 

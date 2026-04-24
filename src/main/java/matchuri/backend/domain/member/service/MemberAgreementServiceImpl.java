@@ -42,7 +42,8 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
     public SubmitRequiredAgreementsResult submitRequiredAgreements(SubmitRequiredAgreementsCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
 
-        Map<AgreementType, String> requestedVersions = requiredAgreementRequestValidator.validateAndIndex(command.agreements());
+        Map<AgreementType, String> requestedVersions = requiredAgreementRequestValidator.validateAndIndex(
+                command.agreements());
         for (AgreementType requiredType : RequiredAgreementVersions.requiredTypes()) {
             String requiredVersion = RequiredAgreementVersions.getRequiredVersion(requiredType);
             if (!memberAgreementRepository.existsByMemberIdAndAgreementTypeAndAgreementVersion(
@@ -50,12 +51,14 @@ public class MemberAgreementServiceImpl implements MemberAgreementService {
                     requiredType,
                     requiredVersion
             )) {
-                memberAgreementRepository.save(MemberAgreement.create(member, requiredType, requestedVersions.get(requiredType)));
+                memberAgreementRepository.save(
+                        MemberAgreement.create(member, requiredType, requestedVersions.get(requiredType)));
             }
         }
 
         RequiredAgreementStatusResult status = requiredAgreementRevisionResolver.calculateStatus(member.getId());
-        IssuedAccessToken issuedAccessToken = jwtTokenProvider.issueAccessToken(member, RequiredAgreementVersions.currentRevision());
+        IssuedAccessToken issuedAccessToken = jwtTokenProvider.issueAccessToken(member,
+                RequiredAgreementVersions.currentRevision());
         return new SubmitRequiredAgreementsResult(status, issuedAccessToken, onboardingStatusResolver.resolve(member));
     }
 

@@ -68,7 +68,8 @@ public class AuthController implements AuthApi {
     @PostMapping("/logout")
     public ApiResponse<LogoutResponse> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         String refreshToken = refreshTokenCookieService.resolveRefreshToken(httpRequest)
-                .orElseThrow(() -> new matchuri.backend.global.exception.AuthenticationException(AuthErrorCode.LOGOUT_FAILED));
+                .orElseThrow(() -> new matchuri.backend.global.exception.AuthenticationException(
+                        AuthErrorCode.LOGOUT_FAILED));
 
         var result = authService.logout(refreshToken, resolveClientIp(httpRequest));
         LogoutResponse response = memberMapper.toLogoutResponse(result);

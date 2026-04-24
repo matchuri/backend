@@ -81,6 +81,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             return SocialProviderType.fromRegistrationId(oauth2AuthenticationToken.getAuthorizedClientRegistrationId());
         }
 
-        throw new matchuri.backend.global.exception.AuthenticationException(AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
+        throw new matchuri.backend.global.exception.AuthenticationException(
+                AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
     }
 }

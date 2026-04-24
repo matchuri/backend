@@ -20,18 +20,18 @@ import matchuri.backend.domain.menu.entity.AttributeCategory;
 @Getter
 @Entity
 @Table(
-    name = "member_taste_profile_categories",
-    comment = "회원 취향 프로필-속성 카테고리 매핑",
-    indexes = {
-        @Index(name = "idx_member_taste_profile_categories_profile_id", columnList = "profile_id"),
-        @Index(name = "idx_member_taste_profile_categories_attribute_category_id", columnList = "attribute_category_id")
-    },
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_member_taste_profile_category",
-            columnNames = {"profile_id", "attribute_category_id"}
-        )
-    }
+        name = "member_taste_profile_categories",
+        comment = "회원 취향 프로필-속성 카테고리 매핑",
+        indexes = {
+                @Index(name = "idx_member_taste_profile_categories_profile_id", columnList = "profile_id"),
+                @Index(name = "idx_member_taste_profile_categories_attribute_category_id", columnList = "attribute_category_id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_member_taste_profile_category",
+                        columnNames = {"profile_id", "attribute_category_id"}
+                )
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberTasteProfileCategory extends BaseEntity {

@@ -27,14 +27,14 @@ import matchuri.backend.domain.common.BaseEntity;
         name = "member_agreements",
         comment = "회원 약관 동의 이력",
         indexes = {
-            @Index(name = "idx_member_agreements_member_id", columnList = "member_id"),
-            @Index(name = "idx_member_agreements_member_type", columnList = "member_id,agreement_type")
+                @Index(name = "idx_member_agreements_member_id", columnList = "member_id"),
+                @Index(name = "idx_member_agreements_member_type", columnList = "member_id,agreement_type")
         },
         uniqueConstraints = {
-            @UniqueConstraint(
-                    name = "uk_member_agreements_member_type_version",
-                    columnNames = {"member_id", "agreement_type", "agreement_version"}
-            )
+                @UniqueConstraint(
+                        name = "uk_member_agreements_member_type_version",
+                        columnNames = {"member_id", "agreement_type", "agreement_version"}
+                )
         }
 )
 @Builder

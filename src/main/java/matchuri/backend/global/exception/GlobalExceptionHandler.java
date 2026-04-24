@@ -15,7 +15,6 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -23,6 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -47,7 +47,8 @@ public class GlobalExceptionHandler {
             AuthenticationException exception,
             HttpServletRequest request
     ) {
-        log.warn("Authentication exception: path={}, code={}", request.getRequestURI(), exception.getErrorCode().getCode());
+        log.warn("Authentication exception: path={}, code={}", request.getRequestURI(),
+                exception.getErrorCode().getCode());
         return errorResponse(exception.getErrorCode(), exception.getMessage());
     }
 
@@ -56,7 +57,8 @@ public class GlobalExceptionHandler {
             AuthorizationException exception,
             HttpServletRequest request
     ) {
-        log.warn("Authorization exception: path={}, code={}", request.getRequestURI(), exception.getErrorCode().getCode());
+        log.warn("Authorization exception: path={}, code={}", request.getRequestURI(),
+                exception.getErrorCode().getCode());
         return errorResponse(exception.getErrorCode(), exception.getMessage());
     }
 
@@ -113,18 +115,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiResponse<Void>> handleMissingParameter(MissingServletRequestParameterException exception) {
-        ValidationErrorDetail detail = new ValidationErrorDetail("QUERY", exception.getParameterName(), "필수 파라미터가 누락되었습니다.");
+        ValidationErrorDetail detail = new ValidationErrorDetail("QUERY", exception.getParameterName(),
+                "필수 파라미터가 누락되었습니다.");
         return errorResponse(CommonErrorCode.INVALID_QUERY_PARAMETER, List.of(detail));
     }
 
     @ExceptionHandler(MissingPathVariableException.class)
     public ResponseEntity<ApiResponse<Void>> handleMissingPathVariable(MissingPathVariableException exception) {
-        ValidationErrorDetail detail = new ValidationErrorDetail("PATH", exception.getVariableName(), "필수 경로 변수가 누락되었습니다.");
+        ValidationErrorDetail detail = new ValidationErrorDetail("PATH", exception.getVariableName(),
+                "필수 경로 변수가 누락되었습니다.");
         return errorResponse(CommonErrorCode.INVALID_PATH_VARIABLE, List.of(detail));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException exception) {
+    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException exception) {
         return errorResponse(CommonErrorCode.METHOD_NOT_ALLOWED);
     }
 
@@ -143,7 +148,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnexpectedException(Exception exception, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleUnexpectedException(Exception exception,
+                                                                       HttpServletRequest request) {
         log.error("Unexpected exception: path={}", request.getRequestURI(), exception);
         return errorResponse(CommonErrorCode.INTERNAL_SERVER_ERROR);
     }

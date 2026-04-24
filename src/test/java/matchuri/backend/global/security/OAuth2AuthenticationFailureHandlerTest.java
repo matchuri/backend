@@ -16,8 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 
 @ExtendWith(MockitoExtension.class)
 class OAuth2AuthenticationFailureHandlerTest {
@@ -44,14 +44,16 @@ class OAuth2AuthenticationFailureHandlerTest {
         AuthenticationException exception = new OAuth2AuthenticationException(new OAuth2Error("access_denied"));
 
         when(redirectService.buildFailureRedirectUrl(SocialProviderType.GOOGLE, AuthErrorCode.OAUTH2_PROVIDER_REJECTED))
-                .thenReturn("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROVIDER_REJECTED");
+                .thenReturn(
+                        "http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROVIDER_REJECTED");
 
         failureHandler.onAuthenticationFailure(request, response, exception);
 
         verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).clearRefreshToken(response);
         assertThat(response.getRedirectedUrl())
-                .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROVIDER_REJECTED");
+                .isEqualTo(
+                        "http://localhost:3000/login?loginResult=failed&provider=google&errorCode=AUTH_OAUTH2_PROVIDER_REJECTED");
     }
 
     @Test
@@ -64,13 +66,15 @@ class OAuth2AuthenticationFailureHandlerTest {
         AuthenticationException exception = new OAuth2AuthenticationException(new OAuth2Error("server_error"));
 
         when(redirectService.buildFailureRedirectUrl(SocialProviderType.NAVER, AuthErrorCode.OAUTH2_PROCESSING_FAILED))
-                .thenReturn("http://localhost:3000/login?loginResult=failed&provider=naver&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
+                .thenReturn(
+                        "http://localhost:3000/login?loginResult=failed&provider=naver&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
 
         failureHandler.onAuthenticationFailure(request, response, exception);
 
         verify(authorizationRequestRepository).clearAuthorizationRequest(request, response);
         verify(refreshTokenCookieService).clearRefreshToken(response);
         assertThat(response.getRedirectedUrl())
-                .isEqualTo("http://localhost:3000/login?loginResult=failed&provider=naver&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
+                .isEqualTo(
+                        "http://localhost:3000/login?loginResult=failed&provider=naver&errorCode=AUTH_OAUTH2_PROCESSING_FAILED");
     }
 }

@@ -18,15 +18,15 @@ import matchuri.backend.domain.common.BaseEntity;
 @Getter
 @Entity
 @Table(
-    name = "attribute_categories",
-    comment = "공통 속성 카테고리",
-    indexes = {
-        @Index(name = "idx_attribute_categories_active", columnList = "is_active"),
-        @Index(name = "idx_attribute_categories_type_active", columnList = "category_type,is_active")
-    },
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_attribute_categories_type_code", columnNames = {"category_type", "code"})
-    }
+        name = "attribute_categories",
+        comment = "공통 속성 카테고리",
+        indexes = {
+                @Index(name = "idx_attribute_categories_active", columnList = "is_active"),
+                @Index(name = "idx_attribute_categories_type_active", columnList = "category_type,is_active")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_attribute_categories_type_code", columnNames = {"category_type", "code"})
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AttributeCategory extends BaseEntity {

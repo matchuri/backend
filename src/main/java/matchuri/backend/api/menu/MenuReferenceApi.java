@@ -21,7 +21,7 @@ public interface MenuReferenceApi {
             summary = "attribute category 목록 조회",
             description = """
                     취향 입력과 메뉴 분류에 공통으로 사용하는 활성 `attribute category` 목록을 조회합니다.
-
+                    
                     - 인증 없이 호출할 수 있습니다.
                     - 응답에는 `is_active=true`인 데이터만 포함됩니다.
                     - 정렬 기준은 `categoryType`, `sortOrder`, `id`입니다.
@@ -62,7 +62,7 @@ public interface MenuReferenceApi {
             summary = "restriction ingredient 목록 조회",
             description = """
                     취향 입력에서 제한 재료로 선택할 수 있는 활성 `restriction ingredient` 목록을 조회합니다.
-
+                    
                     - 인증 없이 호출할 수 있습니다.
                     - 응답에는 `is_active=true`인 데이터만 포함됩니다.
                     - 정렬 기준은 `sortOrder`, `id`입니다.

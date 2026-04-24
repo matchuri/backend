@@ -1,27 +1,28 @@
 package matchuri.backend.api.member;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Date;
 import javax.crypto.SecretKey;
-import matchuri.backend.domain.auth.entity.AuthRefreshToken;
 import matchuri.backend.domain.auth.entity.AuthExchangeCode;
+import matchuri.backend.domain.auth.entity.AuthRefreshToken;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.member.entity.AgreementType;
@@ -56,7 +57,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -310,7 +310,8 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.email").doesNotExist())
                 .andExpect(jsonPath("$.data.memberTasteProfile").doesNotExist());
 
-        assertThat(memberTasteProfileRepository.findByMemberId(memberRepository.findByLoginId("tester01").orElseThrow().getId()))
+        assertThat(memberTasteProfileRepository.findByMemberId(
+                memberRepository.findByLoginId("tester01").orElseThrow().getId()))
                 .isPresent()
                 .get()
                 .extracting(MemberTasteProfile::getProfileVersion)
@@ -323,7 +324,8 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.loggedOut").value(true))
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("Max-Age=0")));
 
-        assertThat(authRefreshTokenRepository.findByMemberId(memberRepository.findByLoginId("tester01").orElseThrow().getId()))
+        assertThat(authRefreshTokenRepository.findByMemberId(
+                memberRepository.findByLoginId("tester01").orElseThrow().getId()))
                 .isEmpty();
 
         mockMvc.perform(get("/api/v1/members/me")
@@ -575,7 +577,8 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.onboarding.nicknameCompleted").value(true))
                 .andExpect(jsonPath("$.data.onboarding.completed").value(false))
                 .andExpect(jsonPath("$.data.onboarding.nextStep").value("REQUIRED_AGREEMENTS"))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("matchuri_refresh_token=")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE,
+                        org.hamcrest.Matchers.containsString("matchuri_refresh_token=")))
                 .andReturn();
 
         Cookie rotatedCookie = result.getResponse().getCookie("matchuri_refresh_token");
@@ -678,7 +681,8 @@ class MemberAuthIntegrationTest {
     void authorizationEndpointUsesServerSideSessionStorage() throws Exception {
         MvcResult result = mockMvc.perform(get("/oauth2/authorization/google"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(header().string(HttpHeaders.LOCATION, org.hamcrest.Matchers.containsString("https://accounts.google.com/o/oauth2/v2/auth")))
+                .andExpect(header().string(HttpHeaders.LOCATION,
+                        org.hamcrest.Matchers.containsString("https://accounts.google.com/o/oauth2/v2/auth")))
                 .andReturn();
 
         assertThat(result.getRequest().getSession(false)).isNotNull();
@@ -692,7 +696,9 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("유효한 소셜 교환 코드는 액세스 토큰으로 교환된다")
     void exchangeOAuth2Code() throws Exception {
-        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "example_google"));
+        Member member = memberRepository.save(
+                Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com",
+                        "example_google"));
         authExchangeCodeRepository.save(AuthExchangeCode.issue(
                 member,
                 SocialProviderType.GOOGLE,
@@ -796,7 +802,9 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("소셜 교환 코드는 한 번 사용 후 재사용할 수 없다")
     void exchangeOAuth2CodeCannotBeReused() throws Exception {
-        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-2", "google2@example.com", "google2_google"));
+        Member member = memberRepository.save(
+                Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-2", "google2@example.com",
+                        "google2_google"));
         authExchangeCodeRepository.save(AuthExchangeCode.issue(
                 member,
                 SocialProviderType.GOOGLE,
@@ -830,7 +838,9 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("만료된 소셜 교환 코드는 AUTH_OAUTH2_EXCHANGE_CODE_INVALID를 반환한다")
     void exchangeOAuth2CodeFailsWhenCodeIsExpired() throws Exception {
-        Member member = memberRepository.save(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-3", "google3@example.com", "google3_google"));
+        Member member = memberRepository.save(
+                Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-3", "google3@example.com",
+                        "google3_google"));
         authExchangeCodeRepository.save(AuthExchangeCode.issue(
                 member,
                 SocialProviderType.GOOGLE,
@@ -926,7 +936,8 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.accessToken").isString())
                 .andExpect(jsonPath("$.data.refreshToken").value(nullValue()))
                 .andExpect(jsonPath("$.data.onboarding.nextStep").exists())
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("matchuri_refresh_token=")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE,
+                        org.hamcrest.Matchers.containsString("matchuri_refresh_token=")))
                 .andReturn();
 
         JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());

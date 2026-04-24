@@ -33,16 +33,16 @@ class MemberRepositoryTest {
     @DisplayName("loginId로 회원 존재 여부를 확인할 수 있다")
     void existsByLoginId() {
         Member member = memberRepository.save(
-            new Member(
-                "tester01",
-                "hashed-password",
-                "tester@example.com",
-                false,
-                null,
-                null,
-                MemberRole.MEMBER,
-                MemberStatus.ACTIVE
-            )
+                new Member(
+                        "tester01",
+                        "hashed-password",
+                        "tester@example.com",
+                        false,
+                        null,
+                        null,
+                        MemberRole.MEMBER,
+                        MemberStatus.ACTIVE
+                )
         );
 
         assertThat(memberRepository.existsByLoginId("tester01")).isTrue();
@@ -54,27 +54,27 @@ class MemberRepositoryTest {
     @DisplayName("회원 취향 프로필을 회원 ID로 조회할 수 있다")
     void findTasteProfileByMemberId() {
         Member member = memberRepository.save(
-            new Member(
-                "tester02",
-                "hashed-password",
-                "tester2@example.com",
-                false,
-                null,
-                null,
-                MemberRole.MEMBER,
-                MemberStatus.ACTIVE
-            )
+                new Member(
+                        "tester02",
+                        "hashed-password",
+                        "tester2@example.com",
+                        false,
+                        null,
+                        null,
+                        MemberRole.MEMBER,
+                        MemberStatus.ACTIVE
+                )
         );
 
         MemberTasteProfile profile = memberTasteProfileRepository.save(
-            new MemberTasteProfile(member, "v1")
+                new MemberTasteProfile(member, "v1")
         );
 
         assertThat(memberTasteProfileRepository.findByMemberId(member.getId()))
-            .isPresent()
-            .get()
-            .extracting(MemberTasteProfile::getProfileVersion)
-            .isEqualTo("v1");
+                .isPresent()
+                .get()
+                .extracting(MemberTasteProfile::getProfileVersion)
+                .isEqualTo("v1");
         assertThat(profile.getId()).isNotNull();
     }
 
@@ -82,16 +82,16 @@ class MemberRepositoryTest {
     @DisplayName("저장 시 auditing 필드가 채워진다")
     void auditingFieldsArePopulated() {
         Member member = memberRepository.save(
-            new Member(
-                "tester03",
-                "hashed-password",
-                "tester3@example.com",
-                false,
-                null,
-                null,
-                MemberRole.MEMBER,
-                MemberStatus.ACTIVE
-            )
+                new Member(
+                        "tester03",
+                        "hashed-password",
+                        "tester3@example.com",
+                        false,
+                        null,
+                        null,
+                        MemberRole.MEMBER,
+                        MemberStatus.ACTIVE
+                )
         );
 
         assertThat(member.getCreatedAt()).isNotNull();
@@ -101,10 +101,13 @@ class MemberRepositoryTest {
     @Test
     @DisplayName("같은 소셜 제공자 사용자 식별자는 유일해야 한다")
     void socialProviderUserIdMustBeUniquePerProvider() {
-        memberRepository.saveAndFlush(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google1@example.com", "구글1"));
+        memberRepository.saveAndFlush(
+                Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google1@example.com", "구글1"));
 
         assertThatThrownBy(() ->
-        memberRepository.saveAndFlush(Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google2@example.com", "구글2"))
+                memberRepository.saveAndFlush(
+                        Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google2@example.com",
+                                "구글2"))
         ).isInstanceOf(Exception.class);
     }
 }

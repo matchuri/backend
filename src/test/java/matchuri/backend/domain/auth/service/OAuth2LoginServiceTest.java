@@ -48,7 +48,8 @@ class OAuth2LoginServiceTest {
                 sessionTokenService,
                 List.of(resolver)
         );
-        Member member = Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com", "구글사용자");
+        Member member = Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com",
+                "구글사용자");
         TokenPair tokenPair = new TokenPair(
                 "access-token",
                 3600L,
@@ -63,7 +64,8 @@ class OAuth2LoginServiceTest {
 
         OAuth2LoginResult result = service.login(SocialProviderType.GOOGLE, oauth2User, "127.0.0.1");
 
-        verify(oAuth2MemberService).findOrCreateMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com");
+        verify(oAuth2MemberService).findOrCreateMember(SocialProviderType.GOOGLE, "google-user-1",
+                "google@example.com");
         verify(sessionTokenService).issueLoginTokenPair(member);
         verify(sessionTokenService).createExchangeCode(member, SocialProviderType.GOOGLE);
         assertThat(result.refreshToken()).isEqualTo("refresh-token");

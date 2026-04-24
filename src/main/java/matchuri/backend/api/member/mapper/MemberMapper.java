@@ -1,15 +1,15 @@
 package matchuri.backend.api.member.mapper;
 
 import matchuri.backend.api.auth.dto.response.LoginResponse;
-import matchuri.backend.api.common.dto.OnboardingStatusResponse;
 import matchuri.backend.api.auth.dto.response.LogoutResponse;
+import matchuri.backend.api.common.dto.OnboardingStatusResponse;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
-import matchuri.backend.api.member.dto.response.MemberTasteDislikedMenuItemResponse;
-import matchuri.backend.api.member.dto.response.MemberTasteAttributeCategoryResponse;
 import matchuri.backend.api.member.dto.response.MemberProfileResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteAttributeCategoryResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteDislikedMenuItemResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteRestrictionIngredientResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
@@ -103,7 +103,8 @@ public class MemberMapper {
         return new MemberProfileResponse(result.id(), result.nickname(), result.isSocial());
     }
 
-    public MemberTasteProfileSummaryResponse toMemberTasteProfileSummaryResponse(MemberTasteProfileSummaryResult result) {
+    public MemberTasteProfileSummaryResponse toMemberTasteProfileSummaryResponse(
+            MemberTasteProfileSummaryResult result) {
         return new MemberTasteProfileSummaryResponse(
                 result.memberId(),
                 result.profileVersion(),

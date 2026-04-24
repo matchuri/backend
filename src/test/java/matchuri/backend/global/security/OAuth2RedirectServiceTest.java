@@ -27,7 +27,8 @@ class OAuth2RedirectServiceTest {
     void buildsFailureRedirectUrl() {
         OAuth2RedirectService service = new OAuth2RedirectService(createProperties());
 
-        String redirectUrl = service.buildFailureRedirectUrl(SocialProviderType.NAVER, AuthErrorCode.OAUTH2_PROVIDER_REJECTED);
+        String redirectUrl = service.buildFailureRedirectUrl(SocialProviderType.NAVER,
+                AuthErrorCode.OAUTH2_PROVIDER_REJECTED);
 
         assertThat(redirectUrl).isEqualTo(
                 "http://localhost:3000/login?loginResult=failed&provider=naver&errorCode=AUTH_OAUTH2_PROVIDER_REJECTED"

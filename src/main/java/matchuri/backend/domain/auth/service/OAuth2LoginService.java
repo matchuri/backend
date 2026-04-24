@@ -41,7 +41,8 @@ public class OAuth2LoginService {
         TokenPair tokenPair = sessionTokenService.issueLoginTokenPair(member);
         String exchangeCode = sessionTokenService.createExchangeCode(member, provider);
 
-        log.info("auth event=oauth2_login_success provider={} memberId={} ip={}", provider.toRegistrationId(), member.getId(), clientIp);
+        log.info("auth event=oauth2_login_success provider={} memberId={} ip={}", provider.toRegistrationId(),
+                member.getId(), clientIp);
 
         return new OAuth2LoginResult(
                 member.getId(),

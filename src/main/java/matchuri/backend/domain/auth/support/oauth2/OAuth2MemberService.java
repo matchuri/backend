@@ -3,10 +3,10 @@ package matchuri.backend.domain.auth.support.oauth2;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.auth.exception.AuthErrorCode;
-import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.SocialProviderType;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.global.exception.AuthenticationException;
 import matchuri.backend.global.exception.BusinessException;
@@ -41,7 +41,8 @@ public class OAuth2MemberService {
         String temporaryNickname = generateUniqueTemporaryNickname(provider, email);
 
         try {
-            return memberRepository.saveAndFlush(Member.createSocialMember(provider, providerUserId, email, temporaryNickname));
+            return memberRepository.saveAndFlush(
+                    Member.createSocialMember(provider, providerUserId, email, temporaryNickname));
         } catch (DataIntegrityViolationException exception) {
             return memberRepository.findBySocialProviderTypeAndSocialProviderUserId(provider, providerUserId)
                     .orElseThrow(() -> exception);

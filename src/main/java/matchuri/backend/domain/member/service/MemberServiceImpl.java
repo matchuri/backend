@@ -16,19 +16,19 @@ import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
 import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
-import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
-import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
-import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolver;
@@ -118,8 +118,10 @@ public class MemberServiceImpl implements MemberService {
                         member.getId(),
                         tasteProfile,
                         memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
-                        memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
-                        memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId())
+                        memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(
+                                tasteProfile.getId()),
+                        memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(
+                                tasteProfile.getId())
                 ))
                 .orElseGet(() -> MemberTasteProfileSummaryResult.empty(member.getId()));
     }
@@ -182,7 +184,8 @@ public class MemberServiceImpl implements MemberService {
                 member.getId(),
                 tasteProfile,
                 memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
-                memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
+                memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(
+                        tasteProfile.getId()),
                 memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId())
         );
     }
@@ -240,7 +243,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     private Map<Long, AttributeCategory> loadActiveAttributeCategories(List<Long> attributeCategoryIds) {
-        List<AttributeCategory> attributeCategories = attributeCategoryRepository.findAllByIdInAndActiveTrue(attributeCategoryIds);
+        List<AttributeCategory> attributeCategories = attributeCategoryRepository.findAllByIdInAndActiveTrue(
+                attributeCategoryIds);
         if (attributeCategories.size() != attributeCategoryIds.size()) {
             throw new BusinessException(MemberErrorCode.INVALID_TASTE_ATTRIBUTE_CATEGORY, attributeCategoryIds);
         }

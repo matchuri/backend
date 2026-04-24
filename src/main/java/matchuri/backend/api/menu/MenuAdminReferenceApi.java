@@ -15,8 +15,8 @@ import matchuri.backend.api.menu.dto.docs.AdminIngredientApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminIngredientListApiResponse;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
-import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.global.api.ApiResponse;
@@ -29,7 +29,7 @@ public interface MenuAdminReferenceApi {
             summary = "관리자 attribute category 목록 조회",
             description = """
                     운영 관리용 `attribute category` 목록을 조회합니다.
-
+                    
                     - `ADMIN` 권한이 필요합니다.
                     - 활성/비활성 데이터를 모두 반환합니다.
                     - 별도 `includeInactive` 파라미터 없이 전체 운영 상태를 기본 노출합니다.
@@ -113,7 +113,7 @@ public interface MenuAdminReferenceApi {
             summary = "관리자 ingredient 목록 조회",
             description = """
                     운영 관리용 `ingredient` 목록을 조회합니다.
-
+                    
                     - `ADMIN` 권한이 필요합니다.
                     - 활성/비활성 데이터를 모두 반환합니다.
                     - 별도 `includeInactive` 파라미터 없이 전체 운영 상태를 기본 노출합니다.
@@ -184,7 +184,7 @@ public interface MenuAdminReferenceApi {
             summary = "관리자 ingredient 생성",
             description = """
                     운영 관리용 `ingredient`를 새로 생성합니다.
-
+                    
                     - `ADMIN` 권한이 필요합니다.
                     - 생성 직후 기본 활성 상태는 `true`입니다.
                     - 중복 기준은 `code`입니다.
@@ -266,7 +266,7 @@ public interface MenuAdminReferenceApi {
             summary = "관리자 ingredient 수정",
             description = """
                     운영 관리용 `ingredient`의 수정 가능 필드만 갱신합니다.
-
+                    
                     - `ADMIN` 권한이 필요합니다.
                     - 수정 가능 필드는 `name`, `allergen`, `sortOrder`, `isActive`입니다.
                     - `isActive=true`로 비활성 데이터를 다시 활성화할 수 있습니다.
@@ -351,7 +351,7 @@ public interface MenuAdminReferenceApi {
             summary = "관리자 ingredient 비활성화",
             description = """
                     운영 관리용 `ingredient`를 비활성화합니다.
-
+                    
                     - `ADMIN` 권한이 필요합니다.
                     - 물리 삭제가 아니라 `isActive=false` 비활성화로 처리합니다.
                     - 이미 비활성 상태여도 실패시키지 않고 현재 상태를 그대로 반환합니다.
@@ -433,7 +433,7 @@ public interface MenuAdminReferenceApi {
             summary = "관리자 attribute category 생성",
             description = """
                     운영 관리용 `attribute category`를 새로 생성합니다.
-
+                    
                     - `ADMIN` 권한이 필요합니다.
                     - 생성 직후 기본 활성 상태는 `true`입니다.
                     - 중복 기준은 `(categoryType, code)` 조합입니다.
@@ -537,13 +537,14 @@ public interface MenuAdminReferenceApi {
                     )
             )
     })
-    ApiResponse<AdminAttributeCategoryResponse> createAdminAttributeCategory(CreateAdminAttributeCategoryRequest request);
+    ApiResponse<AdminAttributeCategoryResponse> createAdminAttributeCategory(
+            CreateAdminAttributeCategoryRequest request);
 
     @Operation(
             summary = "관리자 attribute category 수정",
             description = """
                     운영 관리용 `attribute category`의 수정 가능 필드만 갱신합니다.
-
+                    
                     - `ADMIN` 권한이 필요합니다.
                     - 수정 가능 필드는 `name`, `sortOrder`, `isActive`입니다.
                     - `isActive=true`로 비활성 데이터를 다시 활성화할 수 있습니다.
@@ -628,7 +629,7 @@ public interface MenuAdminReferenceApi {
             summary = "관리자 attribute category 비활성화",
             description = """
                     운영 관리용 `attribute category`를 비활성화합니다.
-
+                    
                     - `ADMIN` 권한이 필요합니다.
                     - 물리 삭제가 아니라 `isActive=false` 비활성화로 처리합니다.
                     - 이미 비활성 상태여도 실패시키지 않고 현재 상태를 그대로 반환합니다.

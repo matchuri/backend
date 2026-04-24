@@ -16,14 +16,14 @@ import matchuri.backend.domain.common.BaseEntity;
 @Getter
 @Entity
 @Table(
-    name = "ingredients",
-    comment = "재료",
-    indexes = {
-        @Index(name = "idx_ingredients_active", columnList = "is_active")
-    },
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_ingredients_code", columnNames = "code")
-    }
+        name = "ingredients",
+        comment = "재료",
+        indexes = {
+                @Index(name = "idx_ingredients_active", columnList = "is_active")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_ingredients_code", columnNames = "code")
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Ingredient extends BaseEntity {

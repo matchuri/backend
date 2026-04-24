@@ -20,7 +20,8 @@ public record CreateAdminAttributeCategoryRequest(
                 maxLength = AttributeCategory.CODE_MAX_LENGTH
         )
         @NotBlank(message = "code는 비어 있을 수 없습니다.")
-        @Size(max = AttributeCategory.CODE_MAX_LENGTH, message = "code는 " + AttributeCategory.CODE_MAX_LENGTH + "자를 초과할 수 없습니다.")
+        @Size(max = AttributeCategory.CODE_MAX_LENGTH, message = "code는 " + AttributeCategory.CODE_MAX_LENGTH
+                + "자를 초과할 수 없습니다.")
         String code,
 
         @Schema(
@@ -29,7 +30,8 @@ public record CreateAdminAttributeCategoryRequest(
                 maxLength = AttributeCategory.NAME_MAX_LENGTH
         )
         @NotBlank(message = "name은 비어 있을 수 없습니다.")
-        @Size(max = AttributeCategory.NAME_MAX_LENGTH, message = "name은 " + AttributeCategory.NAME_MAX_LENGTH + "자를 초과할 수 없습니다.")
+        @Size(max = AttributeCategory.NAME_MAX_LENGTH, message = "name은 " + AttributeCategory.NAME_MAX_LENGTH
+                + "자를 초과할 수 없습니다.")
         String name,
 
         @Schema(

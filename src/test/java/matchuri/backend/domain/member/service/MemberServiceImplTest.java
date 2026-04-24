@@ -19,12 +19,12 @@ import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
+import matchuri.backend.domain.member.entity.MemberRole;
+import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
 import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
-import matchuri.backend.domain.member.entity.MemberRole;
-import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
@@ -296,12 +296,16 @@ class MemberServiceImplTest {
         when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
         when(memberTasteProfileRepository.findByMemberId(1L)).thenReturn(Optional.empty());
         when(memberTasteProfileRepository.saveAndFlush(any(MemberTasteProfile.class))).thenReturn(savedProfile);
-        when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of(1L))).thenReturn(List.of(attributeCategory));
+        when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of(1L))).thenReturn(
+                List.of(attributeCategory));
         when(ingredientRepository.findAllByIdInAndActiveTrue(List.of(101L))).thenReturn(List.of(ingredient));
         when(menuItemRepository.findAllByIdInAndActiveTrue(List.of(1001L))).thenReturn(List.of(menuItem));
-        when(memberTasteProfileCategoryRepository.findAllByProfileId(savedProfile.getId())).thenReturn(Collections.emptyList());
-        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(savedProfile.getId())).thenReturn(Collections.emptyList());
-        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileId(savedProfile.getId())).thenReturn(Collections.emptyList());
+        when(memberTasteProfileCategoryRepository.findAllByProfileId(savedProfile.getId())).thenReturn(
+                Collections.emptyList());
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(savedProfile.getId())).thenReturn(
+                Collections.emptyList());
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileId(savedProfile.getId())).thenReturn(
+                Collections.emptyList());
         when(memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(savedProfile.getId()))
                 .thenReturn(List.of(new MemberTasteProfileCategory(savedProfile, attributeCategory)));
         when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(savedProfile.getId()))
@@ -429,12 +433,18 @@ class MemberServiceImplTest {
         when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
         when(ingredientRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
         when(menuItemRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
-        when(memberTasteProfileCategoryRepository.findAllByProfileId(profile.getId())).thenReturn(Collections.emptyList());
-        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(profile.getId())).thenReturn(Collections.emptyList());
-        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileId(profile.getId())).thenReturn(Collections.emptyList());
-        when(memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(List.of());
-        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(List.of());
-        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(List.of());
+        when(memberTasteProfileCategoryRepository.findAllByProfileId(profile.getId())).thenReturn(
+                Collections.emptyList());
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(profile.getId())).thenReturn(
+                Collections.emptyList());
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileId(profile.getId())).thenReturn(
+                Collections.emptyList());
+        when(memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(
+                List.of());
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(
+                profile.getId())).thenReturn(List.of());
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(
+                List.of());
 
         MemberTasteProfileSummaryResult result = memberService.updateMyTasteProfile(
                 new UpdateMemberTasteProfileCommand(List.of(), List.of(), List.of())

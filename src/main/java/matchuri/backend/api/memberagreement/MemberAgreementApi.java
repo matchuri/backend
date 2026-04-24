@@ -21,7 +21,7 @@ public interface MemberAgreementApi {
             summary = "필수 약관 상태 조회",
             description = """
                     현재 로그인한 회원의 필수 약관 완료 상태를 조회합니다.
-
+                    
                     - 로그인은 필요하지만 필수 약관 미완료 상태에서도 호출할 수 있습니다.
                     - 프론트는 로그인 직후 이 API를 호출해 약관 동의 화면 이동 여부를 판단합니다.
                     """
@@ -70,7 +70,7 @@ public interface MemberAgreementApi {
             summary = "필수 약관 동의 제출",
             description = """
                     현재 로그인한 회원의 필수 약관 동의를 저장합니다.
-
+                    
                     - 요청에는 최신 필수 버전의 `TERMS_OF_SERVICE`, `PRIVACY_POLICY`가 모두 포함되어야 합니다.
                     - 동일 타입/버전 재제출은 멱등하게 처리합니다.
                     """

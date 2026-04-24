@@ -41,7 +41,8 @@ public record RegisterLocalMemberRequest(
         String loginId,
 
         @Schema(
-                description = "회원 가입 비밀번호입니다. " + Member.PASSWORD_MIN_SIZE + "자 이상 " + Member.PASSWORD_MAX_SIZE + "자 이하를 사용합니다.",
+                description = "회원 가입 비밀번호입니다. " + Member.PASSWORD_MIN_SIZE + "자 이상 " + Member.PASSWORD_MAX_SIZE
+                        + "자 이하를 사용합니다.",
                 example = "P@ssw0rd!",
                 minLength = Member.PASSWORD_MIN_SIZE,
                 maxLength = Member.PASSWORD_MAX_SIZE

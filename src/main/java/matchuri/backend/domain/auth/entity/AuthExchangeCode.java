@@ -60,7 +60,8 @@ public class AuthExchangeCode extends BaseEntity {
         this.expiresAt = expiresAt;
     }
 
-    public static AuthExchangeCode issue(Member member, SocialProviderType provider, String code, LocalDateTime expiresAt) {
+    public static AuthExchangeCode issue(Member member, SocialProviderType provider, String code,
+                                         LocalDateTime expiresAt) {
         return new AuthExchangeCode(member, provider, code, expiresAt);
     }
 

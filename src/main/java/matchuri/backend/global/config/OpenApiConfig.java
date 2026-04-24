@@ -1,9 +1,9 @@
 package matchuri.backend.global.config;
 
-import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -44,7 +44,7 @@ public class OpenApiConfig {
                                 .summary("헬스 체크")
                                 .description("""
                                         백엔드 서비스의 기본 가용 상태를 확인합니다.
-
+                                        
                                         - 인증 없이 호출할 수 있습니다.
                                         - 공개 API이므로 상세 내부 상태는 노출하지 않습니다.
                                         - 응답의 `status`가 `UP`이면 기본 서비스 상태는 정상입니다.

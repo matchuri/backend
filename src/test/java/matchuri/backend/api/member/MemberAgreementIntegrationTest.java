@@ -11,11 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
+import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
+import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
-import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
-import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
@@ -76,7 +76,8 @@ class MemberAgreementIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.requiredAgreementsCompleted").value(false))
-                .andExpect(jsonPath("$.data.missingAgreementTypes", containsInAnyOrder("TERMS_OF_SERVICE", "PRIVACY_POLICY")));
+                .andExpect(jsonPath("$.data.missingAgreementTypes",
+                        containsInAnyOrder("TERMS_OF_SERVICE", "PRIVACY_POLICY")));
     }
 
     @Test

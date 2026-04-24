@@ -4,9 +4,9 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.auth.entity.AuthExchangeCode;
 import matchuri.backend.domain.auth.entity.AuthRefreshToken;
+import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.auth.result.TokenPair;
@@ -31,7 +31,8 @@ public class SessionTokenService {
     @Transactional
     public TokenPair issueLoginTokenPair(Member member) {
         TokenPair tokenPair = jwtTokenProvider.issueTokenPair(member);
-        authRefreshTokenRepository.save(AuthRefreshToken.issue(member, tokenPair.refreshToken(), tokenPair.refreshTokenExpiresAt()));
+        authRefreshTokenRepository.save(
+                AuthRefreshToken.issue(member, tokenPair.refreshToken(), tokenPair.refreshTokenExpiresAt()));
         return tokenPair;
     }
 

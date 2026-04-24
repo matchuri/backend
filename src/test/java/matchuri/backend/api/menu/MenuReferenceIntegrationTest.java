@@ -44,9 +44,12 @@ class MenuReferenceIntegrationTest {
     @Test
     @DisplayName("attribute category 목록 조회는 활성 데이터만 정렬해서 반환한다")
     void getAttributeCategoriesReturnsOnlyActiveRowsInSortedOrder() throws Exception {
-        AttributeCategory spicy = attributeCategoryRepository.save(new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 20));
-        AttributeCategory grilled = attributeCategoryRepository.save(new AttributeCategory(CategoryType.COOKING_METHOD, "GRILLED", "구이", 10));
-        AttributeCategory sweet = attributeCategoryRepository.save(new AttributeCategory(CategoryType.FLAVOR, "SWEET", "달콤함", 10));
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 20));
+        AttributeCategory grilled = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.COOKING_METHOD, "GRILLED", "구이", 10));
+        AttributeCategory sweet = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SWEET", "달콤함", 10));
         AttributeCategory inactive = new AttributeCategory(CategoryType.FLAVOR, "MILD", "순한맛", 5);
         inactive.deactivate();
         attributeCategoryRepository.save(inactive);

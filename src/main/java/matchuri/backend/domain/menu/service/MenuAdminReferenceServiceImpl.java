@@ -5,13 +5,13 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.menu.MenuErrorCode;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
-import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
+import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.Ingredient;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
-import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
+import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AdminIngredientResult;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,8 @@ public class MenuAdminReferenceServiceImpl implements MenuAdminReferenceService 
     @Transactional
     public AdminAttributeCategoryResult createAttributeCategory(CreateAdminAttributeCategoryCommand command) {
         if (attributeCategoryRepository.existsByCategoryTypeAndCode(command.categoryType(), command.code())) {
-            throw new BusinessException(MenuErrorCode.ATTRIBUTE_CATEGORY_DUPLICATE, command.categoryType(), command.code());
+            throw new BusinessException(MenuErrorCode.ATTRIBUTE_CATEGORY_DUPLICATE, command.categoryType(),
+                    command.code());
         }
 
         AttributeCategory attributeCategory = attributeCategoryRepository.saveAndFlush(

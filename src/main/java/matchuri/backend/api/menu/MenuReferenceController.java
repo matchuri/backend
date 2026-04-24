@@ -31,7 +31,8 @@ public class MenuReferenceController implements MenuReferenceApi {
     @GetMapping("/restriction-ingredients")
     public ApiResponse<List<RestrictionIngredientResponse>> getRestrictionIngredients() {
         return ApiResponse.success(
-                menuReferenceMapper.toRestrictionIngredientResponses(menuReferenceService.getActiveRestrictionIngredients())
+                menuReferenceMapper.toRestrictionIngredientResponses(
+                        menuReferenceService.getActiveRestrictionIngredients())
         );
     }
 }

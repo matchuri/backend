@@ -16,14 +16,14 @@ import matchuri.backend.domain.common.BaseEntity;
 @Getter
 @Entity
 @Table(
-    name = "menu_items",
-    comment = "메뉴",
-    indexes = {
-        @Index(name = "idx_menu_items_active", columnList = "is_active")
-    },
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_menu_items_code", columnNames = "code")
-    }
+        name = "menu_items",
+        comment = "메뉴",
+        indexes = {
+                @Index(name = "idx_menu_items_active", columnList = "is_active")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_menu_items_code", columnNames = "code")
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MenuItem extends BaseEntity {
@@ -46,9 +46,9 @@ public class MenuItem extends BaseEntity {
     private boolean active;
 
     public MenuItem(
-        String code,
-        String name,
-        String description
+            String code,
+            String name,
+            String description
     ) {
         this.code = code;
         this.name = name;

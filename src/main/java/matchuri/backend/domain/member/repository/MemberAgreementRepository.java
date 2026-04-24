@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberAgreementRepository extends JpaRepository<MemberAgreement, Long> {
 
-    boolean existsByMemberIdAndAgreementTypeAndAgreementVersion(Long memberId, AgreementType agreementType, String agreementVersion);
+    boolean existsByMemberIdAndAgreementTypeAndAgreementVersion(Long memberId, AgreementType agreementType,
+                                                                String agreementVersion);
 }

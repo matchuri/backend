@@ -2,6 +2,7 @@ package matchuri.backend.bootstrap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
@@ -12,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import matchuri.backend.domain.member.repository.MemberRepository;
 
 @SpringBootTest(properties = {
         "matchuri.seed.enabled=true",

@@ -44,7 +44,8 @@ class OAuth2MemberServiceTest {
                 MemberStatus.ACTIVE
         );
 
-        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId))
+        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE,
+                providerUserId))
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.of(existingMember));
         when(memberRepository.existsByNickname("google_google")).thenReturn(false);
@@ -67,7 +68,8 @@ class OAuth2MemberServiceTest {
         String providerUserId = "google-user-1";
         ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
 
-        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId))
+        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE,
+                providerUserId))
                 .thenReturn(Optional.empty());
         when(memberRepository.existsByNickname("example_google")).thenReturn(false);
         when(memberRepository.saveAndFlush(any(Member.class)))
@@ -90,7 +92,8 @@ class OAuth2MemberServiceTest {
         String providerUserId = "google-user-2";
         ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
 
-        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE, providerUserId))
+        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.GOOGLE,
+                providerUserId))
                 .thenReturn(Optional.empty());
         when(memberRepository.existsByNickname("example_google")).thenReturn(true);
         when(memberRepository.existsByNickname("example_google_1")).thenReturn(false);

@@ -51,24 +51,32 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/v1/auth/login'].post.summary")
                         .value("로컬 로그인"))
                 .andExpect(jsonPath("$.paths['/api/v1/auth/login'].post.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/v1/auth/login'].post.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/login'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/LoginApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/auth/refresh'].post.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/v1/auth/refresh'].post.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/refresh'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/LoginApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/auth/refresh'].post.responses['401'].content['application/json'].examples.refreshTokenMissing.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/refresh'].post.responses['401'].content['application/json'].examples.refreshTokenMissing.value.error.code")
                         .value("AUTH_REFRESH_TOKEN_MISSING"))
-                .andExpect(jsonPath("$.paths['/api/v1/auth/refresh'].post.responses['403'].content['application/json'].examples.inactiveMember.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/refresh'].post.responses['403'].content['application/json'].examples.inactiveMember.value.error.code")
                         .value("MEMBER_INACTIVE_MEMBER"))
                 .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/google'].get.security").isEmpty())
                 .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/exchange'].post.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/exchange'].post.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/oauth2/exchange'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/LoginApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/exchange'].post.responses['400'].content['application/json'].examples.providerNotSupported.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/oauth2/exchange'].post.responses['400'].content['application/json'].examples.providerNotSupported.value.error.code")
                         .value("AUTH_OAUTH2_PROVIDER_NOT_SUPPORTED"))
-                .andExpect(jsonPath("$.paths['/api/v1/auth/logout'].post.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/logout'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/LogoutApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/auth/logout'].post.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/logout'].post.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
                         .value("AUTH_TOKEN_MISSING"));
     }
 
@@ -79,45 +87,63 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
                 .andExpect(jsonPath("$.paths['/api/v1/members/signup'].post.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/v1/members/signup'].post.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/signup'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/RegisterLocalMemberApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/members'].post.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/v1/members'].post.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/CreateMemberApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/members/exists/{loginId}'].get.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/v1/members/exists/{loginId}'].get.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/exists/{loginId}'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/LoginIdExistsApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/members/exists/nickname/{nickname}'].get.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/v1/members/exists/nickname/{nickname}'].get.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/exists/nickname/{nickname}'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/NicknameExistsApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].get.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me/taste-profile'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/MemberTasteProfileSummaryApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me/taste-profile'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
                         .value("AUTH_TOKEN_MISSING"))
-                .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].get.responses['403'].content['application/json'].examples.requiredAgreement.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me/taste-profile'].get.responses['403'].content['application/json'].examples.requiredAgreement.value.error.code")
                         .value("MEMBER_AGREEMENT_REQUIRED"))
-                .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].patch.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me/taste-profile'].patch.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/MemberTasteProfileSummaryApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].patch.responses['400'].content['application/json'].examples.invalidAttributeCategory.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me/taste-profile'].patch.responses['400'].content['application/json'].examples.invalidAttributeCategory.value.error.code")
                         .value("MEMBER_INVALID_TASTE_ATTRIBUTE_CATEGORY"))
-                .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].patch.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me/taste-profile'].patch.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
                         .value("AUTH_TOKEN_MISSING"))
-                .andExpect(jsonPath("$.paths['/api/v1/members/me/taste-profile'].patch.responses['403'].content['application/json'].examples.requiredAgreement.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me/taste-profile'].patch.responses['403'].content['application/json'].examples.requiredAgreement.value.error.code")
                         .value("MEMBER_AGREEMENT_REQUIRED"))
-                .andExpect(jsonPath("$.components.schemas.UpdateMemberTasteProfileRequest.properties.attributeCategoryIds.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.UpdateMemberTasteProfileRequest.properties.attributeCategoryIds.description")
                         .value(org.hamcrest.Matchers.containsString("attribute category ID 목록")))
-                .andExpect(jsonPath("$.components.schemas.UpdateMemberTasteProfileRequest.properties.restrictionIngredientIds.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.UpdateMemberTasteProfileRequest.properties.restrictionIngredientIds.description")
                         .value(org.hamcrest.Matchers.containsString("restriction ingredient ID 목록")))
-                .andExpect(jsonPath("$.components.schemas.UpdateMemberTasteProfileRequest.properties.dislikedMenuItemIds.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.UpdateMemberTasteProfileRequest.properties.dislikedMenuItemIds.description")
                         .value(org.hamcrest.Matchers.containsString("disliked menu item ID 목록")))
-                .andExpect(jsonPath("$.components.schemas.MemberTasteProfileSummaryResponse.properties.memberId.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.MemberTasteProfileSummaryResponse.properties.memberId.description")
                         .value("현재 로그인한 회원 ID입니다."))
-                .andExpect(jsonPath("$.components.schemas.MemberTasteAttributeCategoryResponse.properties.categoryType.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.MemberTasteAttributeCategoryResponse.properties.categoryType.description")
                         .value("선택된 attribute category의 상위 유형입니다."))
-                .andExpect(jsonPath("$.components.schemas.MemberTasteRestrictionIngredientResponse.properties.allergen.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.MemberTasteRestrictionIngredientResponse.properties.allergen.description")
                         .value("알레르기 유발 재료 여부입니다."))
-                .andExpect(jsonPath("$.components.schemas.MemberTasteDislikedMenuItemResponse.properties.code.description")
-                        .value("선택된 disliked menu item 코드입니다."));
+                .andExpect(
+                        jsonPath("$.components.schemas.MemberTasteDislikedMenuItemResponse.properties.code.description")
+                                .value("선택된 disliked menu item 코드입니다."));
     }
 
     @Test
@@ -129,17 +155,21 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/v1/attribute-categories'].get.summary")
                         .value("attribute category 목록 조회"))
                 .andExpect(jsonPath("$.paths['/api/v1/attribute-categories'].get.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/v1/attribute-categories'].get.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/attribute-categories'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AttributeCategoryListApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/restriction-ingredients'].get.summary")
                         .value("restriction ingredient 목록 조회"))
                 .andExpect(jsonPath("$.paths['/api/v1/restriction-ingredients'].get.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/v1/restriction-ingredients'].get.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/restriction-ingredients'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/RestrictionIngredientListApiResponse"))
-                .andExpect(jsonPath("$.components.schemas.AttributeCategoryResponse.properties.categoryType.description")
-                        .value("attribute category의 상위 유형입니다."))
-                .andExpect(jsonPath("$.components.schemas.RestrictionIngredientResponse.properties.allergen.description")
-                        .value("알레르기 유발 재료 여부입니다."));
+                .andExpect(
+                        jsonPath("$.components.schemas.AttributeCategoryResponse.properties.categoryType.description")
+                                .value("attribute category의 상위 유형입니다."))
+                .andExpect(
+                        jsonPath("$.components.schemas.RestrictionIngredientResponse.properties.allergen.description")
+                                .value("알레르기 유발 재료 여부입니다."));
     }
 
     @Test
@@ -150,59 +180,80 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.summary")
                         .value("관리자 attribute category 목록 조회"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.security[0].bearerAuth").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(
+                        jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.security[0].bearerAuth").exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/attribute-categories'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminAttributeCategoryListApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/attribute-categories'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
                         .value("AUTH_TOKEN_MISSING"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].get.responses['403'].content['application/json'].examples.forbidden.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/attribute-categories'].get.responses['403'].content['application/json'].examples.forbidden.value.error.code")
                         .value("AUTH_FORBIDDEN"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].get.summary")
                         .value("관리자 ingredient 목록 조회"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].get.security[0].bearerAuth").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].get.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/ingredients'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminIngredientListApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/ingredients'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
                         .value("AUTH_TOKEN_MISSING"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].get.responses['403'].content['application/json'].examples.forbidden.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/ingredients'].get.responses['403'].content['application/json'].examples.forbidden.value.error.code")
                         .value("AUTH_FORBIDDEN"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.summary")
                         .value("관리자 ingredient 생성"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.security[0].bearerAuth").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.requestBody.required")
                         .value(true))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/ingredients'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminIngredientApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients/{ingredientId}'].patch.summary")
                         .value("관리자 ingredient 수정"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients/{ingredientId}'].patch.security[0].bearerAuth").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients/{ingredientId}'].patch.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/ingredients/{ingredientId}'].patch.security[0].bearerAuth").exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/ingredients/{ingredientId}'].patch.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminIngredientApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients/{ingredientId}'].delete.summary")
                         .value("관리자 ingredient 비활성화"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients/{ingredientId}'].delete.security[0].bearerAuth").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients/{ingredientId}'].delete.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/ingredients/{ingredientId}'].delete.security[0].bearerAuth").exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/ingredients/{ingredientId}'].delete.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminIngredientApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.summary")
                         .value("관리자 attribute category 생성"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.security[0].bearerAuth").exists())
+                .andExpect(
+                        jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.security[0].bearerAuth").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.requestBody.required")
                         .value(true))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories'].post.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/attribute-categories'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminAttributeCategoryApiResponse"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].patch.summary")
                         .value("관리자 attribute category 수정"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].patch.security[0].bearerAuth").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].patch.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].patch.security[0].bearerAuth").exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].patch.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminAttributeCategoryApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].delete.summary")
-                        .value("관리자 attribute category 비활성화"))
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].delete.security[0].bearerAuth").exists())
-                .andExpect(jsonPath("$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].delete.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(
+                        jsonPath("$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].delete.summary")
+                                .value("관리자 attribute category 비활성화"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].delete.security[0].bearerAuth").exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/attribute-categories/{attributeCategoryId}'].delete.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/AdminAttributeCategoryApiResponse"))
-                .andExpect(jsonPath("$.components.schemas.UpdateAdminAttributeCategoryRequest.properties.isActive.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.UpdateAdminAttributeCategoryRequest.properties.isActive.description")
                         .value("수정할 활성 여부입니다. null이면 활성 상태를 변경하지 않습니다."))
-                .andExpect(jsonPath("$.components.schemas.CreateAdminAttributeCategoryRequest.properties.categoryType.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.CreateAdminAttributeCategoryRequest.properties.categoryType.description")
                         .value(org.hamcrest.Matchers.containsString("허용 값은 FLAVOR")))
                 .andExpect(jsonPath("$.components.schemas.CreateAdminIngredientRequest.properties.allergen.description")
                         .value("알레르기 유발 재료 여부입니다."))
@@ -210,8 +261,9 @@ class OpenApiDocumentationIntegrationTest {
                         .value("수정할 활성 여부입니다. null이면 활성 상태를 변경하지 않습니다."))
                 .andExpect(jsonPath("$.components.schemas.AdminIngredientResponse.properties.isActive.description")
                         .value("운영 기준 활성 여부입니다."))
-                .andExpect(jsonPath("$.components.schemas.AdminAttributeCategoryResponse.properties.isActive.description")
-                        .value("운영 기준 활성 여부입니다."));
+                .andExpect(
+                        jsonPath("$.components.schemas.AdminAttributeCategoryResponse.properties.isActive.description")
+                                .value("운영 기준 활성 여부입니다."));
     }
 
     @Test
@@ -220,23 +272,31 @@ class OpenApiDocumentationIntegrationTest {
         mockMvc.perform(get("/docs/openapi"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
-                .andExpect(jsonPath("$.paths['/api/v1/member-agreements/required-status'].get.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/member-agreements/required-status'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/RequiredAgreementStatusApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/member-agreements/required-status'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/member-agreements/required-status'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
                         .value("AUTH_TOKEN_MISSING"))
-                .andExpect(jsonPath("$.paths['/api/v1/member-agreements/consents'].post.responses['200'].content['application/json'].schema.$ref")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/member-agreements/consents'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/SubmitRequiredAgreementsApiResponse"))
-                .andExpect(jsonPath("$.paths['/api/v1/member-agreements/consents'].post.responses['400'].content['application/json'].examples.requiredTypesMissing.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/member-agreements/consents'].post.responses['400'].content['application/json'].examples.requiredTypesMissing.value.error.code")
                         .value("MEMBER_AGREEMENT_REQUIRED_TYPES_MISSING"))
-                .andExpect(jsonPath("$.paths['/api/v1/member-agreements/consents'].post.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/member-agreements/consents'].post.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
                         .value("AUTH_TOKEN_MISSING"))
-                .andExpect(jsonPath("$.paths['/api/v1/member-agreements/consents'].post.responses['409'].content['application/json'].examples.versionMismatch.value.error.code")
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/member-agreements/consents'].post.responses['409'].content['application/json'].examples.versionMismatch.value.error.code")
                         .value("MEMBER_AGREEMENT_VERSION_MISMATCH"))
-                .andExpect(jsonPath("$.components.schemas.SubmitRequiredAgreementsRequest.properties.agreements.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.SubmitRequiredAgreementsRequest.properties.agreements.description")
                         .value(org.hamcrest.Matchers.containsString("필수 약관 동의 목록")))
                 .andExpect(jsonPath("$.components.schemas.AgreementConsentRequest.properties.agreementType.description")
                         .value("약관 종류입니다."))
-                .andExpect(jsonPath("$.components.schemas.SubmitRequiredAgreementsResponse.properties.accessToken.description")
+                .andExpect(jsonPath(
+                        "$.components.schemas.SubmitRequiredAgreementsResponse.properties.accessToken.description")
                         .value(org.hamcrest.Matchers.containsString("새 access token")));
     }
 }
