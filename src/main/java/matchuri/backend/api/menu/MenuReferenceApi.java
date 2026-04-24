@@ -9,8 +9,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import matchuri.backend.api.menu.dto.docs.AttributeCategoryListApiResponse;
+import matchuri.backend.api.menu.dto.docs.MenuItemSummaryListApiResponse;
 import matchuri.backend.api.menu.dto.docs.RestrictionIngredientListApiResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
+import matchuri.backend.api.menu.dto.response.MenuItemSummaryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.global.api.ApiResponse;
 
@@ -99,4 +101,52 @@ public interface MenuReferenceApi {
             )
     })
     ApiResponse<List<RestrictionIngredientResponse>> getRestrictionIngredients();
+
+    @Operation(
+            summary = "메뉴 목록 조회",
+            description = """
+                    활성 메뉴 목록을 조회합니다.
+                    
+                    - 인증 없이 호출할 수 있습니다.
+                    - 응답에는 `is_active=true`인 메뉴만 포함됩니다.
+                    - 목록 응답은 `id`, `code`, `name`만 포함합니다.
+                    - `query`는 메뉴명 부분 검색입니다.
+                    - `attributeCategoryIds`, `ingredientIds`는 각 그룹 내부 OR 조건으로 처리합니다.
+                    - `query`, `attributeCategoryIds`, `ingredientIds` 그룹 간 조합은 AND 조건으로 처리합니다.
+                    - 존재하지 않거나 비활성화된 필터 ID가 포함되면 4xx로 거절합니다.
+                    - 정렬 기준은 `id` 오름차순입니다.
+                    """
+    )
+    @SecurityRequirements
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MenuItemSummaryListApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": [
+                                                {
+                                                  "id": 1001,
+                                                  "code": "PORK_CUTLET",
+                                                  "name": "돈까스"
+                                                }
+                                              ],
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    ApiResponse<List<MenuItemSummaryResponse>> searchMenuItems(
+            String query,
+            List<Long> attributeCategoryIds,
+            List<Long> ingredientIds
+    );
 }

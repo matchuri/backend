@@ -3,12 +3,14 @@ package matchuri.backend.api.menu;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
+import matchuri.backend.api.menu.dto.response.MenuItemSummaryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.api.menu.mapper.MenuReferenceMapper;
 import matchuri.backend.domain.menu.service.MenuReferenceService;
 import matchuri.backend.global.api.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,6 +35,26 @@ public class MenuReferenceController implements MenuReferenceApi {
         return ApiResponse.success(
                 menuReferenceMapper.toRestrictionIngredientResponses(
                         menuReferenceService.getActiveRestrictionIngredients())
+        );
+    }
+
+    @Override
+    @GetMapping("/menu-items")
+    public ApiResponse<List<MenuItemSummaryResponse>> searchMenuItems(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) List<Long> attributeCategoryIds,
+            @RequestParam(required = false) List<Long> ingredientIds
+    ) {
+        return ApiResponse.success(
+                menuReferenceMapper.toMenuItemSummaryResponses(
+                        menuReferenceService.searchMenuItems(
+                                menuReferenceMapper.toSearchMenuItemsCommand(
+                                        query,
+                                        attributeCategoryIds,
+                                        ingredientIds
+                                )
+                        )
+                )
         );
     }
 }
