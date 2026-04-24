@@ -2,6 +2,7 @@ package matchuri.backend.domain.menu.service;
 
 import java.util.List;
 import matchuri.backend.domain.menu.command.GetAttributeCategoriesCommand;
+import matchuri.backend.domain.menu.command.GetRestrictionIngredientsCommand;
 import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
 import matchuri.backend.domain.menu.result.AttributeCategoryResult;
 import matchuri.backend.domain.menu.result.MenuItemDetailResult;
@@ -12,7 +13,7 @@ public interface MenuReferenceService {
 
     List<AttributeCategoryResult> getActiveAttributeCategories(GetAttributeCategoriesCommand command);
 
-    List<RestrictionIngredientResult> getActiveRestrictionIngredients();
+    List<RestrictionIngredientResult> getActiveRestrictionIngredients(GetRestrictionIngredientsCommand command);
 
     List<MenuItemSummaryResult> searchMenuItems(SearchMenuItemsCommand command);
 

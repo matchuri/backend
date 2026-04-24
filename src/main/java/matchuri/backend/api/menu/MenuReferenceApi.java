@@ -71,6 +71,8 @@ public interface MenuReferenceApi {
                     
                     - 인증 없이 호출할 수 있습니다.
                     - 응답에는 `is_active=true`인 데이터만 포함됩니다.
+                    - `query`는 재료명 부분 검색입니다.
+                    - `allergen`이 있으면 알레르기 유발 여부로 필터링합니다.
                     - 정렬 기준은 `sortOrder`, `id`입니다.
                     - 응답에는 UI 표시를 위한 `allergen` 여부를 함께 포함합니다.
                     """
@@ -104,7 +106,7 @@ public interface MenuReferenceApi {
                     )
             )
     })
-    ApiResponse<List<RestrictionIngredientResponse>> getRestrictionIngredients();
+    ApiResponse<List<RestrictionIngredientResponse>> getRestrictionIngredients(String query, Boolean allergen);
 
     @Operation(
             summary = "메뉴 목록 조회",

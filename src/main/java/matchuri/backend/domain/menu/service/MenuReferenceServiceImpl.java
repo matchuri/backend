@@ -4,6 +4,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.menu.MenuErrorCode;
 import matchuri.backend.domain.menu.command.GetAttributeCategoriesCommand;
+import matchuri.backend.domain.menu.command.GetRestrictionIngredientsCommand;
 import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
@@ -46,8 +47,12 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
     }
 
     @Override
-    public List<RestrictionIngredientResult> getActiveRestrictionIngredients() {
-        return ingredientRepository.findAllByActiveTrueOrderBySortOrderAscIdAsc().stream()
+    public List<RestrictionIngredientResult> getActiveRestrictionIngredients(GetRestrictionIngredientsCommand command) {
+        return ingredientRepository.searchActiveRestrictionIngredients(
+                        normalizeQuery(command.query()),
+                        command.allergen()
+                )
+                .stream()
                 .map(RestrictionIngredientResult::from)
                 .toList();
     }

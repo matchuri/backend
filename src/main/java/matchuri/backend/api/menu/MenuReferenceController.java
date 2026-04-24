@@ -38,8 +38,12 @@ public class MenuReferenceController implements MenuReferenceApi {
 
     @Override
     @GetMapping("/restriction-ingredients")
-    public ApiResponse<List<RestrictionIngredientResponse>> getRestrictionIngredients() {
-        var ingredients = menuReferenceService.getActiveRestrictionIngredients();
+    public ApiResponse<List<RestrictionIngredientResponse>> getRestrictionIngredients(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) Boolean allergen
+    ) {
+        var command = menuReferenceMapper.toGetRestrictionIngredientsCommand(query, allergen);
+        var ingredients = menuReferenceService.getActiveRestrictionIngredients(command);
         var responses = menuReferenceMapper.toRestrictionIngredientResponses(ingredients);
 
         return ApiResponse.success(responses);
