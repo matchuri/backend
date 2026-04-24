@@ -24,18 +24,19 @@ public class MenuReferenceController implements MenuReferenceApi {
     @Override
     @GetMapping("/attribute-categories")
     public ApiResponse<List<AttributeCategoryResponse>> getAttributeCategories() {
-        return ApiResponse.success(
-                menuReferenceMapper.toAttributeCategoryResponses(menuReferenceService.getActiveAttributeCategories())
-        );
+        var categories = menuReferenceService.getActiveAttributeCategories();
+        var responses = menuReferenceMapper.toAttributeCategoryResponses(categories);
+
+        return ApiResponse.success(responses);
     }
 
     @Override
     @GetMapping("/restriction-ingredients")
     public ApiResponse<List<RestrictionIngredientResponse>> getRestrictionIngredients() {
-        return ApiResponse.success(
-                menuReferenceMapper.toRestrictionIngredientResponses(
-                        menuReferenceService.getActiveRestrictionIngredients())
-        );
+        var ingredients = menuReferenceService.getActiveRestrictionIngredients();
+        var responses = menuReferenceMapper.toRestrictionIngredientResponses(ingredients);
+
+        return ApiResponse.success(responses);
     }
 
     @Override
@@ -45,16 +46,10 @@ public class MenuReferenceController implements MenuReferenceApi {
             @RequestParam(required = false) List<Long> attributeCategoryIds,
             @RequestParam(required = false) List<Long> ingredientIds
     ) {
-        return ApiResponse.success(
-                menuReferenceMapper.toMenuItemSummaryResponses(
-                        menuReferenceService.searchMenuItems(
-                                menuReferenceMapper.toSearchMenuItemsCommand(
-                                        query,
-                                        attributeCategoryIds,
-                                        ingredientIds
-                                )
-                        )
-                )
-        );
+        var command = menuReferenceMapper.toSearchMenuItemsCommand(query, attributeCategoryIds, ingredientIds);
+        var menuItems = menuReferenceService.searchMenuItems(command);
+        var responses = menuReferenceMapper.toMenuItemSummaryResponses(menuItems);
+
+        return ApiResponse.success(responses);
     }
 }
