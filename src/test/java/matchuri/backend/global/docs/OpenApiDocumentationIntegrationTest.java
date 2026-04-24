@@ -170,6 +170,15 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/menu-items'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/MenuItemSummaryListApiResponse"))
+                .andExpect(jsonPath("$.paths['/api/v1/menu-items/{menuItemId}'].get.summary")
+                        .value("메뉴 상세 조회"))
+                .andExpect(jsonPath("$.paths['/api/v1/menu-items/{menuItemId}'].get.security").isEmpty())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/menu-items/{menuItemId}'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/MenuItemDetailApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/menu-items/{menuItemId}'].get.responses['404'].content['application/json'].examples.menuNotFound.value.error.code")
+                        .value("MENU_NOT_FOUND"))
                 .andExpect(
                         jsonPath("$.components.schemas.AttributeCategoryResponse.properties.categoryType.description")
                                 .value("attribute category의 상위 유형입니다."))
@@ -177,7 +186,9 @@ class OpenApiDocumentationIntegrationTest {
                         jsonPath("$.components.schemas.RestrictionIngredientResponse.properties.allergen.description")
                                 .value("알레르기 유발 재료 여부입니다."))
                 .andExpect(jsonPath("$.components.schemas.MenuItemSummaryResponse.properties.code.description")
-                        .value("메뉴 코드입니다."));
+                        .value("메뉴 코드입니다."))
+                .andExpect(jsonPath("$.components.schemas.MenuItemDetailResponse.properties.description.description")
+                        .value("메뉴 설명입니다."));
     }
 
     @Test

@@ -213,6 +213,73 @@ class MenuReferenceIntegrationTest {
                 .andExpect(jsonPath("$.error.code").value("MENU_INVALID_FILTER"));
     }
 
+    @Test
+    @DisplayName("메뉴 상세 조회는 기본 정보와 활성 속성/재료 연결 정보를 반환한다")
+    void getMenuItemReturnsDetailWithActiveAttributesAndIngredients() throws Exception {
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 20));
+        AttributeCategory crispy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.TEXTURE, "CRISPY", "바삭함", 10));
+        AttributeCategory inactive = new AttributeCategory(CategoryType.FLAVOR, "MILD", "순한맛", 5);
+        inactive.deactivate();
+        attributeCategoryRepository.save(inactive);
+        Ingredient pork = ingredientRepository.save(new Ingredient("PORK", "돼지고기", false, 20));
+        Ingredient egg = ingredientRepository.save(new Ingredient("EGG", "계란", true, 10));
+        Ingredient inactiveIngredient = new Ingredient("MILK", "우유", true, 5);
+        inactiveIngredient.deactivate();
+        ingredientRepository.save(inactiveIngredient);
+
+        MenuItem porkCutlet = menuItemRepository.save(
+                new MenuItem("PORK_CUTLET", "돈까스", "바삭한 돼지고기 튀김"));
+        mapAttributeCategory(porkCutlet, spicy);
+        mapAttributeCategory(porkCutlet, crispy);
+        mapAttributeCategory(porkCutlet, inactive);
+        mapIngredient(porkCutlet, pork);
+        mapIngredient(porkCutlet, egg);
+        mapIngredient(porkCutlet, inactiveIngredient);
+
+        mockMvc.perform(get("/api/v1/menu-items/{menuItemId}", porkCutlet.getId())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.id").value(porkCutlet.getId()))
+                .andExpect(jsonPath("$.data.code").value("PORK_CUTLET"))
+                .andExpect(jsonPath("$.data.name").value("돈까스"))
+                .andExpect(jsonPath("$.data.description").value("바삭한 돼지고기 튀김"))
+                .andExpect(jsonPath("$.data.attributeCategories.length()").value(2))
+                .andExpect(jsonPath("$.data.attributeCategories[0].code").value("SPICY"))
+                .andExpect(jsonPath("$.data.attributeCategories[1].code").value("CRISPY"))
+                .andExpect(jsonPath("$.data.ingredients.length()").value(2))
+                .andExpect(jsonPath("$.data.ingredients[0].code").value("EGG"))
+                .andExpect(jsonPath("$.data.ingredients[0].allergen").value(true))
+                .andExpect(jsonPath("$.data.ingredients[1].code").value("PORK"));
+    }
+
+    @Test
+    @DisplayName("메뉴 상세 조회는 없는 메뉴 ID를 404로 응답한다")
+    void getMenuItemRejectsUnknownMenuItemId() throws Exception {
+        mockMvc.perform(get("/api/v1/menu-items/{menuItemId}", 999L)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MENU_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("메뉴 상세 조회는 비활성 메뉴 ID를 404로 응답한다")
+    void getMenuItemRejectsInactiveMenuItemId() throws Exception {
+        MenuItem inactive = new MenuItem("SUSHI", "초밥", "밥 위에 생선을 올린 메뉴");
+        inactive.deactivate();
+        menuItemRepository.save(inactive);
+
+        mockMvc.perform(get("/api/v1/menu-items/{menuItemId}", inactive.getId())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MENU_NOT_FOUND"));
+    }
+
     private void mapAttributeCategory(MenuItem menuItem, AttributeCategory attributeCategory) {
         menuAttributeCategoryRepository.save(new MenuAttributeCategory(menuItem, attributeCategory));
     }
