@@ -14,6 +14,7 @@ import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
 import matchuri.backend.domain.menu.command.GetAttributeCategoriesCommand;
+import matchuri.backend.domain.menu.command.GetRestrictionIngredientsCommand;
 import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
@@ -88,6 +89,10 @@ public class MenuReferenceMapper {
 
     public GetAttributeCategoriesCommand toGetAttributeCategoriesCommand(List<CategoryType> categoryTypes) {
         return new GetAttributeCategoriesCommand(categoryTypes == null ? List.of() : categoryTypes);
+    }
+
+    public GetRestrictionIngredientsCommand toGetRestrictionIngredientsCommand(String query, Boolean allergen) {
+        return new GetRestrictionIngredientsCommand(trimNullable(query), allergen);
     }
 
     public List<AdminAttributeCategoryResponse> toAdminAttributeCategoryResponses(
