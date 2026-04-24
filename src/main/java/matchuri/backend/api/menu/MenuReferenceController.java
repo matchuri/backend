@@ -7,6 +7,7 @@ import matchuri.backend.api.menu.dto.response.MenuItemDetailResponse;
 import matchuri.backend.api.menu.dto.response.MenuItemSummaryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.api.menu.mapper.MenuReferenceMapper;
+import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.service.MenuReferenceService;
 import matchuri.backend.global.api.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,8 +26,11 @@ public class MenuReferenceController implements MenuReferenceApi {
 
     @Override
     @GetMapping("/attribute-categories")
-    public ApiResponse<List<AttributeCategoryResponse>> getAttributeCategories() {
-        var categories = menuReferenceService.getActiveAttributeCategories();
+    public ApiResponse<List<AttributeCategoryResponse>> getAttributeCategories(
+            @RequestParam(required = false) List<CategoryType> categoryTypes
+    ) {
+        var command = menuReferenceMapper.toGetAttributeCategoriesCommand(categoryTypes);
+        var categories = menuReferenceService.getActiveAttributeCategories(command);
         var responses = menuReferenceMapper.toAttributeCategoryResponses(categories);
 
         return ApiResponse.success(responses);

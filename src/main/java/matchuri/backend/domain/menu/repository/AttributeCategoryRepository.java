@@ -14,5 +14,9 @@ public interface AttributeCategoryRepository extends JpaRepository<AttributeCate
 
     List<AttributeCategory> findAllByActiveTrueOrderByCategoryTypeAscSortOrderAscIdAsc();
 
+    List<AttributeCategory> findAllByActiveTrueAndCategoryTypeInOrderByCategoryTypeAscSortOrderAscIdAsc(
+            Collection<CategoryType> categoryTypes
+    );
+
     List<AttributeCategory> findAllByIdInAndActiveTrue(Collection<Long> ids);
 }

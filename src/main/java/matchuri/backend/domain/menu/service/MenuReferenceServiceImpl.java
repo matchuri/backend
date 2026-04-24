@@ -3,7 +3,9 @@ package matchuri.backend.domain.menu.service;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.menu.MenuErrorCode;
+import matchuri.backend.domain.menu.command.GetAttributeCategoriesCommand;
 import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
+import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
@@ -29,8 +31,16 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
     private final MenuIngredientRepository menuIngredientRepository;
 
     @Override
-    public List<AttributeCategoryResult> getActiveAttributeCategories() {
-        return attributeCategoryRepository.findAllByActiveTrueOrderByCategoryTypeAscSortOrderAscIdAsc().stream()
+    public List<AttributeCategoryResult> getActiveAttributeCategories(GetAttributeCategoriesCommand command) {
+        List<CategoryType> categoryTypes = command.categoryTypes() == null ? List.of()
+                : command.categoryTypes().stream().distinct().toList();
+
+        var categories = categoryTypes.isEmpty()
+                ? attributeCategoryRepository.findAllByActiveTrueOrderByCategoryTypeAscSortOrderAscIdAsc()
+                : attributeCategoryRepository
+                        .findAllByActiveTrueAndCategoryTypeInOrderByCategoryTypeAscSortOrderAscIdAsc(categoryTypes);
+
+        return categories.stream()
                 .map(AttributeCategoryResult::from)
                 .toList();
     }
@@ -69,12 +79,14 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
     public MenuItemDetailResult getMenuItem(Long menuItemId) {
         var menuItem = menuItemRepository.findByIdAndActiveTrue(menuItemId)
                 .orElseThrow(() -> new BusinessException(MenuErrorCode.NOT_FOUND, menuItemId));
+
         var attributeCategories = menuAttributeCategoryRepository
                 .findAllByMenuIdAndAttributeCategoryActiveTrueOrderByAttributeCategoryCategoryTypeAscAttributeCategorySortOrderAscAttributeCategoryIdAsc(
                         menuItemId)
                 .stream()
                 .map(menuAttributeCategory -> AttributeCategoryResult.from(menuAttributeCategory.getAttributeCategory()))
                 .toList();
+
         var ingredients = menuIngredientRepository
                 .findAllByMenuIdAndIngredientActiveTrueOrderByIngredientSortOrderAscIngredientIdAsc(menuItemId)
                 .stream()

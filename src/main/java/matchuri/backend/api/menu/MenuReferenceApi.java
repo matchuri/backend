@@ -16,6 +16,7 @@ import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.MenuItemDetailResponse;
 import matchuri.backend.api.menu.dto.response.MenuItemSummaryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
+import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.global.api.ApiResponse;
 
 @Tag(name = "Menu Reference", description = "취향 입력과 메뉴 분류에 공통으로 쓰는 참조 데이터 조회 API")
@@ -28,6 +29,7 @@ public interface MenuReferenceApi {
                     
                     - 인증 없이 호출할 수 있습니다.
                     - 응답에는 `is_active=true`인 데이터만 포함됩니다.
+                    - `categoryTypes`가 있으면 해당 유형의 데이터만 반환합니다.
                     - 정렬 기준은 `categoryType`, `sortOrder`, `id`입니다.
                     """
     )
@@ -60,7 +62,7 @@ public interface MenuReferenceApi {
                     )
             )
     })
-    ApiResponse<List<AttributeCategoryResponse>> getAttributeCategories();
+    ApiResponse<List<AttributeCategoryResponse>> getAttributeCategories(List<CategoryType> categoryTypes);
 
     @Operation(
             summary = "restriction ingredient 목록 조회",
