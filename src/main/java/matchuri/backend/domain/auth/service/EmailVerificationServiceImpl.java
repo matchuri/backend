@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import matchuri.backend.api.auth.dto.request.EmailSendRequest;
 import matchuri.backend.api.auth.dto.response.EmailSendResponse;
 import matchuri.backend.domain.auth.entity.EmailVerification;
+import matchuri.backend.domain.auth.entity.EmailVerificationType;
 import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
 import matchuri.backend.domain.auth.support.vertification.VerificationCodeGenerator;
 import org.springframework.mail.MailException;
@@ -27,13 +28,14 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
         SimpleMailMessage smm = new SimpleMailMessage();
         String email = request.email();
+        EmailVerificationType type = EmailVerificationType.valueOf(request.type());
         String code = VerificationCodeGenerator.generateCode();
 
         smm.setTo(email);
         smm.setSubject(EMAIL_SUBJECT);
         smm.setText(code);
 
-        EmailVerification emailVerification = EmailVerification.fromSignUp(email, code);
+        EmailVerification emailVerification = EmailVerification.from(email, code, type);
         EmailVerification saved = repository.save(emailVerification);
 
         EmailSendResponse response = new EmailSendResponse(
