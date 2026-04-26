@@ -38,8 +38,4 @@ public class EmailVerification extends BaseEntity {
     public static EmailVerification from(String email, String code, EmailVerificationType type) {
         return new EmailVerification(null, email, code, type);
     }
-
-    public static EmailVerification fromSignUp(String email, String code) {
-        return new EmailVerification(null, email, code, EmailVerificationType.SIGNUP);
-    }
 }
