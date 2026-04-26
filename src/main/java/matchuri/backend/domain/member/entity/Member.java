@@ -112,14 +112,6 @@ public class Member extends BaseEntity {
         this.nicknameCompleted = !social;
     }
 
-    public static Member createWithEncodedPassword(String loginId, String passwordHash) {
-        return createWithEncodedPassword(loginId, passwordHash, null);
-    }
-
-    public static Member createWithEncodedPassword(String loginId, String passwordHash, String nickname) {
-        return createWithEncodedPassword(loginId, passwordHash, nickname, null);
-    }
-
     public static Member createWithEncodedPassword(String loginId, String passwordHash, String nickname, String email) {
         return Member.builder()
                 .loginId(loginId)
