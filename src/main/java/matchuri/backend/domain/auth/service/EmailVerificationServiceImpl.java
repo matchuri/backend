@@ -2,8 +2,8 @@ package matchuri.backend.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import matchuri.backend.api.auth.dto.request.EmailSendRequest;
-import matchuri.backend.api.auth.dto.response.EmailSendResponse;
+import matchuri.backend.api.auth.dto.request.SendEmailRequest;
+import matchuri.backend.api.auth.dto.response.SendEmailResponse;
 import matchuri.backend.domain.auth.entity.EmailVerification;
 import matchuri.backend.domain.auth.entity.EmailVerificationType;
 import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
@@ -24,7 +24,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
     public static String EMAIL_SUBJECT = "맛추리 인증 요청";
 
     @Override
-    public EmailSendResponse sendTxtEmail(EmailSendRequest request) {
+    public SendEmailResponse sendTxtEmail(SendEmailRequest request) {
 
         SimpleMailMessage smm = new SimpleMailMessage();
         String email = request.email();
@@ -38,7 +38,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         EmailVerification emailVerification = EmailVerification.from(email, code, type);
         EmailVerification saved = repository.save(emailVerification);
 
-        EmailSendResponse response = new EmailSendResponse(
+        SendEmailResponse response = new SendEmailResponse(
                 saved.getId(),
                 saved.getEmail(),
                 saved.getType().name()

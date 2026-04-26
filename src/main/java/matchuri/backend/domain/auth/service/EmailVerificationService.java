@@ -1,8 +1,8 @@
 package matchuri.backend.domain.auth.service;
 
-import matchuri.backend.api.auth.dto.request.EmailSendRequest;
-import matchuri.backend.api.auth.dto.response.EmailSendResponse;
+import matchuri.backend.api.auth.dto.request.SendEmailRequest;
+import matchuri.backend.api.auth.dto.response.SendEmailResponse;
 
 public interface EmailVerificationService {
-    EmailSendResponse sendTxtEmail(EmailSendRequest request);
+    SendEmailResponse sendTxtEmail(SendEmailRequest request);
 }
