@@ -2,6 +2,8 @@ package matchuri.backend.domain.auth.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,7 +32,12 @@ public class EmailVerification extends BaseEntity {
     private String code;
 
     @Column(name = "type")
+    @Enumerated(EnumType.STRING)
     private EmailVerificationType type;
+
+    public static EmailVerification from(String email, String code, EmailVerificationType type) {
+        return new EmailVerification(null, email, code, type);
+    }
 
     public static EmailVerification fromSignUp(String email, String code) {
         return new EmailVerification(null, email, code, EmailVerificationType.SIGNUP);
