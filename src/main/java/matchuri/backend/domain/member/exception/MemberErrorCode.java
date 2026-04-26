@@ -14,6 +14,7 @@ public enum MemberErrorCode implements ErrorCode {
     NOT_FOUND_LOGIN_ID(HttpStatus.NOT_FOUND, "해당 로그인 아이디의 회원을 찾을 수 없습니다. loginId : {0}"),
     DUPLICATE_LOGIN_ID(HttpStatus.CONFLICT, "이미 사용 중인 로그인 아이디입니다. loginId : {0}"),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다. nickname : {0}"),
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다. email : {0}"),
     DUPLICATE_TASTE_ATTRIBUTE_CATEGORY(HttpStatus.BAD_REQUEST,
             "중복된 attribute category ID가 포함되어 있습니다. attributeCategoryIds : {0}"),
     DUPLICATE_TASTE_RESTRICTION_INGREDIENT(HttpStatus.BAD_REQUEST,

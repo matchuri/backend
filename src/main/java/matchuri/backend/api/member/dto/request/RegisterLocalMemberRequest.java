@@ -2,6 +2,7 @@ package matchuri.backend.api.member.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -14,8 +15,10 @@ import matchuri.backend.domain.member.entity.Member;
         example = """
                 {
                   "loginId": "tester2372",
-                  "password": "P@ssw0rd!",
+                  "password": "tester2372!",
                   "nickname": "점심탐험가123",
+                  "email": "tester@example.com",
+                  "emailVerificationToken": "ev_q3JxFrSxYk4zJw2zq3ZpQh0a3z9q0x1y2z3A4b5C6dE",
                   "agreements": [
                     {
                       "agreementType": "TERMS_OF_SERVICE",
@@ -64,6 +67,23 @@ public record RegisterLocalMemberRequest(
         @Pattern(regexp = "^(?!\\s*$).+", message = "nickname은 비어 있을 수 없습니다.")
         @Size(max = Member.NICKNAME_MAX_SIZE, message = "nickname은 " + Member.NICKNAME_MAX_SIZE + "자를 초과할 수 없습니다.")
         String nickname,
+
+        @Schema(
+                description = "이메일 인증을 완료한 자체 로그인 계정 복구용 이메일입니다.",
+                example = "tester@example.com",
+                maxLength = 150
+        )
+        @NotBlank(message = "email은 비어 있을 수 없습니다.")
+        @Email(message = "email은 올바른 이메일 형식이어야 합니다.")
+        @Size(max = 150, message = "email은 150자 이하여야 합니다.")
+        String email,
+
+        @Schema(
+                description = "SIGNUP 목적 이메일 인증 확인 API에서 발급받은 token입니다.",
+                example = "ev_q3JxFrSxYk4zJw2zq3ZpQh0a3z9q0x1y2z3A4b5C6dE"
+        )
+        @NotBlank(message = "emailVerificationToken은 비어 있을 수 없습니다.")
+        String emailVerificationToken,
 
         @Schema(
                 description = "필수 약관 동의 목록입니다. 현재는 서비스 이용약관과 개인정보 처리방침 2종을 모두 포함해야 합니다.",

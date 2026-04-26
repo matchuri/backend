@@ -34,11 +34,13 @@ public interface MemberApi {
     @Operation(
             summary = "자체 회원가입 통합",
             description = """
-                    자체 회원가입에서 `loginId`, `password`, 필수 약관 동의, `nickname`을 하나의 요청으로 원자적으로 처리합니다.
+                    자체 회원가입에서 `loginId`, `password`, `nickname`, 검증된 `email`, 필수 약관 동의를 하나의 요청으로 원자적으로 처리합니다.
                     
                     - 가입 성공 시 자동 로그인되지 않습니다.
                     - 필수 약관 2종과 최신 버전이 모두 포함되어야 합니다.
                     - 닉네임은 기본값 없이 필수 입력입니다.
+                    - 회원 생성 전에 `SIGNUP` 목적의 `emailVerificationToken`이 필요합니다.
+                    - 한 이메일에 여러 자체 로그인 ID는 허용하지 않습니다.
                     - 처리 중 하나라도 실패하면 회원과 약관 동의 기록은 저장되지 않습니다.
                     """
     )
@@ -58,6 +60,7 @@ public interface MemberApi {
                                               "data": {
                                                 "memberId": 1,
                                                 "loginId": "tester01",
+                                                "email": "tester@example.com",
                                                 "nickname": "점심탐험가",
                                                 "createdAt": "2026-04-14T20:15:30"
                                               },
@@ -92,8 +95,30 @@ public interface MemberApi {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "이메일 인증 token이 없거나, 만료되었거나, 요청 이메일과 맞지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "emailVerificationFailed",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 401,
+                                                "code": "AUTH_EMAIL_VERIFICATION_FAILED",
+                                                "message": "이메일 인증에 실패했습니다.",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
-                    description = "이미 사용 중인 loginId 또는 nickname",
+                    description = "이미 사용 중인 loginId, nickname 또는 email",
                     content = @Content(
                             mediaType = "application/json",
                             examples = {
@@ -110,7 +135,7 @@ public interface MemberApi {
                                                         "details": []
                                                       }
                                                     }
-                                                    """
+                                            """
                                     ),
                                     @ExampleObject(
                                             name = "duplicateNickname",
@@ -122,6 +147,21 @@ public interface MemberApi {
                                                         "status": 409,
                                                         "code": "MEMBER_DUPLICATE_NICKNAME",
                                                         "message": "이미 사용 중인 닉네임입니다. nickname : 점심탐험가",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "duplicateEmail",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 409,
+                                                        "code": "MEMBER_DUPLICATE_EMAIL",
+                                                        "message": "이미 사용 중인 이메일입니다. email : tester@example.com",
                                                         "details": []
                                                       }
                                                     }

@@ -59,6 +59,8 @@ public class MemberMapper {
                 request.loginId(),
                 request.password(),
                 request.nickname(),
+                request.email(),
+                request.emailVerificationToken(),
                 request.agreements().stream()
                         .map(agreement -> new SubmitRequiredAgreementsCommand.AgreementConsentCommand(
                                 agreement.agreementType(),
@@ -72,6 +74,7 @@ public class MemberMapper {
         return new RegisterLocalMemberResponse(
                 result.memberId(),
                 result.loginId(),
+                result.email(),
                 result.nickname(),
                 result.createdAt()
         );

@@ -23,8 +23,12 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 import matchuri.backend.domain.auth.entity.AuthExchangeCode;
 import matchuri.backend.domain.auth.entity.AuthRefreshToken;
+import matchuri.backend.domain.auth.entity.EmailVerification;
+import matchuri.backend.domain.auth.entity.EmailVerificationPurpose;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
+import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
+import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenGenerator;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
@@ -82,6 +86,12 @@ class MemberAuthIntegrationTest {
     private AuthExchangeCodeRepository authExchangeCodeRepository;
 
     @Autowired
+    private EmailVerificationRepository emailVerificationRepository;
+
+    @Autowired
+    private EmailVerificationTokenGenerator emailVerificationTokenGenerator;
+
+    @Autowired
     private MemberTasteProfileRepository memberTasteProfileRepository;
 
     @Autowired
@@ -110,6 +120,7 @@ class MemberAuthIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        emailVerificationRepository.deleteAll();
         authExchangeCodeRepository.deleteAll();
         authRefreshTokenRepository.deleteAll();
         memberAgreementRepository.deleteAll();
@@ -126,6 +137,8 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("자체 회원가입 통합 API는 약관과 닉네임을 함께 저장하지만 로그인 상태는 만들지 않는다")
     void registerLocalMember() throws Exception {
+        String emailVerificationToken = issueSignupEmailVerificationToken("signup@example.com");
+
         mockMvc.perform(post("/api/v1/members/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -133,6 +146,8 @@ class MemberAuthIntegrationTest {
                                   "loginId": "signup-user",
                                   "password": "P@ssw0rd!",
                                   "nickname": "점심탐험가",
+                                  "email": "signup@example.com",
+                                  "emailVerificationToken": "%s",
                                   "agreements": [
                                     {
                                       "agreementType": "TERMS_OF_SERVICE",
@@ -144,19 +159,27 @@ class MemberAuthIntegrationTest {
                                     }
                                   ]
                                 }
-                                """))
+                                """.formatted(emailVerificationToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.loginId").value("signup-user"))
+                .andExpect(jsonPath("$.data.email").value("signup@example.com"))
                 .andExpect(jsonPath("$.data.nickname").value("점심탐험가"))
                 .andExpect(jsonPath("$.data.memberId").isNumber())
                 .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE));
 
         Member member = memberRepository.findByLoginId("signup-user").orElseThrow();
         assertThat(member.getPasswordHash()).isNotEqualTo("P@ssw0rd!");
+        assertThat(member.getEmail()).isEqualTo("signup@example.com");
         assertThat(member.getNickname()).isEqualTo("점심탐험가");
         assertThat(member.isNicknameCompleted()).isTrue();
         assertThat(memberAgreementRepository.count()).isEqualTo(2);
+        assertThat(emailVerificationRepository.findByVerificationTokenHash(
+                emailVerificationTokenGenerator.hashToken(emailVerificationToken)
+        )).isPresent()
+                .get()
+                .extracting(EmailVerification::getVerificationTokenUsedAt)
+                .isNotNull();
 
         mockMvc.perform(get("/api/v1/members/me"))
                 .andExpect(status().isUnauthorized())
@@ -173,6 +196,8 @@ class MemberAuthIntegrationTest {
     @Test
     @DisplayName("자체 회원가입 통합 API에서 약관 검증이 실패하면 회원과 약관 기록이 남지 않는다")
     void registerLocalMemberRollsBackWhenAgreementValidationFails() throws Exception {
+        String emailVerificationToken = issueSignupEmailVerificationToken("rollback@example.com");
+
         mockMvc.perform(post("/api/v1/members/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -180,6 +205,8 @@ class MemberAuthIntegrationTest {
                                   "loginId": "rollback-user",
                                   "password": "P@ssw0rd!",
                                   "nickname": "롤백검증",
+                                  "email": "rollback@example.com",
+                                  "emailVerificationToken": "%s",
                                   "agreements": [
                                     {
                                       "agreementType": "TERMS_OF_SERVICE",
@@ -191,12 +218,97 @@ class MemberAuthIntegrationTest {
                                     }
                                   ]
                                 }
-                                """))
+                                """.formatted(emailVerificationToken)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("MEMBER_AGREEMENT_VERSION_MISMATCH"));
 
         assertThat(memberRepository.findByLoginId("rollback-user")).isEmpty();
         assertThat(memberAgreementRepository.count()).isZero();
+        assertThat(emailVerificationRepository.findByVerificationTokenHash(
+                emailVerificationTokenGenerator.hashToken(emailVerificationToken)
+        )).isPresent()
+                .get()
+                .extracting(EmailVerification::getVerificationTokenUsedAt)
+                .isNull();
+    }
+
+    @Test
+    @DisplayName("자체 회원가입 통합 API는 SIGNUP 이메일 인증 token이 유효하지 않으면 회원을 생성하지 않는다")
+    void registerLocalMemberFailsWhenEmailVerificationTokenIsInvalid() throws Exception {
+        mockMvc.perform(post("/api/v1/members/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "invalid-token-user",
+                                  "password": "P@ssw0rd!",
+                                  "nickname": "토큰검증",
+                                  "email": "invalid-token@example.com",
+                                  "emailVerificationToken": "ev_missing-token",
+                                  "agreements": [
+                                    {
+                                      "agreementType": "TERMS_OF_SERVICE",
+                                      "agreementVersion": "2026-04-10"
+                                    },
+                                    {
+                                      "agreementType": "PRIVACY_POLICY",
+                                      "agreementVersion": "2026-04-10"
+                                    }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_EMAIL_VERIFICATION_FAILED"));
+
+        assertThat(memberRepository.findByLoginId("invalid-token-user")).isEmpty();
+        assertThat(memberAgreementRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("자체 회원가입 통합 API는 이미 자체 로그인 계정에 사용 중인 이메일이면 거절한다")
+    void registerLocalMemberFailsWhenLocalEmailIsDuplicated() throws Exception {
+        memberRepository.save(new Member(
+                "existing-email-user",
+                "hashed-password",
+                "duplicate@example.com",
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+        String emailVerificationToken = issueSignupEmailVerificationToken("duplicate@example.com");
+
+        mockMvc.perform(post("/api/v1/members/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "duplicate-email-user",
+                                  "password": "P@ssw0rd!",
+                                  "nickname": "이메일중복",
+                                  "email": "duplicate@example.com",
+                                  "emailVerificationToken": "%s",
+                                  "agreements": [
+                                    {
+                                      "agreementType": "TERMS_OF_SERVICE",
+                                      "agreementVersion": "2026-04-10"
+                                    },
+                                    {
+                                      "agreementType": "PRIVACY_POLICY",
+                                      "agreementVersion": "2026-04-10"
+                                    }
+                                  ]
+                                }
+                                """.formatted(emailVerificationToken)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_DUPLICATE_EMAIL"));
+
+        assertThat(memberRepository.findByLoginId("duplicate-email-user")).isEmpty();
+        assertThat(emailVerificationRepository.findByVerificationTokenHash(
+                emailVerificationTokenGenerator.hashToken(emailVerificationToken)
+        )).isPresent()
+                .get()
+                .extracting(EmailVerification::getVerificationTokenUsedAt)
+                .isNull();
     }
 
     @Test
@@ -921,6 +1033,25 @@ class MemberAuthIntegrationTest {
                                 }
                                 """.formatted(loginId, password)))
                 .andExpect(status().isOk());
+    }
+
+    private String issueSignupEmailVerificationToken(String email) {
+        String token = "ev_test_" + email.replace("@", "_").replace(".", "_");
+        EmailVerification verification = EmailVerification.issue(
+                email,
+                null,
+                EmailVerificationPurpose.SIGNUP,
+                "hashed-code",
+                LocalDateTime.now().plusMinutes(5),
+                LocalDateTime.now()
+        );
+        verification.verify(
+                emailVerificationTokenGenerator.hashToken(token),
+                LocalDateTime.now().plusMinutes(10),
+                LocalDateTime.now()
+        );
+        emailVerificationRepository.save(verification);
+        return token;
     }
 
     private AuthSession login(String loginId, String password) throws Exception {

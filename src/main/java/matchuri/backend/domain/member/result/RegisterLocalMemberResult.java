@@ -6,6 +6,7 @@ import matchuri.backend.domain.member.entity.Member;
 public record RegisterLocalMemberResult(
         Long memberId,
         String loginId,
+        String email,
         String nickname,
         LocalDateTime createdAt
 ) {
@@ -14,6 +15,7 @@ public record RegisterLocalMemberResult(
         return new RegisterLocalMemberResult(
                 member.getId(),
                 member.getLoginId(),
+                member.getEmail(),
                 member.getNickname(),
                 member.getCreatedAt()
         );

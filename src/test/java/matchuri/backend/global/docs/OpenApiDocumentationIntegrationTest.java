@@ -108,6 +108,21 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/members/signup'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/RegisterLocalMemberApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/signup'].post.responses['401'].content['application/json'].examples.emailVerificationFailed.value.error.code")
+                        .value("AUTH_EMAIL_VERIFICATION_FAILED"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/signup'].post.responses['409'].content['application/json'].examples.duplicateEmail.value.error.code")
+                        .value("MEMBER_DUPLICATE_EMAIL"))
+                .andExpect(jsonPath(
+                        "$.components.schemas.RegisterLocalMemberRequest.properties.email.description")
+                        .value(org.hamcrest.Matchers.containsString("이메일 인증")))
+                .andExpect(jsonPath(
+                        "$.components.schemas.RegisterLocalMemberRequest.properties.emailVerificationToken.description")
+                        .value(org.hamcrest.Matchers.containsString("SIGNUP 목적")))
+                .andExpect(jsonPath(
+                        "$.components.schemas.RegisterLocalMemberResponse.properties.email.description")
+                        .value("가입 시 인증 완료된 이메일입니다."))
                 .andExpect(jsonPath("$.paths['/api/v1/members'].post.security").isEmpty())
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/members'].post.responses['200'].content['application/json'].schema.$ref")

@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenVerifier;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
 import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
@@ -99,6 +100,9 @@ class MemberServiceImplTest {
     @Mock
     private OnboardingStatusResolver onboardingStatusResolver;
 
+    @Mock
+    private EmailVerificationTokenVerifier emailVerificationTokenVerifier;
+
     @InjectMocks
     private MemberServiceImpl memberService;
 
@@ -109,6 +113,8 @@ class MemberServiceImplTest {
                 "tester01",
                 "P@ssw0rd!",
                 "점심탐험가",
+                "tester@example.com",
+                "ev_signup-token",
                 List.of(
                         new SubmitRequiredAgreementsCommand.AgreementConsentCommand("TERMS_OF_SERVICE", "2026-04-10"),
                         new SubmitRequiredAgreementsCommand.AgreementConsentCommand("PRIVACY_POLICY", "2026-04-10")
@@ -119,6 +125,7 @@ class MemberServiceImplTest {
                 .id(1L)
                 .loginId("tester01")
                 .passwordHash("encoded-password")
+                .email("tester@example.com")
                 .nickname("점심탐험가")
                 .memberRole(MemberRole.MEMBER)
                 .status(MemberStatus.ACTIVE)
@@ -126,6 +133,8 @@ class MemberServiceImplTest {
                 .build();
 
         when(memberRepository.existsByNickname("점심탐험가")).thenReturn(false);
+        when(memberRepository.existsByEmailAndSocialFalseAndStatus("tester@example.com", MemberStatus.ACTIVE))
+                .thenReturn(false);
         when(passwordEncoder.encode("P@ssw0rd!")).thenReturn("encoded-password");
         when(memberRepository.saveAndFlush(any(Member.class))).thenReturn(savedMember);
         when(requiredAgreementRequestValidator.validateAndIndex(any())).thenReturn(Map.of(
@@ -137,7 +146,9 @@ class MemberServiceImplTest {
 
         assertThat(result.memberId()).isEqualTo(1L);
         assertThat(result.loginId()).isEqualTo("tester01");
+        assertThat(result.email()).isEqualTo("tester@example.com");
         assertThat(result.nickname()).isEqualTo("점심탐험가");
+        verify(emailVerificationTokenVerifier).verifySignupToken("tester@example.com", "ev_signup-token");
         verify(memberRepository).saveAndFlush(any(Member.class));
         verify(requiredAgreementRequestValidator).validateAndIndex(command.agreements());
         verify(memberAgreementRepository, times(2)).save(any(MemberAgreement.class));

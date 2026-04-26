@@ -117,9 +117,14 @@ public class Member extends BaseEntity {
     }
 
     public static Member createWithEncodedPassword(String loginId, String passwordHash, String nickname) {
+        return createWithEncodedPassword(loginId, passwordHash, nickname, null);
+    }
+
+    public static Member createWithEncodedPassword(String loginId, String passwordHash, String nickname, String email) {
         return Member.builder()
                 .loginId(loginId)
                 .passwordHash(passwordHash)
+                .email(email)
                 .nickname(nickname)
                 .nicknameCompleted(true)
                 .social(false)

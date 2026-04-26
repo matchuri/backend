@@ -6,12 +6,14 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenVerifier;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
 import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
 import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
+import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
 import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
@@ -62,6 +64,7 @@ public class MemberServiceImpl implements MemberService {
     private final PasswordEncoder passwordEncoder;
     private final ActiveMemberReader activeMemberReader;
     private final OnboardingStatusResolver onboardingStatusResolver;
+    private final EmailVerificationTokenVerifier emailVerificationTokenVerifier;
 
     @Override
     public boolean existsByLoginId(String loginId) {
@@ -77,8 +80,12 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public RegisterLocalMemberResult registerLocalMember(RegisterLocalMemberCommand command) {
         String loginId = command.loginId();
+
+        emailVerificationTokenVerifier.verifySignupToken(command.email(), command.emailVerificationToken());
+        validateEmailDuplication(command.email());
+
         String passwordHash = passwordEncoder.encode(command.password());
-        Member member = createLocalMember(loginId, passwordHash, command.nickname());
+        Member member = createLocalMember(loginId, passwordHash, command.nickname(), command.email());
 
         requiredAgreementRequestValidator.validateAndIndex(command.agreements())
                 .forEach((agreementType, agreementVersion) ->
@@ -97,7 +104,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         String passwordHash = passwordEncoder.encode(command.password());
-        Member member = createLocalMember(loginId, passwordHash, null);
+        Member member = createLocalMember(loginId, passwordHash, null, null);
 
         return CreateMemberResult.from(member);
     }
@@ -199,18 +206,24 @@ public class MemberServiceImpl implements MemberService {
         return WithdrawMemberResult.from(member);
     }
 
-    private Member createLocalMember(String loginId, String passwordHash, String nickname) {
+    private Member createLocalMember(String loginId, String passwordHash, String nickname, String email) {
         validateLoginIdDuplication(null, loginId);
         validateNicknameDuplication(null, nickname);
 
         try {
-            Member newMember = Member.createWithEncodedPassword(loginId, passwordHash, nickname);
+            Member newMember = Member.createWithEncodedPassword(loginId, passwordHash, nickname, email);
             return memberRepository.saveAndFlush(newMember);
         } catch (DataIntegrityViolationException exception) {
             if (nickname != null && memberRepository.existsByNickname(nickname)) {
                 throw new BusinessException(MemberErrorCode.DUPLICATE_NICKNAME, nickname);
             }
             throw new BusinessException(MemberErrorCode.DUPLICATE_LOGIN_ID, loginId);
+        }
+    }
+
+    private void validateEmailDuplication(String email) {
+        if (memberRepository.existsByEmailAndSocialFalseAndStatus(email, MemberStatus.ACTIVE)) {
+            throw new BusinessException(MemberErrorCode.DUPLICATE_EMAIL, email);
         }
     }
 

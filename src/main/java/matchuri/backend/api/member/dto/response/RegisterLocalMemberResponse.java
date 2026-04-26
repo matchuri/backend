@@ -10,6 +10,9 @@ public record RegisterLocalMemberResponse(
         @Schema(description = "가입 완료된 loginId입니다.", example = "tester01")
         String loginId,
 
+        @Schema(description = "가입 시 인증 완료된 이메일입니다.", example = "tester@example.com")
+        String email,
+
         @Schema(description = "가입 시 확정된 닉네임입니다.", example = "점심탐험가")
         String nickname,
 
