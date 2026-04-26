@@ -2,21 +2,26 @@ package matchuri.backend.domain.auth.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import matchuri.backend.domain.auth.command.ConfirmEmailVerificationCommand;
 import matchuri.backend.domain.auth.command.SendEmailVerificationCommand;
 import matchuri.backend.domain.auth.entity.EmailVerification;
 import matchuri.backend.domain.auth.entity.EmailVerificationPurpose;
 import matchuri.backend.domain.auth.entity.EmailVerificationStatus;
 import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
+import matchuri.backend.domain.auth.result.ConfirmEmailVerificationResult;
 import matchuri.backend.domain.auth.result.SendEmailVerificationResult;
 import matchuri.backend.domain.auth.support.mail.AuthMailSender;
 import matchuri.backend.domain.auth.support.verification.EmailVerificationPolicy;
+import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenGenerator;
 import matchuri.backend.domain.auth.support.verification.VerificationCodeGenerator;
 import matchuri.backend.domain.auth.support.verification.VerificationCodeHasher;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.global.exception.AuthenticationException;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
@@ -32,6 +37,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
     private final VerificationCodeGenerator codeGenerator;
     private final VerificationCodeHasher codeHasher;
     private final EmailVerificationPolicy policy;
+    private final EmailVerificationTokenGenerator tokenGenerator;
     private final AuthMailSender authMailSender;
 
     @Override
@@ -81,6 +87,36 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         }
     }
 
+    @Override
+    @Transactional(noRollbackFor = AuthenticationException.class)
+    public ConfirmEmailVerificationResult confirmVerificationEmail(ConfirmEmailVerificationCommand command) {
+        LocalDateTime now = LocalDateTime.now();
+        EmailVerification verification = findLatestPending(command)
+                .orElseThrow(() -> new AuthenticationException(AuthErrorCode.EMAIL_VERIFICATION_FAILED));
+
+        if (verification.getExpiresAt().isBefore(now) || verification.getExpiresAt().isEqual(now)) {
+            verification.expire();
+            throw new AuthenticationException(AuthErrorCode.EMAIL_VERIFICATION_FAILED);
+        }
+
+        if (verification.getAttemptCount() >= policy.maxAttempts()) {
+            verification.markFailed();
+            throw new AuthenticationException(AuthErrorCode.EMAIL_VERIFICATION_FAILED);
+        }
+
+        if (!codeHasher.matches(command.code(), verification.getCodeHash())) {
+            verification.recordFailedAttempt(policy.maxAttempts());
+            throw new AuthenticationException(AuthErrorCode.EMAIL_VERIFICATION_FAILED);
+        }
+
+        String token = tokenGenerator.generateToken();
+        verification.verify(tokenGenerator.hashToken(token), policy.tokenExpiresAt(now), now);
+
+        log.info("Email verification confirmed: purpose={}, email={}",
+                command.purpose(), maskEmail(command.email()));
+        return ConfirmEmailVerificationResult.verified(token, policy.tokenTtlSeconds());
+    }
+
     private long resendCooldownRemainingSeconds(List<EmailVerification> pendingVerifications, LocalDateTime now) {
         return pendingVerifications.stream()
                 .findFirst()
@@ -103,6 +139,17 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
             );
         }
         return false;
+    }
+
+    private Optional<EmailVerification> findLatestPending(ConfirmEmailVerificationCommand command) {
+        return repository.findAllByTargetAndStatus(
+                        command.email(),
+                        command.purpose(),
+                        command.loginId(),
+                        EmailVerificationStatus.PENDING
+                )
+                .stream()
+                .findFirst();
     }
 
     private void expirePrevious(List<EmailVerification> pendingVerifications) {

@@ -111,4 +111,18 @@ public class EmailVerification extends BaseEntity {
     public void markFailed() {
         this.status = EmailVerificationStatus.FAILED;
     }
+
+    public void recordFailedAttempt(int maxAttempts) {
+        this.attemptCount += 1;
+        if (this.attemptCount >= maxAttempts) {
+            markFailed();
+        }
+    }
+
+    public void verify(String verificationTokenHash, LocalDateTime tokenExpiresAt, LocalDateTime verifiedAt) {
+        this.status = EmailVerificationStatus.VERIFIED;
+        this.verifiedAt = verifiedAt;
+        this.verificationTokenHash = verificationTokenHash;
+        this.verificationTokenExpiresAt = tokenExpiresAt;
+    }
 }

@@ -20,8 +20,20 @@ public class EmailVerificationPolicy {
         return matchuriProperties.getAuth().getEmailVerification().getResendCooldownSeconds();
     }
 
+    public long tokenTtlSeconds() {
+        return matchuriProperties.getAuth().getEmailVerification().getTokenTtlSeconds();
+    }
+
+    public int maxAttempts() {
+        return matchuriProperties.getAuth().getEmailVerification().getMaxAttempts();
+    }
+
     public LocalDateTime codeExpiresAt(LocalDateTime now) {
         return now.plusSeconds(codeTtlSeconds());
+    }
+
+    public LocalDateTime tokenExpiresAt(LocalDateTime now) {
+        return now.plusSeconds(tokenTtlSeconds());
     }
 
     public boolean isInResendCooldown(LocalDateTime lastSentAt, LocalDateTime now) {

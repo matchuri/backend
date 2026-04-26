@@ -24,7 +24,8 @@ public enum AuthErrorCode implements ErrorCode {
     OAUTH2_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 로그인 제공자입니다."),
     OAUTH2_PROCESSING_FAILED(HttpStatus.UNAUTHORIZED, "소셜 로그인 처리에 실패했습니다."),
     OAUTH2_EXCHANGE_CODE_INVALID(HttpStatus.UNAUTHORIZED, "유효하지 않은 소셜 로그인 교환 코드입니다."),
-    EMAIL_SEND_FAILED(HttpStatus.BAD_GATEWAY, "이메일 발송에 실패했습니다.");
+    EMAIL_SEND_FAILED(HttpStatus.BAD_GATEWAY, "이메일 발송에 실패했습니다."),
+    EMAIL_VERIFICATION_FAILED(HttpStatus.UNAUTHORIZED, "이메일 인증에 실패했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
