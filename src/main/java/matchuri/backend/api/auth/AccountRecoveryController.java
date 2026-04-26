@@ -25,14 +25,16 @@ public class AccountRecoveryController implements AccountRecoveryApi {
     @Override
     @PostMapping("/login-id")
     public ApiResponse<FindLoginIdResponse> findLoginId(@Valid @RequestBody FindLoginIdRequest request) {
-        var result = accountRecoveryService.findLoginId(authMapper.toFindLoginIdCommand(request));
+        var command = authMapper.toFindLoginIdCommand(request);
+        var result = accountRecoveryService.findLoginId(command);
         return ApiResponse.success(authMapper.toFindLoginIdResponse(result));
     }
 
     @Override
     @PostMapping("/password")
     public ApiResponse<ResetPasswordResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        var result = accountRecoveryService.resetPassword(authMapper.toResetPasswordCommand(request));
+        var command = authMapper.toResetPasswordCommand(request);
+        var result = accountRecoveryService.resetPassword(command);
         return ApiResponse.success(authMapper.toResetPasswordResponse(result));
     }
 }
