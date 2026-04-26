@@ -17,6 +17,19 @@ spring:
               - openid
               - profile
               - email
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: you720223721@gmail.com
+    password: ${MATCHURI_GOOGLE_EMAIL_APP_PW}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          timeout: 5000
+          starttls:
+            enable: true
+
   docker:
     compose:
       lifecycle-management: start-only
