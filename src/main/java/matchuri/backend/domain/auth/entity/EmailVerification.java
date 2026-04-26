@@ -125,4 +125,8 @@ public class EmailVerification extends BaseEntity {
         this.verificationTokenHash = verificationTokenHash;
         this.verificationTokenExpiresAt = tokenExpiresAt;
     }
+
+    public void markVerificationTokenUsed(LocalDateTime usedAt) {
+        this.verificationTokenUsedAt = usedAt;
+    }
 }

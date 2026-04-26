@@ -1,6 +1,7 @@
 package matchuri.backend.domain.auth.repository;
 
 import java.util.List;
+import java.util.Optional;
 import matchuri.backend.domain.auth.entity.EmailVerification;
 import matchuri.backend.domain.auth.entity.EmailVerificationPurpose;
 import matchuri.backend.domain.auth.entity.EmailVerificationStatus;
@@ -12,6 +13,8 @@ import org.springframework.data.repository.query.Param;
 
 @NullMarked
 public interface EmailVerificationRepository extends JpaRepository<EmailVerification, Long> {
+
+    Optional<EmailVerification> findByVerificationTokenHash(String verificationTokenHash);
 
     @Query("""
             select e
