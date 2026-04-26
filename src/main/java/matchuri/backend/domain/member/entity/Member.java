@@ -147,10 +147,6 @@ public class Member extends BaseEntity {
         this.tasteProfile = tasteProfile;
     }
 
-    public void updateEmail(String email) {
-        this.email = email;
-    }
-
     public void updatePasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
     }
