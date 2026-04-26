@@ -78,6 +78,15 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/auth/email'].post.responses['502'].content['application/json'].examples.sendFailed.value.error.code")
                         .value("AUTH_EMAIL_SEND_FAILED"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/email/confirm'].post.summary")
+                        .value("이메일 인증 코드 확인"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/email/confirm'].post.security").isEmpty())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/email/confirm'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/ConfirmEmailVerificationApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/email/confirm'].post.responses['401'].content['application/json'].examples.verificationFailed.value.error.code")
+                        .value("AUTH_EMAIL_VERIFICATION_FAILED"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/auth/oauth2/exchange'].post.responses['400'].content['application/json'].examples.providerNotSupported.value.error.code")
                         .value("AUTH_OAUTH2_PROVIDER_NOT_SUPPORTED"))

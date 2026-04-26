@@ -2,8 +2,11 @@ package matchuri.backend.api.auth;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.api.auth.dto.request.ConfirmEmailRequest;
 import matchuri.backend.api.auth.dto.request.SendEmailRequest;
+import matchuri.backend.api.auth.dto.response.ConfirmEmailResponse;
 import matchuri.backend.api.auth.dto.response.SendEmailResponse;
+import matchuri.backend.domain.auth.command.ConfirmEmailVerificationCommand;
 import matchuri.backend.domain.auth.command.SendEmailVerificationCommand;
 import matchuri.backend.domain.auth.entity.EmailVerificationPurpose;
 import matchuri.backend.domain.auth.service.EmailVerificationService;
@@ -40,7 +43,38 @@ public class EmailController implements EmailApi {
         return ApiResponse.success(response);
     }
 
+    @Override
+    @PostMapping("/email/confirm")
+    public ApiResponse<ConfirmEmailResponse> confirmVerificationEmail(@Valid @RequestBody ConfirmEmailRequest request) {
+        validateConditionalFields(request);
+
+        var command = new ConfirmEmailVerificationCommand(
+                request.email(),
+                request.purpose(),
+                request.loginId(),
+                request.code()
+        );
+        var result = emailVerificationService.confirmVerificationEmail(command);
+        ConfirmEmailResponse response = new ConfirmEmailResponse(
+                result.verified(),
+                result.emailVerificationToken(),
+                result.expiresIn()
+        );
+
+        return ApiResponse.success(response);
+    }
+
     private void validateConditionalFields(SendEmailRequest request) {
+        if (request.purpose() == EmailVerificationPurpose.RESET_PASSWORD
+                && (request.loginId() == null || request.loginId().isBlank())) {
+            throw RequestValidationException.invalidBodyField(
+                    "loginId",
+                    "RESET_PASSWORD 목적에서는 loginId가 필요합니다."
+            );
+        }
+    }
+
+    private void validateConditionalFields(ConfirmEmailRequest request) {
         if (request.purpose() == EmailVerificationPurpose.RESET_PASSWORD
                 && (request.loginId() == null || request.loginId().isBlank())) {
             throw RequestValidationException.invalidBodyField(
