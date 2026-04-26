@@ -56,6 +56,10 @@ public class MatchuriProperties {
         @Valid
         @NotNull
         private Jwt jwt;
+
+        @Valid
+        @NotNull
+        private EmailVerification emailVerification;
     }
 
     @Getter
@@ -135,6 +139,24 @@ public class MatchuriProperties {
 
         @Positive
         private long refreshTokenExpirationSeconds;
+    }
+
+    @Getter
+    @Setter
+    public static class EmailVerification {
+        private String from;
+
+        @Positive
+        private long codeTtlSeconds;
+
+        @Positive
+        private long tokenTtlSeconds;
+
+        @Positive
+        private long resendCooldownSeconds;
+
+        @Positive
+        private int maxAttempts;
     }
 
     @Getter

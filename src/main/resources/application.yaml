@@ -18,8 +18,8 @@ spring:
               - profile
               - email
   mail:
-    host: smtp.gmail.com
-    port: 587
+    host: ${MATCHURI_MAIL_HOST:smtp.gmail.com}
+    port: ${MATCHURI_MAIL_PORT:587}
     username: you720223721@gmail.com
     password: ${MATCHURI_GOOGLE_EMAIL_APP_PW}
     properties:
@@ -105,6 +105,12 @@ matchuri:
       issuer: ${MATCHURI_JWT_ISSUER:matchuri-backend}
       access-token-expiration-seconds: ${MATCHURI_JWT_ACCESS_TOKEN_EXPIRATION_SECONDS:3600}
       refresh-token-expiration-seconds: ${MATCHURI_JWT_REFRESH_TOKEN_EXPIRATION_SECONDS:1209600}
+    email-verification:
+      from: you720223721@gmail.com
+      code-ttl-seconds: ${MATCHURI_EMAIL_VERIFICATION_CODE_TTL_SECONDS:300}
+      token-ttl-seconds: ${MATCHURI_EMAIL_VERIFICATION_TOKEN_TTL_SECONDS:600}
+      resend-cooldown-seconds: ${MATCHURI_EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS:60}
+      max-attempts: ${MATCHURI_EMAIL_VERIFICATION_MAX_ATTEMPTS:5}
   seed:
     enabled: false
     sample-members-enabled: true
