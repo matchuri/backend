@@ -20,7 +20,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
     private final JavaMailSender mailSender;
     private final EmailVerificationRepository repository;
 
-    public static String SIGNUP_EMAIL_SUBJECT = "맛추리 회원가입 인증 요청";
+    public static String EMAIL_SUBJECT = "맛추리 인증 요청";
 
     @Override
     public EmailSendResponse sendTxtEmail(EmailSendRequest request) {
@@ -30,7 +30,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         String code = VerificationCodeGenerator.generateCode();
 
         smm.setTo(email);
-        smm.setSubject(SIGNUP_EMAIL_SUBJECT);
+        smm.setSubject(EMAIL_SUBJECT);
         smm.setText(code);
 
         EmailVerification emailVerification = EmailVerification.from(email, code);
