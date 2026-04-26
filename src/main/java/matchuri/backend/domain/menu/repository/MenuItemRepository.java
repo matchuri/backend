@@ -14,6 +14,8 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     boolean existsByCode(String code);
 
+    Optional<MenuItem> findByCode(String code);
+
     List<MenuItem> findAllByIdInAndActiveTrue(Collection<Long> ids);
 
     Optional<MenuItem> findByIdAndActiveTrue(Long id);

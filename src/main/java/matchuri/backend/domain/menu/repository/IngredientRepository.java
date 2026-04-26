@@ -2,6 +2,7 @@ package matchuri.backend.domain.menu.repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import matchuri.backend.domain.menu.entity.Ingredient;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
 
     boolean existsByCode(String code);
+
+    Optional<Ingredient> findByCode(String code);
 
     List<Ingredient> findAllByOrderBySortOrderAscIdAsc();
 
