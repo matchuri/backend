@@ -159,6 +159,10 @@ public class Member extends BaseEntity {
         this.email = email;
     }
 
+    public void updatePasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public void updateNickname(String nickname) {
         this.nickname = nickname;
         this.nicknameCompleted = true;
