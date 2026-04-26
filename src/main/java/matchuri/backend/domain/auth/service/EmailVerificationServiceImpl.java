@@ -33,10 +33,14 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         smm.setSubject(EMAIL_SUBJECT);
         smm.setText(code);
 
-        EmailVerification emailVerification = EmailVerification.from(email, code);
+        EmailVerification emailVerification = EmailVerification.fromSignUp(email, code);
         EmailVerification saved = repository.save(emailVerification);
 
-        EmailSendResponse response = new EmailSendResponse(saved.getId(), saved.getEmail());
+        EmailSendResponse response = new EmailSendResponse(
+                saved.getId(),
+                saved.getEmail(),
+                saved.getType().name()
+        );
 
         try {
             mailSender.send(smm);

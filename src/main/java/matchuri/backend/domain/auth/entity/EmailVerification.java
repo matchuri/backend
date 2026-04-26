@@ -29,7 +29,10 @@ public class EmailVerification extends BaseEntity {
     @Column(name = "code")
     private String code;
 
-    public static EmailVerification from(String email, String code) {
-        return new EmailVerification(null, email, code);
+    @Column(name = "type")
+    private EmailVerificationType type;
+
+    public static EmailVerification fromSignUp(String email, String code) {
+        return new EmailVerification(null, email, code, EmailVerificationType.SIGNUP);
     }
 }
