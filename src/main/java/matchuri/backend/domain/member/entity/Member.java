@@ -56,7 +56,7 @@ public class Member extends BaseEntity {
     @Column(name = "login_id", length = LOGIN_ID_MAX_SIZE, comment = "로그인 아이디")
     private String loginId;
 
-    @Column(name = "password_hash", length = 255, comment = "비밀번호 해시")
+    @Column(name = "password_hash", comment = "비밀번호 해시")
     private String passwordHash;
 
     @Column(name = "nickname", length = NICKNAME_MAX_SIZE, comment = "닉네임 (자체 로그인은 수집)")
