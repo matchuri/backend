@@ -1,6 +1,6 @@
 package matchuri.backend.api.auth.dto.request;
 
-public record EmailVerificationRequest(
+public record EmailSendRequest(
         String email,
         String subject,
         String content

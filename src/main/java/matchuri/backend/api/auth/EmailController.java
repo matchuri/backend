@@ -1,7 +1,8 @@
 package matchuri.backend.api.auth;
 
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.api.auth.dto.request.EmailVerificationRequest;
+import matchuri.backend.api.auth.dto.request.EmailSendRequest;
+import matchuri.backend.api.auth.dto.response.EmailSendResponse;
 import matchuri.backend.domain.auth.service.EmailVerificationService;
 import matchuri.backend.global.api.ApiResponse;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,8 +18,8 @@ public class EmailController implements EmailApi {
 
     @Override
     @PostMapping("/email")
-    public ApiResponse<Void> sendTxtEmail(EmailVerificationRequest request) {
-        emailVerificationService.sendTxtEmail(request);
-        return ApiResponse.success(null);
+    public ApiResponse<EmailSendResponse> sendTxtEmail(EmailSendRequest request) {
+        EmailSendResponse response = emailVerificationService.sendTxtEmail(request);
+        return ApiResponse.success(response);
     }
 }

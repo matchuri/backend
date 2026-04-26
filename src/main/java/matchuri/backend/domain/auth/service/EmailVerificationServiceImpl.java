@@ -1,36 +1,49 @@
 package matchuri.backend.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.api.auth.dto.request.EmailVerificationRequest;
+import lombok.extern.slf4j.Slf4j;
+import matchuri.backend.api.auth.dto.request.EmailSendRequest;
+import matchuri.backend.api.auth.dto.response.EmailSendResponse;
+import matchuri.backend.domain.auth.entity.EmailVerification;
+import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
 import matchuri.backend.domain.auth.support.vertification.VerificationCodeGenerator;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     private final JavaMailSender mailSender;
+    private final EmailVerificationRepository repository;
 
     public static String EMAIL_SUBJECT = "맛추리 회원가입 인증 요청";
 
     @Override
-    public void sendTxtEmail(EmailVerificationRequest request) {
+    public EmailSendResponse sendTxtEmail(EmailSendRequest request) {
 
         SimpleMailMessage smm = new SimpleMailMessage();
+        String email = request.email();
         String code = VerificationCodeGenerator.generateCode();
 
-        smm.setTo(request.email());
+        smm.setTo(email);
         smm.setSubject(EMAIL_SUBJECT);
         smm.setText(code);
 
+        EmailVerification emailVerification = EmailVerification.from(email, code);
+        EmailVerification saved = repository.save(emailVerification);
+
+        EmailSendResponse response = new EmailSendResponse(saved.getId(), saved.getEmail());
+
         try {
             mailSender.send(smm);
-            System.out.println("이메일 전송 성공!");
+            log.info("이메일 전송 성공!");
+            return response;
         } catch (MailException e) {
-            System.out.println("[-] 이메일 전송중에 오류가 발생하였습니다 " + e.getMessage());
+            log.info("[-] 이메일 전송중에 오류가 발생하였습니다 {}", e.getMessage());
             throw e;
         }
     }
