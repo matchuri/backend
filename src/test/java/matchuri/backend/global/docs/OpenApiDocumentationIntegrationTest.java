@@ -87,6 +87,24 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/auth/email/confirm'].post.responses['401'].content['application/json'].examples.verificationFailed.value.error.code")
                         .value("AUTH_EMAIL_VERIFICATION_FAILED"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/recovery/login-id'].post.summary")
+                        .value("로그인 ID 찾기"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/recovery/login-id'].post.security").isEmpty())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/recovery/login-id'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/FindLoginIdApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/recovery/login-id'].post.responses['401'].content['application/json'].examples.emailVerificationFailed.value.error.code")
+                        .value("AUTH_EMAIL_VERIFICATION_FAILED"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/recovery/password'].post.summary")
+                        .value("비밀번호 재설정"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/recovery/password'].post.security").isEmpty())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/recovery/password'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/ResetPasswordApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/recovery/password'].post.responses['401'].content['application/json'].examples.emailVerificationFailed.value.error.code")
+                        .value("AUTH_EMAIL_VERIFICATION_FAILED"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/auth/oauth2/exchange'].post.responses['400'].content['application/json'].examples.providerNotSupported.value.error.code")
                         .value("AUTH_OAUTH2_PROVIDER_NOT_SUPPORTED"))
