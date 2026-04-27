@@ -47,6 +47,7 @@ public class Member extends BaseEntity {
     public static final int PASSWORD_MAX_SIZE = 100;
     public static final int NICKNAME_MAX_SIZE = 100;
     public static final String LOGIN_ID_PATTERN = "^[A-Za-z0-9._-]+$";
+    public static final String PASSWORD_PATTERN = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,}$";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

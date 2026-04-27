@@ -56,6 +56,10 @@ public record RegisterLocalMemberRequest(
                 max = Member.PASSWORD_MAX_SIZE,
                 message = "password는 " + Member.PASSWORD_MIN_SIZE + "자 이상 " + Member.PASSWORD_MAX_SIZE + "자 이하여야 합니다."
         )
+        @Pattern(
+                regexp = Member.PASSWORD_PATTERN,
+                message = "비밀번호는 "+ Member.PASSWORD_MIN_SIZE +"자 이상이며 영문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다."
+        )
         String password,
 
         @Schema(
