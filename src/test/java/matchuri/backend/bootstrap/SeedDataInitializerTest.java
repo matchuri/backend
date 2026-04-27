@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.menu.entity.CategoryType;
+import matchuri.backend.domain.menu.entity.Ingredient;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
@@ -69,6 +70,21 @@ class SeedDataInitializerTest {
         assertThat(ingredientRepository.existsByCode("EGG")).isTrue();
         assertThat(ingredientRepository.existsByCode("WHEAT")).isTrue();
         assertThat(ingredientRepository.existsByCode("CILANTRO")).isTrue();
+        assertThat(ingredientRepository.existsByCode("PINE_NUT")).isTrue();
+        assertThat(ingredientRepository.existsByCode("WALNUT")).isTrue();
+        assertThat(ingredientRepository.existsByCode("TOMATO")).isTrue();
+        assertThat(ingredientRepository.existsByCode("SULFITES")).isTrue();
+        assertThat(ingredientRepository.existsByCode("CASHEW_NUT")).isTrue();
+        assertThat(ingredientRepository.existsByCode("EGGPLANT")).isTrue();
+        assertThat(ingredientRepository.existsByCode("CUCUMBER")).isTrue();
+        assertThat(ingredientRepository.existsByCode("ONION")).isTrue();
+        assertThat(ingredientRepository.existsByCode("PERILLA_LEAF")).isTrue();
+        assertThat(ingredientRepository.existsByCode("AROMATIC_SPICES")).isTrue();
+        assertThat(ingredientByCode("PORK").isAllergen()).isTrue();
+        assertThat(ingredientByCode("BEEF").isAllergen()).isTrue();
+        assertThat(ingredientByCode("BEEF").getName()).isEqualTo("쇠고기");
+        assertThat(ingredientByCode("CHICKEN").isAllergen()).isTrue();
+        assertThat(ingredientByCode("MUSHROOM").getName()).isEqualTo("버섯류");
         assertThat(menuItemRepository.existsByCode("KIMCHI_STEW")).isTrue();
         assertThat(menuItemRepository.existsByCode("PORK_CUTLET")).isTrue();
         assertThat(menuItemRepository.existsByCode("PAD_THAI")).isTrue();
@@ -89,5 +105,10 @@ class SeedDataInitializerTest {
         assertThat(attributeCategoryRepository.existsByCategoryTypeAndCode(CategoryType.FLAVOR, "SPICY")).isTrue();
         assertThat(ingredientRepository.existsByCode("PEANUT")).isTrue();
         assertThat(menuItemRepository.existsByCode("KIMCHI_STEW")).isTrue();
+    }
+
+    private Ingredient ingredientByCode(String code) {
+        return ingredientRepository.findByCode(code)
+                .orElseThrow(() -> new AssertionError("Expected ingredient seed. code=" + code));
     }
 }
