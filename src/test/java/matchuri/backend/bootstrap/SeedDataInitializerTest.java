@@ -2,6 +2,8 @@ package matchuri.backend.bootstrap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(properties = {
@@ -29,6 +32,9 @@ class SeedDataInitializerTest {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private AttributeCategoryRepository attributeCategoryRepository;
@@ -57,6 +63,11 @@ class SeedDataInitializerTest {
 
         assertThat(memberRepository.existsByLoginId("tester01")).isTrue();
         assertThat(memberRepository.existsByLoginId("tester02")).isTrue();
+        assertThat(memberRepository.existsByLoginId("admin01")).isTrue();
+        Member admin = memberByLoginId("admin01");
+        assertThat(admin.getMemberRole()).isEqualTo(MemberRole.ADMIN);
+        assertThat(admin.getNickname()).isEqualTo("matchuri-admin");
+        assertThat(passwordEncoder.matches("Admin123!", admin.getPasswordHash())).isTrue();
         assertThat(attributeCategoryRepository.existsByCategoryTypeAndCode(CategoryType.FLAVOR, "SPICY")).isTrue();
         assertThat(attributeCategoryRepository.existsByCategoryTypeAndCode(CategoryType.FLAVOR, "RICH")).isTrue();
         assertThat(attributeCategoryRepository.existsByCategoryTypeAndCode(CategoryType.COOKING_METHOD, "STIR_FRIED"))
@@ -102,9 +113,15 @@ class SeedDataInitializerTest {
         assertThat(menuIngredientRepository.count()).isEqualTo(initialMenuIngredientCount);
         assertThat(memberRepository.existsByLoginId("tester01")).isTrue();
         assertThat(memberRepository.existsByLoginId("tester02")).isTrue();
+        assertThat(memberRepository.existsByLoginId("admin01")).isTrue();
         assertThat(attributeCategoryRepository.existsByCategoryTypeAndCode(CategoryType.FLAVOR, "SPICY")).isTrue();
         assertThat(ingredientRepository.existsByCode("PEANUT")).isTrue();
         assertThat(menuItemRepository.existsByCode("KIMCHI_STEW")).isTrue();
+    }
+
+    private Member memberByLoginId(String loginId) {
+        return memberRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new AssertionError("Expected member seed. loginId=" + loginId));
     }
 
     private Ingredient ingredientByCode(String code) {
