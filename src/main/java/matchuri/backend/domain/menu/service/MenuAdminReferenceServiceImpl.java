@@ -167,6 +167,19 @@ public class MenuAdminReferenceServiceImpl implements MenuAdminReferenceService 
 
     @Override
     @Transactional
+    public AdminMenuItemResult deactivateMenuItem(Long menuItemId) {
+        MenuItem menuItem = menuItemRepository.findById(menuItemId)
+                .orElseThrow(() -> new BusinessException(MenuErrorCode.NOT_FOUND, menuItemId));
+
+        if (menuItem.isActive()) {
+            menuItem.deactivate();
+        }
+
+        return AdminMenuItemResult.from(menuItem);
+    }
+
+    @Override
+    @Transactional
     public AdminAttributeCategoryResult deactivateAttributeCategory(Long attributeCategoryId) {
         AttributeCategory attributeCategory = attributeCategoryRepository.findById(attributeCategoryId)
                 .orElseThrow(() -> new BusinessException(

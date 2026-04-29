@@ -28,6 +28,8 @@ public interface MenuAdminReferenceService {
 
     AdminMenuItemResult updateMenuItem(UpdateAdminMenuItemCommand command);
 
+    AdminMenuItemResult deactivateMenuItem(Long menuItemId);
+
     AdminAttributeCategoryResult deactivateAttributeCategory(Long attributeCategoryId);
 
     AdminIngredientResult deactivateIngredient(Long ingredientId);
