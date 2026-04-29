@@ -16,6 +16,8 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     Optional<MenuItem> findByCode(String code);
 
+    List<MenuItem> findAllByOrderByIdAsc();
+
     List<MenuItem> findAllByIdInAndActiveTrue(Collection<Long> ids);
 
     Optional<MenuItem> findByIdAndActiveTrue(Long id);

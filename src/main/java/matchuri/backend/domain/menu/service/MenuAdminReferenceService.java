@@ -7,12 +7,15 @@ import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AdminIngredientResult;
+import matchuri.backend.domain.menu.result.AdminMenuItemResult;
 
 public interface MenuAdminReferenceService {
 
     List<AdminAttributeCategoryResult> getAttributeCategories();
 
     List<AdminIngredientResult> getIngredients();
+
+    List<AdminMenuItemResult> getMenuItems();
 
     AdminAttributeCategoryResult createAttributeCategory(CreateAdminAttributeCategoryCommand command);
 

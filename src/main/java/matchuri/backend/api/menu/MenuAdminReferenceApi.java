@@ -13,12 +13,14 @@ import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryListApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminIngredientApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminIngredientListApiResponse;
+import matchuri.backend.api.menu.dto.docs.AdminMenuItemListApiResponse;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
+import matchuri.backend.api.menu.dto.response.AdminMenuItemResponse;
 import matchuri.backend.global.api.ApiResponse;
 
 @Tag(name = "Menu Admin Reference", description = "참조 데이터 운영 관리를 위한 관리자 전용 API")
@@ -179,6 +181,75 @@ public interface MenuAdminReferenceApi {
             )
     })
     ApiResponse<List<AdminIngredientResponse>> getAdminIngredients();
+
+    @Operation(
+            summary = "관리자 메뉴 목록 조회",
+            description = """
+                    운영 관리용 `menu item` 목록을 조회합니다.
+                    
+                    - `ADMIN` 권한이 필요합니다.
+                    - 활성/비활성 메뉴를 모두 반환합니다.
+                    - 별도 `includeInactive` 파라미터 없이 전체 운영 상태를 기본 노출합니다.
+                    - 정렬 기준은 `id` 오름차순입니다.
+                    - 응답에는 `description`, `isActive`를 함께 포함합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminMenuItemListApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": [
+                                                {
+                                                  "id": 1001,
+                                                  "code": "PORK_CUTLET",
+                                                  "name": "돈까스",
+                                                  "description": "돼지고기를 튀겨 소스와 함께 먹는 바삭한 메뉴입니다.",
+                                                  "isActive": true
+                                                },
+                                                {
+                                                  "id": 1002,
+                                                  "code": "SUSHI",
+                                                  "name": "초밥",
+                                                  "description": "초밥용 밥 위에 생선이나 재료를 올린 메뉴입니다.",
+                                                  "isActive": false
+                                                }
+                                              ],
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(name = "forbidden", value = ErrorExamples.AUTH_FORBIDDEN)
+                    )
+            )
+    })
+    ApiResponse<List<AdminMenuItemResponse>> getAdminMenuItems();
 
     @Operation(
             summary = "관리자 ingredient 생성",
