@@ -28,6 +28,9 @@ import matchuri.backend.domain.common.BaseEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MenuItem extends BaseEntity {
 
+    public static final int NAME_MAX_LENGTH = 120;
+    public static final int DESCRIPTION_MAX_LENGTH = 500;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(comment = "메뉴 ID")
@@ -36,10 +39,10 @@ public class MenuItem extends BaseEntity {
     @Column(nullable = false, length = 50, comment = "메뉴 코드")
     private String code;
 
-    @Column(nullable = false, length = 120, comment = "메뉴명")
+    @Column(nullable = false, length = NAME_MAX_LENGTH, comment = "메뉴명")
     private String name;
 
-    @Column(length = 500, comment = "메뉴 설명")
+    @Column(length = DESCRIPTION_MAX_LENGTH, comment = "메뉴 설명")
     private String description;
 
     @Column(name = "is_active", nullable = false, comment = "활성 여부")
