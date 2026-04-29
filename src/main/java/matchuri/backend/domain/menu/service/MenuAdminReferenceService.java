@@ -5,6 +5,7 @@ import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
+import matchuri.backend.domain.menu.command.UpdateAdminMenuItemCommand;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AdminIngredientResult;
 import matchuri.backend.domain.menu.result.AdminMenuItemResult;
@@ -24,6 +25,8 @@ public interface MenuAdminReferenceService {
     AdminAttributeCategoryResult updateAttributeCategory(UpdateAdminAttributeCategoryCommand command);
 
     AdminIngredientResult updateIngredient(UpdateAdminIngredientCommand command);
+
+    AdminMenuItemResult updateMenuItem(UpdateAdminMenuItemCommand command);
 
     AdminAttributeCategoryResult deactivateAttributeCategory(Long attributeCategoryId);
 

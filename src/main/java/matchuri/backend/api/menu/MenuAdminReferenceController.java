@@ -7,6 +7,7 @@ import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.api.menu.dto.response.AdminMenuItemResponse;
@@ -58,6 +59,20 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
         var responses = menuReferenceMapper.toAdminMenuItemResponses(results);
 
         return ApiResponse.success(responses);
+    }
+
+    @Override
+    @PatchMapping("/menu-items/{menuItemId}")
+    public ApiResponse<AdminMenuItemResponse> updateAdminMenuItem(
+            @PathVariable Long menuItemId,
+            @Valid @RequestBody UpdateAdminMenuItemRequest request
+    ) {
+
+        var command = menuReferenceMapper.toUpdateAdminMenuItemCommand(menuItemId, request);
+        var result = menuAdminReferenceService.updateMenuItem(command);
+        var response = menuReferenceMapper.toAdminMenuItemResponse(result);
+
+        return ApiResponse.success(response);
     }
 
     @Override

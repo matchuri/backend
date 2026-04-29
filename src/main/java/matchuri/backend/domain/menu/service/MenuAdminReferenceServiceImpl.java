@@ -7,8 +7,10 @@ import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
+import matchuri.backend.domain.menu.command.UpdateAdminMenuItemCommand;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
@@ -136,6 +138,31 @@ public class MenuAdminReferenceServiceImpl implements MenuAdminReferenceService 
         }
 
         return AdminIngredientResult.from(ingredient);
+    }
+
+    @Override
+    @Transactional
+    public AdminMenuItemResult updateMenuItem(UpdateAdminMenuItemCommand command) {
+        MenuItem menuItem = menuItemRepository.findById(command.menuItemId())
+                .orElseThrow(() -> new BusinessException(MenuErrorCode.NOT_FOUND, command.menuItemId()));
+
+        if (command.name() != null) {
+            menuItem.updateName(command.name());
+        }
+
+        if (command.description() != null) {
+            menuItem.updateDescription(command.description());
+        }
+
+        if (command.isActive() != null) {
+            if (command.isActive()) {
+                menuItem.activate();
+            } else {
+                menuItem.deactivate();
+            }
+        }
+
+        return AdminMenuItemResult.from(menuItem);
     }
 
     @Override
