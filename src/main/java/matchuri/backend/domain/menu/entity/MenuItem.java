@@ -59,6 +59,18 @@ public class MenuItem extends BaseEntity {
         this.active = true;
     }
 
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void activate() {
+        this.active = true;
+    }
+
     public void deactivate() {
         this.active = false;
     }
