@@ -339,6 +339,88 @@ public interface MenuAdminReferenceApi {
     );
 
     @Operation(
+            summary = "관리자 메뉴 비활성화",
+            description = """
+                    운영 관리용 `menu item`을 비활성화합니다.
+                    
+                    - `ADMIN` 권한이 필요합니다.
+                    - 물리 삭제가 아니라 `isActive=false` 비활성화로 처리합니다.
+                    - 이미 비활성 상태여도 실패시키지 않고 현재 상태를 그대로 반환합니다.
+                    - 공개 메뉴 목록/상세 조회와 취향 프로필 저장 검증에서는 비활성 메뉴가 제외됩니다.
+                    - 성공 시 최신 단건 상태를 반환합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "비활성화 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminMenuItemApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "id": 1001,
+                                                "code": "PORK_CUTLET",
+                                                "name": "돈까스",
+                                                "description": "돼지고기를 튀겨 소스와 함께 먹는 바삭한 메뉴입니다.",
+                                                "isActive": false
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 메뉴",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 404,
+                                                "code": "MENU_NOT_FOUND",
+                                                "message": "메뉴를 찾을 수 없습니다. menuId : 999",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(name = "forbidden", value = ErrorExamples.AUTH_FORBIDDEN)
+                    )
+            )
+    })
+    ApiResponse<AdminMenuItemResponse> deactivateAdminMenuItem(Long menuItemId);
+
+    @Operation(
             summary = "관리자 ingredient 생성",
             description = """
                     운영 관리용 `ingredient`를 새로 생성합니다.

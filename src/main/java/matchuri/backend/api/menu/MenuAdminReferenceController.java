@@ -76,6 +76,17 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
     }
 
     @Override
+    @DeleteMapping("/menu-items/{menuItemId}")
+    public ApiResponse<AdminMenuItemResponse> deactivateAdminMenuItem(
+            @PathVariable Long menuItemId
+    ) {
+        var result = menuAdminReferenceService.deactivateMenuItem(menuItemId);
+        var response = menuReferenceMapper.toAdminMenuItemResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
     @PostMapping("/ingredients")
     public ApiResponse<AdminIngredientResponse> createAdminIngredient(
             @Valid @RequestBody CreateAdminIngredientRequest request
