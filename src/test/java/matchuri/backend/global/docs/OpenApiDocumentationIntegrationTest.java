@@ -285,6 +285,16 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/admin/menu-items'].get.responses['403'].content['application/json'].examples.forbidden.value.error.code")
                         .value("AUTH_FORBIDDEN"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/menu-items/{menuItemId}'].patch.summary")
+                        .value("관리자 메뉴 수정"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/menu-items/{menuItemId}'].patch.security[0].bearerAuth").exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/menu-items/{menuItemId}'].patch.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/AdminMenuItemApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/menu-items/{menuItemId}'].patch.responses['404'].content['application/json'].examples.notFound.value.error.code")
+                        .value("MENU_NOT_FOUND"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.summary")
                         .value("관리자 ingredient 생성"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.security[0].bearerAuth").exists())
@@ -340,6 +350,8 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.components.schemas.CreateAdminIngredientRequest.properties.allergen.description")
                         .value("알레르기 유발 재료 여부입니다."))
                 .andExpect(jsonPath("$.components.schemas.UpdateAdminIngredientRequest.properties.isActive.description")
+                        .value("수정할 활성 여부입니다. null이면 활성 상태를 변경하지 않습니다."))
+                .andExpect(jsonPath("$.components.schemas.UpdateAdminMenuItemRequest.properties.isActive.description")
                         .value("수정할 활성 여부입니다. null이면 활성 상태를 변경하지 않습니다."))
                 .andExpect(jsonPath("$.components.schemas.AdminIngredientResponse.properties.isActive.description")
                         .value("운영 기준 활성 여부입니다."))
