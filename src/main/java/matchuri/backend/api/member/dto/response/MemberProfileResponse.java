@@ -10,6 +10,9 @@ public record MemberProfileResponse(
         String nickname,
 
         @Schema(description = "현재 로그인한 회원의 소셜 여부입니다.", example = "true")
-        boolean isSocial
+        boolean isSocial,
+
+        @Schema(description = "현재 로그인한 회원의 이메일입니다.", example = "test01@example.com")
+        String email
 ) {
 }
