@@ -273,6 +273,18 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/admin/ingredients'].get.responses['403'].content['application/json'].examples.forbidden.value.error.code")
                         .value("AUTH_FORBIDDEN"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/menu-items'].get.summary")
+                        .value("관리자 메뉴 목록 조회"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/menu-items'].get.security[0].bearerAuth").exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/menu-items'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/AdminMenuItemListApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/menu-items'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
+                        .value("AUTH_TOKEN_MISSING"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/menu-items'].get.responses['403'].content['application/json'].examples.forbidden.value.error.code")
+                        .value("AUTH_FORBIDDEN"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.summary")
                         .value("관리자 ingredient 생성"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.security[0].bearerAuth").exists())
@@ -330,6 +342,8 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath("$.components.schemas.UpdateAdminIngredientRequest.properties.isActive.description")
                         .value("수정할 활성 여부입니다. null이면 활성 상태를 변경하지 않습니다."))
                 .andExpect(jsonPath("$.components.schemas.AdminIngredientResponse.properties.isActive.description")
+                        .value("운영 기준 활성 여부입니다."))
+                .andExpect(jsonPath("$.components.schemas.AdminMenuItemResponse.properties.isActive.description")
                         .value("운영 기준 활성 여부입니다."))
                 .andExpect(
                         jsonPath("$.components.schemas.AdminAttributeCategoryResponse.properties.isActive.description")

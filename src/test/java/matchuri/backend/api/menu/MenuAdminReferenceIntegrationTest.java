@@ -23,8 +23,10 @@ import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersion
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,6 +54,9 @@ class MenuAdminReferenceIntegrationTest {
     private IngredientRepository ingredientRepository;
 
     @Autowired
+    private MenuItemRepository menuItemRepository;
+
+    @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
@@ -59,6 +64,7 @@ class MenuAdminReferenceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        menuItemRepository.deleteAll();
         attributeCategoryRepository.deleteAll();
         ingredientRepository.deleteAll();
         memberRepository.deleteAll();
@@ -142,6 +148,42 @@ class MenuAdminReferenceIntegrationTest {
     }
 
     @Test
+    @DisplayName("관리자 메뉴 목록 조회는 활성과 비활성 메뉴를 함께 정렬해서 반환한다")
+    void getAdminMenuItemsReturnsAllRowsInSortedOrder() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-menu-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        MenuItem kimchiStew = menuItemRepository.save(
+                new MenuItem("KIMCHI_STEW", "김치찌개", "김치와 돼지고기를 넣고 끓인 찌개"));
+        MenuItem sushi = new MenuItem("SUSHI", "초밥", "초밥용 밥 위에 생선을 올린 메뉴");
+        sushi.deactivate();
+        sushi = menuItemRepository.save(sushi);
+
+        mockMvc.perform(get("/api/v1/admin/menu-items")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].id").value(kimchiStew.getId()))
+                .andExpect(jsonPath("$.data[0].code").value("KIMCHI_STEW"))
+                .andExpect(jsonPath("$.data[0].name").value("김치찌개"))
+                .andExpect(jsonPath("$.data[0].description").value("김치와 돼지고기를 넣고 끓인 찌개"))
+                .andExpect(jsonPath("$.data[0].isActive").value(true))
+                .andExpect(jsonPath("$.data[1].id").value(sushi.getId()))
+                .andExpect(jsonPath("$.data[1].code").value("SUSHI"))
+                .andExpect(jsonPath("$.data[1].isActive").value(false));
+    }
+
+    @Test
     @DisplayName("일반 회원은 관리자 attribute category 목록 조회에 접근할 수 없다")
     void getAdminAttributeCategoriesRejectsNonAdminMember() throws Exception {
         Member member = memberRepository.save(new Member(
@@ -178,6 +220,28 @@ class MenuAdminReferenceIntegrationTest {
         ));
 
         mockMvc.perform(get("/api/v1/admin/ingredients")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("AUTH_FORBIDDEN"));
+    }
+
+    @Test
+    @DisplayName("일반 회원은 관리자 메뉴 목록 조회에 접근할 수 없다")
+    void getAdminMenuItemsRejectsNonAdminMember() throws Exception {
+        Member member = memberRepository.save(new Member(
+                "member-menu-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+
+        mockMvc.perform(get("/api/v1/admin/menu-items")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
