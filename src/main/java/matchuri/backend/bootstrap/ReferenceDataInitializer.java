@@ -98,11 +98,6 @@ public class ReferenceDataInitializer {
         createdCount += createAttributeCategoryIfAbsent(CategoryType.TEMPERATURE, "HOT", "뜨거움", 10);
         createdCount += createAttributeCategoryIfAbsent(CategoryType.TEMPERATURE, "COLD", "차가움", 20);
 
-        createdCount += createAttributeCategoryIfAbsent(CategoryType.MEAL_TIME, "BREAKFAST", "아침", 10);
-        createdCount += createAttributeCategoryIfAbsent(CategoryType.MEAL_TIME, "LUNCH", "점심", 20);
-        createdCount += createAttributeCategoryIfAbsent(CategoryType.MEAL_TIME, "DINNER", "저녁", 30);
-        createdCount += createAttributeCategoryIfAbsent(CategoryType.MEAL_TIME, "NIGHT_SNACK", "야식", 40);
-
         return createdCount;
     }
 
