@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import matchuri.backend.api.common.docs.ErrorExamples;
 import matchuri.backend.api.member.dto.docs.CreateMemberApiResponse;
 import matchuri.backend.api.member.dto.docs.LoginIdExistsApiResponse;
+import matchuri.backend.api.member.dto.docs.MemberProfileApiResponse;
 import matchuri.backend.api.member.dto.docs.MemberTasteProfileSummaryApiResponse;
 import matchuri.backend.api.member.dto.docs.NicknameExistsApiResponse;
 import matchuri.backend.api.member.dto.docs.RegisterLocalMemberApiResponse;
@@ -391,9 +392,58 @@ public interface MemberApi {
                     현재 로그인한 회원의 기본 프로필 정보를 조회합니다.
                     
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
-                    - 현재 단계에서는 최소 프로필과 로그인 유형 판단에 필요한 `id`, `nickname`, `isSocial`을 반환합니다.
-                    - `loginId`, `email`, 취향 프로필 상세 필드는 이 응답에 포함되지 않습니다.
+                    - 현재 단계에서는 최소 프로필과 로그인 유형 판단에 필요한 `id`, `nickname`, `isSocial`, `email`을 반환합니다.
+                    - `loginId`, 취향 프로필 상세 필드는 이 응답에 포함되지 않습니다.
                     """)
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MemberProfileApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "id": 1,
+                                                "nickname": "점심탐험가",
+                                                "isSocial": true,
+                                                "email": "tester@example.com"
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "필수 온보딩 미완료 또는 비활성 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "requiredAgreement", value = ErrorExamples.MEMBER_AGREEMENT_REQUIRED),
+                                    @ExampleObject(name = "nicknameRequired", value = ErrorExamples.MEMBER_NICKNAME_REQUIRED),
+                                    @ExampleObject(name = "inactiveMember", value = ErrorExamples.MEMBER_INACTIVE)
+                            }
+                    )
+            )
+    })
     ApiResponse<MemberProfileResponse> getMyProfile();
 
     @Operation(

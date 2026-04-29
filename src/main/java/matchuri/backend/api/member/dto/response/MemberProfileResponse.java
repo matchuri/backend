@@ -12,7 +12,7 @@ public record MemberProfileResponse(
         @Schema(description = "현재 로그인한 회원의 소셜 여부입니다.", example = "true")
         boolean isSocial,
 
-        @Schema(description = "현재 로그인한 회원의 이메일입니다.", example = "test01@example.com")
+        @Schema(description = "현재 로그인한 회원의 이메일입니다. 레거시 계정이면 null일 수 있습니다.", example = "test01@example.com", nullable = true)
         String email
 ) {
 }
