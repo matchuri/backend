@@ -295,6 +295,16 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/admin/menu-items/{menuItemId}'].patch.responses['404'].content['application/json'].examples.notFound.value.error.code")
                         .value("MENU_NOT_FOUND"))
+                .andExpect(jsonPath("$.paths['/api/v1/admin/menu-items/{menuItemId}'].delete.summary")
+                        .value("관리자 메뉴 비활성화"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/menu-items/{menuItemId}'].delete.security[0].bearerAuth").exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/menu-items/{menuItemId}'].delete.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/AdminMenuItemApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/admin/menu-items/{menuItemId}'].delete.responses['404'].content['application/json'].examples.notFound.value.error.code")
+                        .value("MENU_NOT_FOUND"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.summary")
                         .value("관리자 ingredient 생성"))
                 .andExpect(jsonPath("$.paths['/api/v1/admin/ingredients'].post.security[0].bearerAuth").exists())

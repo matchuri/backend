@@ -383,6 +383,174 @@ class MenuAdminReferenceIntegrationTest {
     }
 
     @Test
+    @DisplayName("관리자는 메뉴를 비활성화할 수 있다")
+    void deactivateAdminMenuItem() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-delete-menu-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        MenuItem menuItem = menuItemRepository.save(
+                new MenuItem("PORK_CUTLET", "돈까스", "돼지고기를 튀긴 메뉴")
+        );
+
+        mockMvc.perform(delete("/api/v1/admin/menu-items/{menuItemId}", menuItem.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.error").value(nullValue()))
+                .andExpect(jsonPath("$.data.id").value(menuItem.getId()))
+                .andExpect(jsonPath("$.data.code").value("PORK_CUTLET"))
+                .andExpect(jsonPath("$.data.name").value("돈까스"))
+                .andExpect(jsonPath("$.data.isActive").value(false));
+
+        MenuItem deactivated = menuItemRepository.findById(menuItem.getId()).orElseThrow();
+        assertThat(deactivated.isActive()).isFalse();
+        assertThat(deactivated.getCode()).isEqualTo("PORK_CUTLET");
+        assertThat(deactivated.getName()).isEqualTo("돈까스");
+    }
+
+    @Test
+    @DisplayName("관리자 메뉴 비활성화는 이미 비활성 상태여도 현재 상태를 반환한다")
+    void deactivateAdminMenuItemReturnsCurrentStateWhenAlreadyInactive() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-delete-inactive-menu-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        MenuItem menuItem = new MenuItem("SUSHI", "초밥", "초밥용 밥 위에 생선을 올린 메뉴");
+        menuItem.deactivate();
+        menuItem = menuItemRepository.save(menuItem);
+
+        mockMvc.perform(delete("/api/v1/admin/menu-items/{menuItemId}", menuItem.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(menuItem.getId()))
+                .andExpect(jsonPath("$.data.code").value("SUSHI"))
+                .andExpect(jsonPath("$.data.name").value("초밥"))
+                .andExpect(jsonPath("$.data.isActive").value(false));
+    }
+
+    @Test
+    @DisplayName("관리자 메뉴 비활성화는 존재하지 않는 대상을 거절한다")
+    void deactivateAdminMenuItemRejectsNotFound() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-delete-not-found-menu-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+
+        mockMvc.perform(delete("/api/v1/admin/menu-items/{menuItemId}", 999L)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MENU_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("일반 회원은 관리자 메뉴 비활성화에 접근할 수 없다")
+    void deactivateAdminMenuItemRejectsNonAdminMember() throws Exception {
+        Member member = memberRepository.save(new Member(
+                "member-delete-menu-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+        MenuItem menuItem = menuItemRepository.save(
+                new MenuItem("KIMCHI_STEW", "김치찌개", "김치와 돼지고기를 넣고 끓인 찌개")
+        );
+
+        mockMvc.perform(delete("/api/v1/admin/menu-items/{menuItemId}", menuItem.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("AUTH_FORBIDDEN"));
+    }
+
+    @Test
+    @DisplayName("관리자 비활성화 이후 메뉴는 공개 조회에서 제외되고 취향 프로필 저장도 거절된다")
+    void deactivatedMenuItemIsExcludedFromPublicListAndRejectedByTasteProfileSave() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-public-menu-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        Member member = memberRepository.save(new Member(
+                "member-public-menu-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.MEMBER,
+                MemberStatus.ACTIVE
+        ));
+        MenuItem menuItem = menuItemRepository.save(
+                new MenuItem("PORK_CUTLET", "돈까스", "돼지고기를 튀긴 메뉴")
+        );
+
+        mockMvc.perform(delete("/api/v1/admin/menu-items/{menuItemId}", menuItem.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(menuItem.getId()))
+                .andExpect(jsonPath("$.data.isActive").value(false));
+
+        mockMvc.perform(get("/api/v1/menu-items")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.length()").value(0));
+
+        mockMvc.perform(get("/api/v1/menu-items/{menuItemId}", menuItem.getId())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("MENU_NOT_FOUND"));
+
+        mockMvc.perform(patch("/api/v1/members/me/taste-profile")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "attributeCategoryIds": [],
+                                  "restrictionIngredientIds": [],
+                                  "dislikedMenuItemIds": [%d]
+                                }
+                                """.formatted(menuItem.getId())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("MEMBER_INVALID_TASTE_DISLIKED_MENU_ITEM"));
+    }
+
+    @Test
     @DisplayName("관리자는 ingredient를 생성할 수 있다")
     void createAdminIngredient() throws Exception {
         Member admin = memberRepository.save(new Member(
