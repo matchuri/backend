@@ -190,7 +190,8 @@ class MemberAuthIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.nickname").value("점심탐험가"))
-                .andExpect(jsonPath("$.data.isSocial").value(false));
+                .andExpect(jsonPath("$.data.isSocial").value(false))
+                .andExpect(jsonPath("$.data.email").value("signup@example.com"));
     }
 
     @Test

@@ -154,6 +154,18 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/members/exists/nickname/{nickname}'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/NicknameExistsApiResponse"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me'].get.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/MemberProfileApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me'].get.responses['200'].content['application/json'].examples.success.value.data.email")
+                        .value("tester@example.com"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
+                        .value("AUTH_TOKEN_MISSING"))
+                .andExpect(jsonPath(
+                        "$.components.schemas.MemberProfileResponse.properties.email.description")
+                        .value(org.hamcrest.Matchers.containsString("현재 로그인한 회원의 이메일")))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/members/me/taste-profile'].get.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/MemberTasteProfileSummaryApiResponse"))
                 .andExpect(jsonPath(
