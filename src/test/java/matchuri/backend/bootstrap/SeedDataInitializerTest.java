@@ -3,8 +3,11 @@ package matchuri.backend.bootstrap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.MemberRole;
+import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersions;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
@@ -34,6 +37,9 @@ class SeedDataInitializerTest {
     private MemberRepository memberRepository;
 
     @Autowired
+    private MemberAgreementRepository memberAgreementRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -55,6 +61,7 @@ class SeedDataInitializerTest {
     @DisplayName("local 프로필에서는 참조 데이터와 샘플 회원 시드가 멱등하게 초기화된다")
     void initializesReferenceAndSampleDataIdempotently() throws Exception {
         long initialCount = memberRepository.count();
+        long initialAgreementCount = memberAgreementRepository.count();
         long initialAttributeCategoryCount = attributeCategoryRepository.count();
         long initialIngredientCount = ingredientRepository.count();
         long initialMenuItemCount = menuItemRepository.count();
@@ -64,10 +71,22 @@ class SeedDataInitializerTest {
         assertThat(memberRepository.existsByLoginId("tester01")).isTrue();
         assertThat(memberRepository.existsByLoginId("tester02")).isTrue();
         assertThat(memberRepository.existsByLoginId("admin01")).isTrue();
+        Member tester01 = memberByLoginId("tester01");
+        Member tester02 = memberByLoginId("tester02");
+        assertThat(tester01.getNickname()).isEqualTo("테스터일");
+        assertThat(tester01.isNicknameCompleted()).isTrue();
+        assertThat(passwordEncoder.matches("Password123!", tester01.getPasswordHash())).isTrue();
+        assertThat(tester02.getNickname()).isEqualTo("테스터이");
+        assertThat(tester02.isNicknameCompleted()).isTrue();
+        assertThat(passwordEncoder.matches("Password123!", tester02.getPasswordHash())).isTrue();
         Member admin = memberByLoginId("admin01");
         assertThat(admin.getMemberRole()).isEqualTo(MemberRole.ADMIN);
         assertThat(admin.getNickname()).isEqualTo("matchuri-admin");
+        assertThat(admin.isNicknameCompleted()).isTrue();
         assertThat(passwordEncoder.matches("Admin123!", admin.getPasswordHash())).isTrue();
+        assertRequiredAgreementsCompleted(tester01);
+        assertRequiredAgreementsCompleted(tester02);
+        assertRequiredAgreementsCompleted(admin);
         assertThat(attributeCategoryRepository.existsByCategoryTypeAndCode(CategoryType.FLAVOR, "SPICY")).isTrue();
         assertThat(attributeCategoryRepository.existsByCategoryTypeAndCode(CategoryType.FLAVOR, "RICH")).isTrue();
         assertThat(attributeCategoryRepository.existsByCategoryTypeAndCode(CategoryType.COOKING_METHOD, "STIR_FRIED"))
@@ -106,6 +125,7 @@ class SeedDataInitializerTest {
         seedDataInitializer.run(new DefaultApplicationArguments(new String[0]));
 
         assertThat(memberRepository.count()).isEqualTo(initialCount);
+        assertThat(memberAgreementRepository.count()).isEqualTo(initialAgreementCount);
         assertThat(attributeCategoryRepository.count()).isEqualTo(initialAttributeCategoryCount);
         assertThat(ingredientRepository.count()).isEqualTo(initialIngredientCount);
         assertThat(menuItemRepository.count()).isEqualTo(initialMenuItemCount);
@@ -122,6 +142,16 @@ class SeedDataInitializerTest {
     private Member memberByLoginId(String loginId) {
         return memberRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new AssertionError("Expected member seed. loginId=" + loginId));
+    }
+
+    private void assertRequiredAgreementsCompleted(Member member) {
+        for (AgreementType agreementType : RequiredAgreementVersions.requiredTypes()) {
+            assertThat(memberAgreementRepository.existsByMemberIdAndAgreementTypeAndAgreementVersion(
+                    member.getId(),
+                    agreementType,
+                    RequiredAgreementVersions.getRequiredVersion(agreementType)
+            )).isTrue();
+        }
     }
 
     private Ingredient ingredientByCode(String code) {
