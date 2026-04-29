@@ -5,6 +5,5 @@ public enum CategoryType {
     COOKING_METHOD,
     FOOD_CATEGORY,
     TEXTURE,
-    TEMPERATURE,
-    MEAL_TIME
+    TEMPERATURE
 }
