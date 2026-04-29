@@ -5,6 +5,7 @@ import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
 import matchuri.backend.api.menu.dto.response.AdminMenuItemResponse;
@@ -19,6 +20,7 @@ import matchuri.backend.domain.menu.command.GetRestrictionIngredientsCommand;
 import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
+import matchuri.backend.domain.menu.command.UpdateAdminMenuItemCommand;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AdminIngredientResult;
@@ -73,6 +75,18 @@ public class MenuReferenceMapper {
                 trimNullable(request.name()),
                 request.allergen(),
                 request.sortOrder(),
+                request.isActive()
+        );
+    }
+
+    public UpdateAdminMenuItemCommand toUpdateAdminMenuItemCommand(
+            Long menuItemId,
+            UpdateAdminMenuItemRequest request
+    ) {
+        return new UpdateAdminMenuItemCommand(
+                menuItemId,
+                trimNullable(request.name()),
+                trimNullable(request.description()),
                 request.isActive()
         );
     }
