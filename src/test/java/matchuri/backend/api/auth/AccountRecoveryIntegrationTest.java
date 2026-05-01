@@ -1,7 +1,9 @@
 package matchuri.backend.api.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -164,6 +167,7 @@ class AccountRecoveryIntegrationTest {
         String token = issueResetPasswordToken("tester@example.com", "tester01");
 
         mockMvc.perform(post("/api/v1/auth/recovery/password")
+                        .cookie(new Cookie("matchuri_refresh_token", "old-refresh-token"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -173,6 +177,8 @@ class AccountRecoveryIntegrationTest {
                                 }
                                 """.formatted(token)))
                 .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("matchuri_refresh_token=")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Max-Age=0")))
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.reset").value(true));
 

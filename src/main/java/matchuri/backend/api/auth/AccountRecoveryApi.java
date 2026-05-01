@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import matchuri.backend.api.auth.dto.docs.FindLoginIdApiResponse;
 import matchuri.backend.api.auth.dto.docs.ResetPasswordApiResponse;
@@ -115,6 +116,7 @@ public interface AccountRecoveryApi {
                     - token의 `loginId`, `email`이 요청 계정과 일치해야 합니다.
                     - 성공 시 token은 사용 완료 처리되어 재사용할 수 없습니다.
                     - 성공 시 해당 회원의 기존 refresh token 전체를 폐기합니다.
+                    - 성공 시 현재 응답의 refresh token cookie도 만료시킵니다.
                     - 비밀번호 재설정 후 자동 로그인하거나 access token을 발급하지 않습니다.
                     """
     )
@@ -191,5 +193,8 @@ public interface AccountRecoveryApi {
                     )
             )
     })
-    ApiResponse<ResetPasswordResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request);
+    ApiResponse<ResetPasswordResponse> resetPassword(
+                    @Valid @RequestBody ResetPasswordRequest request,
+            HttpServletResponse httpResponse
+    );
 }
