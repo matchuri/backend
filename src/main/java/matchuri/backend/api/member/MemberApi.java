@@ -15,9 +15,11 @@ import matchuri.backend.api.member.dto.docs.MemberProfileApiResponse;
 import matchuri.backend.api.member.dto.docs.MemberTasteProfileSummaryApiResponse;
 import matchuri.backend.api.member.dto.docs.NicknameExistsApiResponse;
 import matchuri.backend.api.member.dto.docs.RegisterLocalMemberApiResponse;
+import matchuri.backend.api.member.dto.docs.UpdateMemberPasswordApiResponse;
 import matchuri.backend.api.member.dto.request.CreateMemberRequest;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberBasicInfoRequest;
+import matchuri.backend.api.member.dto.request.UpdateMemberPasswordRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
@@ -25,6 +27,7 @@ import matchuri.backend.api.member.dto.response.MemberProfileResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
+import matchuri.backend.api.member.dto.response.UpdateMemberPasswordResponse;
 import matchuri.backend.api.member.dto.response.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.response.WithdrawMemberResponse;
 import matchuri.backend.global.api.ApiResponse;
@@ -564,6 +567,73 @@ public interface MemberApi {
                     - 성공 시 최신 수정 시각(`updatedAt`)을 반환합니다.
                     """)
     ApiResponse<UpdateMemberResponse> updateMyProfile(UpdateMemberBasicInfoRequest request);
+
+    @Operation(
+            summary = "내 비밀번호 변경",
+            description = """
+                    현재 로그인한 자체 로그인 회원의 비밀번호를 변경합니다.
+                    
+                    - `currentPassword`가 현재 비밀번호와 일치해야 합니다.
+                    - 성공 시 현재 access token과 refresh token은 유지됩니다.
+                    - 계정 복구용 비밀번호 재설정과 달리 모든 세션을 로그아웃시키지 않습니다.
+                    - 소셜 로그인 전용 회원은 현재 단계에서 비밀번호 변경 대상이 아닙니다.
+                    """)
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "비밀번호 변경 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UpdateMemberPasswordApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "passwordChanged": true
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "요청 바디 형식 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(name = "invalidBodyField", value = ErrorExamples.COMMON_INVALID_BODY_FIELD)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 현재 비밀번호가 일치하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(
+                                            name = "invalidPassword",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 401,
+                                                        "code": "MEMBER_INVALID_PASSWORD",
+                                                        "message": "비밀번호가 일치하지 않습니다.",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            )
+    })
+    ApiResponse<UpdateMemberPasswordResponse> updateMyPassword(UpdateMemberPasswordRequest request);
 
     @Operation(
             summary = "내 취향 프로필 전체 교체 저장",
