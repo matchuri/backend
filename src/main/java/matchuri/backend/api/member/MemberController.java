@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.member.dto.request.CreateMemberRequest;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberBasicInfoRequest;
+import matchuri.backend.api.member.dto.request.UpdateMemberPasswordRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
@@ -12,6 +13,7 @@ import matchuri.backend.api.member.dto.response.MemberProfileResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
+import matchuri.backend.api.member.dto.response.UpdateMemberPasswordResponse;
 import matchuri.backend.api.member.dto.response.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.response.WithdrawMemberResponse;
 import matchuri.backend.api.member.mapper.MemberMapper;
@@ -104,6 +106,18 @@ public class MemberController implements MemberApi {
         var command = memberMapper.toUpdateMemberBasicInfoCommand(request.nickname());
         var result = memberService.updateMyProfile(command);
         UpdateMemberResponse response = memberMapper.toUpdateMemberResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PatchMapping("/me/password")
+    public ApiResponse<UpdateMemberPasswordResponse> updateMyPassword(
+            @Valid @RequestBody UpdateMemberPasswordRequest request
+    ) {
+        var command = memberMapper.toUpdateMemberPasswordCommand(request);
+        var result = memberService.updateMyPassword(command);
+        UpdateMemberPasswordResponse response = memberMapper.toUpdateMemberPasswordResponse(result);
 
         return ApiResponse.success(response);
     }
