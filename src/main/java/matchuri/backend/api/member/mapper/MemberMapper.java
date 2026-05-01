@@ -4,6 +4,7 @@ import matchuri.backend.api.auth.dto.response.LoginResponse;
 import matchuri.backend.api.auth.dto.response.LogoutResponse;
 import matchuri.backend.api.common.dto.OnboardingStatusResponse;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.request.UpdateMemberPasswordRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
@@ -14,6 +15,7 @@ import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryRespons
 import matchuri.backend.api.member.dto.response.MemberTasteRestrictionIngredientResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
+import matchuri.backend.api.member.dto.response.UpdateMemberPasswordResponse;
 import matchuri.backend.api.member.dto.response.UpdateMemberResponse;
 import matchuri.backend.api.member.dto.response.WithdrawMemberResponse;
 import matchuri.backend.domain.auth.command.LoginCommand;
@@ -24,6 +26,7 @@ import matchuri.backend.domain.member.command.CreateMemberCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
 import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
+import matchuri.backend.domain.member.command.UpdateMemberPasswordCommand;
 import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.result.CreateMemberResult;
@@ -31,6 +34,7 @@ import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.OnboardingStatusResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
+import matchuri.backend.domain.member.result.UpdateMemberPasswordResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
 import org.springframework.stereotype.Component;
@@ -142,6 +146,14 @@ public class MemberMapper {
 
     public UpdateMemberBasicInfoCommand toUpdateMemberBasicInfoCommand(String nickname) {
         return new UpdateMemberBasicInfoCommand(nickname);
+    }
+
+    public UpdateMemberPasswordCommand toUpdateMemberPasswordCommand(UpdateMemberPasswordRequest request) {
+        return new UpdateMemberPasswordCommand(request.currentPassword(), request.newPassword());
+    }
+
+    public UpdateMemberPasswordResponse toUpdateMemberPasswordResponse(UpdateMemberPasswordResult result) {
+        return new UpdateMemberPasswordResponse(result.passwordChanged());
     }
 
     public UpdateMemberTasteProfileCommand toUpdateMemberTasteProfileCommand(UpdateMemberTasteProfileRequest request) {
