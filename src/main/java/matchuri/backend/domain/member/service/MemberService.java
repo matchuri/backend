@@ -3,11 +3,13 @@ package matchuri.backend.domain.member.service;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
 import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
+import matchuri.backend.domain.member.command.UpdateMemberPasswordCommand;
 import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
+import matchuri.backend.domain.member.result.UpdateMemberPasswordResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
 
@@ -26,6 +28,8 @@ public interface MemberService {
     MemberTasteProfileSummaryResult getMyTasteProfile();
 
     UpdateMemberResult updateMyProfile(UpdateMemberBasicInfoCommand command);
+
+    UpdateMemberPasswordResult updateMyPassword(UpdateMemberPasswordCommand command);
 
     MemberTasteProfileSummaryResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command);
 

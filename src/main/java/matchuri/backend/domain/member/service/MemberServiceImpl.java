@@ -10,6 +10,7 @@ import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenV
 import matchuri.backend.domain.member.command.CreateMemberCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
 import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
+import matchuri.backend.domain.member.command.UpdateMemberPasswordCommand;
 import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
@@ -29,6 +30,7 @@ import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
+import matchuri.backend.domain.member.result.UpdateMemberPasswordResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
@@ -151,6 +153,20 @@ public class MemberServiceImpl implements MemberService {
         }
 
         return UpdateMemberResult.from(member, onboardingStatusResolver.resolve(member));
+    }
+
+    @Override
+    @Transactional
+    public UpdateMemberPasswordResult updateMyPassword(UpdateMemberPasswordCommand command) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+
+        if (member.getPasswordHash() == null
+                || !passwordEncoder.matches(command.currentPassword(), member.getPasswordHash())) {
+            throw new BusinessException(MemberErrorCode.INVALID_PASSWORD);
+        }
+
+        member.updatePasswordHash(passwordEncoder.encode(command.newPassword()));
+        return UpdateMemberPasswordResult.success();
     }
 
     @Override
