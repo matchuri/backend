@@ -361,6 +361,89 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
+    @DisplayName("로그인 상태 비밀번호 변경 API는 현재 세션을 유지한 채 비밀번호만 교체한다")
+    void updateMyPasswordKeepsCurrentSession() throws Exception {
+        createMemberThroughApi("password-user", "P@ssw0rd!");
+        AuthSession authSession = login("password-user", "P@ssw0rd!");
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
+        String refreshToken = authSession.refreshTokenCookie().getValue();
+
+        mockMvc.perform(patch("/api/v1/members/me/password")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "currentPassword": "P@ssw0rd!",
+                                  "newPassword": "N3wP@ssw0rd!"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.passwordChanged").value(true))
+                .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE));
+
+        assertThat(authRefreshTokenRepository.findByToken(refreshToken)).isPresent();
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .cookie(authSession.refreshTokenCookie()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").isString());
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "password-user",
+                                  "password": "P@ssw0rd!"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("AUTH_LOGIN_FAILED"));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "password-user",
+                                  "password": "N3wP@ssw0rd!"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").isString());
+    }
+
+    @Test
+    @DisplayName("로그인 상태 비밀번호 변경 API는 현재 비밀번호가 다르면 거절한다")
+    void updateMyPasswordRejectsWrongCurrentPassword() throws Exception {
+        createMemberThroughApi("password-fail-user", "P@ssw0rd!");
+        AuthSession authSession = login("password-fail-user", "P@ssw0rd!");
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
+
+        mockMvc.perform(patch("/api/v1/members/me/password")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "currentPassword": "Wr0ngP@ss!",
+                                  "newPassword": "N3wP@ssw0rd!"
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_INVALID_PASSWORD"));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "password-fail-user",
+                                  "password": "P@ssw0rd!"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").isString());
+    }
+
+    @Test
     @DisplayName("로그아웃은 refresh token만 폐기하고 access token은 만료 전까지 유지된다")
     void memberAuthLifecycle() throws Exception {
         createMemberThroughApi("tester01", "P@ssw0rd!");
