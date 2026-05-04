@@ -189,6 +189,7 @@ class MemberAuthIntegrationTest {
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(authSession.accessToken())))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.loginId").value("signup-user"))
                 .andExpect(jsonPath("$.data.nickname").value("점심탐험가"))
                 .andExpect(jsonPath("$.data.isSocial").value(false))
                 .andExpect(jsonPath("$.data.email").value("signup@example.com"));
@@ -464,7 +465,7 @@ class MemberAuthIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").isNumber())
                 .andExpect(jsonPath("$.data.nickname").value(nullValue()))
-                .andExpect(jsonPath("$.data.loginId").doesNotExist())
+                .andExpect(jsonPath("$.data.loginId").value("tester01"))
                 .andExpect(jsonPath("$.data.email").doesNotExist())
                 .andExpect(jsonPath("$.data.memberTasteProfile").doesNotExist());
 
@@ -991,6 +992,7 @@ class MemberAuthIntegrationTest {
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.loginId").value(nullValue()))
                 .andExpect(jsonPath("$.data.nickname").value("점심결정러"))
                 .andExpect(jsonPath("$.data.isSocial").value(true));
     }

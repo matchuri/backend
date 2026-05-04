@@ -160,8 +160,14 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/members/me'].get.responses['200'].content['application/json'].examples.success.value.data.email")
                         .value("tester@example.com"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/members/me'].get.responses['200'].content['application/json'].examples.success.value.data.loginId")
+                        .value("tester01"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/members/me'].get.responses['401'].content['application/json'].examples.tokenMissing.value.error.code")
                         .value("AUTH_TOKEN_MISSING"))
+                .andExpect(jsonPath(
+                        "$.components.schemas.MemberProfileResponse.properties.loginId.description")
+                        .value(org.hamcrest.Matchers.containsString("현재 로그인한 회원의 로그인 ID")))
                 .andExpect(jsonPath(
                         "$.components.schemas.MemberProfileResponse.properties.email.description")
                         .value(org.hamcrest.Matchers.containsString("현재 로그인한 회원의 이메일")))

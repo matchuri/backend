@@ -33,6 +33,7 @@ import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepos
 import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
+import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.OnboardingNextStep;
 import matchuri.backend.domain.member.result.OnboardingStatusResult;
@@ -213,6 +214,30 @@ class MemberServiceImplTest {
         assertThat(result.onboarding().nextStep()).isEqualTo(OnboardingNextStep.READY);
         assertThat(member.getNickname()).isEqualTo("현재닉네임");
         verify(memberRepository).flush();
+    }
+
+    @Test
+    @DisplayName("내 프로필 조회는 현재 회원의 loginId를 함께 반환한다")
+    void getMyProfileReturnsLoginId() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .nickname("점심탐험가")
+                .email("tester@example.com")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+
+        MemberProfileResult result = memberService.getMyProfile();
+
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.loginId()).isEqualTo("tester01");
+        assertThat(result.nickname()).isEqualTo("점심탐험가");
+        assertThat(result.isSocial()).isFalse();
+        assertThat(result.email()).isEqualTo("tester@example.com");
     }
 
     @Test
