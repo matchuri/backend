@@ -395,8 +395,9 @@ public interface MemberApi {
                     현재 로그인한 회원의 기본 프로필 정보를 조회합니다.
                     
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
-                    - 현재 단계에서는 최소 프로필과 로그인 유형 판단에 필요한 `id`, `nickname`, `isSocial`, `email`을 반환합니다.
-                    - `loginId`, 취향 프로필 상세 필드는 이 응답에 포함되지 않습니다.
+                    - 현재 단계에서는 최소 프로필과 로그인 유형 판단에 필요한 `id`, `loginId`, `nickname`, `isSocial`, `email`을 반환합니다.
+                    - 소셜 로그인 전용 회원은 `loginId`가 `null`일 수 있습니다.
+                    - 취향 프로필 상세 필드는 이 응답에 포함되지 않습니다.
                     """)
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -412,8 +413,9 @@ public interface MemberApi {
                                               "success": true,
                                               "data": {
                                                 "id": 1,
+                                                "loginId": "tester01",
                                                 "nickname": "점심탐험가",
-                                                "isSocial": true,
+                                                "isSocial": false,
                                                 "email": "tester@example.com"
                                               },
                                               "error": null
