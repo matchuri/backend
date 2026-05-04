@@ -59,7 +59,7 @@ jobs:
           done
 
       - name: Fetch secrets from Infisical via OIDC
-        uses: Infisical/secrets-action@v1.0.15
+        uses: Infisical/secrets-action@v1.0.16
         with:
           method: oidc
           identity-id: ${{ env.INFISICAL_IDENTITY_ID }}
