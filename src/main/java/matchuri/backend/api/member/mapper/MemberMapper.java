@@ -107,7 +107,13 @@ public class MemberMapper {
     }
 
     public MemberProfileResponse toMemberProfileResponse(MemberProfileResult result) {
-        return new MemberProfileResponse(result.id(), result.nickname(), result.isSocial(), result.email());
+        return new MemberProfileResponse(
+                result.id(),
+                result.loginId(),
+                result.nickname(),
+                result.isSocial(),
+                result.email()
+        );
     }
 
     public MemberTasteProfileSummaryResponse toMemberTasteProfileSummaryResponse(
