@@ -18,8 +18,8 @@ public record PersonalRecommendationDetailResponse(
         @Schema(description = "추천 후보 목록입니다.")
         List<PersonalRecommendationCandidateResponse> candidates,
 
-        @Schema(description = "추천 결과 요약 JSON입니다.")
-        Map<String, Object> resultJson,
+//        @Schema(description = "추천 결과 요약 JSON입니다.")
+//        Map<String, Object> resultJson,
 
         @Schema(description = "최종 선택된 후보 ID입니다. 아직 선택하지 않았다면 null입니다.", example = "10001")
         Long selectedCandidateId
@@ -30,7 +30,7 @@ public record PersonalRecommendationDetailResponse(
                 PersonalRecommendationStatus.COMPLETED,
                 PersonalRecommendationMocks.contextJson(),
                 PersonalRecommendationMocks.candidates(),
-                PersonalRecommendationMocks.resultJson(),
+//                PersonalRecommendationMocks.resultJson(),
                 10001L
         );
     }

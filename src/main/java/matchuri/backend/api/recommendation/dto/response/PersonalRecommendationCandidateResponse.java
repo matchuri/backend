@@ -16,10 +16,10 @@ public record PersonalRecommendationCandidateResponse(
         Integer rankNo,
 
         @Schema(description = "Mock 추천 점수입니다.", example = "93.5")
-        Double score,
+        Double score
 
-        @Schema(description = "사용자에게 보여줄 추천 근거 요약입니다.", example = "채소와 매운맛 선호가 잘 맞는 후보입니다.")
-        String reasonSummary
+//        @Schema(description = "사용자에게 보여줄 추천 근거 요약입니다.", example = "채소와 매운맛 선호가 잘 맞는 후보입니다.")
+//        String reasonSummary
 ) {
     public static PersonalRecommendationCandidateResponse mockBibimbap() {
         return new PersonalRecommendationCandidateResponse(
@@ -27,8 +27,8 @@ public record PersonalRecommendationCandidateResponse(
                 1001L,
                 "비빔밥",
                 1,
-                93.5,
-                "채소와 매운맛 선호가 잘 맞는 후보입니다."
+                93.5
+//                "채소와 매운맛 선호가 잘 맞는 후보입니다."
         );
     }
 
@@ -38,8 +38,8 @@ public record PersonalRecommendationCandidateResponse(
                 1002L,
                 "돈까스",
                 2,
-                86.0,
-                "바삭한 식감 선호와 든든한 점심 상황에 맞는 후보입니다."
+                86.0
+//                "바삭한 식감 선호와 든든한 점심 상황에 맞는 후보입니다."
         );
     }
 
@@ -49,8 +49,8 @@ public record PersonalRecommendationCandidateResponse(
                 1003L,
                 "쌀국수",
                 3,
-                81.5,
-                "따뜻한 국물과 부담 없는 식사를 원하는 상황에 맞는 후보입니다."
+                81.5
+//                "따뜻한 국물과 부담 없는 식사를 원하는 상황에 맞는 후보입니다."
         );
     }
 }

@@ -49,18 +49,18 @@ public class GroupRecommendationCandidate extends BaseEntity {
     @Column(name = "rank_no", nullable = false, comment = "후보 순위")
     private int rankNo;
 
-    @Column(name = "reason_summary", length = REASON_SUMMARY_MAX_LENGTH, comment = "추천 사유 요약")
-    private String reasonSummary;
+//    @Column(name = "reason_summary", length = REASON_SUMMARY_MAX_LENGTH, comment = "추천 사유 요약")
+//    private String reasonSummary;
 
     public GroupRecommendationCandidate(
             GroupRecommendation groupRecommendation,
             MenuItem menuItem,
-            int rankNo,
-            String reasonSummary
+            int rankNo
+//            String reasonSummary
     ) {
         this.groupRecommendation = groupRecommendation;
         this.menuItem = menuItem;
         this.rankNo = rankNo;
-        this.reasonSummary = reasonSummary;
+//        this.reasonSummary = reasonSummary;
     }
 }

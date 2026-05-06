@@ -79,8 +79,7 @@ public interface RecommendationApi {
                                                     "menuId": 1001,
                                                     "menuName": "비빔밥",
                                                     "rankNo": 1,
-                                                    "score": 93.5,
-                                                    "reasonSummary": "채소와 매운맛 선호가 잘 맞는 후보입니다."
+                                                    "score": 93.5
                                                   }
                                                 ],
                                                 "resultJson": {

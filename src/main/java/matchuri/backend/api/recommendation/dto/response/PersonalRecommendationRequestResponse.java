@@ -17,18 +17,18 @@ public record PersonalRecommendationRequestResponse(
         LocalDateTime requestedAt,
 
         @Schema(description = "추천 후보 목록입니다.")
-        List<PersonalRecommendationCandidateResponse> candidates,
+        List<PersonalRecommendationCandidateResponse> candidates
 
-        @Schema(description = "추천 결과 요약 JSON입니다.")
-        Map<String, Object> resultJson
+//        @Schema(description = "추천 결과 요약 JSON입니다.")
+//        Map<String, Object> resultJson
 ) {
     public static PersonalRecommendationRequestResponse mockCompleted() {
         return new PersonalRecommendationRequestResponse(
                 9001L,
                 PersonalRecommendationStatus.COMPLETED,
                 LocalDateTime.of(2026, 5, 6, 12, 10),
-                PersonalRecommendationMocks.candidates(),
-                PersonalRecommendationMocks.resultJson()
+                PersonalRecommendationMocks.candidates()
+//                PersonalRecommendationMocks.resultJson()
         );
     }
 }
