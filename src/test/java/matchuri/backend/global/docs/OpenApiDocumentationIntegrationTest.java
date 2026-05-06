@@ -216,6 +216,79 @@ class OpenApiDocumentationIntegrationTest {
     }
 
     @Test
+    @DisplayName("OpenAPI 문서에 Mock API 표시와 200 응답 예시가 노출된다")
+    void exposesMockApiMetadataAndSuccessExamplesInOpenApi() throws Exception {
+        mockMvc.perform(get("/docs/openapi"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.paths['/api/v1/personal-recommendations'].get.summary")
+                        .value("내 개인 추천 이력 목록 조회 (Mock API)"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal-recommendations'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].id")
+                        .value(9001))
+                .andExpect(jsonPath("$.paths['/api/v1/personal-recommendation-requests'].post.summary")
+                        .value("개인 추천 요청 생성 (Mock API)"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal-recommendation-requests'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].menuName")
+                        .value("비빔밥"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal-recommendation-requests'].post.responses['200'].content['application/json'].examples.success.value.data.resultJson")
+                        .doesNotExist())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal-recommendation-requests/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.contextJson.mealTime")
+                        .value("LUNCH"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal-recommendation-requests/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")
+                        .doesNotExist())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal-recommendation-requests/{requestId}/candidates'].get.responses['200'].content['application/json'].examples.success.value.data.candidates[2].menuName")
+                        .value("쌀국수"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal-recommendation-requests/{requestId}'].patch.responses['200'].content['application/json'].examples.success.value.data.selectedCandidateId")
+                        .value(10001))
+                .andExpect(jsonPath("$.paths['/api/v1/groups'].post.summary")
+                        .value("그룹 생성 (Mock API)"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups'].post.responses['200'].content['application/json'].examples.success.value.data.groupId")
+                        .value(3001))
+                .andExpect(jsonPath("$.paths['/api/v1/groups'].get.summary")
+                        .value("내 그룹 목록 조회 (Mock API)"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].latestRecommendationStatus")
+                        .value("OPEN"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation.voteProgress.votedMemberCount")
+                        .value(3))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/invites'].post.responses['200'].content['application/json'].examples.success.value.data.inviteCode")
+                        .value("LUNCH42"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/join'].post.responses['200'].content['application/json'].examples.success.value.data.memberStatus")
+                        .value("ACTIVE"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/leave'].post.responses['200'].content['application/json'].examples.success.value.data.memberStatus")
+                        .value("LEFT"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].candidateId")
+                        .value(8001))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.finalCandidate")
+                        .value((Object) null))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")
+                        .doesNotExist())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}/candidates'].get.responses['200'].content['application/json'].examples.success.value.data.candidates[1].menuName")
+                        .value("돈까스"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}/votes'].post.responses['200'].content['application/json'].examples.success.value.data.voteValue")
+                        .value(1))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}/finalize'].patch.responses['200'].content['application/json'].examples.success.value.data.finalCandidate.menuName")
+                        .value("비빔밥"));
+    }
+
+    @Test
     @DisplayName("OpenAPI 문서에 Menu Reference 공개 API의 비인증 정책과 envelope 응답 스키마가 노출된다")
     void exposesMenuReferenceApiMetadataInOpenApi() throws Exception {
         mockMvc.perform(get("/docs/openapi"))
