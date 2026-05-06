@@ -8,7 +8,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -24,12 +23,7 @@ import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 @Entity
 @Table(
         name = "member_menu_actions",
-        comment = "회원 메뉴 행동 로그",
-        indexes = {
-                @Index(name = "idx_member_menu_actions_member_created_at", columnList = "member_id,created_at"),
-                @Index(name = "idx_member_menu_actions_menu_action", columnList = "menu_id,action_type"),
-                @Index(name = "idx_member_menu_actions_personal_recommendation", columnList = "personal_recommendation_id")
-        }
+        comment = "회원 메뉴 행동 로그"
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberMenuAction extends CreatedAtEntity {

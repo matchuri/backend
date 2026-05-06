@@ -7,7 +7,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -23,11 +22,6 @@ import matchuri.backend.domain.common.BaseEntity;
 @Table(
         name = "members",
         comment = "회원",
-        indexes = {
-                @Index(name = "idx_members_email", columnList = "email"),
-                @Index(name = "idx_members_social_provider", columnList = "is_social,social_provider_type"),
-                @Index(name = "idx_members_nickname", columnList = "nickname")
-        },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_members_login_id", columnNames = "login_id"),
                 @UniqueConstraint(name = "uk_members_nickname", columnNames = "nickname"),

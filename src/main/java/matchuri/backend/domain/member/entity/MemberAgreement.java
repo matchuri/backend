@@ -8,7 +8,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -26,10 +25,6 @@ import matchuri.backend.domain.common.BaseEntity;
 @Table(
         name = "member_agreements",
         comment = "회원 약관 동의 이력",
-        indexes = {
-                @Index(name = "idx_member_agreements_member_id", columnList = "member_id"),
-                @Index(name = "idx_member_agreements_member_type", columnList = "member_id,agreement_type")
-        },
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_member_agreements_member_type_version",

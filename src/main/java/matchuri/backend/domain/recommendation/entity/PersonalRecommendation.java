@@ -8,7 +8,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -23,11 +22,7 @@ import matchuri.backend.domain.member.entity.Member;
 @Entity
 @Table(
         name = "personal_recommendations",
-        comment = "개인 추천",
-        indexes = {
-                @Index(name = "idx_personal_recommendations_member", columnList = "member_id"),
-                @Index(name = "idx_personal_recommendations_status_requested_at", columnList = "status,requested_at")
-        }
+        comment = "개인 추천"
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PersonalRecommendation extends BaseEntity {

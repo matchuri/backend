@@ -6,10 +6,10 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,9 +21,8 @@ import matchuri.backend.domain.member.entity.Member;
 @Entity
 @Table(
         name = "auth_refresh_tokens",
-        indexes = {
-                @Index(name = "idx_auth_refresh_tokens_member", columnList = "member_id"),
-                @Index(name = "idx_auth_refresh_tokens_token", columnList = "token", unique = true)
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_auth_refresh_tokens_token", columnNames = "token")
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

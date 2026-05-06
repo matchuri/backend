@@ -6,7 +6,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -22,10 +21,6 @@ import matchuri.backend.domain.menu.entity.AttributeCategory;
 @Table(
         name = "member_taste_profile_categories",
         comment = "회원 취향 프로필-속성 카테고리 매핑",
-        indexes = {
-                @Index(name = "idx_member_taste_profile_categories_profile_id", columnList = "profile_id"),
-                @Index(name = "idx_member_taste_profile_categories_attribute_category_id", columnList = "attribute_category_id")
-        },
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_member_taste_profile_category",

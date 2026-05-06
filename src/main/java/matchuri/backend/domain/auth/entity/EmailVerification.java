@@ -7,7 +7,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
@@ -21,11 +20,6 @@ import matchuri.backend.domain.common.BaseEntity;
 @Entity
 @Table(
         name = "auth_email_verifications",
-        indexes = {
-                @Index(name = "idx_auth_email_verifications_email_purpose", columnList = "email,purpose"),
-                @Index(name = "idx_auth_email_verifications_login_id", columnList = "login_id"),
-                @Index(name = "idx_auth_email_verifications_status_expires_at", columnList = "status,expires_at")
-        },
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_auth_email_verifications_token_hash",

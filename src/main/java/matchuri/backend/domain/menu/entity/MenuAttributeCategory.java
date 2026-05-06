@@ -6,7 +6,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -21,10 +20,6 @@ import matchuri.backend.domain.common.BaseEntity;
 @Table(
         name = "menu_attribute_categories",
         comment = "메뉴-속성 카테고리 매핑",
-        indexes = {
-                @Index(name = "idx_menu_attr_categories_menu_id", columnList = "menu_id"),
-                @Index(name = "idx_menu_attr_categories_category_id", columnList = "attribute_category_id")
-        },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_menu_attribute_category", columnNames = {"menu_id",
                         "attribute_category_id"})

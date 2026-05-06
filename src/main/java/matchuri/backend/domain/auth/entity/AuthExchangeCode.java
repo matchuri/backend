@@ -8,10 +8,10 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -24,9 +24,8 @@ import matchuri.backend.domain.member.entity.SocialProviderType;
 @Entity
 @Table(
         name = "auth_exchange_codes",
-        indexes = {
-                @Index(name = "idx_auth_exchange_codes_code", columnList = "code", unique = true),
-                @Index(name = "idx_auth_exchange_codes_member", columnList = "member_id")
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_auth_exchange_codes_code", columnNames = "code")
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -18,9 +17,6 @@ import matchuri.backend.domain.common.BaseEntity;
 @Table(
         name = "ingredients",
         comment = "재료",
-        indexes = {
-                @Index(name = "idx_ingredients_active", columnList = "is_active")
-        },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_ingredients_code", columnNames = "code")
         }
