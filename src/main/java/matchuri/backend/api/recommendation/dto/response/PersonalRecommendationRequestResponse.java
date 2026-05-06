@@ -3,7 +3,6 @@ package matchuri.backend.api.recommendation.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 
 public record PersonalRecommendationRequestResponse(
@@ -18,9 +17,6 @@ public record PersonalRecommendationRequestResponse(
 
         @Schema(description = "추천 후보 목록입니다.")
         List<PersonalRecommendationCandidateResponse> candidates
-
-//        @Schema(description = "추천 결과 요약 JSON입니다.")
-//        Map<String, Object> resultJson
 ) {
     public static PersonalRecommendationRequestResponse mockCompleted() {
         return new PersonalRecommendationRequestResponse(
@@ -28,7 +24,6 @@ public record PersonalRecommendationRequestResponse(
                 PersonalRecommendationStatus.COMPLETED,
                 LocalDateTime.of(2026, 5, 6, 12, 10),
                 PersonalRecommendationMocks.candidates()
-//                PersonalRecommendationMocks.resultJson()
         );
     }
 }

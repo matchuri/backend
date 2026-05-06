@@ -23,13 +23,4 @@ final class PersonalRecommendationMocks {
                 "mood", "가볍지만 든든한 점심"
         );
     }
-
-    static Map<String, Object> resultJson() {
-        return Map.of(
-                "summary", "가볍고 매콤한 점심 후보를 우선 추천했습니다.",
-                "algorithmVersion", "mock-v1",
-                "profileSnapshotVersion", "v1",
-                "candidateCount", 3
-        );
-    }
 }

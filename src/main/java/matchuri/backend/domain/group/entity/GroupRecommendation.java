@@ -52,9 +52,6 @@ public class GroupRecommendation extends BaseEntity {
     @Column(name = "context_json", columnDefinition = "json", comment = "그룹 추천 컨텍스트 JSON")
     private String contextJson;
 
-//    @Column(name = "result_json", columnDefinition = "json", comment = "그룹 추천 결과 요약 JSON")
-//    private String resultJson;
-
     public GroupRecommendation(GroupRoom room, String contextJson, LocalDateTime startedAt) {
         this.room = room;
         this.contextJson = contextJson;
@@ -67,10 +64,9 @@ public class GroupRecommendation extends BaseEntity {
         this.endedAt = endedAt;
     }
 
-    public void finalizeWith(GroupRecommendationCandidate selectedCandidate, String resultJson, LocalDateTime endedAt) {
+    public void finalizeWith(GroupRecommendationCandidate selectedCandidate, LocalDateTime endedAt) {
         this.status = GroupRecommendationStatus.FINALIZED;
         this.selectedCandidate = selectedCandidate;
-//        this.resultJson = resultJson;
         this.endedAt = endedAt;
     }
 

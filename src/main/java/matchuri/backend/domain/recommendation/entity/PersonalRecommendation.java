@@ -46,9 +46,6 @@ public class PersonalRecommendation extends BaseEntity {
     @Column(name = "context_json", columnDefinition = "json", comment = "개인 추천 컨텍스트 JSON")
     private String contextJson;
 
-//    @Column(name = "result_json", columnDefinition = "json", comment = "개인 추천 결과 요약 JSON")
-//    private String resultJson;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "selected_candidate_id", comment = "최종 선택 후보 ID")
     private PersonalRecommendationCandidate selectedCandidate;
@@ -68,14 +65,12 @@ public class PersonalRecommendation extends BaseEntity {
         this.status = PersonalRecommendationStatus.SCORED;
     }
 
-    public void complete(String resultJson) {
+    public void complete() {
         this.status = PersonalRecommendationStatus.COMPLETED;
-//        this.resultJson = resultJson;
     }
 
-    public void fail(String resultJson) {
+    public void fail() {
         this.status = PersonalRecommendationStatus.FAILED;
-//        this.resultJson = resultJson;
     }
 
     public void select(PersonalRecommendationCandidate selectedCandidate) {
