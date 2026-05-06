@@ -28,8 +28,7 @@ public class RecommendationController implements RecommendationApi {
     public ApiResponse<PageResponse<PersonalRecommendationResponse>> getMyPersonalRecommendationList() {
 
         PageResponse<PersonalRecommendationResponse> response = PageResponse.mock(
-                List.of(PersonalRecommendationResponse.mock(),
-                        PersonalRecommendationResponse.mock()));
+                List.of(PersonalRecommendationResponse.mock()));
 
         return ApiResponse.success(response);
     }

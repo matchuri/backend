@@ -1,0 +1,312 @@
+package matchuri.backend.api.group.dto.docs;
+
+public final class GroupApiExamples {
+
+    private GroupApiExamples() {
+    }
+
+    public static final String CREATE_GROUP_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "groupId": 3001,
+                "status": "ACTIVE"
+              },
+              "error": null
+            }
+            """;
+
+    public static final String GROUP_LIST_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "content": [
+                  {
+                    "id": 3001,
+                    "name": "오늘 점심 메뉴 회의",
+                    "status": "ACTIVE",
+                    "memberCount": 4,
+                    "latestRecommendationStatus": "OPEN",
+                    "createdAt": "2026-05-06T12:00:00"
+                  }
+                ],
+                "pageInfo": {
+                  "page": 0,
+                  "size": 10,
+                  "totalElements": 1,
+                  "totalPages": 1,
+                  "first": true,
+                  "last": true,
+                  "hasNext": false,
+                  "hasPrevious": false
+                }
+              },
+              "error": null
+            }
+            """;
+
+    public static final String GROUP_DETAIL_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "id": 3001,
+                "name": "오늘 점심 메뉴 회의",
+                "latitude": 37.498095,
+                "longitude": 127.027610,
+                "status": "ACTIVE",
+                "members": [
+                  {
+                    "memberId": 1,
+                    "nickname": "점심탐험가",
+                    "role": "OWNER",
+                    "status": "ACTIVE",
+                    "joinedAt": "2026-05-06T12:01:00"
+                  },
+                  {
+                    "memberId": 2,
+                    "nickname": "든든한한끼",
+                    "role": "MEMBER",
+                    "status": "ACTIVE",
+                    "joinedAt": "2026-05-06T12:02:00"
+                  },
+                  {
+                    "memberId": 3,
+                    "nickname": "매콤러버",
+                    "role": "MEMBER",
+                    "status": "ACTIVE",
+                    "joinedAt": "2026-05-06T12:02:00"
+                  },
+                  {
+                    "memberId": 4,
+                    "nickname": "국물파",
+                    "role": "MEMBER",
+                    "status": "ACTIVE",
+                    "joinedAt": "2026-05-06T12:02:00"
+                  }
+                ],
+                "activeRecommendation": {
+                  "sessionId": 5001,
+                  "status": "OPEN",
+                  "candidates": [
+                    {
+                      "candidateId": 8001,
+                      "menuId": 1001,
+                      "menuName": "비빔밥",
+                      "rankNo": 1,
+                      "score": 91.5,
+                      "voteCount": 3
+                    },
+                    {
+                      "candidateId": 8002,
+                      "menuId": 1002,
+                      "menuName": "돈까스",
+                      "rankNo": 2,
+                      "score": 84.0,
+                      "voteCount": 1
+                    },
+                    {
+                      "candidateId": 8003,
+                      "menuId": 1003,
+                      "menuName": "쌀국수",
+                      "rankNo": 3,
+                      "score": 79.5,
+                      "voteCount": 0
+                    }
+                  ],
+                  "voteProgress": {
+                    "totalMemberCount": 4,
+                    "votedMemberCount": 3
+                  },
+                  "finalCandidate": null,
+                  "createdAt": "2026-05-06T12:05:00"
+                }
+              },
+              "error": null
+            }
+            """;
+
+    public static final String CREATE_INVITE_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "groupId": 3001,
+                "inviteCode": "LUNCH42",
+                "expiresAt": "2026-05-06T13:00:00",
+                "status": "ACTIVE"
+              },
+              "error": null
+            }
+            """;
+
+    public static final String JOIN_GROUP_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "groupId": 3001,
+                "memberStatus": "ACTIVE"
+              },
+              "error": null
+            }
+            """;
+
+    public static final String LEAVE_GROUP_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "groupId": 3001,
+                "memberStatus": "LEFT",
+                "leftAt": "2026-05-06T12:30:00"
+              },
+              "error": null
+            }
+            """;
+
+    public static final String CREATE_RECOMMENDATION_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "sessionId": 5001,
+                "status": "OPEN",
+                "candidates": [
+                  {
+                    "candidateId": 8001,
+                    "menuId": 1001,
+                    "menuName": "비빔밥",
+                    "rankNo": 1,
+                    "score": 91.5,
+                    "voteCount": 3
+                  },
+                  {
+                    "candidateId": 8002,
+                    "menuId": 1002,
+                    "menuName": "돈까스",
+                    "rankNo": 2,
+                    "score": 84.0,
+                    "voteCount": 1
+                  },
+                  {
+                    "candidateId": 8003,
+                    "menuId": 1003,
+                    "menuName": "쌀국수",
+                    "rankNo": 3,
+                    "score": 79.5,
+                    "voteCount": 0
+                  }
+                ]
+              },
+              "error": null
+            }
+            """;
+
+    public static final String RECOMMENDATION_SESSION_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "sessionId": 5001,
+                "status": "OPEN",
+                "candidates": [
+                  {
+                    "candidateId": 8001,
+                    "menuId": 1001,
+                    "menuName": "비빔밥",
+                    "rankNo": 1,
+                    "score": 91.5,
+                    "voteCount": 3
+                  },
+                  {
+                    "candidateId": 8002,
+                    "menuId": 1002,
+                    "menuName": "돈까스",
+                    "rankNo": 2,
+                    "score": 84.0,
+                    "voteCount": 1
+                  },
+                  {
+                    "candidateId": 8003,
+                    "menuId": 1003,
+                    "menuName": "쌀국수",
+                    "rankNo": 3,
+                    "score": 79.5,
+                    "voteCount": 0
+                  }
+                ],
+                "voteProgress": {
+                  "totalMemberCount": 4,
+                  "votedMemberCount": 3
+                },
+                "finalCandidate": null,
+                "createdAt": "2026-05-06T12:05:00"
+              },
+              "error": null
+            }
+            """;
+
+    public static final String RECOMMENDATION_CANDIDATES_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "sessionId": 5001,
+                "candidates": [
+                  {
+                    "candidateId": 8001,
+                    "menuId": 1001,
+                    "menuName": "비빔밥",
+                    "rankNo": 1,
+                    "score": 91.5,
+                    "voteCount": 3
+                  },
+                  {
+                    "candidateId": 8002,
+                    "menuId": 1002,
+                    "menuName": "돈까스",
+                    "rankNo": 2,
+                    "score": 84.0,
+                    "voteCount": 1
+                  },
+                  {
+                    "candidateId": 8003,
+                    "menuId": 1003,
+                    "menuName": "쌀국수",
+                    "rankNo": 3,
+                    "score": 79.5,
+                    "voteCount": 0
+                  }
+                ]
+              },
+              "error": null
+            }
+            """;
+
+    public static final String VOTE_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "voteId": 91001,
+                "candidateId": 8001,
+                "voteValue": 1,
+                "votedAt": "2026-05-06T12:20:00"
+              },
+              "error": null
+            }
+            """;
+
+    public static final String FINALIZE_RECOMMENDATION_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "sessionId": 5001,
+                "status": "FINALIZED",
+                "finalCandidate": {
+                  "candidateId": 8001,
+                  "menuId": 1001,
+                  "menuName": "비빔밥",
+                  "rankNo": 1,
+                  "score": 91.5,
+                  "voteCount": 3
+                },
+                "finalizedAt": "2026-05-06T12:25:00"
+              },
+              "error": null
+            }
+            """;
+}

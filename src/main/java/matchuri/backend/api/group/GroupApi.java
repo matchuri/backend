@@ -10,6 +10,7 @@ import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.FinalizeGroupRecommendationApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupApiExamples;
 import matchuri.backend.api.group.dto.docs.GroupDetailApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationCandidateListApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationSessionApiResponse;
@@ -58,16 +59,7 @@ public interface GroupApi {
                             schema = @Schema(implementation = CreateGroupApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
-                                    value = """
-                                            {
-                                              "success": true,
-                                              "data": {
-                                                "groupId": 3001,
-                                                "status": "ACTIVE"
-                                              },
-                                              "error": null
-                                            }
-                                            """
+                                    value = GroupApiExamples.CREATE_GROUP_SUCCESS
                             )
                     )
             )
@@ -90,7 +82,11 @@ public interface GroupApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = GroupSummaryPageApiResponse.class)
+                            schema = @Schema(implementation = GroupSummaryPageApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.GROUP_LIST_SUCCESS
+                            )
                     )
             )
     })
@@ -112,7 +108,11 @@ public interface GroupApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = GroupDetailApiResponse.class)
+                            schema = @Schema(implementation = GroupDetailApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.GROUP_DETAIL_SUCCESS
+                            )
                     )
             )
     })
@@ -134,7 +134,11 @@ public interface GroupApi {
                     description = "초대 코드 생성 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CreateGroupInviteApiResponse.class)
+                            schema = @Schema(implementation = CreateGroupInviteApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.CREATE_INVITE_SUCCESS
+                            )
                     )
             )
     })
@@ -156,7 +160,11 @@ public interface GroupApi {
                     description = "그룹 참여 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = JoinGroupApiResponse.class)
+                            schema = @Schema(implementation = JoinGroupApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.JOIN_GROUP_SUCCESS
+                            )
                     )
             )
     })
@@ -178,7 +186,11 @@ public interface GroupApi {
                     description = "그룹 탈퇴 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = LeaveGroupApiResponse.class)
+                            schema = @Schema(implementation = LeaveGroupApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.LEAVE_GROUP_SUCCESS
+                            )
                     )
             )
     })
@@ -201,7 +213,11 @@ public interface GroupApi {
                     description = "그룹 추천 시작 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CreateGroupRecommendationApiResponse.class)
+                            schema = @Schema(implementation = CreateGroupRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.CREATE_RECOMMENDATION_SUCCESS
+                            )
                     )
             )
     })
@@ -226,7 +242,11 @@ public interface GroupApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = GroupRecommendationSessionApiResponse.class)
+                            schema = @Schema(implementation = GroupRecommendationSessionApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RECOMMENDATION_SESSION_SUCCESS
+                            )
                     )
             )
     })
@@ -248,7 +268,11 @@ public interface GroupApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = GroupRecommendationCandidateListApiResponse.class)
+                            schema = @Schema(implementation = GroupRecommendationCandidateListApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RECOMMENDATION_CANDIDATES_SUCCESS
+                            )
                     )
             )
     })
@@ -271,7 +295,11 @@ public interface GroupApi {
                     description = "투표 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = GroupVoteApiResponse.class)
+                            schema = @Schema(implementation = GroupVoteApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.VOTE_SUCCESS
+                            )
                     )
             )
     })
@@ -293,7 +321,11 @@ public interface GroupApi {
                     description = "확정 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = FinalizeGroupRecommendationApiResponse.class)
+                            schema = @Schema(implementation = FinalizeGroupRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.FINALIZE_RECOMMENDATION_SUCCESS
+                            )
                     )
             )
     })

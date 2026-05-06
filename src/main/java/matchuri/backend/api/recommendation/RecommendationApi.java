@@ -10,6 +10,7 @@ import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationCandid
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationDetailApiResponse;
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationRequestApiResponse;
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationSummaryPageApiResponse;
+import matchuri.backend.api.recommendation.dto.docs.RecommendationApiExamples;
 import matchuri.backend.api.recommendation.dto.docs.SelectPersonalRecommendationApiResponse;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.SelectPersonalRecommendationRequest;
@@ -40,7 +41,11 @@ public interface RecommendationApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = PersonalRecommendationSummaryPageApiResponse.class)
+                            schema = @Schema(implementation = PersonalRecommendationSummaryPageApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_LIST_SUCCESS
+                            )
                     )
             )
     })
@@ -66,31 +71,7 @@ public interface RecommendationApi {
                             schema = @Schema(implementation = PersonalRecommendationRequestApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
-                                    value = """
-                                            {
-                                              "success": true,
-                                              "data": {
-                                                "requestId": 9001,
-                                                "status": "COMPLETED",
-                                                "requestedAt": "2026-05-06T12:10:00",
-                                                "candidates": [
-                                                  {
-                                                    "id": 10001,
-                                                    "menuId": 1001,
-                                                    "menuName": "비빔밥",
-                                                    "rankNo": 1,
-                                                    "score": 93.5
-                                                  }
-                                                ],
-                                                "resultJson": {
-                                                  "summary": "가볍고 매콤한 점심 후보를 우선 추천했습니다.",
-                                                  "algorithmVersion": "mock-v1",
-                                                  "candidateCount": 3
-                                                }
-                                              },
-                                              "error": null
-                                            }
-                                            """
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_CREATE_SUCCESS
                             )
                     )
             )
@@ -115,7 +96,11 @@ public interface RecommendationApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = PersonalRecommendationDetailApiResponse.class)
+                            schema = @Schema(implementation = PersonalRecommendationDetailApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_DETAIL_SUCCESS
+                            )
                     )
             )
     })
@@ -137,7 +122,11 @@ public interface RecommendationApi {
                     description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = PersonalRecommendationCandidateListApiResponse.class)
+                            schema = @Schema(implementation = PersonalRecommendationCandidateListApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_CANDIDATES_SUCCESS
+                            )
                     )
             )
     })
@@ -160,7 +149,11 @@ public interface RecommendationApi {
                     description = "선택 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = SelectPersonalRecommendationApiResponse.class)
+                            schema = @Schema(implementation = SelectPersonalRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_SELECT_SUCCESS
+                            )
                     )
             )
     })
