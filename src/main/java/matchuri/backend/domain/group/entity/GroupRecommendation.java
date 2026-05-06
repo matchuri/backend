@@ -1,0 +1,86 @@
+package matchuri.backend.domain.group.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import matchuri.backend.domain.common.BaseEntity;
+
+@Getter
+@Entity
+@Table(
+        name = "group_recommendations",
+        comment = "그룹 추천",
+        indexes = {
+                @Index(name = "idx_group_recommendations_room_status", columnList = "room_id,status"),
+                @Index(name = "idx_group_recommendations_started_at", columnList = "started_at")
+        }
+)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class GroupRecommendation extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(comment = "그룹 추천 ID")
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "room_id", nullable = false, comment = "그룹 방 ID")
+    private GroupRoom room;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20, comment = "그룹 추천 상태")
+    private GroupRecommendationStatus status;
+
+    @Column(name = "started_at", nullable = false, comment = "시작 시각")
+    private LocalDateTime startedAt;
+
+    @Column(name = "ended_at", comment = "종료 시각")
+    private LocalDateTime endedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "selected_candidate_id", comment = "최종 선택 후보 ID")
+    private GroupRecommendationCandidate selectedCandidate;
+
+    @Column(name = "context_json", columnDefinition = "json", comment = "그룹 추천 컨텍스트 JSON")
+    private String contextJson;
+
+    @Column(name = "result_json", columnDefinition = "json", comment = "그룹 추천 결과 요약 JSON")
+    private String resultJson;
+
+    public GroupRecommendation(GroupRoom room, String contextJson, LocalDateTime startedAt) {
+        this.room = room;
+        this.contextJson = contextJson;
+        this.startedAt = startedAt;
+        this.status = GroupRecommendationStatus.OPEN;
+    }
+
+    public void close(LocalDateTime endedAt) {
+        this.status = GroupRecommendationStatus.CLOSED;
+        this.endedAt = endedAt;
+    }
+
+    public void finalizeWith(GroupRecommendationCandidate selectedCandidate, String resultJson, LocalDateTime endedAt) {
+        this.status = GroupRecommendationStatus.FINALIZED;
+        this.selectedCandidate = selectedCandidate;
+        this.resultJson = resultJson;
+        this.endedAt = endedAt;
+    }
+
+    public void cancel(LocalDateTime endedAt) {
+        this.status = GroupRecommendationStatus.CANCELED;
+        this.endedAt = endedAt;
+    }
+}
