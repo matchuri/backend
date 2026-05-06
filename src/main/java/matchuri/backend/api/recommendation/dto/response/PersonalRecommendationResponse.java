@@ -9,6 +9,10 @@ public record PersonalRecommendationResponse(
         LocalDateTime requestedAt
 ) {
     public static PersonalRecommendationResponse mock() {
-        return new PersonalRecommendationResponse(1, PersonalRecommendationStatus.REQUESTED, LocalDateTime.now());
+        return new PersonalRecommendationResponse(
+                9001L,
+                PersonalRecommendationStatus.COMPLETED,
+                LocalDateTime.of(2026, 5, 6, 12, 10)
+        );
     }
 }
