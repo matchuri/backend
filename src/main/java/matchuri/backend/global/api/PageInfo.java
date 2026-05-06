@@ -30,4 +30,17 @@ public class PageInfo {
                 page.hasPrevious()
         );
     }
+
+    public static PageInfo mock() {
+        return new PageInfo(
+                0,
+                10,
+                1L,
+                1,
+                true,
+                true,
+                false,
+                false
+        );
+    }
 }

@@ -24,4 +24,8 @@ public class PageResponse<T> {
                 .toList();
         return new PageResponse<>(mappedContent, PageInfo.of(page));
     }
+
+    public static <T> PageResponse<T> mock(List<T> list) {
+        return new PageResponse<>(list, PageInfo.mock());
+    }
 }
