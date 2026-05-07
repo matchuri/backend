@@ -12,11 +12,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.menu.entity.AttributeCategory;
+import matchuri.backend.domain.menu.entity.MenuAttributeCategory;
+import matchuri.backend.domain.menu.entity.MenuItem;
 
 @Getter
 @Entity
@@ -50,11 +54,21 @@ public class PersonalRecommendation extends BaseEntity {
     @JoinColumn(name = "selected_candidate_id", comment = "최종 선택 후보 ID")
     private PersonalRecommendationCandidate selectedCandidate;
 
-    public PersonalRecommendation(Member member, String contextJson, LocalDateTime requestedAt) {
+    private PersonalRecommendation(Member member, String contextJson, LocalDateTime requestedAt,
+                                   PersonalRecommendationStatus status) {
         this.member = member;
         this.contextJson = contextJson;
         this.requestedAt = requestedAt;
-        this.status = PersonalRecommendationStatus.REQUESTED;
+        this.status = status;
+    }
+
+    public static PersonalRecommendation of(Member member, String contextJson) {
+        return new PersonalRecommendation(
+                member,
+                contextJson,
+                LocalDateTime.now(),
+                PersonalRecommendationStatus.REQUESTED
+        );
     }
 
     public void markFiltered() {
@@ -75,5 +89,19 @@ public class PersonalRecommendation extends BaseEntity {
 
     public void select(PersonalRecommendationCandidate selectedCandidate) {
         this.selectedCandidate = selectedCandidate;
+    }
+
+    public MenuItem getSelectedMenu() {
+        return this.selectedCandidate.getMenuItem();
+    }
+
+    public List<AttributeCategory> getSelectedMenuAttributeCategory() {
+
+        MenuItem menuItem = this.selectedCandidate.getMenuItem();
+        List<MenuAttributeCategory> menuAttributeCategories = menuItem.getMenuAttributeCategories();
+
+        return menuAttributeCategories.stream()
+                .map(MenuAttributeCategory::getAttributeCategory)
+                .toList();
     }
 }

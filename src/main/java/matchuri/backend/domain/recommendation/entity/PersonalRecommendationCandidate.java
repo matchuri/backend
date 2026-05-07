@@ -48,17 +48,17 @@ public class PersonalRecommendationCandidate extends BaseEntity {
     @Column(name = "rank_no", nullable = false, comment = "후보 순위")
     private int rankNo;
 
-    @Column(precision = 10, scale = 4, comment = "추천 점수")
-    private BigDecimal score;
+    @Column(comment = "추천 점수")
+    private Double score;
 
     @Column(name = "candidate_meta_json", columnDefinition = "json", comment = "후보 메타 JSON")
     private String candidateMetaJson;
 
-    public PersonalRecommendationCandidate(
+    private PersonalRecommendationCandidate(
             PersonalRecommendation personalRecommendation,
             MenuItem menuItem,
             int rankNo,
-            BigDecimal score,
+            Double score,
             String candidateMetaJson
     ) {
         this.personalRecommendation = personalRecommendation;
@@ -66,5 +66,20 @@ public class PersonalRecommendationCandidate extends BaseEntity {
         this.rankNo = rankNo;
         this.score = score;
         this.candidateMetaJson = candidateMetaJson;
+    }
+
+    public static PersonalRecommendationCandidate of(
+            PersonalRecommendation personalRecommendation,
+            MenuItem menuItem,
+            int rankNo,
+            Double score
+    ) {
+        return new PersonalRecommendationCandidate(
+                personalRecommendation,
+                menuItem,
+                rankNo,
+                score,
+                null
+        );
     }
 }

@@ -56,4 +56,6 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
             @Param("ingredientIds") Collection<Long> ingredientIds,
             @Param("ingredientIdsEmpty") boolean ingredientIdsEmpty
     );
+
+    List<MenuItem> findAllByIdNotIn(Collection<Long> ids);
 }

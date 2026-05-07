@@ -7,13 +7,19 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
+import matchuri.backend.domain.menu.entity.AttributeCategory;
+import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.entity.MenuItem;
 
 @Getter
 @Entity
@@ -41,6 +47,15 @@ public class MemberTasteProfile extends BaseEntity {
     @Column(name = "profile_version", nullable = false, length = PROFILE_VERSION_MAX_SIZE, comment = "프로필 버전")
     private String profileVersion;
 
+    @OneToMany(mappedBy = "profile")
+    private List<MemberTasteProfileCategory> preferAttributeCategories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "profile")
+    private List<MemberTasteProfileRestrictionIngredient> restrictionIngredients = new ArrayList<>();
+
+    @OneToMany(mappedBy = "profile")
+    private List<MemberTasteProfileDislikedMenuItem> dislikedMenuItems = new ArrayList<>();
+
     public MemberTasteProfile(Member member, String profileVersion) {
         this.member = member;
         this.profileVersion = profileVersion;
@@ -49,5 +64,23 @@ public class MemberTasteProfile extends BaseEntity {
 
     public void updateProfileVersion(String profileVersion) {
         this.profileVersion = profileVersion;
+    }
+
+    public List<Ingredient> getRestrictionIngredients() {
+        return restrictionIngredients.stream()
+                .map(MemberTasteProfileRestrictionIngredient::getIngredient)
+                .toList();
+    }
+
+    public List<MenuItem> getDisLikeMenuItems() {
+        return dislikedMenuItems.stream()
+                .map(MemberTasteProfileDislikedMenuItem::getMenuItem)
+                .toList();
+    }
+
+    public List<AttributeCategory> getPreferAttributeCategories() {
+        return preferAttributeCategories.stream()
+                .map(MemberTasteProfileCategory::getAttributeCategory)
+                .toList();
     }
 }

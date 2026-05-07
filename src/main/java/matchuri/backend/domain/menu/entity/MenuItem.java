@@ -5,8 +5,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,6 +49,9 @@ public class MenuItem extends BaseEntity {
     @Column(name = "is_active", nullable = false, comment = "활성 여부")
     private boolean active;
 
+    @OneToMany(mappedBy = "menu")
+    private List<MenuAttributeCategory> menuAttributeCategories = new ArrayList<>();
+
     public MenuItem(
             String code,
             String name,
@@ -69,5 +77,17 @@ public class MenuItem extends BaseEntity {
 
     public void deactivate() {
         this.active = false;
+    }
+
+    public long countMatchingCategories(List<AttributeCategory> categories) {
+
+        Set<Long> ids = categories.stream()
+                .map(AttributeCategory::getId)
+                .collect(Collectors.toSet());
+
+        return this.menuAttributeCategories.stream()
+                .map(MenuAttributeCategory::getAttributeCategory)
+                .filter(attributeCategory -> ids.contains(attributeCategory.getId()))
+                .count();
     }
 }

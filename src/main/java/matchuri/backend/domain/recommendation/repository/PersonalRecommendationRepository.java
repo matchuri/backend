@@ -1,0 +1,11 @@
+package matchuri.backend.domain.recommendation.repository;
+
+import java.util.List;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
+import org.jspecify.annotations.NullMarked;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+@NullMarked
+public interface PersonalRecommendationRepository extends JpaRepository<PersonalRecommendation, Long> {
+    List<PersonalRecommendation> findByMemberId(Long memberId);
+}
