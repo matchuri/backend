@@ -32,7 +32,7 @@ public final class GroupApiExamples {
                 ],
                 "pageInfo": {
                   "page": 0,
-                  "size": 10,
+                  "size": 20,
                   "totalElements": 1,
                   "totalPages": 1,
                   "first": true,

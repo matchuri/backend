@@ -27,9 +27,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @RequestMapping("/api/v1/groups")
+@Validated
 public class GroupController implements GroupApi {
 
     @Override
@@ -42,10 +44,13 @@ public class GroupController implements GroupApi {
     @GetMapping
     public ApiResponse<PageResponse<GroupSummaryResponse>> getMyGroups(
             @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "20") Integer size
+            @RequestParam(defaultValue = "0")
+            Integer page,
+
+            @RequestParam(defaultValue = "20")
+            Integer size
     ) {
-        return ApiResponse.success(PageResponse.mock(List.of(GroupSummaryResponse.mockActive())));
+        return ApiResponse.success(PageResponse.mock(List.of(GroupSummaryResponse.mockActive()), page, size, 1L));
     }
 
     @Override

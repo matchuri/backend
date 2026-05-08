@@ -1,11 +1,14 @@
 package matchuri.backend.api.recommendation;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationCandidateListApiResponse;
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationDetailApiResponse;
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationRequestApiResponse;
@@ -49,7 +52,16 @@ public interface RecommendationApi {
                     )
             )
     })
-    ApiResponse<PageResponse<PersonalRecommendationResponse>> getMyPersonalRecommendationList();
+    ApiResponse<PageResponse<PersonalRecommendationResponse>> getMyPersonalRecommendationList(
+            @Parameter(description = "0부터 시작하는 페이지 번호입니다.", example = "0")
+            @Min(0)
+            Integer page,
+
+            @Parameter(description = "페이지 크기입니다. 기본값은 20입니다.", example = "20")
+            @Min(1)
+            @Max(100)
+            Integer size
+    );
 
     @Operation(
             summary = "개인 추천 요청 생성 (Mock API)",
