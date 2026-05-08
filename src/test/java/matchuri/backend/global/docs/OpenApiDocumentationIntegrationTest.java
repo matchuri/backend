@@ -221,30 +221,30 @@ class OpenApiDocumentationIntegrationTest {
         mockMvc.perform(get("/docs/openapi"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
-                .andExpect(jsonPath("$.paths['/api/v1/personal-recommendations'].get.summary")
+                .andExpect(jsonPath("$.paths['/api/v1/personal/recommendations'].get.summary")
                         .value("내 개인 추천 이력 목록 조회 (Mock API)"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal-recommendations'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].id")
+                        "$.paths['/api/v1/personal/recommendations'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].id")
                         .value(9001))
-                .andExpect(jsonPath("$.paths['/api/v1/personal-recommendation-requests'].post.summary")
+                .andExpect(jsonPath("$.paths['/api/v1/personal/recommendations'].post.summary")
                         .value("개인 추천 요청 생성 (Mock API)"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal-recommendation-requests'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].menuName")
+                        "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].menuName")
                         .value("비빔밥"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal-recommendation-requests'].post.responses['200'].content['application/json'].examples.success.value.data.resultJson")
+                        "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.resultJson")
                         .doesNotExist())
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal-recommendation-requests/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.contextJson.mealTime")
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.contextJson.mealTime")
                         .value("LUNCH"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal-recommendation-requests/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")
                         .doesNotExist())
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal-recommendation-requests/{requestId}/candidates'].get.responses['200'].content['application/json'].examples.success.value.data.candidates[2].menuName")
+                        "$.paths['/api/v1/personal/recommendations/{requestId}/candidates'].get.responses['200'].content['application/json'].examples.success.value.data.candidates[2].menuName")
                         .value("쌀국수"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal-recommendation-requests/{requestId}'].patch.responses['200'].content['application/json'].examples.success.value.data.selectedCandidateId")
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['200'].content['application/json'].examples.success.value.data.selectedCandidateId")
                         .value(10001))
                 .andExpect(jsonPath("$.paths['/api/v1/groups'].post.summary")
                         .value("그룹 생성 (Mock API)"))
@@ -269,22 +269,22 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups/{groupId}/leave'].post.responses['200'].content['application/json'].examples.success.value.data.memberStatus")
                         .value("LEFT"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].candidateId")
+                        "$.paths['/api/v1/groups/{groupId}/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].candidateId")
                         .value(8001))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.finalCandidate")
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.finalCandidate")
                         .value((Object) null))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")
                         .doesNotExist())
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}/candidates'].get.responses['200'].content['application/json'].examples.success.value.data.candidates[1].menuName")
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/candidates'].get.responses['200'].content['application/json'].examples.success.value.data.candidates[1].menuName")
                         .value("돈까스"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}/votes'].post.responses['200'].content['application/json'].examples.success.value.data.voteValue")
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/votes'].post.responses['200'].content['application/json'].examples.success.value.data.voteValue")
                         .value(1))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}/recommendation-sessions/{sessionId}/finalize'].patch.responses['200'].content['application/json'].examples.success.value.data.finalCandidate.menuName")
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize'].patch.responses['200'].content['application/json'].examples.success.value.data.finalCandidate.menuName")
                         .value("비빔밥"));
     }
 
