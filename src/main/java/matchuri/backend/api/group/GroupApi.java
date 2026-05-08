@@ -36,7 +36,7 @@ import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
 
-@Tag(name = "Group Decision", description = "그룹 점심 메뉴 의사결정 API")
+@Tag(name = "Group Decision", description = "그룹 메뉴 의사결정 API")
 public interface GroupApi {
 
     @Operation(
@@ -204,7 +204,7 @@ public interface GroupApi {
                     Mock API 상태:
                     - request body validation만 수행합니다.
                     - 그룹 취향 집계와 후보 생성 알고리즘은 아직 수행하지 않습니다.
-                    - API 경로는 사용자 흐름상 `recommendation-sessions`를 사용하지만, 최신 저장 테이블은 `group_recommendations` 기준입니다.
+                    - API 경로는 사용자 흐름상 `recommendations`를 사용하며, 최신 저장 테이블은 `group_recommendations` 기준입니다.
                     """
     )
     @ApiResponses({

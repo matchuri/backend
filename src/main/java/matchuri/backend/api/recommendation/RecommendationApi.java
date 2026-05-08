@@ -22,7 +22,7 @@ import matchuri.backend.api.recommendation.dto.response.SelectPersonalRecommenda
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
 
-@Tag(name = "Personal Recommendation", description = "개인 점심 메뉴 추천 API")
+@Tag(name = "Personal Recommendation", description = "개인 메뉴 추천 API")
 public interface RecommendationApi {
 
     @Operation(
