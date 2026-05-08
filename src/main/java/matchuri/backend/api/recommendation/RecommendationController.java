@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecommendationController implements RecommendationApi {
 
     @Override
-    @GetMapping("/personal-recommendations")
+    @GetMapping("/personal/recommendations")
     public ApiResponse<PageResponse<PersonalRecommendationResponse>> getMyPersonalRecommendationList() {
 
         PageResponse<PersonalRecommendationResponse> response = PageResponse.mock(
@@ -34,7 +34,7 @@ public class RecommendationController implements RecommendationApi {
     }
 
     @Override
-    @PostMapping("/personal-recommendation-requests")
+    @PostMapping("/personal/recommendations")
     public ApiResponse<PersonalRecommendationRequestResponse> createPersonalRecommendation(
             @Valid @RequestBody CreatePersonalRecommendationRequest request
     ) {
@@ -42,13 +42,13 @@ public class RecommendationController implements RecommendationApi {
     }
 
     @Override
-    @GetMapping("/personal-recommendation-requests/{requestId}")
+    @GetMapping("/personal/recommendations/{requestId}")
     public ApiResponse<PersonalRecommendationDetailResponse> getPersonalRecommendation(@PathVariable Long requestId) {
         return ApiResponse.success(PersonalRecommendationDetailResponse.mockSelected());
     }
 
     @Override
-    @GetMapping("/personal-recommendation-requests/{requestId}/candidates")
+    @GetMapping("/personal/recommendations/{requestId}/candidates")
     public ApiResponse<PersonalRecommendationCandidateListResponse> getPersonalRecommendationCandidates(
             @PathVariable Long requestId
     ) {
@@ -56,7 +56,7 @@ public class RecommendationController implements RecommendationApi {
     }
 
     @Override
-    @PatchMapping("/personal-recommendation-requests/{requestId}")
+    @PatchMapping("/personal/recommendations/{requestId}")
     public ApiResponse<SelectPersonalRecommendationResponse> selectPersonalRecommendationCandidate(
             @PathVariable Long requestId,
             @Valid @RequestBody SelectPersonalRecommendationRequest request
