@@ -2,7 +2,6 @@ package matchuri.backend.api.recommendation;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.SelectPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateListResponse;

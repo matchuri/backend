@@ -1,11 +1,14 @@
 package matchuri.backend.api.group;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupRecommendationApiResponse;
@@ -36,7 +39,7 @@ import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
 
-@Tag(name = "Group Decision", description = "그룹 점심 메뉴 의사결정 API")
+@Tag(name = "Group Decision", description = "그룹 메뉴 의사결정 API")
 public interface GroupApi {
 
     @Operation(
@@ -90,7 +93,19 @@ public interface GroupApi {
                     )
             )
     })
-    ApiResponse<PageResponse<GroupSummaryResponse>> getMyGroups(String status, Integer page, Integer size);
+    ApiResponse<PageResponse<GroupSummaryResponse>> getMyGroups(
+            @Parameter(description = "그룹 상태 필터입니다. 생략하면 전체 상태를 조회합니다.", example = "ACTIVE")
+            String status,
+
+            @Parameter(description = "0부터 시작하는 페이지 번호입니다.", example = "0")
+            @Min(0)
+            Integer page,
+
+            @Parameter(description = "페이지 크기입니다. 기본값은 20입니다.", example = "20")
+            @Min(1)
+            @Max(100)
+            Integer size
+    );
 
     @Operation(
             summary = "그룹 상세 조회 (Mock API)",
@@ -204,7 +219,7 @@ public interface GroupApi {
                     Mock API 상태:
                     - request body validation만 수행합니다.
                     - 그룹 취향 집계와 후보 생성 알고리즘은 아직 수행하지 않습니다.
-                    - API 경로는 사용자 흐름상 `recommendation-sessions`를 사용하지만, 최신 저장 테이블은 `group_recommendations` 기준입니다.
+                    - API 경로는 사용자 흐름상 `recommendations`를 사용하며, 최신 저장 테이블은 `group_recommendations` 기준입니다.
                     """
     )
     @ApiResponses({

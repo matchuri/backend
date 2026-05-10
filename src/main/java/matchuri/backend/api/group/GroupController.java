@@ -27,9 +27,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @RequestMapping("/api/v1/groups")
+@Validated
 public class GroupController implements GroupApi {
 
     @Override
@@ -42,10 +44,13 @@ public class GroupController implements GroupApi {
     @GetMapping
     public ApiResponse<PageResponse<GroupSummaryResponse>> getMyGroups(
             @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "20") Integer size
+            @RequestParam(defaultValue = "0")
+            Integer page,
+
+            @RequestParam(defaultValue = "20")
+            Integer size
     ) {
-        return ApiResponse.success(PageResponse.mock(List.of(GroupSummaryResponse.mockActive())));
+        return ApiResponse.success(PageResponse.mock(List.of(GroupSummaryResponse.mockActive()), page, size, 1L));
     }
 
     @Override
@@ -73,7 +78,7 @@ public class GroupController implements GroupApi {
     }
 
     @Override
-    @PostMapping("/{groupId}/recommendation-sessions")
+    @PostMapping("/{groupId}/recommendations")
     public ApiResponse<CreateGroupRecommendationResponse> createRecommendation(
             @PathVariable Long groupId,
             @Valid @RequestBody CreateGroupRecommendationRequest request
@@ -82,7 +87,7 @@ public class GroupController implements GroupApi {
     }
 
     @Override
-    @GetMapping("/{groupId}/recommendation-sessions/{sessionId}")
+    @GetMapping("/{groupId}/recommendations/{sessionId}")
     public ApiResponse<GroupRecommendationSessionResponse> getRecommendation(
             @PathVariable Long groupId,
             @PathVariable Long sessionId
@@ -91,7 +96,7 @@ public class GroupController implements GroupApi {
     }
 
     @Override
-    @GetMapping("/{groupId}/recommendation-sessions/{sessionId}/candidates")
+    @GetMapping("/{groupId}/recommendations/{sessionId}/candidates")
     public ApiResponse<GroupRecommendationCandidateListResponse> getRecommendationCandidates(
             @PathVariable Long groupId,
             @PathVariable Long sessionId
@@ -100,7 +105,7 @@ public class GroupController implements GroupApi {
     }
 
     @Override
-    @PostMapping("/{groupId}/recommendation-sessions/{sessionId}/votes")
+    @PostMapping("/{groupId}/recommendations/{sessionId}/votes")
     public ApiResponse<GroupVoteResponse> vote(
             @PathVariable Long groupId,
             @PathVariable Long sessionId,
@@ -110,7 +115,7 @@ public class GroupController implements GroupApi {
     }
 
     @Override
-    @PatchMapping("/{groupId}/recommendation-sessions/{sessionId}/finalize")
+    @PatchMapping("/{groupId}/recommendations/{sessionId}/finalize")
     public ApiResponse<FinalizeGroupRecommendationResponse> finalizeRecommendation(
             @PathVariable Long groupId,
             @PathVariable Long sessionId
