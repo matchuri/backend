@@ -43,4 +43,17 @@ public class PageInfo {
                 false
         );
     }
+
+    public static PageInfo ofList(int size) {
+        return new PageInfo(
+                0,
+                size,
+                size,
+                size == 0 ? 0 : 1,
+                true,
+                true,
+                false,
+                false
+        );
+    }
 }
