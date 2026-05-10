@@ -32,11 +32,11 @@ public class ScoreCalculator {
         double fieldRate = Math.round(rawFieldRate * 100) / 100.0;
 
         int size = preferAttributeCategories.size();
-        double categoryMatchingCountRate = fieldRate / size;
+        double categoryMatchingCountRate = size == 0 ? 0 : fieldRate / size;
 
         Collection<Long> values = categoryFrequencyMap.values();
-        long maxFrequency = Collections.max(values);
-        double weightMatchingCountRate = fieldRate / maxFrequency;
+        long maxFrequency = values.isEmpty() ? 0 : Collections.max(values);
+        double weightMatchingCountRate = maxFrequency == 0 ? 0 : fieldRate / maxFrequency;
 
         return new ScoreCalculator(categoryMatchingCountRate, weightMatchingCountRate);
     }
