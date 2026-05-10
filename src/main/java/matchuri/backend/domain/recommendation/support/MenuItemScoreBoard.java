@@ -34,7 +34,7 @@ public class MenuItemScoreBoard {
                 .map(MenuAttributeCategory::getAttributeCategory)
                 .toList();
 
-        long weightMatchingCount = categories.stream()
+        this.weightMatchingCount = categories.stream()
                 .mapToLong(category -> categoryFrequencyMap.getOrDefault(category, 0L))
                 .sum();
     }

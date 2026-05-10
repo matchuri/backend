@@ -11,14 +11,17 @@ import matchuri.backend.domain.menu.entity.AttributeCategory;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ScoreCalculator {
-    public double categoryMatchingCountRate;
-    public double weightMatchingCountRate;
+
+    private static final int SCORE_FACTOR_COUNT = 2;
+    private static final int RECOMMENDATION_CANDIDATE_LIMIT = 3;
+
+    private final double categoryMatchingCountRate;
+    private final double weightMatchingCountRate;
 
     public static ScoreCalculator of(List<AttributeCategory> preferAttributeCategories,
                                      Map<AttributeCategory, Long> categoryFrequencyMap) {
 
-        int fieldCount = ScoreCalculator.class.getDeclaredFields().length;
-        double rawFieldRate = 100.0 / fieldCount;
+        double rawFieldRate = 100.0 / SCORE_FACTOR_COUNT;
         double fieldRate = Math.round(rawFieldRate * 100) / 100.0;
 
         int size = preferAttributeCategories.size();
@@ -46,7 +49,7 @@ public class ScoreCalculator {
 
         return menuItemScoreBoardMap.values().stream()
                 .sorted(Comparator.comparing(MenuItemScoreBoard::getTotalScore).reversed())
-                .limit(3)
+                .limit(RECOMMENDATION_CANDIDATE_LIMIT)
                 .toList();
     }
 
