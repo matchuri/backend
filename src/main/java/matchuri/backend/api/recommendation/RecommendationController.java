@@ -17,6 +17,8 @@ import matchuri.backend.domain.recommendation.result.SelectPersonalRecommendatio
 import matchuri.backend.domain.recommendation.service.RecommendationService;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
+import org.jspecify.annotations.NullMarked;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@NullMarked
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -40,18 +43,11 @@ public class RecommendationController implements RecommendationApi {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer size
     ) {
-        List<PersonalRecommendationSummaryResult> results = recommendationService.getMyPersonalRecommendations();
+        Page<PersonalRecommendationSummaryResult> results =
+                recommendationService.getMyPersonalRecommendations(page, size);
 
-        List<PersonalRecommendationResponse> content = results.stream()
-                .map(recommendationMapper::toSummaryResponse)
-                .toList();
-
-        PageResponse<PersonalRecommendationResponse> response = PageResponse.mock(
-                content,
-                page,
-                size,
-                content.size()
-        );
+        PageResponse<PersonalRecommendationResponse> response =
+                PageResponse.of(results, recommendationMapper::toSummaryResponse);
 
         return ApiResponse.success(response);
     }

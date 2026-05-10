@@ -5,6 +5,8 @@ import matchuri.backend.domain.recommendation.result.PersonalRecommendationCandi
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationSummaryResult;
 import matchuri.backend.domain.recommendation.result.SelectPersonalRecommendationResult;
+import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
 
 public interface RecommendationService {
     PersonalRecommendationResult createPersonalRecommendation(String contextJson);
@@ -13,7 +15,7 @@ public interface RecommendationService {
 
     List<PersonalRecommendationCandidateResult> getPersonalRecommendationCandidates(Long personalRecommendationId);
 
-    List<PersonalRecommendationSummaryResult> getMyPersonalRecommendations();
+    Page<@NonNull PersonalRecommendationSummaryResult> getMyPersonalRecommendations(int page, int size);
 
     SelectPersonalRecommendationResult selectPersonalRecommendationCandidate(
             Long personalRecommendationId,

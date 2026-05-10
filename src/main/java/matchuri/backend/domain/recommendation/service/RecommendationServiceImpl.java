@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.behavior.entity.ActionType;
 import matchuri.backend.domain.behavior.entity.MemberMenuAction;
@@ -32,6 +33,8 @@ import matchuri.backend.domain.recommendation.result.SelectPersonalRecommendatio
 import matchuri.backend.domain.recommendation.support.MenuItemScoreBoard;
 import matchuri.backend.domain.recommendation.support.ScoreCalculator;
 import matchuri.backend.global.exception.BusinessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,13 +132,12 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PersonalRecommendationSummaryResult> getMyPersonalRecommendations() {
+    public Page<@NonNull PersonalRecommendationSummaryResult> getMyPersonalRecommendations(int page, int size) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
 
-        return personalRecommendationRepository.findByMemberIdOrderByRequestedAtDescIdDesc(member.getId())
-                .stream()
-                .map(PersonalRecommendationSummaryResult::from)
-                .toList();
+        return personalRecommendationRepository
+                .findByMemberIdOrderByRequestedAtDescIdDesc(member.getId(), PageRequest.of(page, size))
+                .map(PersonalRecommendationSummaryResult::from);
     }
 
     @Override
