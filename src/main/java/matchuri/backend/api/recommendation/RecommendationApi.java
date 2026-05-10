@@ -26,13 +26,11 @@ import matchuri.backend.global.api.PageResponse;
 public interface RecommendationApi {
 
     @Operation(
-            summary = "내 개인 추천 이력 목록 조회 (Mock API)",
+            summary = "내 개인 추천 이력 목록 조회",
             description = """
                     내 개인 추천 이력 목록을 조회합니다.
 
-                    Mock API 상태:
-                    - 현재 응답은 비즈니스 로직과 DB 조회를 거치지 않는 더미 응답입니다.
-                    - 실제 저장 테이블은 `personal_recommendations` 기준입니다.
+                    현재 로그인한 회원의 개인 추천 이력을 최신 요청 순서로 반환합니다.
                     """
     )
     @ApiResponses({
@@ -52,14 +50,11 @@ public interface RecommendationApi {
     ApiResponse<PageResponse<PersonalRecommendationResponse>> getMyPersonalRecommendationList();
 
     @Operation(
-            summary = "개인 추천 요청 생성 (Mock API)",
+            summary = "개인 추천 요청 생성",
             description = """
                     현재 회원의 취향 프로필과 요청 컨텍스트를 바탕으로 개인 추천을 실행합니다.
 
-                    Mock API 상태:
-                    - request body validation만 수행합니다.
-                    - 추천 알고리즘, 후보 저장, 이력 저장은 아직 수행하지 않습니다.
-                    - 실제 저장 테이블은 `personal_recommendations`, `personal_recommendation_candidates` 기준입니다.
+                    `restriction ingredient`, `disliked menu item`, 최근 선택 메뉴를 제외한 뒤 후보를 저장하고 반환합니다.
                     """
     )
     @ApiResponses({
@@ -81,13 +76,11 @@ public interface RecommendationApi {
     );
 
     @Operation(
-            summary = "개인 추천 요청 상세 조회 (Mock API)",
+            summary = "개인 추천 요청 상세 조회",
             description = """
                     개인 추천 요청과 후보 목록, 선택 상태를 조회합니다.
 
-                    Mock API 상태:
-                    - `requestId` 존재 여부나 소유자 검증은 수행하지 않습니다.
-                    - 항상 같은 더미 추천 상세를 반환합니다.
+                    본인이 생성한 개인 추천만 조회할 수 있습니다.
                     """
     )
     @ApiResponses({
@@ -107,13 +100,11 @@ public interface RecommendationApi {
     ApiResponse<PersonalRecommendationDetailResponse> getPersonalRecommendation(Long requestId);
 
     @Operation(
-            summary = "개인 추천 후보 목록 조회 (Mock API)",
+            summary = "개인 추천 후보 목록 조회",
             description = """
                     개인 추천 요청의 후보 메뉴 목록만 조회합니다.
 
-                    Mock API 상태:
-                    - `requestId` 존재 여부나 소유자 검증은 수행하지 않습니다.
-                    - 후보 3개를 고정 응답으로 반환합니다.
+                    본인이 생성한 개인 추천의 후보만 조회할 수 있습니다.
                     """
     )
     @ApiResponses({
@@ -133,14 +124,11 @@ public interface RecommendationApi {
     ApiResponse<PersonalRecommendationCandidateListResponse> getPersonalRecommendationCandidates(Long requestId);
 
     @Operation(
-            summary = "개인 추천 후보 선택 (Mock API)",
+            summary = "개인 추천 후보 선택",
             description = """
                     개인 추천 후보 중 하나를 최종 선택으로 반영합니다.
 
-                    Mock API 상태:
-                    - request body validation만 수행합니다.
-                    - 이미 선택된 요청인지, 후보가 해당 요청에 속하는지는 아직 검증하지 않습니다.
-                    - 실제 구현에서는 `member_menu_actions` 로그 저장과 추천 결과 갱신을 함께 검토합니다.
+                    선택된 후보는 개인 추천에 저장되며 `member_menu_actions`에 `CHOOSE` 로그가 함께 기록됩니다.
                     """
     )
     @ApiResponses({
