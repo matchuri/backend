@@ -28,4 +28,8 @@ public class PageResponse<T> {
     public static <T> PageResponse<T> mock(List<T> list) {
         return new PageResponse<>(list, PageInfo.mock());
     }
+
+    public static <T> PageResponse<T> ofList(List<T> list) {
+        return new PageResponse<>(list, PageInfo.ofList(list.size()));
+    }
 }
