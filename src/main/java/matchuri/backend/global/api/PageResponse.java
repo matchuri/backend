@@ -29,6 +29,10 @@ public class PageResponse<T> {
         return new PageResponse<>(list, PageInfo.mock());
     }
 
+    public static <T> PageResponse<T> mock(List<T> list, int page, int size, long totalElements) {
+        return new PageResponse<>(list, PageInfo.mock(page, size, totalElements));
+    }
+
     public static <T> PageResponse<T> ofList(List<T> list) {
         return new PageResponse<>(list, PageInfo.ofList(list.size()));
     }

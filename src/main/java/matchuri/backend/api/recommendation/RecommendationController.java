@@ -2,6 +2,7 @@ package matchuri.backend.api.recommendation;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.SelectPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateListResponse;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -34,13 +36,21 @@ public class RecommendationController implements RecommendationApi {
 
     @Override
     @GetMapping("/personal/recommendations")
-    public ApiResponse<PageResponse<PersonalRecommendationResponse>> getMyPersonalRecommendationList() {
+    public ApiResponse<PageResponse<PersonalRecommendationResponse>> getMyPersonalRecommendationList(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size
+    ) {
         List<PersonalRecommendationSummaryResult> results = recommendationService.getMyPersonalRecommendations();
 
-        PageResponse<PersonalRecommendationResponse> response = PageResponse.ofList(
-                results.stream()
-                        .map(recommendationMapper::toSummaryResponse)
-                        .toList()
+        List<PersonalRecommendationResponse> content = results.stream()
+                .map(recommendationMapper::toSummaryResponse)
+                .toList();
+
+        PageResponse<PersonalRecommendationResponse> response = PageResponse.mock(
+                content,
+                page,
+                size,
+                content.size()
         );
 
         return ApiResponse.success(response);
