@@ -8,6 +8,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.domain.behavior.entity.ActionType;
+import matchuri.backend.domain.behavior.entity.MemberMenuAction;
+import matchuri.backend.domain.behavior.repository.MemberMenuActionRepository;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
@@ -19,10 +22,16 @@ import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
+import matchuri.backend.domain.recommendation.exception.RecommendationErrorCode;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateRepository;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
+import matchuri.backend.domain.recommendation.result.PersonalRecommendationCandidateResult;
+import matchuri.backend.domain.recommendation.result.PersonalRecommendationResult;
+import matchuri.backend.domain.recommendation.result.PersonalRecommendationSummaryResult;
+import matchuri.backend.domain.recommendation.result.SelectPersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.support.MenuItemScoreBoard;
 import matchuri.backend.domain.recommendation.support.ScoreCalculator;
+import matchuri.backend.global.exception.BusinessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,17 +47,25 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final MenuItemRepository menuItemRepository;
     private final MenuIngredientRepository menuIngredientRepository;
     private final PersonalRecommendationCandidateRepository personalRecommendationCandidateRepository;
+    private final MemberMenuActionRepository memberMenuActionRepository;
 
     /**
      * 현재 로그인한 회원의 취향 프로필과 과거 선택 이력을 기반으로 개인 메뉴 후보를 생성한다.
      *
      * @param contextJson 추천 요청 시점의 컨텍스트 JSON
+     * @return 생성된 개인 추천과 추천 후보 목록
      */
     @Override
-    public void getPersonalRecommendation(String contextJson) {
+    public PersonalRecommendationResult createPersonalRecommendation(String contextJson) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         MemberTasteProfile tasteProfile = member.getTasteProfile();
-        List<PersonalRecommendation> recommendations = personalRecommendationRepository.findByMemberId(member.getId());
+
+        if (tasteProfile == null) {
+            throw new BusinessException(RecommendationErrorCode.TASTE_PROFILE_REQUIRED, member.getId());
+        }
+
+        List<PersonalRecommendation> recommendations =
+                personalRecommendationRepository.findByMemberIdOrderByRequestedAtDescIdDesc(member.getId());
 
         Map<Long, MenuItem> availableMenuItemsMap = findAvailableMenuItems(tasteProfile);
         excludeRecentlySelectedMenus(availableMenuItemsMap, recommendations);
@@ -70,10 +87,92 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<MenuItemScoreBoard> finalizeMenuItems = scoreCalculator.calculate(menuItemScoreBoardMap);
 
         PersonalRecommendation personalRecommendation = PersonalRecommendation.of(member, contextJson);
+        personalRecommendation.markFiltered();
+        personalRecommendation.markScored();
+        personalRecommendation.complete();
         PersonalRecommendation savedPersonalRecommendation =
                 personalRecommendationRepository.save(personalRecommendation);
 
-        saveRecommendationCandidates(savedPersonalRecommendation, finalizeMenuItems);
+        List<PersonalRecommendationCandidate> savedCandidates =
+                saveRecommendationCandidates(savedPersonalRecommendation, finalizeMenuItems);
+
+        return PersonalRecommendationResult.of(savedPersonalRecommendation, savedCandidates);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PersonalRecommendationResult getPersonalRecommendation(Long personalRecommendationId) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(personalRecommendationId,
+                member.getId());
+        List<PersonalRecommendationCandidate> candidates =
+                personalRecommendationCandidateRepository.findByPersonalRecommendationIdOrderByRankNoAsc(
+                        personalRecommendationId);
+
+        return PersonalRecommendationResult.of(personalRecommendation, candidates);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonalRecommendationCandidateResult> getPersonalRecommendationCandidates(
+            Long personalRecommendationId
+    ) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        getOwnedPersonalRecommendation(personalRecommendationId, member.getId());
+
+        return personalRecommendationCandidateRepository
+                .findByPersonalRecommendationIdOrderByRankNoAsc(personalRecommendationId)
+                .stream()
+                .map(PersonalRecommendationCandidateResult::from)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonalRecommendationSummaryResult> getMyPersonalRecommendations() {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+
+        return personalRecommendationRepository.findByMemberIdOrderByRequestedAtDescIdDesc(member.getId())
+                .stream()
+                .map(PersonalRecommendationSummaryResult::from)
+                .toList();
+    }
+
+    @Override
+    public SelectPersonalRecommendationResult selectPersonalRecommendationCandidate(
+            Long personalRecommendationId,
+            Long selectedCandidateId
+    ) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(personalRecommendationId,
+                member.getId());
+
+        if (personalRecommendation.getSelectedCandidate() != null) {
+            throw new BusinessException(RecommendationErrorCode.ALREADY_SELECTED, personalRecommendationId);
+        }
+
+        PersonalRecommendationCandidate selectedCandidate = personalRecommendationCandidateRepository
+                .findByIdAndPersonalRecommendationId(selectedCandidateId, personalRecommendationId)
+                .orElseThrow(() -> new BusinessException(
+                        RecommendationErrorCode.CANDIDATE_NOT_FOUND,
+                        selectedCandidateId
+                ));
+
+        personalRecommendation.select(selectedCandidate);
+        memberMenuActionRepository.save(new MemberMenuAction(
+                member,
+                selectedCandidate.getMenuItem(),
+                personalRecommendation,
+                ActionType.CHOOSE
+        ));
+        personalRecommendationRepository.flush();
+
+        return SelectPersonalRecommendationResult.of(personalRecommendation, selectedCandidate);
+    }
+
+    private PersonalRecommendation getOwnedPersonalRecommendation(Long personalRecommendationId, Long memberId) {
+        return personalRecommendationRepository.findByIdAndMemberId(personalRecommendationId, memberId)
+                .orElseThrow(() -> new BusinessException(RecommendationErrorCode.NOT_FOUND, personalRecommendationId));
     }
 
     /**
@@ -94,7 +193,11 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         return menuItemsExceptByIngredients.stream()
                 .filter(menuItem -> menuItemIdsExceptByMenuItems.contains(menuItem.getId()))
-                .collect(Collectors.toMap(MenuItem::getId, menuItem -> menuItem));
+                .collect(Collectors.toMap(
+                        MenuItem::getId,
+                        menuItem -> menuItem,
+                        (current, ignored) -> current
+                ));
     }
 
     /**
@@ -108,6 +211,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             List<PersonalRecommendation> recommendations
     ) {
         recommendations.stream()
+                .filter(recommendation -> recommendation.getSelectedCandidate() != null)
                 .map(PersonalRecommendation::getSelectedMenu)
                 .limit(RECENT_SELECTED_MENU_EXCLUSION_COUNT)
                 .forEach(menuItem -> availableMenuItemsMap.remove(menuItem.getId()));
@@ -151,8 +255,9 @@ public class RecommendationServiceImpl implements RecommendationService {
      *
      * @param savedPersonalRecommendation 저장된 개인 추천 엔티티
      * @param finalizeMenuItems 점수 계산이 끝난 최종 후보 목록
+     * @return 저장된 개인 추천 후보 목록
      */
-    private void saveRecommendationCandidates(
+    private List<PersonalRecommendationCandidate> saveRecommendationCandidates(
             PersonalRecommendation savedPersonalRecommendation,
             List<MenuItemScoreBoard> finalizeMenuItems
     ) {
@@ -164,13 +269,13 @@ public class RecommendationServiceImpl implements RecommendationService {
                     return PersonalRecommendationCandidate.of(
                             savedPersonalRecommendation,
                             board.getMenuItem(),
-                            i,
+                            i + 1,
                             board.getTotalScore()
                     );
                 })
                 .toList();
 
-        personalRecommendationCandidateRepository.saveAll(personalRecommendationCandidates);
+        return personalRecommendationCandidateRepository.saveAll(personalRecommendationCandidates);
     }
 
     /**
@@ -202,10 +307,15 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .map(Ingredient::getId)
                 .toList();
 
+        if (ids.isEmpty()) {
+            return menuItemRepository.findAll();
+        }
+
         List<MenuIngredient> allByIngredientIdNotIn = menuIngredientRepository.findAllByIngredientIdNotIn(ids);
 
         return allByIngredientIdNotIn.stream()
                 .map(MenuIngredient::getMenu)
+                .distinct()
                 .toList();
     }
 
@@ -221,6 +331,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<List<AttributeCategory>> selectedMenuCategoryGroups = new ArrayList<>();
 
         recommendations.stream()
+                .filter(recommendation -> recommendation.getSelectedCandidate() != null)
                 .map(PersonalRecommendation::getSelectedMenuAttributeCategory)
                 .forEach(selectedMenuCategoryGroups::add);
 
