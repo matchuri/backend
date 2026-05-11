@@ -82,4 +82,20 @@ public class PersonalRecommendationCandidate extends BaseEntity {
                 null
         );
     }
+
+    public static PersonalRecommendationCandidate of(
+            PersonalRecommendation personalRecommendation,
+            MenuItem menuItem,
+            int rankNo,
+            Double score,
+            String candidateMetaJson
+    ) {
+        return new PersonalRecommendationCandidate(
+                personalRecommendation,
+                menuItem,
+                rankNo,
+                score,
+                candidateMetaJson
+        );
+    }
 }
