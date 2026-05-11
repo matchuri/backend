@@ -13,10 +13,12 @@ import matchuri.backend.api.member.mapper.MemberMapper;
 import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.auth.service.AuthService;
 import matchuri.backend.domain.auth.support.token.RefreshTokenCookieService;
+import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.exception.AuthenticationException;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -79,9 +81,14 @@ public class AuthController implements AuthApi {
     }
 
     @Override
-    @GetMapping("/oauth2/google")
-    public void startGoogleOAuth2Login(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/oauth2/authorization/google");
+    @GetMapping("/oauth2/{provider}")
+    public void startOAuth2Login(@PathVariable String provider, HttpServletResponse response) throws IOException {
+        SocialProviderType socialProviderType = SocialProviderType.fromRegistrationId(provider);
+        if (!socialProviderType.isOAuth2LoginSupported()) {
+            throw new AuthenticationException(AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
+        }
+
+        response.sendRedirect("/oauth2/authorization/" + socialProviderType.toRegistrationId());
     }
 
     @Override

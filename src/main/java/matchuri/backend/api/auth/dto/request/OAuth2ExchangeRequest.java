@@ -7,8 +7,8 @@ import matchuri.backend.domain.member.entity.SocialProviderType;
 
 public record OAuth2ExchangeRequest(
         @Schema(
-                description = "교환 코드가 속한 소셜 로그인 제공자입니다. 현재 단계에서는 GOOGLE만 지원합니다.",
-                example = "GOOGLE"
+                description = "교환 코드가 속한 소셜 로그인 제공자입니다. 현재 지원 값은 GOOGLE, KAKAO입니다.",
+                example = "KAKAO"
         )
         @NotNull(message = "provider는 비어 있을 수 없습니다.")
         SocialProviderType provider,

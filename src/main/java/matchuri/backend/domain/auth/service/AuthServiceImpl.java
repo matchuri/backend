@@ -82,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginPayload exchangeOAuth2Code(OAuth2ExchangeCommand command, String clientIp) {
-        if (command.provider() != SocialProviderType.GOOGLE) {
+        if (!command.provider().isOAuth2LoginSupported()) {
             throw new AuthenticationException(AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
         }
 

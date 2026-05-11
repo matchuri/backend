@@ -17,6 +17,7 @@ public class OAuth2RedirectService {
         MatchuriProperties.OAuth2 oauth2 = matchuriProperties.getAuth().getOauth2();
         return UriComponentsBuilder.fromUriString(oauth2.getFrontendBaseUrl())
                 .path(oauth2.getSuccessPath())
+                .pathSegment(provider.toRegistrationId())
                 .queryParam("loginResult", "success")
                 .queryParam("provider", provider.toRegistrationId())
                 .queryParam("code", exchangeCode)

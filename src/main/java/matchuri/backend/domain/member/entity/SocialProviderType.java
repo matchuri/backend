@@ -24,4 +24,8 @@ public enum SocialProviderType {
     public String toRegistrationId() {
         return name().toLowerCase(Locale.ROOT);
     }
+
+    public boolean isOAuth2LoginSupported() {
+        return this == GOOGLE || this == KAKAO;
+    }
 }
