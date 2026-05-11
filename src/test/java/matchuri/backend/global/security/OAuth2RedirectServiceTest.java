@@ -40,7 +40,7 @@ class OAuth2RedirectServiceTest {
         MatchuriProperties.Auth auth = new MatchuriProperties.Auth();
         MatchuriProperties.OAuth2 oauth2 = new MatchuriProperties.OAuth2();
         oauth2.setFrontendBaseUrl("http://localhost:3000");
-        oauth2.setSuccessPath("/auth/callback/google");
+        oauth2.setSuccessPath("/auth/callback");
         oauth2.setFailurePath("/login");
         oauth2.setExchangeCodeExpirationSeconds(300);
         auth.setOauth2(oauth2);

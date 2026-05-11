@@ -64,7 +64,9 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/auth/refresh'].post.responses['403'].content['application/json'].examples.inactiveMember.value.error.code")
                         .value("MEMBER_INACTIVE_MEMBER"))
-                .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/google'].get.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/{provider}'].get.summary")
+                        .value("소셜 OAuth2 로그인 시작"))
+                .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/{provider}'].get.security").isEmpty())
                 .andExpect(jsonPath("$.paths['/api/v1/auth/oauth2/exchange'].post.security").isEmpty())
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/auth/oauth2/exchange'].post.responses['200'].content['application/json'].schema.$ref")

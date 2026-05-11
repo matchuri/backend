@@ -9,6 +9,7 @@ import java.util.List;
 import matchuri.backend.domain.auth.result.OAuth2LoginResult;
 import matchuri.backend.domain.auth.result.TokenPair;
 import matchuri.backend.domain.auth.support.oauth2.GoogleOAuth2UserInfoResolver;
+import matchuri.backend.domain.auth.support.oauth2.KakaoOAuth2UserInfoResolver;
 import matchuri.backend.domain.auth.support.oauth2.OAuth2MemberService;
 import matchuri.backend.domain.auth.support.token.SessionTokenService;
 import matchuri.backend.domain.member.entity.Member;
@@ -68,6 +69,47 @@ class OAuth2LoginServiceTest {
                 "google@example.com");
         verify(sessionTokenService).issueLoginTokenPair(member);
         verify(sessionTokenService).createExchangeCode(member, SocialProviderType.GOOGLE);
+        assertThat(result.refreshToken()).isEqualTo("refresh-token");
+        assertThat(result.exchangeCode()).isEqualTo("exchange-code");
+    }
+
+    @Test
+    @DisplayName("카카오 provider는 Kakao resolver로 사용자 정보를 정규화한다")
+    void loginResolvesKakaoProviderUserInfo() {
+        OAuth2User oauth2User = new DefaultOAuth2User(
+                List.of(),
+                java.util.Map.of(
+                        "id", 123456789L,
+                        "kakao_account", java.util.Map.of("email", "kakao@example.com")
+                ),
+                "id"
+        );
+        KakaoOAuth2UserInfoResolver resolver = new KakaoOAuth2UserInfoResolver();
+        OAuth2LoginService service = new OAuth2LoginService(
+                oAuth2MemberService,
+                sessionTokenService,
+                List.of(resolver)
+        );
+        Member member = Member.createSocialMember(SocialProviderType.KAKAO, "123456789", "kakao@example.com",
+                "kakao_kakao");
+        TokenPair tokenPair = new TokenPair(
+                "access-token",
+                3600L,
+                "refresh-token",
+                LocalDateTime.of(2026, 4, 9, 12, 0)
+        );
+
+        when(oAuth2MemberService.findOrCreateMember(SocialProviderType.KAKAO, "123456789", "kakao@example.com"))
+                .thenReturn(member);
+        when(sessionTokenService.issueLoginTokenPair(member)).thenReturn(tokenPair);
+        when(sessionTokenService.createExchangeCode(member, SocialProviderType.KAKAO)).thenReturn("exchange-code");
+
+        OAuth2LoginResult result = service.login(SocialProviderType.KAKAO, oauth2User, "127.0.0.1");
+
+        verify(oAuth2MemberService).findOrCreateMember(SocialProviderType.KAKAO, "123456789",
+                "kakao@example.com");
+        verify(sessionTokenService).issueLoginTokenPair(member);
+        verify(sessionTokenService).createExchangeCode(member, SocialProviderType.KAKAO);
         assertThat(result.refreshToken()).isEqualTo("refresh-token");
         assertThat(result.exchangeCode()).isEqualTo("exchange-code");
     }

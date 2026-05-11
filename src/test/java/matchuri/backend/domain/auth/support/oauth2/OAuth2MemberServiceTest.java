@@ -110,4 +110,28 @@ class OAuth2MemberServiceTest {
         assertThat(memberCaptor.getValue().getNickname()).isEqualTo("example_google_1");
         assertThat(createdMember.getNickname()).isEqualTo("example_google_1");
     }
+
+    @Test
+    @DisplayName("소셜 provider 이메일이 없으면 user_provider 규칙으로 임시 닉네임을 생성한다")
+    void createsFallbackTemporaryNicknameWhenEmailIsMissing() {
+        String providerUserId = "kakao-user-1";
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
+
+        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(SocialProviderType.KAKAO,
+                providerUserId))
+                .thenReturn(Optional.empty());
+        when(memberRepository.existsByNickname("user_kakao")).thenReturn(false);
+        when(memberRepository.saveAndFlush(any(Member.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Member createdMember = oAuth2MemberService.findOrCreateMember(
+                SocialProviderType.KAKAO,
+                providerUserId,
+                null
+        );
+
+        verify(memberRepository).saveAndFlush(memberCaptor.capture());
+        assertThat(memberCaptor.getValue().getNickname()).isEqualTo("user_kakao");
+        assertThat(createdMember.getNickname()).isEqualTo("user_kakao");
+    }
 }
