@@ -70,6 +70,7 @@ matchuri:
       - /api/v1/auth/email/confirm
       - /api/v1/auth/recovery/login-id
       - /api/v1/auth/recovery/password
+      - /api/v1/guest/recommendations
     public-options-api-patterns:
       - /**
     cors:
