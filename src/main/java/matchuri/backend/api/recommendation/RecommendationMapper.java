@@ -6,13 +6,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.api.recommendation.dto.request.CreateGuestPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
+import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationCandidateResponse;
+import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateListResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationDetailResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationRequestResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.SelectPersonalRecommendationResponse;
+import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
+import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationCandidateResult;
+import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationSummaryResult;
@@ -26,10 +32,31 @@ public class RecommendationMapper {
     private final ObjectMapper objectMapper;
 
     public String toContextJson(CreatePersonalRecommendationRequest request) {
-        try {
-            Map<String, Object> contextJson = request.contextJson() == null ? Map.of() : request.contextJson();
+        return toContextJson(request.contextJson());
+    }
 
-            return objectMapper.writeValueAsString(contextJson);
+    public GuestPersonalRecommendationCommand toGuestCommand(CreateGuestPersonalRecommendationRequest request) {
+        return new GuestPersonalRecommendationCommand(
+                request.attributeCategoryIds(),
+                request.restrictionIngredientIds(),
+                request.dislikedMenuItemIds(),
+                toContextJson(request.contextJson())
+        );
+    }
+
+    public GuestPersonalRecommendationResponse toGuestResponse(GuestPersonalRecommendationResult result) {
+        return new GuestPersonalRecommendationResponse(
+                result.candidates().stream()
+                        .map(this::toGuestCandidateResponse)
+                        .toList()
+        );
+    }
+
+    private String toContextJson(Map<String, Object> contextJson) {
+        try {
+            Map<String, Object> normalizedContextJson = contextJson == null ? Map.of() : contextJson;
+
+            return objectMapper.writeValueAsString(normalizedContextJson);
         } catch (JsonProcessingException exception) {
             throw new IllegalArgumentException("contextJson을 JSON 문자열로 변환할 수 없습니다.", exception);
         }
@@ -91,6 +118,17 @@ public class RecommendationMapper {
     private PersonalRecommendationCandidateResponse toCandidateResponse(PersonalRecommendationCandidateResult result) {
         return new PersonalRecommendationCandidateResponse(
                 result.id(),
+                result.menuId(),
+                result.menuName(),
+                result.rankNo(),
+                result.score()
+        );
+    }
+
+    private GuestPersonalRecommendationCandidateResponse toGuestCandidateResponse(
+            GuestPersonalRecommendationCandidateResult result
+    ) {
+        return new GuestPersonalRecommendationCandidateResponse(
                 result.menuId(),
                 result.menuName(),
                 result.rankNo(),
