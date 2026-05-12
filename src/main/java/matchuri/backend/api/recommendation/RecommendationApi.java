@@ -6,17 +6,21 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import matchuri.backend.api.recommendation.dto.docs.GuestPersonalRecommendationApiResponse;
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationCandidateListApiResponse;
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationDetailApiResponse;
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationRequestApiResponse;
 import matchuri.backend.api.recommendation.dto.docs.PersonalRecommendationSummaryPageApiResponse;
 import matchuri.backend.api.recommendation.dto.docs.RecommendationApiExamples;
 import matchuri.backend.api.recommendation.dto.docs.SelectPersonalRecommendationApiResponse;
+import matchuri.backend.api.recommendation.dto.request.CreateGuestPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.SelectPersonalRecommendationRequest;
+import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateListResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationDetailResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationRequestResponse;
@@ -27,6 +31,33 @@ import matchuri.backend.global.api.PageResponse;
 
 @Tag(name = "Personal Recommendation", description = "개인 메뉴 추천 API")
 public interface RecommendationApi {
+
+    @Operation(
+            summary = "비회원 개인 추천 요청",
+            description = """
+                    비회원이 입력한 취향 정보를 바탕으로 개인 메뉴 추천을 실행합니다.
+
+                    추천 이력은 저장하지 않으며, `restriction ingredient`, `disliked menu item`을 제외한 후보만 반환합니다.
+                    """
+    )
+    @SecurityRequirements
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "비회원 추천 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GuestPersonalRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = RecommendationApiExamples.GUEST_PERSONAL_RECOMMENDATION_CREATE_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<GuestPersonalRecommendationResponse> createGuestPersonalRecommendation(
+            CreateGuestPersonalRecommendationRequest request
+    );
 
     @Operation(
             summary = "내 개인 추천 이력 목록 조회",

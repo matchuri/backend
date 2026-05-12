@@ -5,6 +5,35 @@ public final class RecommendationApiExamples {
     private RecommendationApiExamples() {
     }
 
+    public static final String GUEST_PERSONAL_RECOMMENDATION_CREATE_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "candidates": [
+                  {
+                    "menuId": 1001,
+                    "menuName": "비빔밥",
+                    "rankNo": 1,
+                    "score": 93.5
+                  },
+                  {
+                    "menuId": 1002,
+                    "menuName": "돈까스",
+                    "rankNo": 2,
+                    "score": 86.0
+                  },
+                  {
+                    "menuId": 1003,
+                    "menuName": "쌀국수",
+                    "rankNo": 3,
+                    "score": 81.5
+                  }
+                ]
+              },
+              "error": null
+            }
+            """;
+
     public static final String PERSONAL_RECOMMENDATION_LIST_SUCCESS = """
             {
               "success": true,

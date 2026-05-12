@@ -3,13 +3,17 @@ package matchuri.backend.api.recommendation;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.api.recommendation.dto.request.CreateGuestPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.SelectPersonalRecommendationRequest;
+import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateListResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationDetailResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationRequestResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.SelectPersonalRecommendationResponse;
+import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
+import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationSummaryResult;
@@ -36,6 +40,17 @@ public class RecommendationController implements RecommendationApi {
 
     private final RecommendationService recommendationService;
     private final RecommendationMapper recommendationMapper;
+
+    @Override
+    @PostMapping("/guest/recommendations")
+    public ApiResponse<GuestPersonalRecommendationResponse> createGuestPersonalRecommendation(
+            @Valid @RequestBody CreateGuestPersonalRecommendationRequest request
+    ) {
+        GuestPersonalRecommendationCommand command = recommendationMapper.toGuestCommand(request);
+        GuestPersonalRecommendationResult result = recommendationService.createGuestPersonalRecommendation(command);
+
+        return ApiResponse.success(recommendationMapper.toGuestResponse(result));
+    }
 
     @Override
     @GetMapping("/personal/recommendations")
