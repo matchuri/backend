@@ -1,6 +1,8 @@
 package matchuri.backend.domain.recommendation.service;
 
 import java.util.List;
+import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
+import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationSummaryResult;
@@ -10,6 +12,8 @@ import org.springframework.data.domain.Page;
 
 public interface RecommendationService {
     PersonalRecommendationResult createPersonalRecommendation(String contextJson);
+
+    GuestPersonalRecommendationResult createGuestPersonalRecommendation(GuestPersonalRecommendationCommand command);
 
     PersonalRecommendationResult getPersonalRecommendation(Long personalRecommendationId);
 

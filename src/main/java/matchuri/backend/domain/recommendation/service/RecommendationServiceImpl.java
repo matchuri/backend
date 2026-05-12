@@ -3,8 +3,11 @@ package matchuri.backend.domain.recommendation.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,8 @@ import matchuri.backend.domain.menu.entity.Ingredient;
 import matchuri.backend.domain.menu.entity.MenuAttributeCategory;
 import matchuri.backend.domain.menu.entity.MenuIngredient;
 import matchuri.backend.domain.menu.entity.MenuItem;
+import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.domain.recommendation.algorithm.MenuRecommendationAlgorithm;
@@ -31,11 +36,15 @@ import matchuri.backend.domain.recommendation.algorithm.input.RecommendationCont
 import matchuri.backend.domain.recommendation.algorithm.input.TasteProfileSnapshot;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationResult;
+import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
+import matchuri.backend.domain.recommendation.exception.GuestRecommendationErrorCode;
 import matchuri.backend.domain.recommendation.exception.RecommendationErrorCode;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateRepository;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
+import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationCandidateResult;
+import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationSummaryResult;
@@ -52,9 +61,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class RecommendationServiceImpl implements RecommendationService {
 
     private static final int RECENT_SELECTED_MENU_EXCLUSION_COUNT = 3;
+    private static final int RECOMMENDATION_CANDIDATE_LIMIT = 3;
+    private static final String GUEST_PARTICIPANT_KEY = "guest";
 
     private final ActiveMemberReader activeMemberReader;
     private final PersonalRecommendationRepository personalRecommendationRepository;
+    private final AttributeCategoryRepository attributeCategoryRepository;
+    private final IngredientRepository ingredientRepository;
     private final MenuItemRepository menuItemRepository;
     private final MenuIngredientRepository menuIngredientRepository;
     private final PersonalRecommendationCandidateRepository personalRecommendationCandidateRepository;
@@ -92,7 +105,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 List.of(toTasteProfileSnapshot(member, tasteProfile)),
                 toMenuRecommendationProfiles(menuItems),
                 RecommendationContextSnapshot.of(contextJson),
-                3,
+                RECOMMENDATION_CANDIDATE_LIMIT,
                 findRecentlySelectedMenuIds(recommendations),
                 countSelectedAttributeCategoryFrequency(recommendations)
         );
@@ -109,6 +122,58 @@ public class RecommendationServiceImpl implements RecommendationService {
                 saveRecommendationCandidates(savedPersonalRecommendation, recommendationResult, menuItemById);
 
         return PersonalRecommendationResult.of(savedPersonalRecommendation, savedCandidates);
+    }
+
+    /**
+     * 비회원이 요청한 취향 입력을 기반으로 저장 없는 개인 메뉴 후보를 생성한다.
+     *
+     * @param command 비회원 추천 요청 취향 입력
+     * @return 비회원 추천 후보 목록
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public GuestPersonalRecommendationResult createGuestPersonalRecommendation(
+            GuestPersonalRecommendationCommand command
+    ) {
+        validateGuestRecommendationCommand(command);
+
+        MenuRecommendationAlgorithm algorithm =
+                menuRecommendationAlgorithmResolver.resolve(RecommendationAlgorithmType.GUEST_PERSONAL);
+        List<MenuItem> menuItems = menuItemRepository.searchActiveMenuItems(
+                null,
+                List.of(),
+                true,
+                List.of(),
+                true
+        );
+        Map<Long, MenuItem> menuItemById = menuItems.stream()
+                .collect(Collectors.toMap(MenuItem::getId, Function.identity()));
+        MenuRecommendationInput input = new MenuRecommendationInput(
+                RecommendationTargetType.GUEST_PERSONAL,
+                List.of(toGuestTasteProfileSnapshot(command)),
+                toMenuRecommendationProfiles(menuItems),
+                RecommendationContextSnapshot.of(command.contextJson()),
+                RECOMMENDATION_CANDIDATE_LIMIT,
+                List.of(),
+                Map.of()
+        );
+
+        MenuRecommendationResult recommendationResult = algorithm.recommend(input);
+
+        List<GuestPersonalRecommendationCandidateResult> candidates = recommendationResult.candidates().stream()
+                .map(candidate -> {
+                    MenuItem menuItem = menuItemById.get(candidate.menuId());
+
+                    return new GuestPersonalRecommendationCandidateResult(
+                            candidate.menuId(),
+                            menuItem.getName(),
+                            candidate.rankNo(),
+                            candidate.score()
+                    );
+                })
+                .toList();
+
+        return new GuestPersonalRecommendationResult(candidates);
     }
 
     @Override
@@ -202,6 +267,16 @@ public class RecommendationServiceImpl implements RecommendationService {
         );
     }
 
+    private TasteProfileSnapshot toGuestTasteProfileSnapshot(GuestPersonalRecommendationCommand command) {
+        return new TasteProfileSnapshot(
+                null,
+                GUEST_PARTICIPANT_KEY,
+                command.attributeCategoryIds(),
+                command.restrictionIngredientIds(),
+                command.dislikedMenuItemIds()
+        );
+    }
+
     private List<MenuRecommendationProfile> toMenuRecommendationProfiles(List<MenuItem> menuItems) {
         Map<Long, List<Long>> ingredientIdsByMenuId = menuIngredientRepository.findAll().stream()
                 .collect(Collectors.groupingBy(
@@ -222,6 +297,73 @@ public class RecommendationServiceImpl implements RecommendationService {
                         ingredientIdsByMenuId.getOrDefault(menuItem.getId(), List.of())
                 ))
                 .toList();
+    }
+
+    private void validateGuestRecommendationCommand(GuestPersonalRecommendationCommand command) {
+        validateNoDuplicateIds(
+                command.attributeCategoryIds(),
+                GuestRecommendationErrorCode.DUPLICATE_ATTRIBUTE_CATEGORY
+        );
+        validateNoDuplicateIds(
+                command.restrictionIngredientIds(),
+                GuestRecommendationErrorCode.DUPLICATE_RESTRICTION_INGREDIENT
+        );
+        validateNoDuplicateIds(
+                command.dislikedMenuItemIds(),
+                GuestRecommendationErrorCode.DUPLICATE_DISLIKED_MENU_ITEM
+        );
+
+        validateActiveAttributeCategoryIds(command.attributeCategoryIds());
+        validateActiveRestrictionIngredientIds(command.restrictionIngredientIds());
+        validateActiveDislikedMenuItemIds(command.dislikedMenuItemIds());
+    }
+
+    private void validateNoDuplicateIds(List<Long> ids, GuestRecommendationErrorCode errorCode) {
+        if (ids.size() == new LinkedHashSet<>(ids).size()) {
+            return;
+        }
+
+        throw new BusinessException(errorCode, ids);
+    }
+
+    private void validateActiveAttributeCategoryIds(List<Long> attributeCategoryIds) {
+        if (attributeCategoryIds.stream().anyMatch(Objects::isNull)) {
+            throw new BusinessException(GuestRecommendationErrorCode.INVALID_ATTRIBUTE_CATEGORY, attributeCategoryIds);
+        }
+
+        List<AttributeCategory> attributeCategories = attributeCategoryRepository.findAllByIdInAndActiveTrue(
+                attributeCategoryIds);
+        if (attributeCategories.size() != attributeCategoryIds.size()) {
+            throw new BusinessException(GuestRecommendationErrorCode.INVALID_ATTRIBUTE_CATEGORY, attributeCategoryIds);
+        }
+    }
+
+    private void validateActiveRestrictionIngredientIds(List<Long> restrictionIngredientIds) {
+        if (restrictionIngredientIds.stream().anyMatch(Objects::isNull)) {
+            throw new BusinessException(
+                    GuestRecommendationErrorCode.INVALID_RESTRICTION_INGREDIENT,
+                    restrictionIngredientIds
+            );
+        }
+
+        List<Ingredient> ingredients = ingredientRepository.findAllByIdInAndActiveTrue(restrictionIngredientIds);
+        if (ingredients.size() != restrictionIngredientIds.size()) {
+            throw new BusinessException(
+                    GuestRecommendationErrorCode.INVALID_RESTRICTION_INGREDIENT,
+                    restrictionIngredientIds
+            );
+        }
+    }
+
+    private void validateActiveDislikedMenuItemIds(List<Long> dislikedMenuItemIds) {
+        if (dislikedMenuItemIds.stream().anyMatch(Objects::isNull)) {
+            throw new BusinessException(GuestRecommendationErrorCode.INVALID_DISLIKED_MENU_ITEM, dislikedMenuItemIds);
+        }
+
+        List<MenuItem> menuItems = menuItemRepository.findAllByIdInAndActiveTrue(dislikedMenuItemIds);
+        if (menuItems.size() != dislikedMenuItemIds.size()) {
+            throw new BusinessException(GuestRecommendationErrorCode.INVALID_DISLIKED_MENU_ITEM, dislikedMenuItemIds);
+        }
     }
 
     private List<Long> findRecentlySelectedMenuIds(List<PersonalRecommendation> recommendations) {
