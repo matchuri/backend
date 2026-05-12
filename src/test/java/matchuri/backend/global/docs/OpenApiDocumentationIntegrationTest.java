@@ -223,6 +223,18 @@ class OpenApiDocumentationIntegrationTest {
         mockMvc.perform(get("/docs/openapi"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.paths['/api/v1/guest/recommendations'].post.summary")
+                        .value("비회원 개인 추천 요청"))
+                .andExpect(jsonPath("$.paths['/api/v1/guest/recommendations'].post.security").isEmpty())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/guest/recommendations'].post.responses['200'].content['application/json'].schema.$ref")
+                        .value("#/components/schemas/GuestPersonalRecommendationApiResponse"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/guest/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].menuName")
+                        .value("비빔밥"))
+                .andExpect(jsonPath(
+                        "$.components.schemas.CreateGuestPersonalRecommendationRequest.properties.attributeCategoryIds.description")
+                        .value(org.hamcrest.Matchers.containsString("attribute category ID 목록")))
                 .andExpect(jsonPath("$.paths['/api/v1/personal/recommendations'].get.summary")
                         .value("내 개인 추천 이력 목록 조회"))
                 .andExpect(jsonPath(
