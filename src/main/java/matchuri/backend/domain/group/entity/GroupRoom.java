@@ -1,5 +1,6 @@
 package matchuri.backend.domain.group.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,8 +11,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,12 +56,25 @@ public class GroupRoom extends BaseEntity {
     @Column(nullable = false, length = 20, comment = "그룹 방 상태")
     private GroupRoomStatus status;
 
+    @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<GroupRoomMember> groupRoomMembers = new ArrayList<>();
+
     public GroupRoom(String name, Member hostMember, BigDecimal latitude, BigDecimal longitude) {
         this.name = name;
         this.hostMember = hostMember;
         this.latitude = latitude;
         this.longitude = longitude;
         this.status = GroupRoomStatus.ACTIVE;
+        addGroupMember(hostMember, GroupMemberRole.OWNER);
+    }
+
+    public static GroupRoom createOwnedBy(String name, Member hostMember, BigDecimal latitude, BigDecimal longitude) {
+        return new GroupRoom(name, hostMember, latitude, longitude);
+    }
+
+    public void addGroupMember(Member member, GroupMemberRole role) {
+        GroupRoomMember groupRoomMember = new GroupRoomMember(this, member, role, LocalDateTime.now());
+        groupRoomMembers.add(groupRoomMember);
     }
 
     public void close() {
