@@ -65,11 +65,12 @@ public class GroupRoom extends BaseEntity {
         this.latitude = latitude;
         this.longitude = longitude;
         this.status = GroupRoomStatus.ACTIVE;
-        addGroupMember(hostMember, GroupMemberRole.OWNER);
     }
 
     public static GroupRoom createOwnedBy(String name, Member hostMember, BigDecimal latitude, BigDecimal longitude) {
-        return new GroupRoom(name, hostMember, latitude, longitude);
+        GroupRoom newGroupRoom = new GroupRoom(name, hostMember, latitude, longitude);
+        newGroupRoom.addGroupMember(hostMember, GroupMemberRole.OWNER);
+        return newGroupRoom;
     }
 
     public void addGroupMember(Member member, GroupMemberRole role) {
