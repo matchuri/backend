@@ -1,5 +1,6 @@
 package matchuri.backend.global.docs;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -302,10 +303,10 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups'].post.responses['200'].content['application/json'].examples.success.value.data.groupId")
                         .value(3001))
                 .andExpect(jsonPath("$.paths['/api/v1/groups'].get.summary")
-                        .value("내 그룹 목록 조회 (Mock API)"))
+                        .value("내 그룹 목록 조회"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].latestRecommendationStatus")
-                        .value("OPEN"))
+                        .value(nullValue()))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation.voteProgress.votedMemberCount")
                         .value(3))

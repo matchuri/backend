@@ -2,6 +2,7 @@ package matchuri.backend.api.group;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -10,10 +11,13 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
+import matchuri.backend.domain.group.entity.GroupRoom;
+import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
@@ -132,6 +136,64 @@ class GroupIntegrationTest {
         assertThat(groupRoomMemberRepository.count()).isZero();
     }
 
+    @Test
+    @DisplayName("내 그룹 목록은 현재 회원이 활성 멤버인 삭제되지 않은 그룹만 조회한다")
+    void getMyGroupsReturnsActiveMembershipRoomsOnly() throws Exception {
+        Member member = saveMember("group-list-user", "목록사용자");
+        Member coworker = saveMember("group-coworker", "동료");
+        Member other = saveMember("other-owner", "다른방장");
+        GroupRoom visibleGroup = saveGroupOwnedBy(member, "같이 먹는 점심");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                visibleGroup,
+                coworker,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRoom deletedGroup = GroupRoom.createOwnedBy("삭제된 그룹", member, null, null);
+        deletedGroup.delete();
+        groupRoomRepository.save(deletedGroup);
+        GroupRoom leftGroup = saveGroupOwnedBy(member, "나간 그룹");
+        leaveOwnerMembership(leftGroup, member);
+        saveGroupOwnedBy(other, "다른 사람 그룹");
+
+        mockMvc.perform(get("/api/v1/groups")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(visibleGroup.getId()))
+                .andExpect(jsonPath("$.data.content[0].name").value("같이 먹는 점심"))
+                .andExpect(jsonPath("$.data.content[0].status").value(GroupRoomStatus.ACTIVE.name()))
+                .andExpect(jsonPath("$.data.content[0].memberCount").value(2))
+                .andExpect(jsonPath("$.data.content[0].latestRecommendationStatus").value(nullValue()))
+                .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1))
+                .andExpect(jsonPath("$.data.pageInfo.totalPages").value(1));
+    }
+
+    @Test
+    @DisplayName("내 그룹 목록은 그룹 상태 필터와 페이지네이션을 적용한다")
+    void getMyGroupsAppliesStatusFilterAndPagination() throws Exception {
+        Member member = saveMember("group-filter-user", "필터사용자");
+        saveGroupOwnedBy(member, "활성 그룹");
+        GroupRoom closedGroup = GroupRoom.createOwnedBy("닫힌 그룹", member, null, null);
+        closedGroup.close();
+        groupRoomRepository.save(closedGroup);
+
+        mockMvc.perform(get("/api/v1/groups")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .param("status", GroupRoomStatus.CLOSED.name())
+                        .param("page", "0")
+                        .param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(closedGroup.getId()))
+                .andExpect(jsonPath("$.data.content[0].status").value(GroupRoomStatus.CLOSED.name()))
+                .andExpect(jsonPath("$.data.pageInfo.size").value(1))
+                .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1));
+    }
+
     private Member saveMember(String loginId, String nickname) {
         return memberRepository.save(Member.builder()
                 .loginId(loginId)
@@ -143,6 +205,20 @@ class GroupIntegrationTest {
                 .memberRole(MemberRole.MEMBER)
                 .status(MemberStatus.ACTIVE)
                 .build());
+    }
+
+    private GroupRoom saveGroupOwnedBy(Member member, String name) {
+        return groupRoomRepository.save(GroupRoom.createOwnedBy(name, member, null, null));
+    }
+
+    private void leaveOwnerMembership(GroupRoom groupRoom, Member member) {
+        GroupRoomMember membership = groupRoomMemberRepository.findAll().stream()
+                .filter(candidate -> candidate.getRoom().getId().equals(groupRoom.getId()))
+                .filter(candidate -> candidate.getMember().getId().equals(member.getId()))
+                .findFirst()
+                .orElseThrow();
+        membership.leave(LocalDateTime.now());
+        groupRoomMemberRepository.save(membership);
     }
 
     private String bearer(String accessToken) {
