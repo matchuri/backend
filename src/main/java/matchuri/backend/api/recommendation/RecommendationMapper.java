@@ -2,6 +2,7 @@ package matchuri.backend.api.recommendation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +143,13 @@ public class RecommendationMapper {
         }
 
         try {
-            return objectMapper.readValue(contextJson, new TypeReference<>() {
+            JsonNode contextNode = objectMapper.readTree(contextJson);
+            if (contextNode.isTextual()) {
+                return objectMapper.readValue(contextNode.asText(), new TypeReference<>() {
+                });
+            }
+
+            return objectMapper.convertValue(contextNode, new TypeReference<>() {
             });
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("저장된 contextJson을 해석할 수 없습니다.", exception);
