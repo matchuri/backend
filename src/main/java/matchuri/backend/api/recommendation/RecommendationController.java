@@ -1,6 +1,8 @@
 package matchuri.backend.api.recommendation;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.recommendation.dto.request.CreateGuestPersonalRecommendationRequest;
@@ -55,8 +57,8 @@ public class RecommendationController implements RecommendationApi {
     @Override
     @GetMapping("/personal/recommendations")
     public ApiResponse<PageResponse<PersonalRecommendationResponse>> getMyPersonalRecommendationList(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "20") Integer size
+            @Min(0) @RequestParam(defaultValue = "0") Integer page,
+            @Min(1) @Max(100) @RequestParam(defaultValue = "20") Integer size
     ) {
         Page<PersonalRecommendationSummaryResult> results =
                 recommendationService.getMyPersonalRecommendations(page, size);
