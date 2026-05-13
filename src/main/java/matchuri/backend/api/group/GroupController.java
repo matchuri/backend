@@ -2,6 +2,7 @@ package matchuri.backend.api.group;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
@@ -17,8 +18,12 @@ import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.service.GroupService;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,17 +32,23 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.validation.annotation.Validated;
 
 @RestController
 @RequestMapping("/api/v1/groups")
 @Validated
+@RequiredArgsConstructor
 public class GroupController implements GroupApi {
+
+    private final GroupService groupService;
+    private final GroupMapper groupMapper;
 
     @Override
     @PostMapping
     public ApiResponse<CreateGroupResponse> createGroup(@Valid @RequestBody CreateGroupRequest request) {
-        return ApiResponse.success(CreateGroupResponse.mockActive());
+        CreateGroupCommand command = groupMapper.toCreateGroupCommand(request);
+        CreateGroupResult result = groupService.createGroup(command);
+
+        return ApiResponse.success(groupMapper.toCreateGroupResponse(result));
     }
 
     @Override
