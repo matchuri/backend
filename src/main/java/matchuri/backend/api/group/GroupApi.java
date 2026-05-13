@@ -37,6 +37,7 @@ import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
 
@@ -70,13 +71,14 @@ public interface GroupApi {
     ApiResponse<CreateGroupResponse> createGroup(@Valid CreateGroupRequest request);
 
     @Operation(
-            summary = "내 그룹 목록 조회 (Mock API)",
+            summary = "내 그룹 목록 조회",
             description = """
                     내가 속한 그룹 목록을 조회합니다.
 
-                    Mock API 상태:
-                    - query parameter는 받지만 필터링과 페이징은 아직 수행하지 않습니다.
-                    - 항상 같은 그룹 목록 더미 응답을 반환합니다.
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 `ACTIVE` 멤버로 속한 그룹만 반환합니다.
+                    - 삭제된 그룹은 목록에서 제외합니다.
+                    - 그룹 추천 구현 전까지 `latestRecommendationStatus`는 null일 수 있습니다.
                     """
     )
     @ApiResponses({
@@ -95,7 +97,7 @@ public interface GroupApi {
     })
     ApiResponse<PageResponse<GroupSummaryResponse>> getMyGroups(
             @Parameter(description = "그룹 상태 필터입니다. 생략하면 전체 상태를 조회합니다.", example = "ACTIVE")
-            String status,
+            GroupRoomStatus status,
 
             @Parameter(description = "0부터 시작하는 페이지 번호입니다.", example = "0")
             @Min(0)

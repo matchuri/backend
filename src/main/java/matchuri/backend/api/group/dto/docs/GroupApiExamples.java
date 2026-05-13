@@ -26,7 +26,7 @@ public final class GroupApiExamples {
                     "name": "오늘 점심 메뉴 회의",
                     "status": "ACTIVE",
                     "memberCount": 4,
-                    "latestRecommendationStatus": "OPEN",
+                    "latestRecommendationStatus": null,
                     "createdAt": "2026-05-06T12:00:00"
                   }
                 ],
