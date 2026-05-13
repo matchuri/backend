@@ -297,7 +297,7 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['409'].content['application/json'].examples.alreadySelected.value.error.code")
                         .value("PERSONAL_RECOMMENDATION_ALREADY_SELECTED"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups'].post.summary")
-                        .value("그룹 생성 (Mock API)"))
+                        .value("그룹 생성"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups'].post.responses['200'].content['application/json'].examples.success.value.data.groupId")
                         .value(3001))
