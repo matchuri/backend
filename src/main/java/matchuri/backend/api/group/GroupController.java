@@ -1,7 +1,8 @@
 package matchuri.backend.api.group;
 
 import jakarta.validation.Valid;
-import java.util.List;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
@@ -19,10 +20,14 @@ import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.GetMyGroupsCommand;
+import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.service.GroupService;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -54,14 +59,18 @@ public class GroupController implements GroupApi {
     @Override
     @GetMapping
     public ApiResponse<PageResponse<GroupSummaryResponse>> getMyGroups(
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0")
+            @RequestParam(required = false) GroupRoomStatus status,
+            @Min(0) @RequestParam(defaultValue = "0")
             Integer page,
 
-            @RequestParam(defaultValue = "20")
+            @Min(1) @Max(100) @RequestParam(defaultValue = "20")
             Integer size
     ) {
-        return ApiResponse.success(PageResponse.mock(List.of(GroupSummaryResponse.mockActive()), page, size, 1L));
+        GetMyGroupsCommand command = groupMapper.toGetMyGroupsCommand(status, page, size);
+        Page<GroupSummaryResult> results = groupService.getMyGroups(command);
+        PageResponse<GroupSummaryResponse> response = PageResponse.of(results, groupMapper::toGroupSummaryResponse);
+
+        return ApiResponse.success(response);
     }
 
     @Override
