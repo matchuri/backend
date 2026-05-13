@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import matchuri.backend.api.recommendation.dto.docs.GuestPersonalRecommendationApiResponse;
@@ -53,9 +54,43 @@ public interface RecommendationApi {
                                     value = RecommendationApiExamples.GUEST_PERSONAL_RECOMMENDATION_CREATE_SUCCESS
                             )
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "중복되었거나 유효하지 않은 취향 입력",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "duplicateAttributeCategory",
+                                            value = RecommendationApiExamples.GUEST_RECOMMENDATION_DUPLICATE_ATTRIBUTE_CATEGORY
+                                    ),
+                                    @ExampleObject(
+                                            name = "duplicateRestrictionIngredient",
+                                            value = RecommendationApiExamples.GUEST_RECOMMENDATION_DUPLICATE_RESTRICTION_INGREDIENT
+                                    ),
+                                    @ExampleObject(
+                                            name = "duplicateDislikedMenuItem",
+                                            value = RecommendationApiExamples.GUEST_RECOMMENDATION_DUPLICATE_DISLIKED_MENU_ITEM
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidAttributeCategory",
+                                            value = RecommendationApiExamples.GUEST_RECOMMENDATION_INVALID_ATTRIBUTE_CATEGORY
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidRestrictionIngredient",
+                                            value = RecommendationApiExamples.GUEST_RECOMMENDATION_INVALID_RESTRICTION_INGREDIENT
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidDislikedMenuItem",
+                                            value = RecommendationApiExamples.GUEST_RECOMMENDATION_INVALID_DISLIKED_MENU_ITEM
+                                    )
+                            }
+                    )
             )
     })
     ApiResponse<GuestPersonalRecommendationResponse> createGuestPersonalRecommendation(
+            @Valid
             CreateGuestPersonalRecommendationRequest request
     );
 
@@ -96,6 +131,8 @@ public interface RecommendationApi {
             summary = "개인 추천 요청 생성",
             description = """
                     현재 회원의 취향 프로필과 요청 컨텍스트를 바탕으로 개인 추천을 실행합니다.
+                    
+                    특정 회원에게 취향 프로필(`MemberTasteProfile`) 정보가 없다면 403에러가 발생합니다.
 
                     `restriction ingredient`, `disliked menu item`, 최근 선택 메뉴를 제외한 뒤 후보를 저장하고 반환합니다.
                     """
@@ -112,9 +149,21 @@ public interface RecommendationApi {
                                     value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_CREATE_SUCCESS
                             )
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "회원 취향 프로필 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "tasteProfileRequired",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_TASTE_PROFILE_REQUIRED
+                            )
+                    )
             )
     })
     ApiResponse<PersonalRecommendationRequestResponse> createPersonalRecommendation(
+            @Valid
             CreatePersonalRecommendationRequest request
     );
 
@@ -136,6 +185,17 @@ public interface RecommendationApi {
                             examples = @ExampleObject(
                                     name = "success",
                                     value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_DETAIL_SUCCESS
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "개인 추천을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_NOT_FOUND
                             )
                     )
             )
@@ -162,6 +222,17 @@ public interface RecommendationApi {
                                     value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_CANDIDATES_SUCCESS
                             )
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "개인 추천을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_NOT_FOUND
+                            )
+                    )
             )
     })
     ApiResponse<PersonalRecommendationCandidateListResponse> getPersonalRecommendationCandidates(Long requestId);
@@ -186,10 +257,39 @@ public interface RecommendationApi {
                                     value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_SELECT_SUCCESS
                             )
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "개인 추천 또는 후보를 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "notFound",
+                                            value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_NOT_FOUND
+                                    ),
+                                    @ExampleObject(
+                                            name = "candidateNotFound",
+                                            value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_CANDIDATE_NOT_FOUND
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "이미 후보가 선택된 개인 추천",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "alreadySelected",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_ALREADY_SELECTED
+                            )
+                    )
             )
     })
     ApiResponse<SelectPersonalRecommendationResponse> selectPersonalRecommendationCandidate(
             Long requestId,
+            @Valid
             SelectPersonalRecommendationRequest request
     );
 }
