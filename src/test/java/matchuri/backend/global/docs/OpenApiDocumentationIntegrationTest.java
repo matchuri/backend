@@ -233,6 +233,24 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/guest/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].menuName")
                         .value("비빔밥"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/guest/recommendations'].post.responses['400'].content['application/json'].examples.duplicateAttributeCategory.value.error.code")
+                        .value("GUEST_RECOMMENDATION_DUPLICATE_ATTRIBUTE_CATEGORY"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/guest/recommendations'].post.responses['400'].content['application/json'].examples.duplicateRestrictionIngredient.value.error.code")
+                        .value("GUEST_RECOMMENDATION_DUPLICATE_RESTRICTION_INGREDIENT"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/guest/recommendations'].post.responses['400'].content['application/json'].examples.duplicateDislikedMenuItem.value.error.code")
+                        .value("GUEST_RECOMMENDATION_DUPLICATE_DISLIKED_MENU_ITEM"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/guest/recommendations'].post.responses['400'].content['application/json'].examples.invalidAttributeCategory.value.error.code")
+                        .value("GUEST_RECOMMENDATION_INVALID_ATTRIBUTE_CATEGORY"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/guest/recommendations'].post.responses['400'].content['application/json'].examples.invalidRestrictionIngredient.value.error.code")
+                        .value("GUEST_RECOMMENDATION_INVALID_RESTRICTION_INGREDIENT"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/guest/recommendations'].post.responses['400'].content['application/json'].examples.invalidDislikedMenuItem.value.error.code")
+                        .value("GUEST_RECOMMENDATION_INVALID_DISLIKED_MENU_ITEM"))
+                .andExpect(jsonPath(
                         "$.components.schemas.CreateGuestPersonalRecommendationRequest.properties.attributeCategoryIds.description")
                         .value(org.hamcrest.Matchers.containsString("attribute category ID 목록")))
                 .andExpect(jsonPath("$.paths['/api/v1/personal/recommendations'].get.summary")
@@ -249,17 +267,35 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.resultJson")
                         .doesNotExist())
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations'].post.responses['403'].content['application/json'].examples.tasteProfileRequired.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_TASTE_PROFILE_REQUIRED"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.contextJson.mealTime")
                         .value("LUNCH"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")
                         .doesNotExist())
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['404'].content['application/json'].examples.notFound.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_NOT_FOUND"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}/candidates'].get.responses['200'].content['application/json'].examples.success.value.data.candidates[2].menuName")
                         .value("쌀국수"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}/candidates'].get.responses['404'].content['application/json'].examples.notFound.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_NOT_FOUND"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['200'].content['application/json'].examples.success.value.data.selectedCandidateId")
                         .value(10001))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['404'].content['application/json'].examples.notFound.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_NOT_FOUND"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['404'].content['application/json'].examples.candidateNotFound.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_CANDIDATE_NOT_FOUND"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['409'].content['application/json'].examples.alreadySelected.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_ALREADY_SELECTED"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups'].post.summary")
                         .value("그룹 생성 (Mock API)"))
                 .andExpect(jsonPath(
