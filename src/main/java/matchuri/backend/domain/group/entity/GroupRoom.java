@@ -56,10 +56,10 @@ public class GroupRoom extends BaseEntity {
     @Column(nullable = false, length = 20, comment = "그룹 방 상태")
     private GroupRoomStatus status;
 
-    @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<GroupRoomMember> groupRoomMembers = new ArrayList<>();
 
-    public GroupRoom(String name, Member hostMember, BigDecimal latitude, BigDecimal longitude) {
+    private GroupRoom(String name, Member hostMember, BigDecimal latitude, BigDecimal longitude) {
         this.name = name;
         this.hostMember = hostMember;
         this.latitude = latitude;
