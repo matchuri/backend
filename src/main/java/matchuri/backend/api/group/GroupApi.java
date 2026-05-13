@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
@@ -43,14 +44,13 @@ import matchuri.backend.global.api.PageResponse;
 public interface GroupApi {
 
     @Operation(
-            summary = "그룹 생성 (Mock API)",
+            summary = "그룹 생성",
             description = """
                     그룹 방을 생성합니다.
 
-                    Mock API 상태:
-                    - request body validation만 수행합니다.
-                    - DB 저장, 생성자 멤버 등록, 권한 검증은 아직 수행하지 않습니다.
-                    - 실제 저장 테이블은 `group_rooms`, `group_room_members` 기준입니다.
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 생성자는 `OWNER` 멤버로 함께 저장됩니다.
+                    - 실제 저장 테이블은 `group_rooms`, `group_room_members`입니다.
                     """
     )
     @ApiResponses({
@@ -67,7 +67,7 @@ public interface GroupApi {
                     )
             )
     })
-    ApiResponse<CreateGroupResponse> createGroup(CreateGroupRequest request);
+    ApiResponse<CreateGroupResponse> createGroup(@Valid CreateGroupRequest request);
 
     @Operation(
             summary = "내 그룹 목록 조회 (Mock API)",
@@ -183,7 +183,7 @@ public interface GroupApi {
                     )
             )
     })
-    ApiResponse<JoinGroupResponse> joinGroup(JoinGroupRequest request);
+    ApiResponse<JoinGroupResponse> joinGroup(@Valid JoinGroupRequest request);
 
     @Operation(
             summary = "그룹 탈퇴 (Mock API)",
@@ -238,7 +238,7 @@ public interface GroupApi {
     })
     ApiResponse<CreateGroupRecommendationResponse> createRecommendation(
             Long groupId,
-            CreateGroupRecommendationRequest request
+            @Valid CreateGroupRecommendationRequest request
     );
 
     @Operation(
@@ -318,7 +318,7 @@ public interface GroupApi {
                     )
             )
     })
-    ApiResponse<GroupVoteResponse> vote(Long groupId, Long sessionId, VoteGroupRecommendationRequest request);
+    ApiResponse<GroupVoteResponse> vote(Long groupId, Long sessionId, @Valid VoteGroupRecommendationRequest request);
 
     @Operation(
             summary = "그룹 추천 최종 메뉴 확정 (Mock API)",
