@@ -194,6 +194,70 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1));
     }
 
+    @Test
+    @DisplayName("그룹 상세 조회는 활성 멤버에게 그룹과 활성 멤버 목록을 반환한다")
+    void getGroupReturnsDetailAndActiveMembers() throws Exception {
+        Member owner = saveMember("detail-owner", "상세방장");
+        Member activeMember = saveMember("detail-member", "상세멤버");
+        Member leftMember = saveMember("detail-left", "나간멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "상세 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                activeMember,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRoomMember leftMembership = groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                leftMember,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        leftMembership.leave(LocalDateTime.now());
+        groupRoomMemberRepository.save(leftMembership);
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.name").value("상세 그룹"))
+                .andExpect(jsonPath("$.data.status").value(GroupRoomStatus.ACTIVE.name()))
+                .andExpect(jsonPath("$.data.members.length()").value(2))
+                .andExpect(jsonPath("$.data.members[0].memberId").value(owner.getId()))
+                .andExpect(jsonPath("$.data.members[0].nickname").value("상세방장"))
+                .andExpect(jsonPath("$.data.members[0].role").value(GroupMemberRole.OWNER.name()))
+                .andExpect(jsonPath("$.data.members[1].memberId").value(activeMember.getId()))
+                .andExpect(jsonPath("$.data.members[1].nickname").value("상세멤버"))
+                .andExpect(jsonPath("$.data.activeRecommendation").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("그룹 상세 조회는 비멤버 접근을 거절한다")
+    void getGroupFailsForNonMember() throws Exception {
+        Member owner = saveMember("forbidden-owner", "권한방장");
+        Member other = saveMember("forbidden-other", "권한없음");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "권한 그룹");
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
+    }
+
+    @Test
+    @DisplayName("그룹 상세 조회는 삭제된 그룹을 찾을 수 없음으로 처리한다")
+    void getGroupFailsForDeletedGroup() throws Exception {
+        Member owner = saveMember("deleted-detail-owner", "삭제상세방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "삭제 상세 그룹");
+        groupRoom.delete();
+        groupRoomRepository.save(groupRoom);
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
+    }
+
     private Member saveMember(String loginId, String nickname) {
         return memberRepository.save(Member.builder()
                 .loginId(loginId)

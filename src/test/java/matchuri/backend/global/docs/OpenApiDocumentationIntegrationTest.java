@@ -308,8 +308,8 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].latestRecommendationStatus")
                         .value(nullValue()))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation.voteProgress.votedMemberCount")
-                        .value(3))
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation")
+                        .value(nullValue()))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/invites'].post.responses['200'].content['application/json'].examples.success.value.data.inviteCode")
                         .value("LUNCH42"))
