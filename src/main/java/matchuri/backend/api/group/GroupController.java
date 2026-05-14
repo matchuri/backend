@@ -23,6 +23,7 @@ import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.service.GroupService;
 import matchuri.backend.global.api.ApiResponse;
@@ -76,7 +77,9 @@ public class GroupController implements GroupApi {
     @Override
     @GetMapping("/{groupId}")
     public ApiResponse<GroupDetailResponse> getGroup(@PathVariable Long groupId) {
-        return ApiResponse.success(GroupDetailResponse.mockActive());
+        GroupDetailResult result = groupService.getGroup(groupId);
+
+        return ApiResponse.success(groupMapper.toGroupDetailResponse(result));
     }
 
     @Override

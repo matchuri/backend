@@ -9,13 +9,18 @@ import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
 import matchuri.backend.domain.group.entity.GroupRoomMember;
+import matchuri.backend.domain.group.entity.GroupRoomStatus;
+import matchuri.backend.domain.group.exception.GroupErrorCode;
 import matchuri.backend.domain.group.repository.GroupRoomMemberCountProjection;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.GroupDetailResult;
+import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
+import matchuri.backend.global.exception.BusinessException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -60,6 +65,32 @@ public class GroupServiceImpl implements GroupService {
         return memberships.map(membership -> toSummaryResult(membership, activeMemberCounts));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public GroupDetailResult getGroup(Long groupId) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(groupId, GroupRoomStatus.DELETED)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, groupId));
+
+        if (!groupRoomMemberRepository.existsActiveMembershipInNotDeletedRoom(groupId, member.getId())) {
+            throw new BusinessException(GroupErrorCode.ACCESS_DENIED, groupId);
+        }
+
+        List<GroupMemberSummaryResult> members = groupRoomMemberRepository.findActiveMembersByRoomId(groupId)
+                .stream()
+                .map(this::toMemberSummaryResult)
+                .toList();
+
+        return new GroupDetailResult(
+                room.getId(),
+                room.getName(),
+                room.getLatitude(),
+                room.getLongitude(),
+                room.getStatus(),
+                members
+        );
+    }
+
     private Map<Long, Long> countActiveMembers(Page<GroupRoomMember> memberships) {
         List<Long> roomIds = memberships.getContent().stream()
                 .map(membership -> membership.getRoom().getId())
@@ -90,6 +121,18 @@ public class GroupServiceImpl implements GroupService {
                 activeMemberCounts.getOrDefault(room.getId(), 0L).intValue(),
                 null,
                 room.getCreatedAt()
+        );
+    }
+
+    private GroupMemberSummaryResult toMemberSummaryResult(GroupRoomMember membership) {
+        Member member = membership.getMember();
+
+        return new GroupMemberSummaryResult(
+                member.getId(),
+                member.getNickname(),
+                membership.getRole(),
+                membership.getStatus(),
+                membership.getJoinedAt()
         );
     }
 }
