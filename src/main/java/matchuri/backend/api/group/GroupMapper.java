@@ -2,11 +2,15 @@ package matchuri.backend.api.group;
 
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
+import matchuri.backend.api.group.dto.response.GroupDetailResponse;
+import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.GroupDetailResult;
+import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +44,30 @@ public class GroupMapper {
                 result.memberCount(),
                 result.latestRecommendationStatus(),
                 result.createdAt()
+        );
+    }
+
+    public GroupDetailResponse toGroupDetailResponse(GroupDetailResult result) {
+        return new GroupDetailResponse(
+                result.id(),
+                result.name(),
+                result.latitude(),
+                result.longitude(),
+                result.status(),
+                result.members().stream()
+                        .map(this::toGroupMemberSummaryResponse)
+                        .toList(),
+                null
+        );
+    }
+
+    private GroupMemberSummaryResponse toGroupMemberSummaryResponse(GroupMemberSummaryResult result) {
+        return new GroupMemberSummaryResponse(
+                result.memberId(),
+                result.nickname(),
+                result.role(),
+                result.status(),
+                result.joinedAt()
         );
     }
 }
