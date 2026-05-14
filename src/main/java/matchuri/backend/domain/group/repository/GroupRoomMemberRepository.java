@@ -50,4 +50,34 @@ public interface GroupRoomMemberRepository extends JpaRepository<GroupRoomMember
             @Param("roomIds") List<Long> roomIds,
             @Param("memberStatus") GroupMemberStatus memberStatus
     );
+
+    @Query("""
+            select count(groupMember) > 0
+            from GroupRoomMember groupMember
+            join groupMember.room room
+            where room.id = :roomId
+              and room.status <> matchuri.backend.domain.group.entity.GroupRoomStatus.DELETED
+              and groupMember.member.id = :memberId
+              and groupMember.status = matchuri.backend.domain.group.entity.GroupMemberStatus.ACTIVE
+            """)
+    boolean existsActiveMembershipInNotDeletedRoom(
+            @Param("roomId") Long roomId,
+            @Param("memberId") Long memberId
+    );
+
+    @Query("""
+            select groupMember
+            from GroupRoomMember groupMember
+            join fetch groupMember.member member
+            where groupMember.room.id = :roomId
+              and groupMember.status = matchuri.backend.domain.group.entity.GroupMemberStatus.ACTIVE
+            order by
+              case
+                when groupMember.role = matchuri.backend.domain.group.entity.GroupMemberRole.OWNER then 0
+                else 1
+              end,
+              groupMember.joinedAt asc,
+              groupMember.id asc
+            """)
+    List<GroupRoomMember> findActiveMembersByRoomId(@Param("roomId") Long roomId);
 }
