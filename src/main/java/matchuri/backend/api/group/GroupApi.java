@@ -110,13 +110,14 @@ public interface GroupApi {
     );
 
     @Operation(
-            summary = "그룹 상세 조회 (Mock API)",
+            summary = "그룹 상세 조회",
             description = """
                     그룹 방 상세와 현재 멤버, 진행 중인 그룹 추천 상태를 조회합니다.
 
-                    Mock API 상태:
-                    - `groupId` 존재 여부와 멤버 권한 검증은 아직 수행하지 않습니다.
-                    - 최신 스키마의 그룹 추천 저장 책임은 `group_recommendations` 기준입니다.
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - 삭제된 그룹은 조회할 수 없습니다.
+                    - 그룹 추천 구현 전까지 `activeRecommendation`은 null입니다.
                     """
     )
     @ApiResponses({

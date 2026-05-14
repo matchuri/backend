@@ -84,42 +84,7 @@ public final class GroupApiExamples {
                     "joinedAt": "2026-05-06T12:02:00"
                   }
                 ],
-                "activeRecommendation": {
-                  "sessionId": 5001,
-                  "status": "OPEN",
-                  "candidates": [
-                    {
-                      "candidateId": 8001,
-                      "menuId": 1001,
-                      "menuName": "비빔밥",
-                      "rankNo": 1,
-                      "score": 91.5,
-                      "voteCount": 3
-                    },
-                    {
-                      "candidateId": 8002,
-                      "menuId": 1002,
-                      "menuName": "돈까스",
-                      "rankNo": 2,
-                      "score": 84.0,
-                      "voteCount": 1
-                    },
-                    {
-                      "candidateId": 8003,
-                      "menuId": 1003,
-                      "menuName": "쌀국수",
-                      "rankNo": 3,
-                      "score": 79.5,
-                      "voteCount": 0
-                    }
-                  ],
-                  "voteProgress": {
-                    "totalMemberCount": 4,
-                    "votedMemberCount": 3
-                  },
-                  "finalCandidate": null,
-                  "createdAt": "2026-05-06T12:05:00"
-                }
+                "activeRecommendation": null
               },
               "error": null
             }
