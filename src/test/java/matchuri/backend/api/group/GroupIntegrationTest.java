@@ -19,6 +19,7 @@ import matchuri.backend.domain.group.entity.GroupMemberStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
 import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
+import matchuri.backend.domain.group.repository.GroupInviteRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
 import matchuri.backend.domain.member.entity.Member;
@@ -59,6 +60,9 @@ class GroupIntegrationTest {
     @Autowired
     private GroupRoomMemberRepository groupRoomMemberRepository;
 
+    @Autowired
+    private GroupInviteRepository groupInviteRepository;
+
     @BeforeEach
     void setUp() {
         clearData();
@@ -70,6 +74,7 @@ class GroupIntegrationTest {
     }
 
     private void clearData() {
+        groupInviteRepository.deleteAll();
         groupRoomMemberRepository.deleteAll();
         groupRoomRepository.deleteAll();
         memberRepository.deleteAll();
@@ -256,6 +261,85 @@ class GroupIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("그룹 초대 코드 생성은 OWNER가 활성 초대를 저장하고 반환한다")
+    void createInviteCreatesActiveInviteForOwner() throws Exception {
+        Member owner = saveMember("invite-owner", "초대방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "초대 그룹");
+        LocalDateTime beforeExpectedExpiry = LocalDateTime.now().plusHours(24);
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/invites", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.inviteCode").isString())
+                .andExpect(jsonPath("$.data.expiresAt").isNotEmpty())
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"));
+
+        LocalDateTime afterExpectedExpiry = LocalDateTime.now().plusHours(24);
+        var savedInvite = groupInviteRepository.findAll().getFirst();
+
+        assertThat(savedInvite.getRoom().getId()).isEqualTo(groupRoom.getId());
+        assertThat(savedInvite.getCreatedByMember().getId()).isEqualTo(owner.getId());
+        assertThat(savedInvite.getInviteCode()).hasSize(8);
+        assertThat(savedInvite.getExpiresAt()).isBetween(beforeExpectedExpiry, afterExpectedExpiry);
+        assertThat(savedInvite.getStatus().name()).isEqualTo("ACTIVE");
+    }
+
+    @Test
+    @DisplayName("그룹 초대 코드 생성은 OWNER가 아니면 거절한다")
+    void createInviteFailsForNonOwnerMember() throws Exception {
+        Member owner = saveMember("invite-non-owner-host", "초대방장2");
+        Member member = saveMember("invite-non-owner-member", "초대멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "멤버 초대 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/invites", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
+
+        assertThat(groupInviteRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("그룹 초대 코드 생성은 활성 상태가 아닌 그룹이면 실패한다")
+    void createInviteFailsForNotActiveGroup() throws Exception {
+        Member owner = saveMember("closed-invite-owner", "닫힌초대방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "닫힌 초대 그룹");
+        groupRoom.close();
+        groupRoomRepository.save(groupRoom);
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/invites", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_ACTIVE"));
+
+        assertThat(groupInviteRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("그룹 초대 코드 생성은 삭제된 그룹이면 찾을 수 없음으로 처리한다")
+    void createInviteFailsForDeletedGroup() throws Exception {
+        Member owner = saveMember("deleted-invite-owner", "삭제초대방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "삭제 초대 그룹");
+        groupRoom.delete();
+        groupRoomRepository.save(groupRoom);
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/invites", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
+
+        assertThat(groupInviteRepository.count()).isZero();
     }
 
     private Member saveMember(String loginId, String nickname) {
