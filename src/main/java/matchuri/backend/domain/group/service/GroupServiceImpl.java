@@ -67,7 +67,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public CreateGroupInviteResult createInvite(CreateGroupInviteCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        GroupRoom room = groupRoomRepository.findById(command.groupId())
+        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, command.groupId()));
 
         if (!room.isActive()) {
