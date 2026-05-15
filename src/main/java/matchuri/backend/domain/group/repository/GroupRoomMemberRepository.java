@@ -1,6 +1,7 @@
 package matchuri.backend.domain.group.repository;
 
 import java.util.List;
+import java.util.Optional;
 import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
@@ -61,6 +62,20 @@ public interface GroupRoomMemberRepository extends JpaRepository<GroupRoomMember
               and groupMember.status = matchuri.backend.domain.group.entity.GroupMemberStatus.ACTIVE
             """)
     boolean existsActiveMembershipInNotDeletedRoom(
+            @Param("roomId") Long roomId,
+            @Param("memberId") Long memberId
+    );
+
+    @Query("""
+            select groupMember
+            from GroupRoomMember groupMember
+            join groupMember.room room
+            where room.id = :roomId
+              and room.status <> matchuri.backend.domain.group.entity.GroupRoomStatus.DELETED
+              and groupMember.member.id = :memberId
+              and groupMember.status = matchuri.backend.domain.group.entity.GroupMemberStatus.ACTIVE
+            """)
+    Optional<GroupRoomMember> findActiveMembershipInNotDeletedRoom(
             @Param("roomId") Long roomId,
             @Param("memberId") Long memberId
     );
