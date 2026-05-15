@@ -3,6 +3,7 @@ package matchuri.backend.domain.group.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
@@ -66,18 +67,23 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public CreateGroupInviteResult createInvite(CreateGroupInviteCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
+        GroupRoom room = groupRoomRepository.findById(command.groupId())
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, command.groupId()));
 
-        if (room.getStatus() != GroupRoomStatus.ACTIVE) {
+        if (!room.isActive()) {
             throw new BusinessException(GroupErrorCode.NOT_ACTIVE, command.groupId());
         }
 
-        GroupRoomMember membership = groupRoomMemberRepository
-                .findActiveMembershipInNotDeletedRoom(command.groupId(), member.getId())
-                .orElseThrow(() -> new BusinessException(GroupErrorCode.ACCESS_DENIED, command.groupId()));
+        long memberId = member.getId();
+        long hostMemberId = room.getHostMember().getId();
 
-        if (membership.getRole() != GroupMemberRole.OWNER) {
+        if (memberId != hostMemberId) {
+            throw new BusinessException(GroupErrorCode.ACCESS_DENIED, command.groupId());
+        }
+
+        GroupRoomMember membership = room.getGroupRoomHostMember();
+
+        if (!membership.isOwner()) {
             throw new BusinessException(GroupErrorCode.ACCESS_DENIED, command.groupId());
         }
 

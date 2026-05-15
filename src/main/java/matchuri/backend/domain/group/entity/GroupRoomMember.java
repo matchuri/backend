@@ -75,4 +75,8 @@ public class GroupRoomMember extends BaseEntity {
         this.status = GroupMemberStatus.KICKED;
         this.leftAt = leftAt;
     }
+
+    public boolean isOwner() {
+        return this.role == GroupMemberRole.OWNER;
+    }
 }

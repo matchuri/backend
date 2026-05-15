@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -84,5 +85,17 @@ public class GroupRoom extends BaseEntity {
 
     public void delete() {
         this.status = GroupRoomStatus.DELETED;
+    }
+
+    public boolean isActive() {
+        return this.status == GroupRoomStatus.ACTIVE;
+    }
+
+    public GroupRoomMember getGroupRoomHostMember() {
+        Long hostMemberId = this.hostMember.getId();
+        return this.groupRoomMembers.stream()
+                .filter(groupRoomMember -> Objects.equals(groupRoomMember.getMember().getId(), hostMemberId))
+                .findFirst()
+                .orElse(null);
     }
 }
