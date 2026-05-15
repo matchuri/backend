@@ -20,8 +20,10 @@ import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
+import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
@@ -85,7 +87,10 @@ public class GroupController implements GroupApi {
     @Override
     @PostMapping("/{groupId}/invites")
     public ApiResponse<CreateGroupInviteResponse> createInvite(@PathVariable Long groupId) {
-        return ApiResponse.success(CreateGroupInviteResponse.mockActive());
+        CreateGroupInviteCommand command = groupMapper.toCreateGroupInviteCommand(groupId);
+        CreateGroupInviteResult result = groupService.createInvite(command);
+
+        return ApiResponse.success(groupMapper.toCreateGroupInviteResponse(result));
     }
 
     @Override

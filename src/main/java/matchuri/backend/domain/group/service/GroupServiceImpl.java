@@ -1,23 +1,30 @@
 package matchuri.backend.domain.group.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
+import matchuri.backend.domain.group.entity.GroupInvite;
+import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
 import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.exception.GroupErrorCode;
+import matchuri.backend.domain.group.repository.GroupInviteRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberCountProjection;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
+import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
+import matchuri.backend.domain.group.support.GroupInviteCodeGenerator;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.global.exception.BusinessException;
@@ -32,9 +39,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GroupServiceImpl implements GroupService {
 
+    private static final int INVITE_EXPIRATION_HOURS = 24;
+    private static final int MAX_INVITE_CODE_GENERATION_ATTEMPTS = 5;
+
     private final ActiveMemberReader activeMemberReader;
     private final GroupRoomRepository groupRoomRepository;
     private final GroupRoomMemberRepository groupRoomMemberRepository;
+    private final GroupInviteRepository groupInviteRepository;
+    private final GroupInviteCodeGenerator groupInviteCodeGenerator;
 
     @Override
     public CreateGroupResult createGroup(CreateGroupCommand command) {
@@ -49,6 +61,35 @@ public class GroupServiceImpl implements GroupService {
         GroupRoom savedGroupRoom = groupRoomRepository.save(groupRoom);
 
         return new CreateGroupResult(savedGroupRoom.getId(), savedGroupRoom.getStatus());
+    }
+
+    @Override
+    public CreateGroupInviteResult createInvite(CreateGroupInviteCommand command) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, command.groupId()));
+
+        if (room.getStatus() != GroupRoomStatus.ACTIVE) {
+            throw new BusinessException(GroupErrorCode.NOT_ACTIVE, command.groupId());
+        }
+
+        GroupRoomMember membership = groupRoomMemberRepository
+                .findActiveMembershipInNotDeletedRoom(command.groupId(), member.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.ACCESS_DENIED, command.groupId()));
+
+        if (membership.getRole() != GroupMemberRole.OWNER) {
+            throw new BusinessException(GroupErrorCode.ACCESS_DENIED, command.groupId());
+        }
+
+        LocalDateTime expiresAt = LocalDateTime.now().plusHours(INVITE_EXPIRATION_HOURS);
+        GroupInvite groupInvite = createUniqueInvite(room, member, expiresAt);
+
+        return new CreateGroupInviteResult(
+                room.getId(),
+                groupInvite.getInviteCode(),
+                groupInvite.getExpiresAt(),
+                groupInvite.getStatus()
+        );
     }
 
     @Override
@@ -122,6 +163,18 @@ public class GroupServiceImpl implements GroupService {
                 null,
                 room.getCreatedAt()
         );
+    }
+
+    private GroupInvite createUniqueInvite(GroupRoom room, Member member, LocalDateTime expiresAt) {
+        for (int attempt = 0; attempt < MAX_INVITE_CODE_GENERATION_ATTEMPTS; attempt++) {
+            String inviteCode = groupInviteCodeGenerator.generate();
+
+            if (!groupInviteRepository.existsByInviteCode(inviteCode)) {
+                return groupInviteRepository.save(new GroupInvite(room, member, inviteCode, expiresAt));
+            }
+        }
+
+        throw new BusinessException(GroupErrorCode.INVITE_CODE_GENERATION_FAILED);
     }
 
     private GroupMemberSummaryResult toMemberSummaryResult(GroupRoomMember membership) {
