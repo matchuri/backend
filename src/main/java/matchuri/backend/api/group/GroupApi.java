@@ -137,12 +137,14 @@ public interface GroupApi {
     ApiResponse<GroupDetailResponse> getGroup(Long groupId);
 
     @Operation(
-            summary = "그룹 초대 코드 생성 (Mock API)",
+            summary = "그룹 초대 코드 생성",
             description = """
                     그룹에 참여할 수 있는 초대 코드를 생성합니다.
 
-                    Mock API 상태:
-                    - 그룹 멤버 권한과 만료 정책 저장은 아직 수행하지 않습니다.
+                    구현 기준:
+                    - `OWNER` 역할의 활성 멤버만 초대 코드를 생성할 수 있습니다.
+                    - 그룹이 `ACTIVE` 상태일 때만 생성할 수 있습니다.
+                    - 초대 코드는 생성 시점부터 24시간 뒤 만료됩니다.
                     - 실제 저장 테이블은 `group_invites` 기준입니다.
                     """
     )
