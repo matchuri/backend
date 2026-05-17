@@ -165,13 +165,15 @@ public interface GroupApi {
     ApiResponse<CreateGroupInviteResponse> createInvite(Long groupId);
 
     @Operation(
-            summary = "초대 코드로 그룹 참여 (Mock API)",
+            summary = "초대 코드로 그룹 참여",
             description = """
                     초대 코드로 그룹에 참여합니다.
 
-                    Mock API 상태:
-                    - 초대 코드 존재 여부, 만료 여부, 중복 가입 검증은 아직 수행하지 않습니다.
-                    - request body validation만 수행합니다.
+                    구현 기준:
+                    - 초대 코드 존재 여부, 취소 여부, 만료 여부를 검증합니다.
+                    - 연결된 그룹이 `ACTIVE` 상태일 때만 참여할 수 있습니다.
+                    - 이미 `ACTIVE` 멤버이면 중복 참여로 실패합니다.
+                    - 과거 `LEFT` 멤버는 기존 membership을 재활성화합니다.
                     """
     )
     @ApiResponses({
