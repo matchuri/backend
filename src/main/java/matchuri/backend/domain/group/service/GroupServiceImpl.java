@@ -123,17 +123,18 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public LeaveGroupResult leaveGroup(LeaveGroupCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        Long memberId = member.getId();
         GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, command.groupId()));
-        GroupRoomMember membership = groupRoomMemberRepository.findByRoomIdAndMemberId(room.getId(), member.getId())
-                .orElseThrow(() -> new BusinessException(GroupErrorCode.MEMBER_NOT_FOUND, room.getId(), member.getId()));
+        GroupRoomMember membership = room.getGroupRoomMemberById(memberId)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.MEMBER_NOT_FOUND, room.getId(), memberId));
 
-        if (membership.getStatus() == GroupMemberStatus.LEFT) {
-            throw new BusinessException(GroupErrorCode.MEMBER_ALREADY_LEFT, room.getId(), member.getId());
+        if (membership.isLeft()) {
+            throw new BusinessException(GroupErrorCode.MEMBER_ALREADY_LEFT, room.getId(), memberId);
         }
 
-        if (membership.getStatus() != GroupMemberStatus.ACTIVE) {
-            throw new BusinessException(GroupErrorCode.MEMBER_NOT_FOUND, room.getId(), member.getId());
+        if (!membership.isActive()) {
+            throw new BusinessException(GroupErrorCode.MEMBER_NOT_FOUND, room.getId(), memberId);
         }
 
         if (membership.isOwner()) {

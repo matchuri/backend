@@ -85,4 +85,12 @@ public class GroupRoomMember extends BaseEntity {
     public boolean isOwner() {
         return this.role == GroupMemberRole.OWNER;
     }
+
+    public boolean isActive() {
+        return this.status == GroupMemberStatus.ACTIVE;
+    }
+
+    public boolean isLeft() {
+        return this.status == GroupMemberStatus.LEFT;
+    }
 }

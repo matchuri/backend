@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -97,5 +98,11 @@ public class GroupRoom extends BaseEntity {
                 .filter(groupRoomMember -> Objects.equals(groupRoomMember.getMember().getId(), hostMemberId))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public Optional<GroupRoomMember> getGroupRoomMemberById (long memberId) {
+        return this.groupRoomMembers.stream()
+                .filter(groupRoomMember -> groupRoomMember.getMember().getId() == memberId)
+                .findFirst();
     }
 }
