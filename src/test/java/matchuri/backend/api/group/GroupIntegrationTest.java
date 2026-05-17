@@ -520,6 +520,108 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.error.code").value("GROUP_NOT_ACTIVE"));
     }
 
+    @Test
+    @DisplayName("그룹 나가기는 일반 멤버를 LEFT 상태로 전환한다")
+    void leaveGroupChangesMemberStatusToLeft() throws Exception {
+        Member owner = saveMember("leave-owner", "탈퇴방장");
+        Member member = saveMember("leave-member", "탈퇴멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "탈퇴 그룹");
+        GroupRoomMember membership = groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        LocalDateTime beforeLeave = LocalDateTime.now();
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/leave", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.memberStatus").value(GroupMemberStatus.LEFT.name()))
+                .andExpect(jsonPath("$.data.leftAt").isNotEmpty());
+
+        LocalDateTime afterLeave = LocalDateTime.now();
+        GroupRoomMember savedMembership = groupRoomMemberRepository.findById(membership.getId()).orElseThrow();
+
+        assertThat(savedMembership.getStatus()).isEqualTo(GroupMemberStatus.LEFT);
+        assertThat(savedMembership.getLeftAt()).isBetween(beforeLeave, afterLeave);
+    }
+
+    @Test
+    @DisplayName("그룹 나가기는 OWNER이면 거절한다")
+    void leaveGroupFailsForOwner() throws Exception {
+        Member owner = saveMember("owner-leave-owner", "방장탈퇴");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "방장 탈퇴 그룹");
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/leave", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_OWNER_LEAVE_NOT_ALLOWED"));
+
+        GroupRoomMember ownerMembership = groupRoomMemberRepository
+                .findByRoomIdAndMemberId(groupRoom.getId(), owner.getId())
+                .orElseThrow();
+        assertThat(ownerMembership.getStatus()).isEqualTo(GroupMemberStatus.ACTIVE);
+        assertThat(ownerMembership.getLeftAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("그룹 나가기는 이미 LEFT 멤버이면 실패한다")
+    void leaveGroupFailsForAlreadyLeftMember() throws Exception {
+        Member owner = saveMember("already-left-owner", "이미나감방장");
+        Member member = saveMember("already-left-member", "이미나감멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "이미 나간 그룹");
+        GroupRoomMember membership = groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        membership.leave(LocalDateTime.now());
+        groupRoomMemberRepository.save(membership);
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/leave", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_MEMBER_ALREADY_LEFT"));
+    }
+
+    @Test
+    @DisplayName("그룹 나가기는 그룹 멤버가 아니면 실패한다")
+    void leaveGroupFailsForNonMember() throws Exception {
+        Member owner = saveMember("leave-nonmember-owner", "비멤버방장");
+        Member other = saveMember("leave-nonmember-other", "비멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "비멤버 탈퇴 그룹");
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/leave", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_MEMBER_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("그룹 나가기는 삭제된 그룹이면 찾을 수 없음으로 처리한다")
+    void leaveGroupFailsForDeletedGroup() throws Exception {
+        Member owner = saveMember("deleted-leave-owner", "삭제탈퇴방장");
+        Member member = saveMember("deleted-leave-member", "삭제탈퇴멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "삭제 탈퇴 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        groupRoom.delete();
+        groupRoomRepository.save(groupRoom);
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/leave", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
+    }
+
     private Member saveMember(String loginId, String nickname) {
         return memberRepository.save(Member.builder()
                 .loginId(loginId)
