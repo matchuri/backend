@@ -193,12 +193,14 @@ public interface GroupApi {
     ApiResponse<JoinGroupResponse> joinGroup(@Valid JoinGroupRequest request);
 
     @Operation(
-            summary = "그룹 탈퇴 (Mock API)",
+            summary = "그룹 탈퇴",
             description = """
                     현재 회원이 그룹에서 탈퇴합니다.
 
-                    Mock API 상태:
-                    - 그룹 멤버 여부와 소유자 탈퇴 정책은 아직 검증하지 않습니다.
+                    구현 기준:
+                    - 현재 회원의 활성 membership을 `LEFT`로 전환합니다.
+                    - `OWNER`는 나갈 수 없으며 그룹 삭제 API를 사용해야 합니다.
+                    - 이미 나간 멤버와 비멤버 접근은 상태에 맞는 에러로 처리합니다.
                     - 실제 저장 테이블은 `group_room_members` 기준입니다.
                     """
     )
