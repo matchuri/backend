@@ -1,20 +1,24 @@
 package matchuri.backend.api.group;
 
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
+import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
+import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
+import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
+import matchuri.backend.domain.group.result.JoinGroupResult;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,6 +49,17 @@ public class GroupMapper {
                 result.inviteCode(),
                 result.expiresAt(),
                 result.status()
+        );
+    }
+
+    public JoinGroupCommand toJoinGroupCommand(JoinGroupRequest request) {
+        return new JoinGroupCommand(request.inviteCode());
+    }
+
+    public JoinGroupResponse toJoinGroupResponse(JoinGroupResult result) {
+        return new JoinGroupResponse(
+                result.groupId(),
+                result.memberStatus()
         );
     }
 
