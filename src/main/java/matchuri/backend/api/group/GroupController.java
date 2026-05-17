@@ -23,12 +23,14 @@ import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
+import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
+import matchuri.backend.domain.group.result.LeaveGroupResult;
 import matchuri.backend.domain.group.service.GroupService;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
@@ -107,7 +109,10 @@ public class GroupController implements GroupApi {
     @Override
     @PostMapping("/{groupId}/leave")
     public ApiResponse<LeaveGroupResponse> leaveGroup(@PathVariable Long groupId) {
-        return ApiResponse.success(LeaveGroupResponse.mockLeft());
+        LeaveGroupCommand command = groupMapper.toLeaveGroupCommand(groupId);
+        LeaveGroupResult result = groupService.leaveGroup(command);
+
+        return ApiResponse.success(groupMapper.toLeaveGroupResponse(result));
     }
 
     @Override

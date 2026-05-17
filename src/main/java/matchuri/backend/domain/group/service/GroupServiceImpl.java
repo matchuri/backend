@@ -3,13 +3,13 @@ package matchuri.backend.domain.group.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
+import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInvite;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
@@ -28,6 +28,7 @@ import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
+import matchuri.backend.domain.group.result.LeaveGroupResult;
 import matchuri.backend.domain.group.support.GroupInviteCodeGenerator;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
@@ -117,6 +118,32 @@ public class GroupServiceImpl implements GroupService {
         GroupRoomMember membership = joinOrRejoinMember(room, member);
 
         return new JoinGroupResult(room.getId(), membership.getStatus());
+    }
+
+    @Override
+    public LeaveGroupResult leaveGroup(LeaveGroupCommand command) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, command.groupId()));
+        GroupRoomMember membership = groupRoomMemberRepository.findByRoomIdAndMemberId(room.getId(), member.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.MEMBER_NOT_FOUND, room.getId(), member.getId()));
+
+        if (membership.getStatus() == GroupMemberStatus.LEFT) {
+            throw new BusinessException(GroupErrorCode.MEMBER_ALREADY_LEFT, room.getId(), member.getId());
+        }
+
+        if (membership.getStatus() != GroupMemberStatus.ACTIVE) {
+            throw new BusinessException(GroupErrorCode.MEMBER_NOT_FOUND, room.getId(), member.getId());
+        }
+
+        if (membership.isOwner()) {
+            throw new BusinessException(GroupErrorCode.OWNER_LEAVE_NOT_ALLOWED, room.getId());
+        }
+
+        LocalDateTime leftAt = LocalDateTime.now();
+        membership.leave(leftAt);
+
+        return new LeaveGroupResult(room.getId(), membership.getStatus(), membership.getLeftAt());
     }
 
     @Override
