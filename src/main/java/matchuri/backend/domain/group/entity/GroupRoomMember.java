@@ -76,6 +76,12 @@ public class GroupRoomMember extends BaseEntity {
         this.leftAt = leftAt;
     }
 
+    public void rejoin(LocalDateTime joinedAt) {
+        this.status = GroupMemberStatus.ACTIVE;
+        this.joinedAt = joinedAt;
+        this.leftAt = null;
+    }
+
     public boolean isOwner() {
         return this.role == GroupMemberRole.OWNER;
     }

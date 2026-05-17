@@ -80,6 +80,8 @@ public interface GroupRoomMemberRepository extends JpaRepository<GroupRoomMember
             @Param("memberId") Long memberId
     );
 
+    Optional<GroupRoomMember> findByRoomIdAndMemberId(Long roomId, Long memberId);
+
     @Query("""
             select groupMember
             from GroupRoomMember groupMember

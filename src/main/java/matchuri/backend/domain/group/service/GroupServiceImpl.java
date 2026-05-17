@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
+import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInvite;
+import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
@@ -25,6 +27,7 @@ import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
+import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.support.GroupInviteCodeGenerator;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
@@ -96,6 +99,24 @@ public class GroupServiceImpl implements GroupService {
                 groupInvite.getExpiresAt(),
                 groupInvite.getStatus()
         );
+    }
+
+    @Override
+    public JoinGroupResult joinGroup(JoinGroupCommand command) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupInvite groupInvite = groupInviteRepository.findByInviteCodeWithRoom(command.inviteCode())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.INVITE_NOT_FOUND, command.inviteCode()));
+
+        validateJoinableInvite(groupInvite, command.inviteCode());
+
+        GroupRoom room = groupInvite.getRoom();
+        if (!room.isActive()) {
+            throw new BusinessException(GroupErrorCode.NOT_ACTIVE, room.getId());
+        }
+
+        GroupRoomMember membership = joinOrRejoinMember(room, member);
+
+        return new JoinGroupResult(room.getId(), membership.getStatus());
     }
 
     @Override
@@ -181,6 +202,46 @@ public class GroupServiceImpl implements GroupService {
         }
 
         throw new BusinessException(GroupErrorCode.INVITE_CODE_GENERATION_FAILED);
+    }
+
+    private void validateJoinableInvite(GroupInvite groupInvite, String inviteCode) {
+        if (groupInvite.getStatus() == GroupInviteStatus.REVOKED) {
+            throw new BusinessException(GroupErrorCode.INVITE_REVOKED, inviteCode);
+        }
+
+        if (groupInvite.getStatus() == GroupInviteStatus.EXPIRED) {
+            throw new BusinessException(GroupErrorCode.INVITE_EXPIRED, inviteCode);
+        }
+
+        if (groupInvite.getExpiresAt() != null && !groupInvite.getExpiresAt().isAfter(LocalDateTime.now())) {
+            groupInvite.expire();
+            throw new BusinessException(GroupErrorCode.INVITE_EXPIRED, inviteCode);
+        }
+    }
+
+    private GroupRoomMember joinOrRejoinMember(GroupRoom room, Member member) {
+        return groupRoomMemberRepository.findByRoomIdAndMemberId(room.getId(), member.getId())
+                .map(membership -> rejoinExistingMembership(room, member, membership))
+                .orElseGet(() -> groupRoomMemberRepository.save(
+                        new GroupRoomMember(room, member, GroupMemberRole.MEMBER, LocalDateTime.now())
+                ));
+    }
+
+    private GroupRoomMember rejoinExistingMembership(
+            GroupRoom room,
+            Member member,
+            GroupRoomMember membership
+    ) {
+        if (membership.getStatus() == GroupMemberStatus.ACTIVE) {
+            throw new BusinessException(GroupErrorCode.ALREADY_JOINED, room.getId(), member.getId());
+        }
+
+        if (membership.getStatus() == GroupMemberStatus.LEFT) {
+            membership.rejoin(LocalDateTime.now());
+            return membership;
+        }
+
+        throw new BusinessException(GroupErrorCode.ACCESS_DENIED, room.getId());
     }
 
     private GroupMemberSummaryResult toMemberSummaryResult(GroupRoomMember membership) {

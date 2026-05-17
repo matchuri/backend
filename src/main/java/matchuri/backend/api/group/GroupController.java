@@ -22,11 +22,13 @@ import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
+import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
+import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.service.GroupService;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
@@ -96,7 +98,10 @@ public class GroupController implements GroupApi {
     @Override
     @PostMapping("/join")
     public ApiResponse<JoinGroupResponse> joinGroup(@Valid @RequestBody JoinGroupRequest request) {
-        return ApiResponse.success(JoinGroupResponse.mockJoined());
+        JoinGroupCommand command = groupMapper.toJoinGroupCommand(request);
+        JoinGroupResult result = groupService.joinGroup(command);
+
+        return ApiResponse.success(groupMapper.toJoinGroupResponse(result));
     }
 
     @Override
