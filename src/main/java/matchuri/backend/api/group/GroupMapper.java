@@ -98,13 +98,20 @@ public class GroupMapper {
     }
 
     public UpdateGroupCommand toUpdateGroupCommand(Long groupId, UpdateGroupRequest request) {
-        return new UpdateGroupCommand(groupId, request.name());
+        return new UpdateGroupCommand(
+                groupId,
+                request.name(),
+                request.latitude(),
+                request.longitude()
+        );
     }
 
     public UpdateGroupResponse toUpdateGroupResponse(UpdateGroupResult result) {
         return new UpdateGroupResponse(
                 result.groupId(),
                 result.name(),
+                result.latitude(),
+                result.longitude(),
                 result.status(),
                 result.updatedAt()
         );

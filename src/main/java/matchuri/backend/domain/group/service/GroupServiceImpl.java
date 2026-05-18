@@ -195,11 +195,23 @@ public class GroupServiceImpl implements GroupService {
             throw new BusinessException(GroupErrorCode.UPDATE_FORBIDDEN, room.getId());
         }
 
-        room.updateName(command.name());
+        if (command.name() != null) {
+            room.updateName(command.name());
+        }
+
+        if (command.latitude() != null) {
+            room.updateLatitude(command.latitude());
+        }
+
+        if (command.longitude() != null) {
+            room.updateLongitude(command.longitude());
+        }
 
         return new UpdateGroupResult(
                 room.getId(),
                 room.getName(),
+                room.getLatitude(),
+                room.getLongitude(),
                 room.getStatus(),
                 room.getUpdatedAt()
         );
