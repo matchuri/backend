@@ -2,6 +2,7 @@ package matchuri.backend.api.group;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import matchuri.backend.domain.group.entity.GroupInvite;
+import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
@@ -618,6 +620,112 @@ class GroupIntegrationTest {
 
         mockMvc.perform(post("/api/v1/groups/{groupId}/leave", groupRoom.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("그룹 삭제는 방을 DELETED로 전환하고 활성 초대와 활성 멤버를 정리한다")
+    void deleteGroupSoftDeletesRoomAndCleansActiveRelations() throws Exception {
+        Member owner = saveMember("delete-owner", "삭제방장");
+        Member activeMember = saveMember("delete-member", "삭제멤버");
+        Member leftMember = saveMember("delete-left-member", "삭제전나간멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "삭제 그룹");
+        GroupRoomMember activeMembership = groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                activeMember,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRoomMember leftMembership = groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                leftMember,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        leftMembership.leave(LocalDateTime.now().minusHours(1));
+        groupRoomMemberRepository.save(leftMembership);
+        GroupInvite activeInvite = saveInvite(groupRoom, owner, "DELETE01", LocalDateTime.now().plusHours(1));
+        GroupInvite revokedInvite = saveInvite(groupRoom, owner, "DELETE02", LocalDateTime.now().plusHours(1));
+        revokedInvite.revoke();
+        groupInviteRepository.save(revokedInvite);
+
+        mockMvc.perform(delete("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.status").value(GroupRoomStatus.DELETED.name()))
+                .andExpect(jsonPath("$.data.deletedAt").isNotEmpty());
+
+        GroupRoom deletedGroup = groupRoomRepository.findById(groupRoom.getId()).orElseThrow();
+        GroupRoomMember ownerMembership = groupRoomMemberRepository
+                .findByRoomIdAndMemberId(groupRoom.getId(), owner.getId())
+                .orElseThrow();
+        GroupRoomMember savedActiveMembership = groupRoomMemberRepository
+                .findById(activeMembership.getId())
+                .orElseThrow();
+        GroupRoomMember savedLeftMembership = groupRoomMemberRepository
+                .findById(leftMembership.getId())
+                .orElseThrow();
+        GroupInvite savedActiveInvite = groupInviteRepository.findById(activeInvite.getId()).orElseThrow();
+        GroupInvite savedRevokedInvite = groupInviteRepository.findById(revokedInvite.getId()).orElseThrow();
+
+        assertThat(deletedGroup.getStatus()).isEqualTo(GroupRoomStatus.DELETED);
+        assertThat(ownerMembership.getStatus()).isEqualTo(GroupMemberStatus.LEFT);
+        assertThat(savedActiveMembership.getStatus()).isEqualTo(GroupMemberStatus.LEFT);
+        assertThat(ownerMembership.getLeftAt()).isNotNull();
+        assertThat(savedActiveMembership.getLeftAt()).isNotNull();
+        assertThat(savedLeftMembership.getStatus()).isEqualTo(GroupMemberStatus.LEFT);
+        assertThat(savedActiveInvite.getStatus()).isEqualTo(GroupInviteStatus.REVOKED);
+        assertThat(savedRevokedInvite.getStatus()).isEqualTo(GroupInviteStatus.REVOKED);
+    }
+
+    @Test
+    @DisplayName("그룹 삭제는 OWNER가 아닌 활성 멤버이면 거절한다")
+    void deleteGroupFailsForNonOwnerMember() throws Exception {
+        Member owner = saveMember("delete-non-owner-host", "삭제권한방장");
+        Member member = saveMember("delete-non-owner-member", "삭제권한멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "삭제 권한 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(delete("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_DELETE_FORBIDDEN"));
+
+        assertThat(groupRoomRepository.findById(groupRoom.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRoomStatus.ACTIVE);
+    }
+
+    @Test
+    @DisplayName("그룹 삭제는 활성 멤버가 아니면 거절한다")
+    void deleteGroupFailsForNonMember() throws Exception {
+        Member owner = saveMember("delete-access-owner", "삭제접근방장");
+        Member other = saveMember("delete-access-other", "삭제접근없음");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "삭제 접근 그룹");
+
+        mockMvc.perform(delete("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
+    }
+
+    @Test
+    @DisplayName("그룹 삭제는 삭제된 그룹이면 찾을 수 없음으로 처리한다")
+    void deleteGroupFailsForDeletedGroup() throws Exception {
+        Member owner = saveMember("already-deleted-owner", "이미삭제방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "이미 삭제 그룹");
+        groupRoom.delete();
+        groupRoomRepository.save(groupRoom);
+
+        mockMvc.perform(delete("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
     }
