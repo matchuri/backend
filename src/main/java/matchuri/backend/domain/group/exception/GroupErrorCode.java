@@ -13,6 +13,8 @@ public enum GroupErrorCode implements ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "해당 그룹을 찾을 수 없습니다. groupId : {0}"),
     NOT_ACTIVE(HttpStatus.CONFLICT, "활성 상태의 그룹이 아닙니다. groupId : {0}"),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "그룹 접근 권한이 없습니다. groupId : {0}"),
+    UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "그룹 수정 권한이 없습니다. groupId : {0}"),
+    UPDATE_EMPTY_REQUEST(HttpStatus.BAD_REQUEST, "수정할 그룹 정보가 없습니다."),
     DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "그룹 삭제 권한이 없습니다. groupId : {0}"),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 그룹의 활성 멤버를 찾을 수 없습니다. groupId : {0}, memberId : {1}"),
     MEMBER_ALREADY_LEFT(HttpStatus.CONFLICT, "이미 나간 그룹 멤버입니다. groupId : {0}, memberId : {1}"),

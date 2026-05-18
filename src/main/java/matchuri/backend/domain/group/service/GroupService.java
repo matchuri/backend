@@ -6,6 +6,7 @@ import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
+import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
@@ -13,6 +14,7 @@ import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
+import matchuri.backend.domain.group.result.UpdateGroupResult;
 import org.springframework.data.domain.Page;
 
 public interface GroupService {
@@ -26,6 +28,8 @@ public interface GroupService {
     LeaveGroupResult leaveGroup(LeaveGroupCommand command);
 
     DeleteGroupResult deleteGroup(DeleteGroupCommand command);
+
+    UpdateGroupResult updateGroup(UpdateGroupCommand command);
 
     Page<GroupSummaryResult> getMyGroups(GetMyGroupsCommand command);
 

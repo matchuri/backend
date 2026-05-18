@@ -80,6 +80,10 @@ public class GroupRoom extends BaseEntity {
         groupRoomMembers.add(groupRoomMember);
     }
 
+    public void updateName(String name) {
+        this.name = name;
+    }
+
     public void close() {
         this.status = GroupRoomStatus.CLOSED;
     }

@@ -2,6 +2,7 @@ package matchuri.backend.api.group;
 
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
+import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
@@ -10,12 +11,14 @@ import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
+import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
@@ -25,6 +28,7 @@ import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
+import matchuri.backend.domain.group.result.UpdateGroupResult;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -90,6 +94,19 @@ public class GroupMapper {
                 result.groupId(),
                 result.status(),
                 result.deletedAt()
+        );
+    }
+
+    public UpdateGroupCommand toUpdateGroupCommand(Long groupId, UpdateGroupRequest request) {
+        return new UpdateGroupCommand(groupId, request.name());
+    }
+
+    public UpdateGroupResponse toUpdateGroupResponse(UpdateGroupResult result) {
+        return new UpdateGroupResponse(
+                result.groupId(),
+                result.name(),
+                result.status(),
+                result.updatedAt()
         );
     }
 
