@@ -23,9 +23,11 @@ import matchuri.backend.api.group.dto.docs.GroupSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupVoteApiResponse;
 import matchuri.backend.api.group.dto.docs.JoinGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.LeaveGroupApiResponse;
+import matchuri.backend.api.group.dto.docs.UpdateGroupApiResponse;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
+import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
@@ -39,6 +41,7 @@ import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
@@ -137,6 +140,38 @@ public interface GroupApi {
             )
     })
     ApiResponse<GroupDetailResponse> getGroup(Long groupId);
+
+    @Operation(
+            summary = "그룹 수정",
+            description = """
+                    그룹 정보를 수정합니다.
+
+                    구현 기준:
+                    - 현재 MVP에서는 그룹 이름과 위치(위도/경도)를 수정합니다.
+                    - 생략된 필드는 변경하지 않습니다.
+                    - 요청에는 최소 1개 이상의 지원 필드가 포함되어야 합니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` OWNER 멤버일 때만 수정할 수 있습니다.
+                    - 그룹이 `ACTIVE` 상태일 때만 수정할 수 있습니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 수정 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UpdateGroupApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.UPDATE_GROUP_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<UpdateGroupResponse> updateGroup(
+            Long groupId,
+            @Valid UpdateGroupRequest request
+    );
 
     @Operation(
             summary = "그룹 초대 코드 생성",

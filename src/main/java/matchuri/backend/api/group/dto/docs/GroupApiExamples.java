@@ -90,6 +90,21 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String UPDATE_GROUP_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "groupId": 3001,
+                "name": "점심 회의방",
+                "latitude": 37.498095,
+                "longitude": 127.027610,
+                "status": "ACTIVE",
+                "updatedAt": "2026-05-18T12:30:00"
+              },
+              "error": null
+            }
+            """;
+
     public static final String CREATE_INVITE_SUCCESS = """
             {
               "success": true,
