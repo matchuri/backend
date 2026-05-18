@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -262,6 +263,199 @@ class GroupIntegrationTest {
 
         mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 OWNER가 그룹 이름을 변경한다")
+    void updateGroupChangesNameForOwner() throws Exception {
+        Member owner = saveMember("update-owner", "수정방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "수정 전 그룹");
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "수정 후 그룹"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.name").value("수정 후 그룹"))
+                .andExpect(jsonPath("$.data.latitude").value(nullValue()))
+                .andExpect(jsonPath("$.data.longitude").value(nullValue()))
+                .andExpect(jsonPath("$.data.status").value(GroupRoomStatus.ACTIVE.name()))
+                .andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
+
+        assertThat(groupRoomRepository.findById(groupRoom.getId()).orElseThrow().getName())
+                .isEqualTo("수정 후 그룹");
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 OWNER가 위치만 변경할 수 있다")
+    void updateGroupChangesLocationForOwner() throws Exception {
+        Member owner = saveMember("update-location-owner", "위치수정방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "위치 수정 그룹");
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "latitude": 37.498095,
+                                  "longitude": 127.027610
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.name").value("위치 수정 그룹"))
+                .andExpect(jsonPath("$.data.latitude").value(37.498095))
+                .andExpect(jsonPath("$.data.longitude").value(127.027610))
+                .andExpect(jsonPath("$.data.status").value(GroupRoomStatus.ACTIVE.name()));
+
+        GroupRoom updatedGroup = groupRoomRepository.findById(groupRoom.getId()).orElseThrow();
+        assertThat(updatedGroup.getName()).isEqualTo("위치 수정 그룹");
+        assertThat(updatedGroup.getLatitude()).isEqualByComparingTo("37.498095");
+        assertThat(updatedGroup.getLongitude()).isEqualByComparingTo("127.027610");
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 OWNER가 아닌 활성 멤버이면 거절한다")
+    void updateGroupFailsForNonOwnerMember() throws Exception {
+        Member owner = saveMember("update-non-owner-host", "수정권한방장");
+        Member member = saveMember("update-non-owner-member", "수정권한멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "수정 권한 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "권한 없는 수정"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_UPDATE_FORBIDDEN"));
+
+        assertThat(groupRoomRepository.findById(groupRoom.getId()).orElseThrow().getName())
+                .isEqualTo("수정 권한 그룹");
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 비멤버이면 거절한다")
+    void updateGroupFailsForNonMember() throws Exception {
+        Member owner = saveMember("update-access-owner", "수정접근방장");
+        Member other = saveMember("update-access-other", "수정접근없음");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "수정 접근 그룹");
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "비멤버 수정"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 수정할 필드가 없으면 실패한다")
+    void updateGroupFailsForEmptyRequest() throws Exception {
+        Member owner = saveMember("update-empty-owner", "빈수정방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "빈 수정 그룹");
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("GROUP_UPDATE_EMPTY_REQUEST"));
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 이름이 blank이면 실패한다")
+    void updateGroupFailsWithBlankName() throws Exception {
+        Member owner = saveMember("update-blank-owner", "공백수정방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "공백 수정 그룹");
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": " "
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 위치 범위를 벗어나면 실패한다")
+    void updateGroupFailsWithInvalidLocation() throws Exception {
+        Member owner = saveMember("update-invalid-location-owner", "위치범위방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "위치 범위 그룹");
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "latitude": 91.0,
+                                  "longitude": 181.0
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 ACTIVE 상태가 아니면 실패한다")
+    void updateGroupFailsForNotActiveGroup() throws Exception {
+        Member owner = saveMember("update-closed-owner", "닫힌수정방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "닫힌 수정 그룹");
+        groupRoom.close();
+        groupRoomRepository.save(groupRoom);
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "닫힌 그룹 수정"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_ACTIVE"));
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 삭제된 그룹이면 찾을 수 없음으로 처리한다")
+    void updateGroupFailsForDeletedGroup() throws Exception {
+        Member owner = saveMember("update-deleted-owner", "삭제수정방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "삭제 수정 그룹");
+        groupRoom.delete();
+        groupRoomRepository.save(groupRoom);
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "삭제 그룹 수정"
+                                }
+                                """))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
     }
