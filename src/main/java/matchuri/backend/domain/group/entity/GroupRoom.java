@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,7 +30,10 @@ import matchuri.backend.domain.member.entity.Member;
 @Entity
 @Table(
         name = "group_rooms",
-        comment = "그룹 방"
+        comment = "그룹 방",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_group_rooms_invite_code", columnNames = "invite_code")
+        }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GroupRoom extends BaseEntity {
@@ -43,6 +47,9 @@ public class GroupRoom extends BaseEntity {
 
     @Column(nullable = false, length = NAME_MAX_LENGTH, comment = "그룹명")
     private String name;
+
+    @Column(name = "invite_code", nullable = false, length = 32, comment = "그룹 고정 초대 코드")
+    private String inviteCode;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "host_member_id", nullable = false, comment = "방장 회원 ID")
@@ -61,16 +68,29 @@ public class GroupRoom extends BaseEntity {
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<GroupRoomMember> groupRoomMembers = new ArrayList<>();
 
-    private GroupRoom(String name, Member hostMember, BigDecimal latitude, BigDecimal longitude) {
+    private GroupRoom(
+            String name,
+            String inviteCode,
+            Member hostMember,
+            BigDecimal latitude,
+            BigDecimal longitude
+    ) {
         this.name = name;
+        this.inviteCode = inviteCode;
         this.hostMember = hostMember;
         this.latitude = latitude;
         this.longitude = longitude;
         this.status = GroupRoomStatus.ACTIVE;
     }
 
-    public static GroupRoom createOwnedBy(String name, Member hostMember, BigDecimal latitude, BigDecimal longitude) {
-        GroupRoom newGroupRoom = new GroupRoom(name, hostMember, latitude, longitude);
+    public static GroupRoom createOwnedBy(
+            String name,
+            String inviteCode,
+            Member hostMember,
+            BigDecimal latitude,
+            BigDecimal longitude
+    ) {
+        GroupRoom newGroupRoom = new GroupRoom(name, inviteCode, hostMember, latitude, longitude);
         newGroupRoom.addGroupMember(hostMember, GroupMemberRole.OWNER);
         return newGroupRoom;
     }

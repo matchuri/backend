@@ -7,6 +7,7 @@ import matchuri.backend.domain.group.entity.GroupRoomStatus;
 public record GroupDetailResult(
         Long id,
         String name,
+        String inviteCode,
         BigDecimal latitude,
         BigDecimal longitude,
         GroupRoomStatus status,

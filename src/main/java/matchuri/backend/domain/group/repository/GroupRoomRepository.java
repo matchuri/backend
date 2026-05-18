@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface GroupRoomRepository extends JpaRepository<GroupRoom, Long> {
 
     Optional<GroupRoom> findByIdAndStatusNot(Long id, GroupRoomStatus status);
+
+    boolean existsByInviteCode(String inviteCode);
 }
