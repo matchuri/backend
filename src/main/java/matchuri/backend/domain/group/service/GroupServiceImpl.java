@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
+import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
@@ -24,6 +25,7 @@ import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
 import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
@@ -145,6 +147,27 @@ public class GroupServiceImpl implements GroupService {
         membership.leave(leftAt);
 
         return new LeaveGroupResult(room.getId(), membership.getStatus(), membership.getLeftAt());
+    }
+
+    @Override
+    public DeleteGroupResult deleteGroup(DeleteGroupCommand command) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, command.groupId()));
+        GroupRoomMember membership = groupRoomMemberRepository
+                .findActiveMembershipInNotDeletedRoom(room.getId(), member.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.ACCESS_DENIED, room.getId()));
+
+        if (!membership.isOwner()) {
+            throw new BusinessException(GroupErrorCode.DELETE_FORBIDDEN, room.getId());
+        }
+
+        LocalDateTime deletedAt = LocalDateTime.now();
+        room.delete();
+        revokeActiveInvites(room);
+        leaveActiveMembers(room, deletedAt);
+
+        return new DeleteGroupResult(room.getId(), room.getStatus(), deletedAt);
     }
 
     @Override
@@ -270,6 +293,16 @@ public class GroupServiceImpl implements GroupService {
         }
 
         throw new BusinessException(GroupErrorCode.ACCESS_DENIED, room.getId());
+    }
+
+    private void revokeActiveInvites(GroupRoom room) {
+        groupInviteRepository.findAllByRoomIdAndStatus(room.getId(), GroupInviteStatus.ACTIVE)
+                .forEach(GroupInvite::revoke);
+    }
+
+    private void leaveActiveMembers(GroupRoom room, LocalDateTime leftAt) {
+        groupRoomMemberRepository.findActiveMembersByRoomId(room.getId())
+                .forEach(membership -> membership.leave(leftAt));
     }
 
     private GroupMemberSummaryResult toMemberSummaryResult(GroupRoomMember membership) {

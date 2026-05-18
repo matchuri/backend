@@ -11,6 +11,7 @@ import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
+import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
@@ -21,12 +22,14 @@ import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
+import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
@@ -36,6 +39,7 @@ import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -113,6 +117,15 @@ public class GroupController implements GroupApi {
         LeaveGroupResult result = groupService.leaveGroup(command);
 
         return ApiResponse.success(groupMapper.toLeaveGroupResponse(result));
+    }
+
+    @Override
+    @DeleteMapping("/{groupId}")
+    public ApiResponse<DeleteGroupResponse> deleteGroup(@PathVariable Long groupId) {
+        DeleteGroupCommand command = groupMapper.toDeleteGroupCommand(groupId);
+        DeleteGroupResult result = groupService.deleteGroup(command);
+
+        return ApiResponse.success(groupMapper.toDeleteGroupResponse(result));
     }
 
     @Override
