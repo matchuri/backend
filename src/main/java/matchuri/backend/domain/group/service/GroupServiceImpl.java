@@ -150,6 +150,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @Transactional
     public DeleteGroupResult deleteGroup(DeleteGroupCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
