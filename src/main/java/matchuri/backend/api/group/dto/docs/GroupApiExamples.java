@@ -126,6 +126,18 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String DELETE_GROUP_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "groupId": 3001,
+                "status": "DELETED",
+                "deletedAt": "2026-05-18T12:30:00"
+              },
+              "error": null
+            }
+            """;
+
     public static final String CREATE_RECOMMENDATION_SUCCESS = """
             {
               "success": true,

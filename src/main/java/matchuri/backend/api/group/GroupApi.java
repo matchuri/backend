@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Min;
 import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupRecommendationApiResponse;
+import matchuri.backend.api.group.dto.docs.DeleteGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.FinalizeGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupApiExamples;
 import matchuri.backend.api.group.dto.docs.GroupDetailApiResponse;
@@ -29,6 +30,7 @@ import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
+import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
@@ -219,6 +221,34 @@ public interface GroupApi {
             )
     })
     ApiResponse<LeaveGroupResponse> leaveGroup(Long groupId);
+
+    @Operation(
+            summary = "그룹 삭제",
+            description = """
+                    그룹을 삭제 상태로 전환합니다.
+
+                    구현 기준:
+                    - 현재 회원이 해당 그룹의 `ACTIVE` OWNER 멤버일 때만 삭제할 수 있습니다.
+                    - 그룹은 `DELETED` 상태로 전환됩니다.
+                    - 해당 그룹의 `ACTIVE` 초대 코드는 `REVOKED`로 전환됩니다.
+                    - 해당 그룹의 `ACTIVE` 멤버는 후속 조회에서 노출되지 않도록 `LEFT`로 전환됩니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 삭제 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = DeleteGroupApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.DELETE_GROUP_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<DeleteGroupResponse> deleteGroup(Long groupId);
 
     @Operation(
             summary = "그룹 추천 시작 (Mock API)",
