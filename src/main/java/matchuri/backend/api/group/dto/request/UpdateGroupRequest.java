@@ -23,6 +23,7 @@ public record UpdateGroupRequest(
         BigDecimal longitude
 ) {
 
+    @Schema(hidden = true)
     @AssertTrue(message = "name은 비어 있을 수 없습니다.")
     public boolean isNameNullOrNotBlank() {
         return name == null || !name.isBlank();
