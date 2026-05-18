@@ -103,6 +103,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.error").value(nullValue()))
                 .andExpect(jsonPath("$.data.groupId").isNumber())
+                .andExpect(jsonPath("$.data.inviteCode").isString())
                 .andExpect(jsonPath("$.data.status").value(GroupRoomStatus.ACTIVE.name()));
 
         assertThat(groupRoomRepository.count()).isEqualTo(1);
@@ -112,6 +113,7 @@ class GroupIntegrationTest {
         var savedMember = groupRoomMemberRepository.findAll().getFirst();
 
         assertThat(savedGroup.getName()).isEqualTo("오늘 점심 메뉴 회의");
+        assertThat(savedGroup.getInviteCode()).hasSize(8);
         assertThat(savedGroup.getHostMember().getId()).isEqualTo(member.getId());
         assertThat(savedGroup.getLatitude()).isEqualByComparingTo("37.498095");
         assertThat(savedGroup.getLongitude()).isEqualByComparingTo("127.027610");
@@ -158,7 +160,7 @@ class GroupIntegrationTest {
                 GroupMemberRole.MEMBER,
                 LocalDateTime.now()
         ));
-        GroupRoom deletedGroup = GroupRoom.createOwnedBy("삭제된 그룹", member, null, null);
+        GroupRoom deletedGroup = GroupRoom.createOwnedBy("삭제된 그룹", nextInviteCode(), member, null, null);
         deletedGroup.delete();
         groupRoomRepository.save(deletedGroup);
         GroupRoom leftGroup = saveGroupOwnedBy(member, "나간 그룹");
@@ -186,7 +188,7 @@ class GroupIntegrationTest {
     void getMyGroupsAppliesStatusFilterAndPagination() throws Exception {
         Member member = saveMember("group-filter-user", "필터사용자");
         saveGroupOwnedBy(member, "활성 그룹");
-        GroupRoom closedGroup = GroupRoom.createOwnedBy("닫힌 그룹", member, null, null);
+        GroupRoom closedGroup = GroupRoom.createOwnedBy("닫힌 그룹", nextInviteCode(), member, null, null);
         closedGroup.close();
         groupRoomRepository.save(closedGroup);
 
@@ -230,6 +232,7 @@ class GroupIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(groupRoom.getId()))
                 .andExpect(jsonPath("$.data.name").value("상세 그룹"))
+                .andExpect(jsonPath("$.data.inviteCode").value(groupRoom.getInviteCode()))
                 .andExpect(jsonPath("$.data.status").value(GroupRoomStatus.ACTIVE.name()))
                 .andExpect(jsonPath("$.data.members.length()").value(2))
                 .andExpect(jsonPath("$.data.members[0].memberId").value(owner.getId()))
@@ -458,85 +461,6 @@ class GroupIntegrationTest {
                                 """))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
-    }
-
-    @Test
-    @DisplayName("그룹 초대 코드 생성은 OWNER가 활성 초대를 저장하고 반환한다")
-    void createInviteCreatesActiveInviteForOwner() throws Exception {
-        Member owner = saveMember("invite-owner", "초대방장");
-        GroupRoom groupRoom = saveGroupOwnedBy(owner, "초대 그룹");
-        LocalDateTime beforeExpectedExpiry = LocalDateTime.now().plusHours(24);
-
-        mockMvc.perform(post("/api/v1/groups/{groupId}/invites", groupRoom.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
-                .andExpect(jsonPath("$.data.inviteCode").isString())
-                .andExpect(jsonPath("$.data.expiresAt").isNotEmpty())
-                .andExpect(jsonPath("$.data.status").value("ACTIVE"));
-
-        LocalDateTime afterExpectedExpiry = LocalDateTime.now().plusHours(24);
-        var savedInvite = groupInviteRepository.findAll().getFirst();
-
-        assertThat(savedInvite.getRoom().getId()).isEqualTo(groupRoom.getId());
-        assertThat(savedInvite.getCreatedByMember().getId()).isEqualTo(owner.getId());
-        assertThat(savedInvite.getInviteCode()).hasSize(8);
-        assertThat(savedInvite.getExpiresAt()).isBetween(beforeExpectedExpiry, afterExpectedExpiry);
-        assertThat(savedInvite.getStatus().name()).isEqualTo("ACTIVE");
-    }
-
-    @Test
-    @DisplayName("그룹 초대 코드 생성은 OWNER가 아니면 거절한다")
-    void createInviteFailsForNonOwnerMember() throws Exception {
-        Member owner = saveMember("invite-non-owner-host", "초대방장2");
-        Member member = saveMember("invite-non-owner-member", "초대멤버");
-        GroupRoom groupRoom = saveGroupOwnedBy(owner, "멤버 초대 그룹");
-        groupRoomMemberRepository.save(new GroupRoomMember(
-                groupRoom,
-                member,
-                GroupMemberRole.MEMBER,
-                LocalDateTime.now()
-        ));
-
-        mockMvc.perform(post("/api/v1/groups/{groupId}/invites", groupRoom.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
-
-        assertThat(groupInviteRepository.count()).isZero();
-    }
-
-    @Test
-    @DisplayName("그룹 초대 코드 생성은 활성 상태가 아닌 그룹이면 실패한다")
-    void createInviteFailsForNotActiveGroup() throws Exception {
-        Member owner = saveMember("closed-invite-owner", "닫힌초대방장");
-        GroupRoom groupRoom = saveGroupOwnedBy(owner, "닫힌 초대 그룹");
-        groupRoom.close();
-        groupRoomRepository.save(groupRoom);
-
-        mockMvc.perform(post("/api/v1/groups/{groupId}/invites", groupRoom.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_ACTIVE"));
-
-        assertThat(groupInviteRepository.count()).isZero();
-    }
-
-    @Test
-    @DisplayName("그룹 초대 코드 생성은 삭제된 그룹이면 찾을 수 없음으로 처리한다")
-    void createInviteFailsForDeletedGroup() throws Exception {
-        Member owner = saveMember("deleted-invite-owner", "삭제초대방장");
-        GroupRoom groupRoom = saveGroupOwnedBy(owner, "삭제 초대 그룹");
-        groupRoom.delete();
-        groupRoomRepository.save(groupRoom);
-
-        mockMvc.perform(post("/api/v1/groups/{groupId}/invites", groupRoom.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
-
-        assertThat(groupInviteRepository.count()).isZero();
     }
 
     @Test
@@ -940,7 +864,11 @@ class GroupIntegrationTest {
     }
 
     private GroupRoom saveGroupOwnedBy(Member member, String name) {
-        return groupRoomRepository.save(GroupRoom.createOwnedBy(name, member, null, null));
+        return groupRoomRepository.save(GroupRoom.createOwnedBy(name, nextInviteCode(), member, null, null));
+    }
+
+    private String nextInviteCode() {
+        return "T%07d".formatted(groupRoomRepository.count() + 1);
     }
 
     private GroupInvite saveInvite(

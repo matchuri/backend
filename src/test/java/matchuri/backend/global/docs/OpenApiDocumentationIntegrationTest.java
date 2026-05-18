@@ -302,6 +302,9 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups'].post.responses['200'].content['application/json'].examples.success.value.data.groupId")
                         .value(3001))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups'].post.responses['200'].content['application/json'].examples.success.value.data.inviteCode")
+                        .value("LUNCH42"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups'].get.summary")
                         .value("내 그룹 목록 조회"))
                 .andExpect(jsonPath(
@@ -311,14 +314,15 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation")
                         .value(nullValue()))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.inviteCode")
+                        .value("LUNCH42"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}'].patch.responses['200'].content['application/json'].examples.success.value.data.name")
                         .value("점심 회의방"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}'].patch.responses['200'].content['application/json'].examples.success.value.data.latitude")
                         .value(37.498095))
-                .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}/invites'].post.responses['200'].content['application/json'].examples.success.value.data.inviteCode")
-                        .value("LUNCH42"))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/invites']").doesNotExist())
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/join'].post.responses['200'].content['application/json'].examples.success.value.data.memberStatus")
                         .value("ACTIVE"))
