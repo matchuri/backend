@@ -320,6 +320,9 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups/{groupId}/leave'].post.responses['200'].content['application/json'].examples.success.value.data.memberStatus")
                         .value("LEFT"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].delete.responses['200'].content['application/json'].examples.success.value.data.status")
+                        .value("DELETED"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].candidateId")
                         .value(8001))
                 .andExpect(jsonPath(

@@ -643,7 +643,8 @@ class GroupIntegrationTest {
                 GroupMemberRole.MEMBER,
                 LocalDateTime.now()
         ));
-        leftMembership.leave(LocalDateTime.now().minusHours(1));
+        LocalDateTime alreadyLeftAt = LocalDateTime.of(2026, 5, 18, 9, 0);
+        leftMembership.leave(alreadyLeftAt);
         groupRoomMemberRepository.save(leftMembership);
         GroupInvite activeInvite = saveInvite(groupRoom, owner, "DELETE01", LocalDateTime.now().plusHours(1));
         GroupInvite revokedInvite = saveInvite(groupRoom, owner, "DELETE02", LocalDateTime.now().plusHours(1));
@@ -677,6 +678,7 @@ class GroupIntegrationTest {
         assertThat(ownerMembership.getLeftAt()).isNotNull();
         assertThat(savedActiveMembership.getLeftAt()).isNotNull();
         assertThat(savedLeftMembership.getStatus()).isEqualTo(GroupMemberStatus.LEFT);
+        assertThat(savedLeftMembership.getLeftAt()).isEqualTo(alreadyLeftAt);
         assertThat(savedActiveInvite.getStatus()).isEqualTo(GroupInviteStatus.REVOKED);
         assertThat(savedRevokedInvite.getStatus()).isEqualTo(GroupInviteStatus.REVOKED);
     }
