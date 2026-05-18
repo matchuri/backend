@@ -83,15 +83,11 @@ public class GroupServiceImpl implements GroupService {
         }
 
         long memberId = member.getId();
-        long hostMemberId = room.getHostMember().getId();
-
-        if (memberId != hostMemberId) {
-            throw new BusinessException(GroupErrorCode.ACCESS_DENIED, command.groupId());
-        }
-
+        Member hostMember = room.getHostMember();
+        long hostMemberId = hostMember.getId();
         GroupRoomMember membership = room.getGroupRoomHostMember();
 
-        if (!membership.isOwner()) {
+        if (memberId != hostMemberId || !membership.isOwner()) {
             throw new BusinessException(GroupErrorCode.ACCESS_DENIED, command.groupId());
         }
 
