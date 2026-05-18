@@ -183,8 +183,7 @@ public class GroupServiceImpl implements GroupService {
             throw new BusinessException(GroupErrorCode.NOT_ACTIVE, room.getId());
         }
 
-        GroupRoomMember membership = groupRoomMemberRepository
-                .findActiveMembershipInNotDeletedRoom(room.getId(), member.getId())
+        GroupRoomMember membership = room.getGroupRoomMemberById(member.getId())
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.ACCESS_DENIED, room.getId()));
 
         if (!membership.isOwner()) {
