@@ -3,6 +3,7 @@ package matchuri.backend.api.group;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
@@ -82,7 +83,7 @@ public class GroupController implements GroupApi {
             Integer size
     ) {
         GetMyGroupsCommand command = groupMapper.toGetMyGroupsCommand(status, page, size);
-        Page<GroupSummaryResult> results = groupService.getMyGroups(command);
+        Page<@NonNull GroupSummaryResult> results = groupService.getMyGroups(command);
         PageResponse<GroupSummaryResponse> response = PageResponse.of(results, groupMapper::toGroupSummaryResponse);
 
         return ApiResponse.success(response);

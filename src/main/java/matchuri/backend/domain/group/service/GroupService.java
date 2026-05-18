@@ -1,5 +1,6 @@
 package matchuri.backend.domain.group.service;
 
+import lombok.NonNull;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
@@ -31,7 +32,7 @@ public interface GroupService {
 
     UpdateGroupResult updateGroup(UpdateGroupCommand command);
 
-    Page<GroupSummaryResult> getMyGroups(GetMyGroupsCommand command);
+    Page<@NonNull GroupSummaryResult> getMyGroups(GetMyGroupsCommand command);
 
     GroupDetailResult getGroup(Long groupId);
 }
