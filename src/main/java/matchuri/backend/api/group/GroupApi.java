@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
-import matchuri.backend.api.group.dto.docs.CreateGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.DeleteGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.FinalizeGroupRecommendationApiResponse;
@@ -29,7 +28,6 @@ import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
-import matchuri.backend.api.group.dto.response.CreateGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
@@ -56,6 +54,7 @@ public interface GroupApi {
 
                     - 로그인한 활성 회원만 사용할 수 있습니다.
                     - 생성자는 `OWNER` 멤버로 함께 저장됩니다.
+                    - 그룹마다 하나의 고정 초대 코드를 생성합니다.
                     - 실제 저장 테이블은 `group_rooms`, `group_room_members`입니다.
                     """
     )
@@ -121,6 +120,7 @@ public interface GroupApi {
 
                     - 로그인한 활성 회원만 사용할 수 있습니다.
                     - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - 그룹의 모든 `ACTIVE` 멤버에게 고정 초대 코드를 함께 반환합니다.
                     - 삭제된 그룹은 조회할 수 없습니다.
                     - 그룹 추천 구현 전까지 `activeRecommendation`은 null입니다.
                     """
@@ -172,34 +172,6 @@ public interface GroupApi {
             Long groupId,
             @Valid UpdateGroupRequest request
     );
-
-    @Operation(
-            summary = "그룹 초대 코드 생성",
-            description = """
-                    그룹에 참여할 수 있는 초대 코드를 생성합니다.
-
-                    구현 기준:
-                    - `OWNER` 역할의 활성 멤버만 초대 코드를 생성할 수 있습니다.
-                    - 그룹이 `ACTIVE` 상태일 때만 생성할 수 있습니다.
-                    - 초대 코드는 생성 시점부터 24시간 뒤 만료됩니다.
-                    - 실제 저장 테이블은 `group_invites` 기준입니다.
-                    """
-    )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "초대 코드 생성 성공",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = CreateGroupInviteApiResponse.class),
-                            examples = @ExampleObject(
-                                    name = "success",
-                                    value = GroupApiExamples.CREATE_INVITE_SUCCESS
-                            )
-                    )
-            )
-    })
-    ApiResponse<CreateGroupInviteResponse> createInvite(Long groupId);
 
     @Operation(
             summary = "초대 코드로 그룹 참여",

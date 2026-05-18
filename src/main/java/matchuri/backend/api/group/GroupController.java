@@ -10,7 +10,6 @@ import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
-import matchuri.backend.api.group.dto.response.CreateGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
@@ -24,14 +23,12 @@ import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
-import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
-import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
@@ -107,15 +104,6 @@ public class GroupController implements GroupApi {
         UpdateGroupResult result = groupService.updateGroup(command);
 
         return ApiResponse.success(groupMapper.toUpdateGroupResponse(result));
-    }
-
-    @Override
-    @PostMapping("/{groupId}/invites")
-    public ApiResponse<CreateGroupInviteResponse> createInvite(@PathVariable Long groupId) {
-        CreateGroupInviteCommand command = groupMapper.toCreateGroupInviteCommand(groupId);
-        CreateGroupInviteResult result = groupService.createInvite(command);
-
-        return ApiResponse.success(groupMapper.toCreateGroupInviteResponse(result));
     }
 
     @Override

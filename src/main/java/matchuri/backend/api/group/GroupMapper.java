@@ -3,7 +3,6 @@ package matchuri.backend.api.group;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
-import matchuri.backend.api.group.dto.response.CreateGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
@@ -13,14 +12,12 @@ import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
-import matchuri.backend.domain.group.command.CreateGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
-import matchuri.backend.domain.group.result.CreateGroupInviteResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
@@ -45,19 +42,7 @@ public class GroupMapper {
     public CreateGroupResponse toCreateGroupResponse(CreateGroupResult result) {
         return new CreateGroupResponse(
                 result.groupId(),
-                result.status()
-        );
-    }
-
-    public CreateGroupInviteCommand toCreateGroupInviteCommand(Long groupId) {
-        return new CreateGroupInviteCommand(groupId);
-    }
-
-    public CreateGroupInviteResponse toCreateGroupInviteResponse(CreateGroupInviteResult result) {
-        return new CreateGroupInviteResponse(
-                result.groupId(),
                 result.inviteCode(),
-                result.expiresAt(),
                 result.status()
         );
     }
@@ -136,6 +121,7 @@ public class GroupMapper {
         return new GroupDetailResponse(
                 result.id(),
                 result.name(),
+                result.inviteCode(),
                 result.latitude(),
                 result.longitude(),
                 result.status(),

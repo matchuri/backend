@@ -10,6 +10,7 @@ public final class GroupApiExamples {
               "success": true,
               "data": {
                 "groupId": 3001,
+                "inviteCode": "LUNCH42",
                 "status": "ACTIVE"
               },
               "error": null
@@ -51,6 +52,7 @@ public final class GroupApiExamples {
               "data": {
                 "id": 3001,
                 "name": "오늘 점심 메뉴 회의",
+                "inviteCode": "LUNCH42",
                 "latitude": 37.498095,
                 "longitude": 127.027610,
                 "status": "ACTIVE",
@@ -100,19 +102,6 @@ public final class GroupApiExamples {
                 "longitude": 127.027610,
                 "status": "ACTIVE",
                 "updatedAt": "2026-05-18T12:30:00"
-              },
-              "error": null
-            }
-            """;
-
-    public static final String CREATE_INVITE_SUCCESS = """
-            {
-              "success": true,
-              "data": {
-                "groupId": 3001,
-                "inviteCode": "LUNCH42",
-                "expiresAt": "2026-05-06T13:00:00",
-                "status": "ACTIVE"
               },
               "error": null
             }
