@@ -335,6 +335,14 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/invites/me'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].status")
                         .value("PENDING"))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/invites/{inviteId}/response'].post.summary")
+                        .value("그룹 초대 응답"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/invites/{inviteId}/response'].post.responses['200'].content['application/json'].examples.success.value.data.inviteStatus")
+                        .value("ACCEPTED"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/invites/{inviteId}/response'].post.responses['200'].content['application/json'].examples.success.value.data.memberStatus")
+                        .value("ACTIVE"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/invites']").doesNotExist())
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/join'].post.responses['200'].content['application/json'].examples.success.value.data.memberStatus")

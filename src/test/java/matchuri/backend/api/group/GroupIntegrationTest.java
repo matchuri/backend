@@ -683,6 +683,159 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("그룹 초대 수락은 초대를 ACCEPTED로 닫고 신규 멤버를 ACTIVE로 추가한다")
+    void respondInviteAcceptCreatesActiveMember() throws Exception {
+        Member owner = saveMember("invite-accept-owner", "수락방장");
+        Member target = saveMember("invite-accept-target", "수락대상");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "수락 초대 그룹");
+        GroupInvite invite = saveInvite(groupRoom, owner, target, LocalDateTime.now().plusHours(1));
+
+        mockMvc.perform(post("/api/v1/groups/invites/{inviteId}/response", invite.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(target)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "responseType": "ACCEPT"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.inviteId").value(invite.getId()))
+                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.inviteStatus").value(GroupInviteStatus.ACCEPTED.name()))
+                .andExpect(jsonPath("$.data.memberStatus").value(GroupMemberStatus.ACTIVE.name()))
+                .andExpect(jsonPath("$.data.respondedAt").isNotEmpty());
+
+        GroupInvite acceptedInvite = groupInviteRepository.findById(invite.getId()).orElseThrow();
+        GroupRoomMember membership = groupRoomMemberRepository
+                .findByRoomIdAndMemberId(groupRoom.getId(), target.getId())
+                .orElseThrow();
+
+        assertThat(acceptedInvite.getStatus()).isEqualTo(GroupInviteStatus.ACCEPTED);
+        assertThat(acceptedInvite.getRespondedAt()).isNotNull();
+        assertThat(membership.getRole()).isEqualTo(GroupMemberRole.MEMBER);
+        assertThat(membership.getStatus()).isEqualTo(GroupMemberStatus.ACTIVE);
+        assertThat(membership.getLeftAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("그룹 초대 수락은 LEFT 멤버의 기존 membership을 재활성화한다")
+    void respondInviteAcceptReactivatesLeftMember() throws Exception {
+        Member owner = saveMember("invite-rejoin-owner", "초대재입장방장");
+        Member target = saveMember("invite-rejoin-target", "초대재입장대상");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "초대 재입장 그룹");
+        GroupRoomMember membership = groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                target,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now().minusDays(2)
+        ));
+        membership.leave(LocalDateTime.now().minusDays(1));
+        groupRoomMemberRepository.save(membership);
+        LocalDateTime previousJoinedAt = membership.getJoinedAt();
+        GroupInvite invite = saveInvite(groupRoom, owner, target, LocalDateTime.now().plusHours(1));
+
+        mockMvc.perform(post("/api/v1/groups/invites/{inviteId}/response", invite.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(target)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "responseType": "ACCEPT"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.inviteStatus").value(GroupInviteStatus.ACCEPTED.name()))
+                .andExpect(jsonPath("$.data.memberStatus").value(GroupMemberStatus.ACTIVE.name()));
+
+        GroupRoomMember rejoinedMembership = groupRoomMemberRepository
+                .findByRoomIdAndMemberId(groupRoom.getId(), target.getId())
+                .orElseThrow();
+
+        assertThat(rejoinedMembership.getId()).isEqualTo(membership.getId());
+        assertThat(rejoinedMembership.getStatus()).isEqualTo(GroupMemberStatus.ACTIVE);
+        assertThat(rejoinedMembership.getLeftAt()).isNull();
+        assertThat(rejoinedMembership.getJoinedAt()).isAfter(previousJoinedAt);
+    }
+
+    @Test
+    @DisplayName("그룹 초대 거절은 초대만 DECLINED로 닫고 membership을 생성하지 않는다")
+    void respondInviteDeclineClosesInviteOnly() throws Exception {
+        Member owner = saveMember("invite-decline-owner", "거절방장");
+        Member target = saveMember("invite-decline-target", "거절대상");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "거절 초대 그룹");
+        GroupInvite invite = saveInvite(groupRoom, owner, target, LocalDateTime.now().plusHours(1));
+
+        mockMvc.perform(post("/api/v1/groups/invites/{inviteId}/response", invite.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(target)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "responseType": "DECLINE"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.inviteId").value(invite.getId()))
+                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.inviteStatus").value(GroupInviteStatus.DECLINED.name()))
+                .andExpect(jsonPath("$.data.memberStatus").value(nullValue()))
+                .andExpect(jsonPath("$.data.respondedAt").isNotEmpty());
+
+        GroupInvite declinedInvite = groupInviteRepository.findById(invite.getId()).orElseThrow();
+
+        assertThat(declinedInvite.getStatus()).isEqualTo(GroupInviteStatus.DECLINED);
+        assertThat(declinedInvite.getRespondedAt()).isNotNull();
+        assertThat(groupRoomMemberRepository.findByRoomIdAndMemberId(groupRoom.getId(), target.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("그룹 초대 응답은 대상 회원이 아니면 거절한다")
+    void respondInviteFailsForNonTargetMember() throws Exception {
+        Member owner = saveMember("invite-forbidden-owner", "응답권한방장");
+        Member target = saveMember("invite-forbidden-target", "응답권한대상");
+        Member other = saveMember("invite-forbidden-other", "응답권한없음");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "응답 권한 그룹");
+        GroupInvite invite = saveInvite(groupRoom, owner, target, LocalDateTime.now().plusHours(1));
+
+        mockMvc.perform(post("/api/v1/groups/invites/{inviteId}/response", invite.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "responseType": "ACCEPT"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_RESPONSE_FORBIDDEN"));
+
+        assertThat(groupInviteRepository.findById(invite.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupInviteStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("그룹 초대 응답은 만료된 PENDING 초대를 거절하고 membership을 만들지 않는다")
+    void respondInviteFailsForExpiredPendingInvite() throws Exception {
+        Member owner = saveMember("invite-expired-owner", "만료방장");
+        Member target = saveMember("invite-expired-target", "만료대상");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "만료 초대 그룹");
+        GroupInvite invite = saveInvite(groupRoom, owner, target, LocalDateTime.now().minusMinutes(1));
+
+        mockMvc.perform(post("/api/v1/groups/invites/{inviteId}/response", invite.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(target)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "responseType": "ACCEPT"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_EXPIRED"));
+
+        assertThat(groupInviteRepository.findById(invite.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupInviteStatus.PENDING);
+        assertThat(groupRoomMemberRepository.findByRoomIdAndMemberId(groupRoom.getId(), target.getId())).isEmpty();
+    }
+
+    @Test
     @DisplayName("초대 코드 입장은 신규 멤버를 ACTIVE 멤버로 저장한다")
     void joinGroupCreatesActiveMember() throws Exception {
         Member owner = saveMember("join-owner", "입장방장");
