@@ -17,6 +17,7 @@ import matchuri.backend.api.group.dto.docs.DeleteGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.FinalizeGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupApiExamples;
 import matchuri.backend.api.group.dto.docs.GroupDetailApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupInviteSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationCandidateListApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationSessionApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupSummaryPageApiResponse;
@@ -36,6 +37,7 @@ import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
+import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
@@ -43,6 +45,7 @@ import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
+import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
@@ -173,6 +176,45 @@ public interface GroupApi {
     })
     ApiResponse<CreateNicknameGroupInviteResponse> createNicknameInvite(
             @Valid CreateNicknameGroupInviteRequest request
+    );
+
+    @Operation(
+            summary = "내 그룹 초대 목록 조회",
+            description = """
+                    현재 회원이 받은 그룹 초대 목록을 조회합니다.
+
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 초대 대상인 초대 요청만 반환합니다.
+                    - `status`를 생략하면 `PENDING` 초대만 조회합니다.
+                    - 생성 시각 최신순으로 정렬합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteSummaryPageApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.MY_INVITES_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<PageResponse<GroupInviteSummaryResponse>> getMyInvites(
+            @Parameter(description = "초대 상태 필터입니다. 생략하면 PENDING 초대만 조회합니다.", example = "PENDING")
+            GroupInviteStatus status,
+
+            @Parameter(description = "0부터 시작하는 페이지 번호입니다.", example = "0")
+            @Min(0)
+            Integer page,
+
+            @Parameter(description = "페이지 크기입니다. 기본값은 20입니다.", example = "20")
+            @Min(1)
+            @Max(100)
+            Integer size
     );
 
     @Operation(

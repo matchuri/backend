@@ -123,6 +123,37 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String MY_INVITES_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "content": [
+                  {
+                    "inviteId": 501,
+                    "groupId": 3001,
+                    "groupName": "맛집 탐방 모임",
+                    "requestMemberId": 11,
+                    "requestMemberNickname": "나는야 임영웅",
+                    "status": "PENDING",
+                    "expiresAt": "2026-05-20T12:00:00",
+                    "createdAt": "2026-05-19T12:00:00"
+                  }
+                ],
+                "pageInfo": {
+                  "page": 0,
+                  "size": 20,
+                  "totalElements": 1,
+                  "totalPages": 1,
+                  "first": true,
+                  "last": true,
+                  "hasNext": false,
+                  "hasPrevious": false
+                }
+              },
+              "error": null
+            }
+            """;
+
     public static final String JOIN_GROUP_SUCCESS = """
             {
               "success": true,
