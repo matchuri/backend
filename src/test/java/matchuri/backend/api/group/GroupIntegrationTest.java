@@ -624,6 +624,65 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("내 그룹 초대 목록은 현재 회원이 받은 PENDING 초대를 기본 조회한다")
+    void getMyInvitesReturnsPendingInvitesForCurrentTargetMember() throws Exception {
+        Member owner = saveMember("my-invite-owner", "내초대방장");
+        Member target = saveMember("my-invite-target", "내초대대상");
+        Member otherTarget = saveMember("my-invite-other-target", "다른초대대상");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "받은 초대 그룹");
+        GroupRoom otherGroupRoom = saveGroupOwnedBy(owner, "다른 대상 초대 그룹");
+        GroupInvite pendingInvite = saveInvite(groupRoom, owner, target, LocalDateTime.now().plusHours(3));
+        GroupInvite declinedInvite = saveInvite(groupRoom, owner, target, LocalDateTime.now().plusHours(4));
+        declinedInvite.decline(LocalDateTime.now());
+        groupInviteRepository.save(declinedInvite);
+        saveInvite(otherGroupRoom, owner, otherTarget, LocalDateTime.now().plusHours(5));
+
+        mockMvc.perform(get("/api/v1/groups/invites/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(target)))
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].inviteId").value(pendingInvite.getId()))
+                .andExpect(jsonPath("$.data.content[0].groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.content[0].groupName").value("받은 초대 그룹"))
+                .andExpect(jsonPath("$.data.content[0].requestMemberId").value(owner.getId()))
+                .andExpect(jsonPath("$.data.content[0].requestMemberNickname").value(owner.getNickname()))
+                .andExpect(jsonPath("$.data.content[0].status").value(GroupInviteStatus.PENDING.name()))
+                .andExpect(jsonPath("$.data.content[0].expiresAt").isNotEmpty())
+                .andExpect(jsonPath("$.data.content[0].createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1));
+    }
+
+    @Test
+    @DisplayName("내 그룹 초대 목록은 상태 필터와 페이지네이션을 적용한다")
+    void getMyInvitesAppliesStatusFilterAndPagination() throws Exception {
+        Member owner = saveMember("my-invite-filter-owner", "초대필터방장");
+        Member target = saveMember("my-invite-filter-target", "초대필터대상");
+        GroupRoom firstGroup = saveGroupOwnedBy(owner, "거절 초대 1");
+        GroupRoom secondGroup = saveGroupOwnedBy(owner, "거절 초대 2");
+        GroupInvite firstDeclinedInvite = saveInvite(firstGroup, owner, target, LocalDateTime.now().plusHours(1));
+        firstDeclinedInvite.decline(LocalDateTime.now().minusMinutes(1));
+        groupInviteRepository.save(firstDeclinedInvite);
+        GroupInvite secondDeclinedInvite = saveInvite(secondGroup, owner, target, LocalDateTime.now().plusHours(2));
+        secondDeclinedInvite.decline(LocalDateTime.now());
+        groupInviteRepository.save(secondDeclinedInvite);
+
+        mockMvc.perform(get("/api/v1/groups/invites/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(target)))
+                        .param("status", GroupInviteStatus.DECLINED.name())
+                        .param("page", "0")
+                        .param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].inviteId").value(secondDeclinedInvite.getId()))
+                .andExpect(jsonPath("$.data.content[0].status").value(GroupInviteStatus.DECLINED.name()))
+                .andExpect(jsonPath("$.data.pageInfo.size").value(1))
+                .andExpect(jsonPath("$.data.pageInfo.totalElements").value(2));
+    }
+
+    @Test
     @DisplayName("초대 코드 입장은 신규 멤버를 ACTIVE 멤버로 저장한다")
     void joinGroupCreatesActiveMember() throws Exception {
         Member owner = saveMember("join-owner", "입장방장");

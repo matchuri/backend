@@ -330,6 +330,11 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/invites/nickname'].post.responses['200'].content['application/json'].examples.success.value.data.targetNickname")
                         .value("점심탐험가"))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/invites/me'].get.summary")
+                        .value("내 그룹 초대 목록 조회"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/invites/me'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].status")
+                        .value("PENDING"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/invites']").doesNotExist())
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/join'].post.responses['200'].content['application/json'].examples.success.value.data.memberStatus")
