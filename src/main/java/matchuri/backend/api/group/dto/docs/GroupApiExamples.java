@@ -107,6 +107,22 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String CREATE_NICKNAME_INVITE_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "inviteId": 501,
+                "groupId": 3001,
+                "groupName": "오늘 점심 메뉴 회의",
+                "targetMemberId": 42,
+                "targetNickname": "점심탐험가",
+                "expiresAt": "2026-05-20T12:00:00",
+                "status": "PENDING"
+              },
+              "error": null
+            }
+            """;
+
     public static final String JOIN_GROUP_SUCCESS = """
             {
               "success": true,

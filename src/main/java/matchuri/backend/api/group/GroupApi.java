@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
+import matchuri.backend.api.group.dto.docs.CreateNicknameGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.DeleteGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.FinalizeGroupRecommendationApiResponse;
@@ -25,11 +26,13 @@ import matchuri.backend.api.group.dto.docs.LeaveGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.UpdateGroupApiResponse;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
+import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
+import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
@@ -140,6 +143,37 @@ public interface GroupApi {
             )
     })
     ApiResponse<GroupDetailResponse> getGroup(Long groupId);
+
+    @Operation(
+            summary = "닉네임 기반 그룹 초대 생성",
+            description = """
+                    닉네임으로 특정 회원에게 그룹 초대 요청을 보냅니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` OWNER 멤버일 때만 초대할 수 있습니다.
+                    - 초대 대상은 활성 회원의 nickname으로 찾습니다.
+                    - 자기 자신, 이미 그룹에 참여 중인 회원, 동일 그룹/대상의 `PENDING` 초대는 거절합니다.
+                    - 초대 요청은 생성 시점부터 24시간 뒤 만료됩니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "초대 생성 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateNicknameGroupInviteApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.CREATE_NICKNAME_INVITE_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<CreateNicknameGroupInviteResponse> createNicknameInvite(
+            @Valid CreateNicknameGroupInviteRequest request
+    );
 
     @Operation(
             summary = "그룹 수정",
