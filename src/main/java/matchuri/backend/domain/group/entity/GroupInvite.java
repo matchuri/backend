@@ -79,4 +79,12 @@ public class GroupInvite extends BaseEntity {
     public void revoke() {
         this.status = GroupInviteStatus.REVOKED;
     }
+
+    public boolean isPending() {
+        return this.status == GroupInviteStatus.PENDING;
+    }
+
+    public boolean isExpired(LocalDateTime now) {
+        return this.expiresAt != null && !this.expiresAt.isAfter(now);
+    }
 }

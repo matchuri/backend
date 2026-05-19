@@ -3,6 +3,7 @@ package matchuri.backend.api.group;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
+import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
@@ -13,6 +14,7 @@ import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
@@ -21,6 +23,7 @@ import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
+import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
@@ -33,6 +36,7 @@ import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
+import matchuri.backend.domain.group.result.RespondGroupInviteResult;
 import matchuri.backend.domain.group.result.UpdateGroupResult;
 import org.springframework.stereotype.Component;
 
@@ -82,10 +86,24 @@ public class GroupMapper {
         return new JoinGroupCommand(request.inviteCode());
     }
 
+    public RespondGroupInviteCommand toRespondGroupInviteCommand(Long inviteId, RespondGroupInviteRequest request) {
+        return new RespondGroupInviteCommand(inviteId, request.responseType());
+    }
+
     public JoinGroupResponse toJoinGroupResponse(JoinGroupResult result) {
         return new JoinGroupResponse(
                 result.groupId(),
                 result.memberStatus()
+        );
+    }
+
+    public RespondGroupInviteResponse toRespondGroupInviteResponse(RespondGroupInviteResult result) {
+        return new RespondGroupInviteResponse(
+                result.inviteId(),
+                result.groupId(),
+                result.inviteStatus(),
+                result.memberStatus(),
+                result.respondedAt()
         );
     }
 

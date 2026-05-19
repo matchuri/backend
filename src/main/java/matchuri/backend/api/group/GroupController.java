@@ -9,6 +9,7 @@ import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
+import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
@@ -24,6 +25,7 @@ import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
@@ -32,6 +34,7 @@ import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
+import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
@@ -43,6 +46,7 @@ import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
+import matchuri.backend.domain.group.result.RespondGroupInviteResult;
 import matchuri.backend.domain.group.result.UpdateGroupResult;
 import matchuri.backend.domain.group.service.GroupService;
 import matchuri.backend.global.api.ApiResponse;
@@ -129,6 +133,18 @@ public class GroupController implements GroupApi {
                 PageResponse.of(results, groupMapper::toGroupInviteSummaryResponse);
 
         return ApiResponse.success(response);
+    }
+
+    @Override
+    @PostMapping("/invites/{inviteId}/response")
+    public ApiResponse<RespondGroupInviteResponse> respondGroupInvite(
+            @PathVariable Long inviteId,
+            @Valid @RequestBody RespondGroupInviteRequest request
+    ) {
+        RespondGroupInviteCommand command = groupMapper.toRespondGroupInviteCommand(inviteId, request);
+        RespondGroupInviteResult result = groupService.respondGroupInvite(command);
+
+        return ApiResponse.success(groupMapper.toRespondGroupInviteResponse(result));
     }
 
     @Override

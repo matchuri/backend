@@ -12,8 +12,10 @@ import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
+import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInvite;
+import matchuri.backend.domain.group.entity.GroupInviteResponseType;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
@@ -34,6 +36,7 @@ import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
+import matchuri.backend.domain.group.result.RespondGroupInviteResult;
 import matchuri.backend.domain.group.result.UpdateGroupResult;
 import matchuri.backend.domain.group.support.GroupInviteCodeGenerator;
 import matchuri.backend.domain.member.entity.Member;
@@ -272,6 +275,44 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public RespondGroupInviteResult respondGroupInvite(RespondGroupInviteCommand command) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupInvite invite = groupInviteRepository.findById(command.inviteId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.INVITE_REQUEST_NOT_FOUND, command.inviteId()));
+
+        if (!invite.getTargetMember().getId().equals(member.getId())) {
+            throw new BusinessException(GroupErrorCode.INVITE_RESPONSE_FORBIDDEN, invite.getId());
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        validateRespondableInvite(invite, now);
+
+        GroupRoom room = invite.getRoom();
+        GroupMemberStatus memberStatus = null;
+
+        if (!room.isActive()) {
+            throw new BusinessException(GroupErrorCode.NOT_ACTIVE, room.getId());
+        }
+
+        if (command.responseType() == GroupInviteResponseType.ACCEPT) {
+
+            GroupRoomMember membership = joinOrRejoinMember(room, member);
+            memberStatus = membership.getStatus();
+            invite.accept(now);
+        } else {
+            invite.decline(now);
+        }
+
+        return new RespondGroupInviteResult(
+                invite.getId(),
+                room.getId(),
+                invite.getStatus(),
+                memberStatus,
+                invite.getRespondedAt()
+        );
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public GroupDetailResult getGroup(Long groupId) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
@@ -345,6 +386,16 @@ public class GroupServiceImpl implements GroupService {
                 invite.getExpiresAt(),
                 invite.getCreatedAt()
         );
+    }
+
+    private void validateRespondableInvite(GroupInvite invite, LocalDateTime now) {
+        if (!invite.isPending()) {
+            throw new BusinessException(GroupErrorCode.INVITE_NOT_PENDING, invite.getId(), invite.getStatus());
+        }
+
+        if (invite.isExpired(now)) {
+            throw new BusinessException(GroupErrorCode.INVITE_EXPIRED, invite.getId());
+        }
     }
 
     private String createUniqueInviteCode() {

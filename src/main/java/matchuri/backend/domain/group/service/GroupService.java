@@ -8,6 +8,7 @@ import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
+import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
@@ -17,6 +18,7 @@ import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
+import matchuri.backend.domain.group.result.RespondGroupInviteResult;
 import matchuri.backend.domain.group.result.UpdateGroupResult;
 import org.springframework.data.domain.Page;
 
@@ -37,6 +39,8 @@ public interface GroupService {
     Page<@NonNull GroupSummaryResult> getMyGroups(GetMyGroupsCommand command);
 
     Page<@NonNull GroupInviteSummaryResult> getMyInvites(GetMyGroupInvitesCommand command);
+
+    RespondGroupInviteResult respondGroupInvite(RespondGroupInviteCommand command);
 
     GroupDetailResult getGroup(Long groupId);
 }
