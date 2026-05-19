@@ -1,8 +1,10 @@
 package matchuri.backend.api.group;
 
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
+import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
+import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
@@ -12,6 +14,7 @@ import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
@@ -19,6 +22,7 @@ import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
@@ -43,6 +47,29 @@ public class GroupMapper {
         return new CreateGroupResponse(
                 result.groupId(),
                 result.inviteCode(),
+                result.status()
+        );
+    }
+
+    public CreateNicknameGroupInviteCommand toCreateNicknameGroupInviteCommand(
+            CreateNicknameGroupInviteRequest request
+    ) {
+        return new CreateNicknameGroupInviteCommand(
+                request.groupId(),
+                request.nickname()
+        );
+    }
+
+    public CreateNicknameGroupInviteResponse toCreateNicknameGroupInviteResponse(
+            CreateNicknameGroupInviteResult result
+    ) {
+        return new CreateNicknameGroupInviteResponse(
+                result.inviteId(),
+                result.groupId(),
+                result.groupName(),
+                result.targetMemberId(),
+                result.targetNickname(),
+                result.expiresAt(),
                 result.status()
         );
     }

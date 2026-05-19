@@ -6,11 +6,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
+import matchuri.backend.domain.group.entity.GroupInvite;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
@@ -23,6 +25,7 @@ import matchuri.backend.domain.group.repository.GroupRoomMemberCountProjection;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
@@ -32,6 +35,8 @@ import matchuri.backend.domain.group.result.LeaveGroupResult;
 import matchuri.backend.domain.group.result.UpdateGroupResult;
 import matchuri.backend.domain.group.support.GroupInviteCodeGenerator;
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.global.exception.BusinessException;
 import org.jspecify.annotations.NonNull;
@@ -46,8 +51,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class GroupServiceImpl implements GroupService {
 
     private static final int MAX_INVITE_CODE_GENERATION_ATTEMPTS = 5;
+    private static final int NICKNAME_INVITE_EXPIRATION_HOURS = 24;
 
     private final ActiveMemberReader activeMemberReader;
+    private final MemberRepository memberRepository;
     private final GroupRoomRepository groupRoomRepository;
     private final GroupRoomMemberRepository groupRoomMemberRepository;
     private final GroupInviteRepository groupInviteRepository;
@@ -71,6 +78,61 @@ public class GroupServiceImpl implements GroupService {
                 savedGroupRoom.getId(),
                 savedGroupRoom.getInviteCode(),
                 savedGroupRoom.getStatus()
+        );
+    }
+
+    @Override
+    public CreateNicknameGroupInviteResult createNicknameInvite(CreateNicknameGroupInviteCommand command) {
+        Member requestMember = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, command.groupId()));
+
+        if (!room.isActive()) {
+            throw new BusinessException(GroupErrorCode.NOT_ACTIVE, command.groupId());
+        }
+
+        GroupRoomMember requestMembership = groupRoomMemberRepository
+                .findActiveMembershipInNotDeletedRoom(room.getId(), requestMember.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.INVITE_FORBIDDEN, room.getId()));
+
+        if (!requestMembership.isOwner()) {
+            throw new BusinessException(GroupErrorCode.INVITE_FORBIDDEN, room.getId());
+        }
+
+        Member targetMember = memberRepository.findByNicknameAndStatus(command.nickname(), MemberStatus.ACTIVE)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.INVITE_TARGET_NOT_FOUND, command.nickname()));
+
+        if (requestMember.getId().equals(targetMember.getId())) {
+            throw new BusinessException(GroupErrorCode.INVITE_SELF_NOT_ALLOWED, requestMember.getId());
+        }
+
+        if (groupRoomMemberRepository.existsActiveMembershipInNotDeletedRoom(room.getId(), targetMember.getId())) {
+            throw new BusinessException(
+                    GroupErrorCode.INVITE_TARGET_ALREADY_MEMBER,
+                    room.getId(),
+                    targetMember.getId()
+            );
+        }
+
+        if (groupInviteRepository.existsByRoomIdAndTargetMemberIdAndStatus(
+                room.getId(),
+                targetMember.getId(),
+                GroupInviteStatus.PENDING
+        )) {
+            throw new BusinessException(GroupErrorCode.INVITE_ALREADY_PENDING, room.getId(), targetMember.getId());
+        }
+
+        LocalDateTime expiresAt = LocalDateTime.now().plusHours(NICKNAME_INVITE_EXPIRATION_HOURS);
+        GroupInvite invite = groupInviteRepository.save(new GroupInvite(room, requestMember, targetMember, expiresAt));
+
+        return new CreateNicknameGroupInviteResult(
+                invite.getId(),
+                room.getId(),
+                room.getName(),
+                targetMember.getId(),
+                targetMember.getNickname(),
+                invite.getExpiresAt(),
+                invite.getStatus()
         );
     }
 

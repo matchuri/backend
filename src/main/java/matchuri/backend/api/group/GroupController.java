@@ -7,11 +7,13 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
+import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
+import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
@@ -23,6 +25,7 @@ import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
@@ -30,6 +33,7 @@ import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
@@ -92,6 +96,17 @@ public class GroupController implements GroupApi {
         GroupDetailResult result = groupService.getGroup(groupId);
 
         return ApiResponse.success(groupMapper.toGroupDetailResponse(result));
+    }
+
+    @Override
+    @PostMapping("/invites/nickname")
+    public ApiResponse<CreateNicknameGroupInviteResponse> createNicknameInvite(
+            @Valid @RequestBody CreateNicknameGroupInviteRequest request
+    ) {
+        CreateNicknameGroupInviteCommand command = groupMapper.toCreateNicknameGroupInviteCommand(request);
+        CreateNicknameGroupInviteResult result = groupService.createNicknameInvite(command);
+
+        return ApiResponse.success(groupMapper.toCreateNicknameGroupInviteResponse(result));
     }
 
     @Override

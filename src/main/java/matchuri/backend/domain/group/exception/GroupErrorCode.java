@@ -23,6 +23,11 @@ public enum GroupErrorCode implements ErrorCode {
     INVITE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 그룹 초대 코드를 찾을 수 없습니다. inviteCode : {0}"),
     INVITE_EXPIRED(HttpStatus.CONFLICT, "만료된 그룹 초대입니다. inviteIdOrCode : {0}"),
     INVITE_REVOKED(HttpStatus.CONFLICT, "취소된 그룹 초대입니다. inviteIdOrCode : {0}"),
+    INVITE_FORBIDDEN(HttpStatus.FORBIDDEN, "그룹 초대 권한이 없습니다. groupId : {0}"),
+    INVITE_TARGET_NOT_FOUND(HttpStatus.NOT_FOUND, "초대 대상 회원을 찾을 수 없습니다. nickname : {0}"),
+    INVITE_SELF_NOT_ALLOWED(HttpStatus.CONFLICT, "자기 자신은 그룹에 초대할 수 없습니다. memberId : {0}"),
+    INVITE_TARGET_ALREADY_MEMBER(HttpStatus.CONFLICT, "이미 그룹에 참여 중인 회원입니다. groupId : {0}, memberId : {1}"),
+    INVITE_ALREADY_PENDING(HttpStatus.CONFLICT, "이미 대기 중인 그룹 초대가 있습니다. groupId : {0}, memberId : {1}"),
     INVITE_CODE_GENERATION_FAILED(HttpStatus.CONFLICT, "그룹 고정 초대 코드 생성에 실패했습니다.");
 
     private final HttpStatus httpStatus;
