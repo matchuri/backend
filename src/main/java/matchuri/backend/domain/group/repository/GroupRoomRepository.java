@@ -10,4 +10,6 @@ public interface GroupRoomRepository extends JpaRepository<GroupRoom, Long> {
     Optional<GroupRoom> findByIdAndStatusNot(Long id, GroupRoomStatus status);
 
     boolean existsByInviteCode(String inviteCode);
+
+    Optional<GroupRoom> findByInviteCode(String inviteCode);
 }
