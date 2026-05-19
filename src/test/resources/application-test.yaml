@@ -108,6 +108,3 @@ matchuri:
       issuer: matchuri-test
       access-token-expiration-seconds: 3600
       refresh-token-expiration-seconds: 1209600
-  seed:
-    enabled: false
-    sample-members-enabled: false

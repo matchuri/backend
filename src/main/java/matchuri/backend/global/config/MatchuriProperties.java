@@ -22,10 +22,6 @@ public class MatchuriProperties {
     @NotNull
     private Auth auth;
 
-    @Valid
-    @NotNull
-    private Seed seed;
-
     @Getter
     @Setter
     public static class Auth {
@@ -157,12 +153,5 @@ public class MatchuriProperties {
 
         @Positive
         private int maxAttempts;
-    }
-
-    @Getter
-    @Setter
-    public static class Seed {
-        private boolean enabled;
-        private boolean sampleMembersEnabled;
     }
 }
