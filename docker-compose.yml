@@ -17,7 +17,7 @@ services:
       org.springframework.boot.jdbc.parameters: "serverTimezone=Asia/Seoul&characterEncoding=UTF-8"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./init:/docker-entrypoint-initdb.d
+      - ./init/sql:/docker-entrypoint-initdb.d
 
 volumes:
   mysql_data:
