@@ -179,7 +179,7 @@ public interface GroupApi {
                     초대 코드로 그룹에 참여합니다.
 
                     구현 기준:
-                    - 초대 코드 존재 여부, 취소 여부, 만료 여부를 검증합니다.
+                    - 그룹의 고정 초대 코드 존재 여부를 검증합니다.
                     - 연결된 그룹이 `ACTIVE` 상태일 때만 참여할 수 있습니다.
                     - 이미 `ACTIVE` 멤버이면 중복 참여로 실패합니다.
                     - 과거 `LEFT` 멤버는 기존 membership을 재활성화합니다.
@@ -237,7 +237,7 @@ public interface GroupApi {
                     구현 기준:
                     - 현재 회원이 해당 그룹의 `ACTIVE` OWNER 멤버일 때만 삭제할 수 있습니다.
                     - 그룹은 `DELETED` 상태로 전환됩니다.
-                    - 해당 그룹의 `ACTIVE` 초대 코드는 `REVOKED`로 전환됩니다.
+                    - 해당 그룹의 `PENDING` 초대 요청은 `REVOKED`로 전환됩니다.
                     - 해당 그룹의 `ACTIVE` 멤버는 후속 조회에서 노출되지 않도록 `LEFT`로 전환됩니다.
                     """
     )
