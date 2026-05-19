@@ -464,6 +464,166 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("닉네임 그룹 초대 생성은 OWNER가 대상 회원에게 PENDING 초대를 저장한다")
+    void createNicknameInviteCreatesPendingInviteForOwner() throws Exception {
+        Member owner = saveMember("nickname-invite-owner", "닉초대방장");
+        Member target = saveMember("nickname-invite-target", "닉초대대상");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "닉네임 초대 그룹");
+        LocalDateTime beforeExpectedExpiry = LocalDateTime.now().plusHours(24);
+
+        mockMvc.perform(post("/api/v1/groups/invites/nickname")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "groupId": %d,
+                                  "nickname": "%s"
+                                }
+                                """.formatted(groupRoom.getId(), target.getNickname())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.inviteId").isNumber())
+                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.groupName").value("닉네임 초대 그룹"))
+                .andExpect(jsonPath("$.data.targetMemberId").value(target.getId()))
+                .andExpect(jsonPath("$.data.targetNickname").value(target.getNickname()))
+                .andExpect(jsonPath("$.data.expiresAt").isNotEmpty())
+                .andExpect(jsonPath("$.data.status").value(GroupInviteStatus.PENDING.name()));
+
+        LocalDateTime afterExpectedExpiry = LocalDateTime.now().plusHours(24);
+        GroupInvite savedInvite = groupInviteRepository.findAll().getFirst();
+
+        assertThat(savedInvite.getRoom().getId()).isEqualTo(groupRoom.getId());
+        assertThat(savedInvite.getRequestMember().getId()).isEqualTo(owner.getId());
+        assertThat(savedInvite.getTargetMember().getId()).isEqualTo(target.getId());
+        assertThat(savedInvite.getStatus()).isEqualTo(GroupInviteStatus.PENDING);
+        assertThat(savedInvite.getExpiresAt()).isBetween(beforeExpectedExpiry, afterExpectedExpiry);
+        assertThat(savedInvite.getRespondedAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("닉네임 그룹 초대 생성은 OWNER가 아니면 거절한다")
+    void createNicknameInviteFailsForNonOwner() throws Exception {
+        Member owner = saveMember("nickname-non-owner-host", "닉초대방장2");
+        Member requester = saveMember("nickname-non-owner-requester", "닉초대멤버");
+        Member target = saveMember("nickname-non-owner-target", "닉초대대상2");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "멤버 닉네임 초대 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                requester,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/invites/nickname")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(requester)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "groupId": %d,
+                                  "nickname": "%s"
+                                }
+                                """.formatted(groupRoom.getId(), target.getNickname())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_FORBIDDEN"));
+
+        assertThat(groupInviteRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("닉네임 그룹 초대 생성은 대상 닉네임이 없으면 실패한다")
+    void createNicknameInviteFailsForMissingTargetNickname() throws Exception {
+        Member owner = saveMember("nickname-missing-owner", "닉없는대상방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "없는 대상 초대 그룹");
+
+        mockMvc.perform(post("/api/v1/groups/invites/nickname")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "groupId": %d,
+                                  "nickname": "없는닉네임"
+                                }
+                                """.formatted(groupRoom.getId())))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_TARGET_NOT_FOUND"));
+
+        assertThat(groupInviteRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("닉네임 그룹 초대 생성은 자기 자신 초대를 거절한다")
+    void createNicknameInviteFailsForSelfInvite() throws Exception {
+        Member owner = saveMember("nickname-self-owner", "닉자기초대방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "자기 초대 그룹");
+
+        mockMvc.perform(post("/api/v1/groups/invites/nickname")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "groupId": %d,
+                                  "nickname": "%s"
+                                }
+                                """.formatted(groupRoom.getId(), owner.getNickname())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_SELF_NOT_ALLOWED"));
+
+        assertThat(groupInviteRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("닉네임 그룹 초대 생성은 이미 활성 멤버인 대상이면 거절한다")
+    void createNicknameInviteFailsForAlreadyActiveTargetMember() throws Exception {
+        Member owner = saveMember("nickname-active-owner", "닉활성방장");
+        Member target = saveMember("nickname-active-target", "닉활성대상");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "활성 대상 초대 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                target,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/invites/nickname")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "groupId": %d,
+                                  "nickname": "%s"
+                                }
+                                """.formatted(groupRoom.getId(), target.getNickname())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_TARGET_ALREADY_MEMBER"));
+
+        assertThat(groupInviteRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("닉네임 그룹 초대 생성은 같은 그룹과 대상의 PENDING 초대가 있으면 거절한다")
+    void createNicknameInviteFailsForDuplicatePendingInvite() throws Exception {
+        Member owner = saveMember("nickname-duplicate-owner", "닉중복방장");
+        Member target = saveMember("nickname-duplicate-target", "닉중복대상");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "중복 초대 그룹");
+        saveInvite(groupRoom, owner, target, LocalDateTime.now().plusHours(1));
+
+        mockMvc.perform(post("/api/v1/groups/invites/nickname")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "groupId": %d,
+                                  "nickname": "%s"
+                                }
+                                """.formatted(groupRoom.getId(), target.getNickname())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_ALREADY_PENDING"));
+
+        assertThat(groupInviteRepository.count()).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("초대 코드 입장은 신규 멤버를 ACTIVE 멤버로 저장한다")
     void joinGroupCreatesActiveMember() throws Exception {
         Member owner = saveMember("join-owner", "입장방장");
