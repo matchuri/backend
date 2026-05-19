@@ -469,7 +469,6 @@ class GroupIntegrationTest {
         Member owner = saveMember("join-owner", "입장방장");
         Member newMember = saveMember("join-new-member", "입장멤버");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "입장 그룹");
-        GroupInvite invite = saveInvite(groupRoom, owner, "JOIN2026", LocalDateTime.now().plusHours(1));
 
         mockMvc.perform(post("/api/v1/groups/join")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(newMember)))
@@ -478,7 +477,7 @@ class GroupIntegrationTest {
                                 {
                                   "inviteCode": "%s"
                                 }
-                                """.formatted(invite.getInviteCode())))
+                                """.formatted(groupRoom.getInviteCode())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
@@ -509,7 +508,6 @@ class GroupIntegrationTest {
         membership.leave(LocalDateTime.now().minusDays(1));
         groupRoomMemberRepository.save(membership);
         LocalDateTime previousJoinedAt = membership.getJoinedAt();
-        GroupInvite invite = saveInvite(groupRoom, owner, "REJOIN26", LocalDateTime.now().plusHours(1));
 
         mockMvc.perform(post("/api/v1/groups/join")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(leftMember)))
@@ -518,7 +516,7 @@ class GroupIntegrationTest {
                                 {
                                   "inviteCode": "%s"
                                 }
-                                """.formatted(invite.getInviteCode())))
+                                """.formatted(groupRoom.getInviteCode())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
                 .andExpect(jsonPath("$.data.memberStatus").value(GroupMemberStatus.ACTIVE.name()));
@@ -545,7 +543,6 @@ class GroupIntegrationTest {
                 GroupMemberRole.MEMBER,
                 LocalDateTime.now()
         ));
-        GroupInvite invite = saveInvite(groupRoom, owner, "ACTIVE26", LocalDateTime.now().plusHours(1));
 
         mockMvc.perform(post("/api/v1/groups/join")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(activeMember)))
@@ -554,7 +551,7 @@ class GroupIntegrationTest {
                                 {
                                   "inviteCode": "%s"
                                 }
-                                """.formatted(invite.getInviteCode())))
+                                """.formatted(groupRoom.getInviteCode())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("GROUP_ALREADY_JOINED"));
     }
@@ -577,48 +574,6 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("초대 코드 입장은 만료된 코드이면 실패한다")
-    void joinGroupFailsForExpiredInvite() throws Exception {
-        Member owner = saveMember("expired-invite-owner", "만료초대방장");
-        Member member = saveMember("expired-invite-member", "만료초대멤버");
-        GroupRoom groupRoom = saveGroupOwnedBy(owner, "만료 입장 그룹");
-        GroupInvite invite = saveInvite(groupRoom, owner, "EXPIRED1", LocalDateTime.now().minusMinutes(1));
-
-        mockMvc.perform(post("/api/v1/groups/join")
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "inviteCode": "%s"
-                                }
-                                """.formatted(invite.getInviteCode())))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_EXPIRED"));
-    }
-
-    @Test
-    @DisplayName("초대 코드 입장은 취소된 코드이면 실패한다")
-    void joinGroupFailsForRevokedInvite() throws Exception {
-        Member owner = saveMember("revoked-invite-owner", "취소초대방장");
-        Member member = saveMember("revoked-invite-member", "취소초대멤버");
-        GroupRoom groupRoom = saveGroupOwnedBy(owner, "취소 입장 그룹");
-        GroupInvite invite = saveInvite(groupRoom, owner, "REVOKED1", LocalDateTime.now().plusHours(1));
-        invite.revoke();
-        groupInviteRepository.save(invite);
-
-        mockMvc.perform(post("/api/v1/groups/join")
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "inviteCode": "%s"
-                                }
-                                """.formatted(invite.getInviteCode())))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_REVOKED"));
-    }
-
-    @Test
     @DisplayName("초대 코드 입장은 연결된 그룹이 ACTIVE가 아니면 실패한다")
     void joinGroupFailsForNotActiveGroup() throws Exception {
         Member owner = saveMember("not-active-join-owner", "닫힌입장방장");
@@ -626,7 +581,6 @@ class GroupIntegrationTest {
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "닫힌 입장 그룹");
         groupRoom.close();
         groupRoomRepository.save(groupRoom);
-        GroupInvite invite = saveInvite(groupRoom, owner, "CLOSED26", LocalDateTime.now().plusHours(1));
 
         mockMvc.perform(post("/api/v1/groups/join")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
@@ -635,7 +589,7 @@ class GroupIntegrationTest {
                                 {
                                   "inviteCode": "%s"
                                 }
-                                """.formatted(invite.getInviteCode())))
+                                """.formatted(groupRoom.getInviteCode())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("GROUP_NOT_ACTIVE"));
     }
@@ -764,10 +718,10 @@ class GroupIntegrationTest {
         LocalDateTime alreadyLeftAt = LocalDateTime.of(2026, 5, 18, 9, 0);
         leftMembership.leave(alreadyLeftAt);
         groupRoomMemberRepository.save(leftMembership);
-        GroupInvite activeInvite = saveInvite(groupRoom, owner, "DELETE01", LocalDateTime.now().plusHours(1));
-        GroupInvite revokedInvite = saveInvite(groupRoom, owner, "DELETE02", LocalDateTime.now().plusHours(1));
-        revokedInvite.revoke();
-        groupInviteRepository.save(revokedInvite);
+        GroupInvite pendingInvite = saveInvite(groupRoom, owner, activeMember, LocalDateTime.now().plusHours(1));
+        GroupInvite declinedInvite = saveInvite(groupRoom, owner, leftMember, LocalDateTime.now().plusHours(1));
+        declinedInvite.decline(LocalDateTime.now());
+        groupInviteRepository.save(declinedInvite);
 
         mockMvc.perform(delete("/api/v1/groups/{groupId}", groupRoom.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
@@ -787,8 +741,8 @@ class GroupIntegrationTest {
         GroupRoomMember savedLeftMembership = groupRoomMemberRepository
                 .findById(leftMembership.getId())
                 .orElseThrow();
-        GroupInvite savedActiveInvite = groupInviteRepository.findById(activeInvite.getId()).orElseThrow();
-        GroupInvite savedRevokedInvite = groupInviteRepository.findById(revokedInvite.getId()).orElseThrow();
+        GroupInvite savedPendingInvite = groupInviteRepository.findById(pendingInvite.getId()).orElseThrow();
+        GroupInvite savedDeclinedInvite = groupInviteRepository.findById(declinedInvite.getId()).orElseThrow();
 
         assertThat(deletedGroup.getStatus()).isEqualTo(GroupRoomStatus.DELETED);
         assertThat(ownerMembership.getStatus()).isEqualTo(GroupMemberStatus.LEFT);
@@ -797,8 +751,8 @@ class GroupIntegrationTest {
         assertThat(savedActiveMembership.getLeftAt()).isNotNull();
         assertThat(savedLeftMembership.getStatus()).isEqualTo(GroupMemberStatus.LEFT);
         assertThat(savedLeftMembership.getLeftAt()).isEqualTo(alreadyLeftAt);
-        assertThat(savedActiveInvite.getStatus()).isEqualTo(GroupInviteStatus.REVOKED);
-        assertThat(savedRevokedInvite.getStatus()).isEqualTo(GroupInviteStatus.REVOKED);
+        assertThat(savedPendingInvite.getStatus()).isEqualTo(GroupInviteStatus.REVOKED);
+        assertThat(savedDeclinedInvite.getStatus()).isEqualTo(GroupInviteStatus.DECLINED);
     }
 
     @Test
@@ -874,10 +828,10 @@ class GroupIntegrationTest {
     private GroupInvite saveInvite(
             GroupRoom groupRoom,
             Member createdByMember,
-            String inviteCode,
+            Member targetMember,
             LocalDateTime expiresAt
     ) {
-        return groupInviteRepository.save(new GroupInvite(groupRoom, createdByMember, inviteCode, expiresAt));
+        return groupInviteRepository.save(new GroupInvite(groupRoom, createdByMember, targetMember, expiresAt));
     }
 
     private void leaveOwnerMembership(GroupRoom groupRoom, Member member) {
