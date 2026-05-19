@@ -37,8 +37,8 @@ public class GroupInvite extends BaseEntity {
     private GroupRoom room;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "created_by_member_id", nullable = false, comment = "초대 생성 회원 ID")
-    private Member createdByMember;
+    @JoinColumn(name = "request_member_id", nullable = false, comment = "초대 생성 회원 ID")
+    private Member requestMember;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "target_member_id", nullable = false, comment = "초대 대상 회원 ID")
@@ -54,9 +54,9 @@ public class GroupInvite extends BaseEntity {
     @Column(name = "responded_at", comment = "응답 시각")
     private LocalDateTime respondedAt;
 
-    public GroupInvite(GroupRoom room, Member createdByMember, Member targetMember, LocalDateTime expiresAt) {
+    public GroupInvite(GroupRoom room, Member requestMember, Member targetMember, LocalDateTime expiresAt) {
         this.room = room;
-        this.createdByMember = createdByMember;
+        this.requestMember = requestMember;
         this.targetMember = targetMember;
         this.expiresAt = expiresAt;
         this.status = GroupInviteStatus.PENDING;
