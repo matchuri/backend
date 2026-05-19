@@ -1,6 +1,6 @@
 matchuri:
   seed:
-    enabled: true
+    enabled: false
     sample-members-enabled: true
 
 spring:
@@ -13,4 +13,4 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: debug
+    org.hibernate.SQL: info

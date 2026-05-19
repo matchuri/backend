@@ -1,4 +1,4 @@
 matchuri:
   seed:
-    enabled: false
+    enabled: true
     sample-members-enabled: true

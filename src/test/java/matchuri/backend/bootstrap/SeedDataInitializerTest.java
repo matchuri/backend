@@ -27,7 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
         "matchuri.seed.enabled=true",
         "matchuri.seed.sample-members-enabled=true"
 })
-@ActiveProfiles({"test", "local"})
+@ActiveProfiles({"test", "local", "seed"})
 class SeedDataInitializerTest {
 
     @Autowired

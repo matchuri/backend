@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
-@Profile({"local", "dev"})
+@Profile("(local | dev) & seed")
 public class ReferenceDataInitializer {
 
     private final MatchuriProperties matchuriProperties;

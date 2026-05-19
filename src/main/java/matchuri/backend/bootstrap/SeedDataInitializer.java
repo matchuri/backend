@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Profile({"local", "dev"})
+@Profile("(local | dev) & seed")
 @RequiredArgsConstructor
 public class SeedDataInitializer implements ApplicationRunner {
 
