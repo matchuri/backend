@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
+import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
@@ -28,6 +29,7 @@ import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
+import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
@@ -259,6 +261,18 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<@NonNull GroupInviteSummaryResult> getMyInvites(GetMyGroupInvitesCommand command) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupInviteStatus status = command.status() == null ? GroupInviteStatus.PENDING : command.status();
+
+        return groupInviteRepository.findMyInvites(
+                member.getId(),
+                status,
+                PageRequest.of(command.page(), command.size())).map(this::toInviteSummaryResult);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public GroupDetailResult getGroup(Long groupId) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         GroupRoom room = groupRoomRepository.findByIdAndStatusNot(groupId, GroupRoomStatus.DELETED)
@@ -314,6 +328,22 @@ public class GroupServiceImpl implements GroupService {
                 activeMemberCounts.getOrDefault(room.getId(), 0L).intValue(),
                 null,
                 room.getCreatedAt()
+        );
+    }
+
+    private GroupInviteSummaryResult toInviteSummaryResult(GroupInvite invite) {
+        GroupRoom room = invite.getRoom();
+        Member requestMember = invite.getRequestMember();
+
+        return new GroupInviteSummaryResult(
+                invite.getId(),
+                room.getId(),
+                room.getName(),
+                requestMember.getId(),
+                requestMember.getNickname(),
+                invite.getStatus(),
+                invite.getExpiresAt(),
+                invite.getCreatedAt()
         );
     }
 

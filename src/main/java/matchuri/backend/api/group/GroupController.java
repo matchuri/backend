@@ -17,6 +17,7 @@ import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
+import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
@@ -27,15 +28,18 @@ import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
+import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
+import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
+import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
@@ -107,6 +111,24 @@ public class GroupController implements GroupApi {
         CreateNicknameGroupInviteResult result = groupService.createNicknameInvite(command);
 
         return ApiResponse.success(groupMapper.toCreateNicknameGroupInviteResponse(result));
+    }
+
+    @Override
+    @GetMapping("/invites/me")
+    public ApiResponse<PageResponse<GroupInviteSummaryResponse>> getMyInvites(
+            @RequestParam(required = false) GroupInviteStatus status,
+            @Min(0) @RequestParam(defaultValue = "0")
+            Integer page,
+
+            @Min(1) @Max(100) @RequestParam(defaultValue = "20")
+            Integer size
+    ) {
+        GetMyGroupInvitesCommand command = groupMapper.toGetMyGroupInvitesCommand(status, page, size);
+        Page<@NonNull GroupInviteSummaryResult> results = groupService.getMyInvites(command);
+        PageResponse<GroupInviteSummaryResponse> response =
+                PageResponse.of(results, groupMapper::toGroupInviteSummaryResponse);
+
+        return ApiResponse.success(response);
     }
 
     @Override

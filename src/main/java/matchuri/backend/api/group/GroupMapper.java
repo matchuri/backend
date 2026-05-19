@@ -8,6 +8,7 @@ import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
+import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
@@ -16,15 +17,18 @@ import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
+import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
+import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
+import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
@@ -133,6 +137,10 @@ public class GroupMapper {
         return new GetMyGroupsCommand(status, page, size);
     }
 
+    public GetMyGroupInvitesCommand toGetMyGroupInvitesCommand(GroupInviteStatus status, int page, int size) {
+        return new GetMyGroupInvitesCommand(status, page, size);
+    }
+
     public GroupSummaryResponse toGroupSummaryResponse(GroupSummaryResult result) {
         return new GroupSummaryResponse(
                 result.id(),
@@ -156,6 +164,19 @@ public class GroupMapper {
                         .map(this::toGroupMemberSummaryResponse)
                         .toList(),
                 null
+        );
+    }
+
+    public GroupInviteSummaryResponse toGroupInviteSummaryResponse(GroupInviteSummaryResult result) {
+        return new GroupInviteSummaryResponse(
+                result.inviteId(),
+                result.groupId(),
+                result.groupName(),
+                result.requestMemberId(),
+                result.requestMemberNickname(),
+                result.status(),
+                result.expiresAt(),
+                result.createdAt()
         );
     }
 
