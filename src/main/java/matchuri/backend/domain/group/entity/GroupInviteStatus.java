@@ -1,7 +1,9 @@
 package matchuri.backend.domain.group.entity;
 
 public enum GroupInviteStatus {
-    ACTIVE,
+    PENDING,
+    ACCEPTED,
+    DECLINED,
     EXPIRED,
     REVOKED
 }

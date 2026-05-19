@@ -11,7 +11,6 @@ import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
-import matchuri.backend.domain.group.entity.GroupInvite;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
@@ -78,12 +77,9 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public JoinGroupResult joinGroup(JoinGroupCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        GroupInvite groupInvite = groupInviteRepository.findByInviteCodeWithRoom(command.inviteCode())
+        GroupRoom room = groupRoomRepository.findByInviteCode(command.inviteCode())
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.INVITE_NOT_FOUND, command.inviteCode()));
 
-        validateJoinableInvite(groupInvite, command.inviteCode());
-
-        GroupRoom room = groupInvite.getRoom();
         if (!room.isActive()) {
             throw new BusinessException(GroupErrorCode.NOT_ACTIVE, room.getId());
         }
@@ -271,21 +267,6 @@ public class GroupServiceImpl implements GroupService {
         throw new BusinessException(GroupErrorCode.INVITE_CODE_GENERATION_FAILED);
     }
 
-    private void validateJoinableInvite(GroupInvite groupInvite, String inviteCode) {
-        if (groupInvite.getStatus() == GroupInviteStatus.REVOKED) {
-            throw new BusinessException(GroupErrorCode.INVITE_REVOKED, inviteCode);
-        }
-
-        if (groupInvite.getStatus() == GroupInviteStatus.EXPIRED) {
-            throw new BusinessException(GroupErrorCode.INVITE_EXPIRED, inviteCode);
-        }
-
-        if (groupInvite.getExpiresAt() != null && !groupInvite.getExpiresAt().isAfter(LocalDateTime.now())) {
-            groupInvite.expire();
-            throw new BusinessException(GroupErrorCode.INVITE_EXPIRED, inviteCode);
-        }
-    }
-
     private GroupRoomMember joinOrRejoinMember(GroupRoom room, Member member) {
         return groupRoomMemberRepository.findByRoomIdAndMemberId(room.getId(), member.getId())
                 .map(membership -> rejoinExistingMembership(room, member, membership))
@@ -312,8 +293,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     private void revokeActiveInvites(GroupRoom room) {
-        groupInviteRepository.findAllByRoomIdAndStatus(room.getId(), GroupInviteStatus.ACTIVE)
-                .forEach(GroupInvite::revoke);
+        groupInviteRepository.findAllByRoomIdAndStatus(room.getId(), GroupInviteStatus.PENDING)
+                .forEach(groupInvite -> groupInvite.revoke());
     }
 
     private void leaveActiveMembers(GroupRoom room, LocalDateTime leftAt) {
