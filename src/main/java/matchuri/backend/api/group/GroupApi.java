@@ -24,11 +24,13 @@ import matchuri.backend.api.group.dto.docs.GroupSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupVoteApiResponse;
 import matchuri.backend.api.group.dto.docs.JoinGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.LeaveGroupApiResponse;
+import matchuri.backend.api.group.dto.docs.RespondGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.UpdateGroupApiResponse;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
+import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
@@ -44,6 +46,7 @@ import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
@@ -215,6 +218,38 @@ public interface GroupApi {
             @Min(1)
             @Max(100)
             Integer size
+    );
+
+    @Operation(
+            summary = "그룹 초대 응답",
+            description = """
+                    현재 회원이 받은 nickname 기반 그룹 초대에 응답합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 초대의 대상 회원일 때만 응답할 수 있습니다.
+                    - `PENDING` 상태이고 만료되지 않은 초대만 응답할 수 있습니다.
+                    - `ACCEPT`이면 그룹 membership을 생성하거나 기존 `LEFT` membership을 재활성화합니다.
+                    - `DECLINE`이면 초대 상태만 `DECLINED`로 닫고 membership은 변경하지 않습니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "초대 응답 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RespondGroupInviteApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RESPOND_INVITE_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<RespondGroupInviteResponse> respondGroupInvite(
+            Long inviteId,
+            @Valid RespondGroupInviteRequest request
     );
 
     @Operation(

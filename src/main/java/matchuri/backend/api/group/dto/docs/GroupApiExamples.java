@@ -154,6 +154,20 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String RESPOND_INVITE_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "inviteId": 501,
+                "groupId": 3001,
+                "inviteStatus": "ACCEPTED",
+                "memberStatus": "ACTIVE",
+                "respondedAt": "2026-05-19T12:10:00"
+              },
+              "error": null
+            }
+            """;
+
     public static final String JOIN_GROUP_SUCCESS = """
             {
               "success": true,
