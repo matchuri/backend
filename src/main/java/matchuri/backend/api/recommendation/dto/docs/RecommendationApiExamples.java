@@ -232,6 +232,19 @@ public final class RecommendationApiExamples {
             }
             """;
 
+    public static final String PERSONAL_RECOMMENDATION_OPEN_EXISTS = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "status": 409,
+                "code": "PERSONAL_RECOMMENDATION_OPEN_EXISTS",
+                "message": "이미 열린 개인 추천이 있습니다. personalRecommendationId : 9001",
+                "details": []
+              }
+            }
+            """;
+
     public static final String PERSONAL_RECOMMENDATION_NOT_FOUND = """
             {
               "success": false,

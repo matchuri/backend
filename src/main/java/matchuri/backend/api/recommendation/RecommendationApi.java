@@ -135,6 +135,7 @@ public interface RecommendationApi {
                     특정 회원에게 취향 프로필(`MemberTasteProfile`) 정보가 없다면 403에러가 발생합니다.
 
                     `restriction ingredient`, `disliked menu item`, 최근 선택 메뉴를 제외한 뒤 후보를 저장하고 반환합니다.
+                    24시간 이내 열린 개인 추천이 이미 있으면 새 추천을 만들지 않고 409를 반환합니다.
                     """
     )
     @ApiResponses({
@@ -158,6 +159,17 @@ public interface RecommendationApi {
                             examples = @ExampleObject(
                                     name = "tasteProfileRequired",
                                     value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_TASTE_PROFILE_REQUIRED
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "열린 개인 추천이 이미 있음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "openExists",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_OPEN_EXISTS
                             )
                     )
             )
