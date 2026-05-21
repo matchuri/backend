@@ -10,7 +10,7 @@ public record RerollPersonalRecommendationRequest(
         @NotNull(message = "재요청 타입은 필수입니다.")
         PersonalRecommendationRerollType rerollType,
 
-        @Schema(description = "새 추천 요청 컨텍스트 JSON입니다.")
+        @Schema(description = "새 추천 요청 컨텍스트 JSON입니다.", example = "{\"mealTime\":\"LUNCH\"}")
         Map<String, Object> contextJson
 ) {
 }
