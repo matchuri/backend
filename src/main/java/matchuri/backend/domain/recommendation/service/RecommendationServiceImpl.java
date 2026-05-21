@@ -39,6 +39,7 @@ import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendatio
 import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCloseReason;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationRerollType;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.exception.GuestRecommendationErrorCode;
@@ -64,7 +65,6 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private static final int RECENT_SELECTED_MENU_EXCLUSION_COUNT = 3;
     private static final int RECOMMENDATION_CANDIDATE_LIMIT = 3;
-    private static final long PERSONAL_RECOMMENDATION_OPEN_HOURS = 24;
     private static final long RECENT_SKIPPED_MENU_EXCLUSION_HOURS = 24;
     private static final String GUEST_PARTICIPANT_KEY = "guest";
 
@@ -77,6 +77,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final PersonalRecommendationCandidateRepository personalRecommendationCandidateRepository;
     private final MemberMenuActionRepository memberMenuActionRepository;
     private final MenuRecommendationAlgorithmResolver menuRecommendationAlgorithmResolver;
+    private final PersonalRecommendationExpirationService personalRecommendationExpirationService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -108,15 +109,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         PersonalRecommendation sourceRecommendation = getOwnedPersonalRecommendation(sourcePersonalRecommendationId,
                 member.getId());
 
-        if (sourceRecommendation.isClosed()) {
-            throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, sourcePersonalRecommendationId);
-        }
-
         LocalDateTime now = LocalDateTime.now();
-        if (isExpiredOpenRecommendation(sourceRecommendation, now)) {
-            sourceRecommendation.expire(now);
-            throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, sourcePersonalRecommendationId);
-        }
+        validatePersonalRecommendationOpen(sourceRecommendation, now);
 
         if (rerollType == PersonalRecommendationRerollType.NOT_SATISFIED) {
             List<PersonalRecommendationCandidate> candidates =
@@ -288,9 +282,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(personalRecommendationId,
                 member.getId());
 
-        if (personalRecommendation.isClosed()) {
-            throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, personalRecommendationId);
-        }
+        validatePersonalRecommendationOpen(personalRecommendation, LocalDateTime.now());
 
         PersonalRecommendationCandidate selectedCandidate = personalRecommendationCandidateRepository
                 .findByIdAndPersonalRecommendationId(selectedCandidateId, personalRecommendationId)
@@ -324,7 +316,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 continue;
             }
 
-            if (!isExpiredOpenRecommendation(recommendation, now)) {
+            if (!personalRecommendationExpirationService.isExpired(recommendation, now)) {
                 throw new BusinessException(RecommendationErrorCode.OPEN_EXISTS, recommendation.getId());
             }
 
@@ -338,9 +330,19 @@ public class RecommendationServiceImpl implements RecommendationService {
                 && !recommendation.isClosed();
     }
 
-    private boolean isExpiredOpenRecommendation(PersonalRecommendation recommendation, LocalDateTime now) {
-        return isUnclosedCompletedRecommendation(recommendation)
-                && !recommendation.getRequestedAt().plusHours(PERSONAL_RECOMMENDATION_OPEN_HOURS).isAfter(now);
+    private void validatePersonalRecommendationOpen(PersonalRecommendation recommendation, LocalDateTime now) {
+        if (recommendation.getCloseReason() == PersonalRecommendationCloseReason.EXPIRED) {
+            throw new BusinessException(RecommendationErrorCode.EXPIRED, recommendation.getId());
+        }
+
+        if (recommendation.isClosed()) {
+            throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, recommendation.getId());
+        }
+
+        if (personalRecommendationExpirationService.isExpired(recommendation, now)) {
+            personalRecommendationExpirationService.expirePersonalRecommendationImmediately(recommendation.getId(), now);
+            throw new BusinessException(RecommendationErrorCode.EXPIRED, recommendation.getId());
+        }
     }
 
     private TasteProfileSnapshot toTasteProfileSnapshot(Member member, MemberTasteProfile tasteProfile) {
