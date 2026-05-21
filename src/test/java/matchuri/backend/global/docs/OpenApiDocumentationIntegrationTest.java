@@ -279,6 +279,17 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations'].post.responses['409'].content['application/json'].examples.openExists.value.error.code")
                         .value("PERSONAL_RECOMMENDATION_OPEN_EXISTS"))
+                .andExpect(jsonPath("$.paths['/api/v1/personal/recommendations/{requestId}/reroll'].post.summary")
+                        .value("개인 추천 재요청"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}/reroll'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].menuName")
+                        .value("김치찌개"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}/reroll'].post.responses['404'].content['application/json'].examples.notFound.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_NOT_FOUND"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}/reroll'].post.responses['409'].content['application/json'].examples.alreadyClosed.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_ALREADY_CLOSED"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.contextJson.mealTime")
                         .value("LUNCH"))

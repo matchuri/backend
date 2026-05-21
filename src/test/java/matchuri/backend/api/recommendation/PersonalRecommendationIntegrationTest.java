@@ -350,6 +350,147 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
+    @DisplayName("불만족 개인 추천 재요청은 이전 후보를 SKIP 로그로 저장하고 새 추천을 생성한다")
+    void rerollPersonalRecommendationWithNotSatisfiedClosesWithSkipAndCreatesNewRecommendation() throws Exception {
+        Member member = saveMember("reroll-skip-user", "불만족재요청");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        MenuItem riceNoodle = menuItemRepository.save(new MenuItem("RICE_NOODLE", "쌀국수", "가벼운 국물 메뉴"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveMenuAttribute(riceNoodle, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode source = createRecommendation(accessToken);
+        long sourceRequestId = source.path("requestId").asLong();
+        int sourceCandidateCount = source.path("candidates").size();
+
+        MvcResult rerollResult = mockMvc.perform(post(
+                                "/api/v1/personal/recommendations/{requestId}/reroll",
+                                sourceRequestId
+                        )
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "NOT_SATISFIED",
+                                  "contextJson": {
+                                    "mealTime": "LUNCH",
+                                    "mood": "다른 메뉴"
+                                  }
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requestId").isNumber())
+                .andExpect(jsonPath("$.data.closedAt").value(nullValue()))
+                .andExpect(jsonPath("$.data.closeReason").value(nullValue()))
+                .andReturn();
+
+        long rerolledRequestId = objectMapper.readTree(rerollResult.getResponse().getContentAsString())
+                .path("data")
+                .path("requestId")
+                .asLong();
+
+        assertThat(rerolledRequestId).isNotEqualTo(sourceRequestId);
+        assertThat(personalRecommendationRepository.count()).isEqualTo(2);
+        assertThat(memberMenuActionRepository.findAll())
+                .hasSize(sourceCandidateCount)
+                .allSatisfy(action -> assertThat(action.getActionType()).isEqualTo(ActionType.SKIP));
+
+        PersonalRecommendation sourceRecommendation = personalRecommendationRepository.findById(sourceRequestId)
+                .orElseThrow();
+        assertThat(sourceRecommendation.getClosedAt()).isNotNull();
+        assertThat(sourceRecommendation.getCloseReason()).isEqualTo(
+                PersonalRecommendationCloseReason.REROLLED_WITH_SKIP);
+    }
+
+    @Test
+    @DisplayName("입력 변경 개인 추천 재요청은 SKIP 로그 없이 이전 추천을 종료하고 새 추천을 생성한다")
+    void rerollPersonalRecommendationWithInputChangedClosesWithoutSkipAndCreatesNewRecommendation() throws Exception {
+        Member member = saveMember("reroll-input-user", "입력변경재요청");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode source = createRecommendation(accessToken);
+        long sourceRequestId = source.path("requestId").asLong();
+
+        MvcResult rerollResult = mockMvc.perform(post(
+                                "/api/v1/personal/recommendations/{requestId}/reroll",
+                                sourceRequestId
+                        )
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "INPUT_CHANGED",
+                                  "contextJson": {
+                                    "mealTime": "DINNER"
+                                  }
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requestId").isNumber())
+                .andReturn();
+
+        long rerolledRequestId = objectMapper.readTree(rerollResult.getResponse().getContentAsString())
+                .path("data")
+                .path("requestId")
+                .asLong();
+
+        assertThat(rerolledRequestId).isNotEqualTo(sourceRequestId);
+        assertThat(memberMenuActionRepository.count()).isZero();
+
+        PersonalRecommendation sourceRecommendation = personalRecommendationRepository.findById(sourceRequestId)
+                .orElseThrow();
+        assertThat(sourceRecommendation.getClosedAt()).isNotNull();
+        assertThat(sourceRecommendation.getCloseReason()).isEqualTo(
+                PersonalRecommendationCloseReason.REROLLED_WITHOUT_SKIP);
+    }
+
+    @Test
+    @DisplayName("종료된 개인 추천은 재요청할 수 없다")
+    void rerollPersonalRecommendationRejectsClosedRecommendation() throws Exception {
+        Member member = saveMember("reroll-closed-user", "종료재요청");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode source = createRecommendation(accessToken);
+        long sourceRequestId = source.path("requestId").asLong();
+
+        mockMvc.perform(post("/api/v1/personal/recommendations/{requestId}/reroll", sourceRequestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "INPUT_CHANGED",
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/personal/recommendations/{requestId}/reroll", sourceRequestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "INPUT_CHANGED",
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_ALREADY_CLOSED"));
+    }
+
+    @Test
     @DisplayName("개인 추천 조회는 타인 추천 접근을 찾을 수 없음으로 거절한다")
     void getPersonalRecommendationRejectsOtherMemberRecommendation() throws Exception {
         Member owner = saveMember("owner-user", "추천주인");
