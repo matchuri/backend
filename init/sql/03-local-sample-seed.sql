@@ -1,3 +1,6 @@
+SET NAMES utf8mb4;
+SET time_zone = '+09:00';
+
 -- Local sample members
 INSERT INTO members (login_id, password_hash, nickname, nickname_completed, email, is_social, social_provider_type, social_provider_user_id, member_role, status, created_at, updated_at) VALUES
     ('tester01', '$2a$10$VVuO/Z4eCysA.tIaAEnjkOwHhT42Kx1ci84jB5yNR8td9fkO7wNGq', '테스터일', b'1', 'tester01@example.com', b'0', NULL, NULL, 'MEMBER', 'ACTIVE', NOW(6), NOW(6)),

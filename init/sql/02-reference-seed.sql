@@ -1,3 +1,6 @@
+SET NAMES utf8mb4;
+SET time_zone = '+09:00';
+
 -- Reference seed data
 
 INSERT INTO attribute_categories (category_type, code, name, sort_order, is_active, created_at, updated_at) VALUES
