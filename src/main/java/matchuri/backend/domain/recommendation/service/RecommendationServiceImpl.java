@@ -39,6 +39,7 @@ import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendatio
 import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.exception.GuestRecommendationErrorCode;
 import matchuri.backend.domain.recommendation.exception.RecommendationErrorCode;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateRepository;
@@ -62,6 +63,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private static final int RECENT_SELECTED_MENU_EXCLUSION_COUNT = 3;
     private static final int RECOMMENDATION_CANDIDATE_LIMIT = 3;
+    private static final long PERSONAL_RECOMMENDATION_OPEN_HOURS = 24;
     private static final String GUEST_PARTICIPANT_KEY = "guest";
 
     private final ActiveMemberReader activeMemberReader;
@@ -92,6 +94,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         List<PersonalRecommendation> recommendations =
                 personalRecommendationRepository.findByMemberIdOrderByRequestedAtDescIdDesc(member.getId());
+        closeExpiredOrRejectOpenRecommendation(recommendations);
 
         MenuRecommendationAlgorithm algorithm =
                 menuRecommendationAlgorithmResolver.resolve(RecommendationAlgorithmType.PERSONAL);
@@ -250,6 +253,28 @@ public class RecommendationServiceImpl implements RecommendationService {
     private PersonalRecommendation getOwnedPersonalRecommendation(Long personalRecommendationId, Long memberId) {
         return personalRecommendationRepository.findByIdAndMemberId(personalRecommendationId, memberId)
                 .orElseThrow(() -> new BusinessException(RecommendationErrorCode.NOT_FOUND, personalRecommendationId));
+    }
+
+    private void closeExpiredOrRejectOpenRecommendation(List<PersonalRecommendation> recommendations) {
+        LocalDateTime now = LocalDateTime.now();
+
+        for (PersonalRecommendation recommendation : recommendations) {
+            if (!isUnclosedCompletedRecommendation(recommendation)) {
+                continue;
+            }
+
+            if (recommendation.getRequestedAt().plusHours(PERSONAL_RECOMMENDATION_OPEN_HOURS).isAfter(now)) {
+                throw new BusinessException(RecommendationErrorCode.OPEN_EXISTS, recommendation.getId());
+            }
+
+            recommendation.expire(now);
+        }
+    }
+
+    private boolean isUnclosedCompletedRecommendation(PersonalRecommendation recommendation) {
+        return recommendation.getStatus() == PersonalRecommendationStatus.COMPLETED
+                && recommendation.getSelectedCandidate() == null
+                && !recommendation.isClosed();
     }
 
     private TasteProfileSnapshot toTasteProfileSnapshot(Member member, MemberTasteProfile tasteProfile) {

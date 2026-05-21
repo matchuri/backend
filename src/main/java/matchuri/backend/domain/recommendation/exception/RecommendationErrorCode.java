@@ -14,7 +14,8 @@ public enum RecommendationErrorCode implements ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "해당 개인 추천을 찾을 수 없습니다. personalRecommendationId : {0}"),
     CANDIDATE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 개인 추천 후보를 찾을 수 없습니다. candidateId : {0}"),
     ALREADY_SELECTED(HttpStatus.CONFLICT, "이미 최종 후보가 선택된 개인 추천입니다. personalRecommendationId : {0}"),
-    ALREADY_CLOSED(HttpStatus.CONFLICT, "이미 종료된 개인 추천입니다. personalRecommendationId : {0}");
+    ALREADY_CLOSED(HttpStatus.CONFLICT, "이미 종료된 개인 추천입니다. personalRecommendationId : {0}"),
+    OPEN_EXISTS(HttpStatus.CONFLICT, "이미 열린 개인 추천이 있습니다. personalRecommendationId : {0}");
 
     private final HttpStatus httpStatus;
     private final String message;
