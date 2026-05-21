@@ -49,6 +49,7 @@ import matchuri.backend.domain.recommendation.entity.PersonalRecommendationClose
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateRepository;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
+import matchuri.backend.domain.recommendation.service.PersonalRecommendationExpirationService;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -118,6 +119,9 @@ class PersonalRecommendationIntegrationTest {
 
     @Autowired
     private MemberMenuActionRepository memberMenuActionRepository;
+
+    @Autowired
+    private PersonalRecommendationExpirationService personalRecommendationExpirationService;
 
     @BeforeEach
     void setUp() {
@@ -349,6 +353,98 @@ class PersonalRecommendationIntegrationTest {
         assertThat(expiredRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.EXPIRED);
         assertThat(newRecommendation.getClosedAt()).isNull();
         assertThat(newRecommendation.getCloseReason()).isNull();
+    }
+
+    @Test
+    @DisplayName("미선택 개인 추천 만료 서비스는 24시간 지난 열린 추천을 종료한다")
+    void expirationServiceClosesOpenRecommendationAfter24Hours() throws Exception {
+        Member member = saveMember("expiration-service-user", "만료서비스");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode recommendation = createRecommendation(accessToken);
+        long requestId = recommendation.path("requestId").asLong();
+        expireRequestedAt(requestId);
+
+        int expiredCount = personalRecommendationExpirationService.expireOpenPersonalRecommendations();
+
+        PersonalRecommendation expiredRecommendation = personalRecommendationRepository.findById(requestId)
+                .orElseThrow();
+        assertThat(expiredCount).isEqualTo(1);
+        assertThat(expiredRecommendation.getClosedAt()).isNotNull();
+        assertThat(expiredRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.EXPIRED);
+    }
+
+    @Test
+    @DisplayName("24시간 지난 미선택 개인 추천은 선택 시점에 즉시 만료되고 거절된다")
+    void selectPersonalRecommendationExpiresOldOpenRecommendationImmediately() throws Exception {
+        Member member = saveMember("select-expired-user", "선택만료");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode recommendation = createRecommendation(accessToken);
+        long requestId = recommendation.path("requestId").asLong();
+        long candidateId = recommendation.path("candidates").get(0).path("id").asLong();
+        expireRequestedAt(requestId);
+
+        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "selectedCandidateId": %d
+                                }
+                                """.formatted(candidateId)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
+
+        PersonalRecommendation expiredRecommendation = personalRecommendationRepository.findById(requestId)
+                .orElseThrow();
+        assertThat(expiredRecommendation.getSelectedCandidate()).isNull();
+        assertThat(expiredRecommendation.getClosedAt()).isNotNull();
+        assertThat(expiredRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.EXPIRED);
+    }
+
+    @Test
+    @DisplayName("24시간 지난 미선택 개인 추천은 재요청 시점에 즉시 만료되고 거절된다")
+    void rerollPersonalRecommendationExpiresOldOpenRecommendationImmediately() throws Exception {
+        Member member = saveMember("reroll-expired-user", "재요청만료");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode recommendation = createRecommendation(accessToken);
+        long requestId = recommendation.path("requestId").asLong();
+        expireRequestedAt(requestId);
+
+        mockMvc.perform(post("/api/v1/personal/recommendations/{requestId}/reroll", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "INPUT_CHANGED",
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
+
+        PersonalRecommendation expiredRecommendation = personalRecommendationRepository.findById(requestId)
+                .orElseThrow();
+        assertThat(expiredRecommendation.getClosedAt()).isNotNull();
+        assertThat(expiredRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.EXPIRED);
+        assertThat(personalRecommendationRepository.count()).isEqualTo(1);
     }
 
     @Test
@@ -619,6 +715,14 @@ class PersonalRecommendationIntegrationTest {
                 .andReturn();
 
         return objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
+    }
+
+    private void expireRequestedAt(long requestId) {
+        jdbcTemplate.update(
+                "update personal_recommendations set requested_at = ? where id = ?",
+                LocalDateTime.now().minusHours(25),
+                requestId
+        );
     }
 
     private List<Long> candidateMenuIds(JsonNode recommendationData) {

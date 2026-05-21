@@ -291,6 +291,9 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/personal/recommendations/{requestId}/reroll'].post.responses['409'].content['application/json'].examples.alreadyClosed.value.error.code")
                         .value("PERSONAL_RECOMMENDATION_ALREADY_CLOSED"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}/reroll'].post.responses['409'].content['application/json'].examples.expired.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_EXPIRED"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.contextJson.mealTime")
                         .value("LUNCH"))
                 .andExpect(jsonPath(
@@ -323,6 +326,9 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['409'].content['application/json'].examples.alreadyClosed.value.error.code")
                         .value("PERSONAL_RECOMMENDATION_ALREADY_CLOSED"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['409'].content['application/json'].examples.expired.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_EXPIRED"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups'].post.summary")
                         .value("그룹 생성"))
                 .andExpect(jsonPath(
