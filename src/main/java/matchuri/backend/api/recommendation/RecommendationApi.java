@@ -243,6 +243,7 @@ public interface RecommendationApi {
                     개인 추천 후보 중 하나를 최종 선택으로 반영합니다.
 
                     선택된 후보는 개인 추천에 저장되며 `member_menu_actions`에 `CHOOSE` 로그가 함께 기록됩니다.
+                    선택 성공 시 개인 추천은 `closeReason=SELECTED`, `closedAt=선택 시각`으로 종료됩니다.
                     """
     )
     @ApiResponses({
@@ -277,12 +278,12 @@ public interface RecommendationApi {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
-                    description = "이미 후보가 선택된 개인 추천",
+                    description = "이미 종료된 개인 추천",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(
-                                    name = "alreadySelected",
-                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_ALREADY_SELECTED
+                                    name = "alreadyClosed",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_ALREADY_CLOSED
                             )
                     )
             )

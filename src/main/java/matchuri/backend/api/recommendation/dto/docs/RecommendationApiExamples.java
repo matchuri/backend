@@ -120,7 +120,9 @@ public final class RecommendationApiExamples {
                   {
                     "id": 9001,
                     "status": "COMPLETED",
-                    "requestedAt": "2026-05-06T12:10:00"
+                    "requestedAt": "2026-05-06T12:10:00",
+                    "closedAt": null,
+                    "closeReason": null
                   }
                 ],
                 "pageInfo": {
@@ -145,6 +147,8 @@ public final class RecommendationApiExamples {
                 "requestId": 9001,
                 "status": "COMPLETED",
                 "requestedAt": "2026-05-06T12:10:00",
+                "closedAt": null,
+                "closeReason": null,
                 "candidates": [
                   {
                     "id": 10001,
@@ -179,6 +183,8 @@ public final class RecommendationApiExamples {
               "data": {
                 "id": 9001,
                 "status": "COMPLETED",
+                "closedAt": "2026-05-06T12:15:00",
+                "closeReason": "SELECTED",
                 "contextJson": {
                   "mealTime": "LUNCH",
                   "budgetLevel": 2,
@@ -265,6 +271,19 @@ public final class RecommendationApiExamples {
             }
             """;
 
+    public static final String PERSONAL_RECOMMENDATION_ALREADY_CLOSED = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "status": 409,
+                "code": "PERSONAL_RECOMMENDATION_ALREADY_CLOSED",
+                "message": "이미 종료된 개인 추천입니다. personalRecommendationId : 9001",
+                "details": []
+              }
+            }
+            """;
+
     public static final String PERSONAL_RECOMMENDATION_CANDIDATES_SUCCESS = """
             {
               "success": true,
@@ -304,6 +323,8 @@ public final class RecommendationApiExamples {
               "data": {
                 "id": 9001,
                 "selectedCandidateId": 10001,
+                "closedAt": "2026-05-06T12:15:00",
+                "closeReason": "SELECTED",
                 "updatedAt": "2026-05-06T12:15:00"
               },
               "error": null
