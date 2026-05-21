@@ -259,11 +259,17 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].id")
                         .value(9001))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].closedAt")
+                        .value(nullValue()))
                 .andExpect(jsonPath("$.paths['/api/v1/personal/recommendations'].post.summary")
                         .value("개인 추천 요청 생성"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].menuName")
                         .value("비빔밥"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.closeReason")
+                        .value(nullValue()))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.resultJson")
                         .doesNotExist())
@@ -273,6 +279,9 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.contextJson.mealTime")
                         .value("LUNCH"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.closeReason")
+                        .value("SELECTED"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")
                         .doesNotExist())
@@ -289,14 +298,17 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['200'].content['application/json'].examples.success.value.data.selectedCandidateId")
                         .value(10001))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['200'].content['application/json'].examples.success.value.data.closeReason")
+                        .value("SELECTED"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['404'].content['application/json'].examples.notFound.value.error.code")
                         .value("PERSONAL_RECOMMENDATION_NOT_FOUND"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['404'].content['application/json'].examples.candidateNotFound.value.error.code")
                         .value("PERSONAL_RECOMMENDATION_CANDIDATE_NOT_FOUND"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['409'].content['application/json'].examples.alreadySelected.value.error.code")
-                        .value("PERSONAL_RECOMMENDATION_ALREADY_SELECTED"))
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['409'].content['application/json'].examples.alreadyClosed.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_ALREADY_CLOSED"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups'].post.summary")
                         .value("그룹 생성"))
                 .andExpect(jsonPath(
