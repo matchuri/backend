@@ -9,7 +9,6 @@ import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatu
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -48,13 +47,6 @@ public class PersonalRecommendationExpirationService {
                 && recommendation.getSelectedCandidate() == null
                 && !recommendation.isClosed()
                 && !recommendation.getRequestedAt().plusHours(EXPIRATION_HOURS).isAfter(now);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void expirePersonalRecommendationImmediately(Long personalRecommendationId, LocalDateTime expiredAt) {
-        personalRecommendationRepository.findById(personalRecommendationId)
-                .filter(recommendation -> isExpired(recommendation, expiredAt))
-                .ifPresent(recommendation -> recommendation.expire(expiredAt));
     }
 
     private LocalDateTime expirationThreshold(LocalDateTime now) {

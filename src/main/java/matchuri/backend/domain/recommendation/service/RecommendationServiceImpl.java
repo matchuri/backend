@@ -109,8 +109,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         PersonalRecommendation sourceRecommendation = getOwnedPersonalRecommendation(sourcePersonalRecommendationId,
                 member.getId());
 
-        LocalDateTime now = LocalDateTime.now();
-        validatePersonalRecommendationOpen(sourceRecommendation, now);
+        validatePersonalRecommendationOpen(sourceRecommendation);
 
         if (rerollType == PersonalRecommendationRerollType.NOT_SATISFIED) {
             List<PersonalRecommendationCandidate> candidates =
@@ -125,9 +124,9 @@ public class RecommendationServiceImpl implements RecommendationService {
                     ))
                     .toList();
             memberMenuActionRepository.saveAll(skipActions);
-            sourceRecommendation.closeAsRerolledWithSkip(now);
+            sourceRecommendation.closeAsRerolledWithSkip(LocalDateTime.now());
         } else if (rerollType == PersonalRecommendationRerollType.INPUT_CHANGED) {
-            sourceRecommendation.closeAsRerolledWithoutSkip(now);
+            sourceRecommendation.closeAsRerolledWithoutSkip(LocalDateTime.now());
         } else {
             throw new IllegalArgumentException("지원하지 않는 개인 추천 재요청 타입입니다. rerollType=" + rerollType);
         }
@@ -282,7 +281,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(personalRecommendationId,
                 member.getId());
 
-        validatePersonalRecommendationOpen(personalRecommendation, LocalDateTime.now());
+        validatePersonalRecommendationOpen(personalRecommendation);
 
         PersonalRecommendationCandidate selectedCandidate = personalRecommendationCandidateRepository
                 .findByIdAndPersonalRecommendationId(selectedCandidateId, personalRecommendationId)
@@ -330,18 +329,13 @@ public class RecommendationServiceImpl implements RecommendationService {
                 && !recommendation.isClosed();
     }
 
-    private void validatePersonalRecommendationOpen(PersonalRecommendation recommendation, LocalDateTime now) {
+    private void validatePersonalRecommendationOpen(PersonalRecommendation recommendation) {
         if (recommendation.getCloseReason() == PersonalRecommendationCloseReason.EXPIRED) {
             throw new BusinessException(RecommendationErrorCode.EXPIRED, recommendation.getId());
         }
 
         if (recommendation.isClosed()) {
             throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, recommendation.getId());
-        }
-
-        if (personalRecommendationExpirationService.isExpired(recommendation, now)) {
-            personalRecommendationExpirationService.expirePersonalRecommendationImmediately(recommendation.getId(), now);
-            throw new BusinessException(RecommendationErrorCode.EXPIRED, recommendation.getId());
         }
     }
 
