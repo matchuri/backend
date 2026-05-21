@@ -216,13 +216,19 @@ public interface RecommendationApi {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
-                    description = "이미 종료된 개인 추천",
+                    description = "이미 종료되었거나 만료된 개인 추천",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    name = "alreadyClosed",
-                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_ALREADY_CLOSED
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "alreadyClosed",
+                                            value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_ALREADY_CLOSED
+                                    ),
+                                    @ExampleObject(
+                                            name = "expired",
+                                            value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_EXPIRED
+                                    )
+                            }
                     )
             )
     })
@@ -343,13 +349,19 @@ public interface RecommendationApi {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
-                    description = "이미 종료된 개인 추천",
+                    description = "이미 종료되었거나 만료된 개인 추천",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    name = "alreadyClosed",
-                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_ALREADY_CLOSED
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "alreadyClosed",
+                                            value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_ALREADY_CLOSED
+                                    ),
+                                    @ExampleObject(
+                                            name = "expired",
+                                            value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_EXPIRED
+                                    )
+                            }
                     )
             )
     })

@@ -327,6 +327,19 @@ public final class RecommendationApiExamples {
             }
             """;
 
+    public static final String PERSONAL_RECOMMENDATION_EXPIRED = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "status": 409,
+                "code": "PERSONAL_RECOMMENDATION_EXPIRED",
+                "message": "만료된 개인 추천입니다. personalRecommendationId : 9001",
+                "details": []
+              }
+            }
+            """;
+
     public static final String PERSONAL_RECOMMENDATION_CANDIDATES_SUCCESS = """
             {
               "success": true,
