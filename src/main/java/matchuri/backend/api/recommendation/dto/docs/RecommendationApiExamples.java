@@ -177,6 +177,36 @@ public final class RecommendationApiExamples {
             }
             """;
 
+    public static final String PERSONAL_RECOMMENDATION_REROLL_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "requestId": 9002,
+                "status": "COMPLETED",
+                "requestedAt": "2026-05-06T12:20:00",
+                "closedAt": null,
+                "closeReason": null,
+                "candidates": [
+                  {
+                    "id": 10004,
+                    "menuId": 1004,
+                    "menuName": "김치찌개",
+                    "rankNo": 1,
+                    "score": 91.0
+                  },
+                  {
+                    "id": 10005,
+                    "menuId": 1005,
+                    "menuName": "샐러드볼",
+                    "rankNo": 2,
+                    "score": 84.0
+                  }
+                ]
+              },
+              "error": null
+            }
+            """;
+
     public static final String PERSONAL_RECOMMENDATION_DETAIL_SUCCESS = """
             {
               "success": true,

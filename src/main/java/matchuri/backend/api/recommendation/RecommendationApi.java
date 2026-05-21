@@ -20,6 +20,7 @@ import matchuri.backend.api.recommendation.dto.docs.RecommendationApiExamples;
 import matchuri.backend.api.recommendation.dto.docs.SelectPersonalRecommendationApiResponse;
 import matchuri.backend.api.recommendation.dto.request.CreateGuestPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
+import matchuri.backend.api.recommendation.dto.request.RerollPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.SelectPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateListResponse;
@@ -177,6 +178,58 @@ public interface RecommendationApi {
     ApiResponse<PersonalRecommendationRequestResponse> createPersonalRecommendation(
             @Valid
             CreatePersonalRecommendationRequest request
+    );
+
+    @Operation(
+            summary = "개인 추천 재요청",
+            description = """
+                    이전 개인 추천을 종료하고 새 개인 추천을 실행합니다.
+
+                    `NOT_SATISFIED`는 이전 추천 후보 전체를 `SKIP` 행동 로그로 저장하고
+                    source 추천을 `REROLLED_WITH_SKIP`으로 종료합니다.
+                    `INPUT_CHANGED`는 `SKIP` 로그 없이 source 추천을 `REROLLED_WITHOUT_SKIP`으로 종료합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "개인 추천 재요청 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = PersonalRecommendationRequestApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_REROLL_SUCCESS
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "개인 추천을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_NOT_FOUND
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "이미 종료된 개인 추천",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "alreadyClosed",
+                                    value = RecommendationApiExamples.PERSONAL_RECOMMENDATION_ALREADY_CLOSED
+                            )
+                    )
+            )
+    })
+    ApiResponse<PersonalRecommendationRequestResponse> rerollPersonalRecommendation(
+            Long requestId,
+            @Valid
+            RerollPersonalRecommendationRequest request
     );
 
     @Operation(
