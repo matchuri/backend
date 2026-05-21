@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.recommendation.dto.request.CreateGuestPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
+import matchuri.backend.api.recommendation.dto.request.RerollPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.SelectPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateListResponse;
@@ -76,6 +77,22 @@ public class RecommendationController implements RecommendationApi {
     ) {
         String contextJson = recommendationMapper.toContextJson(request);
         PersonalRecommendationResult result = recommendationService.createPersonalRecommendation(contextJson);
+
+        return ApiResponse.success(recommendationMapper.toCreateResponse(result));
+    }
+
+    @Override
+    @PostMapping("/personal/recommendations/{requestId}/reroll")
+    public ApiResponse<PersonalRecommendationRequestResponse> rerollPersonalRecommendation(
+            @PathVariable Long requestId,
+            @Valid @RequestBody RerollPersonalRecommendationRequest request
+    ) {
+        String contextJson = recommendationMapper.toContextJson(request);
+        PersonalRecommendationResult result = recommendationService.rerollPersonalRecommendation(
+                requestId,
+                request.rerollType(),
+                contextJson
+        );
 
         return ApiResponse.success(recommendationMapper.toCreateResponse(result));
     }

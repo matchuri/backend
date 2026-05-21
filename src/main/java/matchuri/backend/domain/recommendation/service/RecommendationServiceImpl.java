@@ -39,6 +39,7 @@ import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendatio
 import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendationRerollType;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.exception.GuestRecommendationErrorCode;
 import matchuri.backend.domain.recommendation.exception.RecommendationErrorCode;
@@ -84,17 +85,74 @@ public class RecommendationServiceImpl implements RecommendationService {
      * @return 생성된 개인 추천과 추천 후보 목록
      */
     @Override
+    @Transactional
     public PersonalRecommendationResult createPersonalRecommendation(String contextJson) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+
+        List<PersonalRecommendation> recommendations =
+                personalRecommendationRepository.findByMemberIdOrderByRequestedAtDescIdDesc(member.getId());
+        closeExpiredOrRejectOpenRecommendation(recommendations);
+
+        return createPersonalRecommendation(member, contextJson, recommendations);
+    }
+
+    @Override
+    @Transactional
+    public PersonalRecommendationResult rerollPersonalRecommendation(
+            Long sourcePersonalRecommendationId,
+            PersonalRecommendationRerollType rerollType,
+            String contextJson
+    ) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        PersonalRecommendation sourceRecommendation = getOwnedPersonalRecommendation(sourcePersonalRecommendationId,
+                member.getId());
+
+        if (sourceRecommendation.isClosed()) {
+            throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, sourcePersonalRecommendationId);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (isExpiredOpenRecommendation(sourceRecommendation, now)) {
+            sourceRecommendation.expire(now);
+            throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, sourcePersonalRecommendationId);
+        }
+
+        if (rerollType == PersonalRecommendationRerollType.NOT_SATISFIED) {
+            List<PersonalRecommendationCandidate> candidates =
+                    personalRecommendationCandidateRepository.findByPersonalRecommendationIdOrderByRankNoAsc(
+                            sourcePersonalRecommendationId);
+            List<MemberMenuAction> skipActions = candidates.stream()
+                    .map(candidate -> new MemberMenuAction(
+                            member,
+                            candidate.getMenuItem(),
+                            sourceRecommendation,
+                            ActionType.SKIP
+                    ))
+                    .toList();
+            memberMenuActionRepository.saveAll(skipActions);
+            sourceRecommendation.closeAsRerolledWithSkip(now);
+        } else if (rerollType == PersonalRecommendationRerollType.INPUT_CHANGED) {
+            sourceRecommendation.closeAsRerolledWithoutSkip(now);
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 개인 추천 재요청 타입입니다. rerollType=" + rerollType);
+        }
+
+        List<PersonalRecommendation> recommendations =
+                personalRecommendationRepository.findByMemberIdOrderByRequestedAtDescIdDesc(member.getId());
+
+        return createPersonalRecommendation(member, contextJson, recommendations);
+    }
+
+    private PersonalRecommendationResult createPersonalRecommendation(
+            Member member,
+            String contextJson,
+            List<PersonalRecommendation> recommendations
+    ) {
         MemberTasteProfile tasteProfile = member.getTasteProfile();
 
         if (tasteProfile == null) {
             throw new BusinessException(RecommendationErrorCode.TASTE_PROFILE_REQUIRED, member.getId());
         }
-
-        List<PersonalRecommendation> recommendations =
-                personalRecommendationRepository.findByMemberIdOrderByRequestedAtDescIdDesc(member.getId());
-        closeExpiredOrRejectOpenRecommendation(recommendations);
 
         MenuRecommendationAlgorithm algorithm =
                 menuRecommendationAlgorithmResolver.resolve(RecommendationAlgorithmType.PERSONAL);
@@ -263,7 +321,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 continue;
             }
 
-            if (recommendation.getRequestedAt().plusHours(PERSONAL_RECOMMENDATION_OPEN_HOURS).isAfter(now)) {
+            if (!isExpiredOpenRecommendation(recommendation, now)) {
                 throw new BusinessException(RecommendationErrorCode.OPEN_EXISTS, recommendation.getId());
             }
 
@@ -275,6 +333,11 @@ public class RecommendationServiceImpl implements RecommendationService {
         return recommendation.getStatus() == PersonalRecommendationStatus.COMPLETED
                 && recommendation.getSelectedCandidate() == null
                 && !recommendation.isClosed();
+    }
+
+    private boolean isExpiredOpenRecommendation(PersonalRecommendation recommendation, LocalDateTime now) {
+        return isUnclosedCompletedRecommendation(recommendation)
+                && !recommendation.getRequestedAt().plusHours(PERSONAL_RECOMMENDATION_OPEN_HOURS).isAfter(now);
     }
 
     private TasteProfileSnapshot toTasteProfileSnapshot(Member member, MemberTasteProfile tasteProfile) {

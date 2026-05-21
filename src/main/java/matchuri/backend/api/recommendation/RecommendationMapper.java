@@ -9,6 +9,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.recommendation.dto.request.CreateGuestPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
+import matchuri.backend.api.recommendation.dto.request.RerollPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationCandidateResponse;
 import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateListResponse;
@@ -33,6 +34,10 @@ public class RecommendationMapper {
     private final ObjectMapper objectMapper;
 
     public String toContextJson(CreatePersonalRecommendationRequest request) {
+        return toContextJson(request.contextJson());
+    }
+
+    public String toContextJson(RerollPersonalRecommendationRequest request) {
         return toContextJson(request.contextJson());
     }
 
