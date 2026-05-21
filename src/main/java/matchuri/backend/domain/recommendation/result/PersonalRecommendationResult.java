@@ -4,12 +4,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCloseReason;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 
 public record PersonalRecommendationResult(
         Long id,
         PersonalRecommendationStatus status,
         LocalDateTime requestedAt,
+        LocalDateTime closedAt,
+        PersonalRecommendationCloseReason closeReason,
         String contextJson,
         Long selectedCandidateId,
         List<PersonalRecommendationCandidateResult> candidates
@@ -26,6 +29,8 @@ public record PersonalRecommendationResult(
                 personalRecommendation.getId(),
                 personalRecommendation.getStatus(),
                 personalRecommendation.getRequestedAt(),
+                personalRecommendation.getClosedAt(),
+                personalRecommendation.getCloseReason(),
                 personalRecommendation.getContextJson(),
                 selectedCandidateId,
                 candidates.stream()

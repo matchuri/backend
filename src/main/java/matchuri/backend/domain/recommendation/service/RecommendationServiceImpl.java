@@ -2,6 +2,7 @@ package matchuri.backend.domain.recommendation.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,7 +21,6 @@ import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.Ingredient;
 import matchuri.backend.domain.menu.entity.MenuAttributeCategory;
-import matchuri.backend.domain.menu.entity.MenuIngredient;
 import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
@@ -215,6 +215,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
+    @Transactional
     public SelectPersonalRecommendationResult selectPersonalRecommendationCandidate(
             Long personalRecommendationId,
             Long selectedCandidateId
@@ -223,8 +224,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(personalRecommendationId,
                 member.getId());
 
-        if (personalRecommendation.getSelectedCandidate() != null) {
-            throw new BusinessException(RecommendationErrorCode.ALREADY_SELECTED, personalRecommendationId);
+        if (personalRecommendation.isClosed()) {
+            throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, personalRecommendationId);
         }
 
         PersonalRecommendationCandidate selectedCandidate = personalRecommendationCandidateRepository
@@ -234,7 +235,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                         selectedCandidateId
                 ));
 
-        personalRecommendation.select(selectedCandidate);
+        personalRecommendation.select(selectedCandidate, LocalDateTime.now());
         memberMenuActionRepository.save(new MemberMenuAction(
                 member,
                 selectedCandidate.getMenuItem(),

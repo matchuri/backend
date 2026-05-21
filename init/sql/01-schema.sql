@@ -193,6 +193,8 @@ CREATE TABLE personal_recommendations (
     id BIGINT NOT NULL AUTO_INCREMENT,
     member_id BIGINT NOT NULL,
     status VARCHAR(20) NOT NULL,
+    closed_at DATETIME(6),
+    close_reason VARCHAR(30),
     requested_at DATETIME(6) NOT NULL,
     context_json JSON,
     selected_candidate_id BIGINT,

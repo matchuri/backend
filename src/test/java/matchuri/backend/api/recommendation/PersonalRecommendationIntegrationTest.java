@@ -41,6 +41,8 @@ import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCloseReason;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateRepository;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
@@ -163,6 +165,8 @@ class PersonalRecommendationIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.error").value(nullValue()))
                 .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.COMPLETED.name()))
+                .andExpect(jsonPath("$.data.closedAt").value(nullValue()))
+                .andExpect(jsonPath("$.data.closeReason").value(nullValue()))
                 .andExpect(jsonPath("$.data.candidates.length()").value(2))
                 .andExpect(jsonPath("$.data.candidates[0].menuId").value(bibimbap.getId()))
                 .andExpect(jsonPath("$.data.candidates[0].rankNo").value(1))
@@ -181,6 +185,8 @@ class PersonalRecommendationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(requestId))
                 .andExpect(jsonPath("$.data.contextJson.mealTime").value("LUNCH"))
+                .andExpect(jsonPath("$.data.closedAt").value(nullValue()))
+                .andExpect(jsonPath("$.data.closeReason").value(nullValue()))
                 .andExpect(jsonPath("$.data.candidates.length()").value(2))
                 .andExpect(jsonPath("$.data.selectedCandidateId").value(nullValue()));
 
@@ -196,6 +202,8 @@ class PersonalRecommendationIntegrationTest {
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].id").value(requestId))
+                .andExpect(jsonPath("$.data.content[0].closedAt").value(nullValue()))
+                .andExpect(jsonPath("$.data.content[0].closeReason").value(nullValue()))
                 .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1));
 
         mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
@@ -208,10 +216,23 @@ class PersonalRecommendationIntegrationTest {
                                 """.formatted(firstCandidateId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(requestId))
-                .andExpect(jsonPath("$.data.selectedCandidateId").value(firstCandidateId));
+                .andExpect(jsonPath("$.data.selectedCandidateId").value(firstCandidateId))
+                .andExpect(jsonPath("$.data.closedAt").exists())
+                .andExpect(jsonPath("$.data.closeReason").value(PersonalRecommendationCloseReason.SELECTED.name()));
 
         assertThat(memberMenuActionRepository.count()).isEqualTo(1);
         assertThat(memberMenuActionRepository.findAll().getFirst().getActionType()).isEqualTo(ActionType.CHOOSE);
+
+        PersonalRecommendation selectedRecommendation = personalRecommendationRepository.findById(requestId)
+                .orElseThrow();
+        assertThat(selectedRecommendation.getClosedAt()).isNotNull();
+        assertThat(selectedRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.SELECTED);
+
+        mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.closedAt").exists())
+                .andExpect(jsonPath("$.data.closeReason").value(PersonalRecommendationCloseReason.SELECTED.name()));
     }
 
     @Test
@@ -293,7 +314,7 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("개인 추천 선택은 다른 추천의 후보와 이미 선택된 추천을 거절한다")
+    @DisplayName("개인 추천 선택은 다른 추천의 후보와 이미 종료된 추천을 거절한다")
     void selectPersonalRecommendationRejectsInvalidCandidateAndAlreadySelectedRecommendation() throws Exception {
         Member member = saveMember("select-user", "선택검증");
         String accessToken = accessToken(member);
@@ -339,7 +360,7 @@ class PersonalRecommendationIntegrationTest {
                                 }
                                 """.formatted(firstCandidateId)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_ALREADY_SELECTED"));
+                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_ALREADY_CLOSED"));
     }
 
     private JsonNode createRecommendation(String accessToken) throws Exception {

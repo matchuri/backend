@@ -1,8 +1,10 @@
 package matchuri.backend.api.recommendation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCloseReason;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 
 public record PersonalRecommendationDetailResponse(
@@ -11,6 +13,12 @@ public record PersonalRecommendationDetailResponse(
 
         @Schema(description = "개인 추천 처리 상태입니다.", example = "COMPLETED")
         PersonalRecommendationStatus status,
+
+        @Schema(description = "추천 종료 시각입니다. 아직 선택/재요청/만료로 종료되지 않았다면 null입니다.", example = "2026-05-06T12:15:00")
+        LocalDateTime closedAt,
+
+        @Schema(description = "추천 종료 사유입니다. 아직 종료되지 않았다면 null입니다.", example = "SELECTED")
+        PersonalRecommendationCloseReason closeReason,
 
         @Schema(description = "요청 컨텍스트 JSON입니다.")
         Map<String, Object> contextJson,
@@ -25,6 +33,8 @@ public record PersonalRecommendationDetailResponse(
         return new PersonalRecommendationDetailResponse(
                 9001L,
                 PersonalRecommendationStatus.COMPLETED,
+                LocalDateTime.of(2026, 5, 6, 12, 15),
+                PersonalRecommendationCloseReason.SELECTED,
                 PersonalRecommendationMocks.contextJson(),
                 PersonalRecommendationMocks.candidates(),
                 10001L

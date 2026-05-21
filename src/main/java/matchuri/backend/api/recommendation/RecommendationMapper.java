@@ -68,6 +68,8 @@ public class RecommendationMapper {
                 result.id(),
                 result.status(),
                 result.requestedAt(),
+                result.closedAt(),
+                result.closeReason(),
                 toCandidateResponses(result.candidates())
         );
     }
@@ -76,6 +78,8 @@ public class RecommendationMapper {
         return new PersonalRecommendationDetailResponse(
                 result.id(),
                 result.status(),
+                result.closedAt(),
+                result.closeReason(),
                 toContextMap(result.contextJson()),
                 toCandidateResponses(result.candidates()),
                 result.selectedCandidateId()
@@ -96,7 +100,9 @@ public class RecommendationMapper {
         return new PersonalRecommendationResponse(
                 result.id(),
                 result.status(),
-                result.requestedAt()
+                result.requestedAt(),
+                result.closedAt(),
+                result.closeReason()
         );
     }
 
@@ -104,6 +110,8 @@ public class RecommendationMapper {
         return new SelectPersonalRecommendationResponse(
                 result.id(),
                 result.selectedCandidateId(),
+                result.closedAt(),
+                result.closeReason(),
                 result.updatedAt()
         );
     }
@@ -144,9 +152,8 @@ public class RecommendationMapper {
 
         try {
             JsonNode contextNode = objectMapper.readTree(contextJson);
-            if (contextNode.isTextual()) {
-                return objectMapper.readValue(contextNode.asText(), new TypeReference<>() {
-                });
+            while (contextNode.isTextual()) {
+                contextNode = objectMapper.readTree(contextNode.asText());
             }
 
             return objectMapper.convertValue(contextNode, new TypeReference<>() {
