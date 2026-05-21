@@ -14,6 +14,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import matchuri.backend.domain.behavior.entity.ActionType;
@@ -282,6 +283,73 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
+    @DisplayName("개인 추천 생성은 24시간 이내 열린 추천이 있으면 거절한다")
+    void createPersonalRecommendationRejectsWhenOpenRecommendationExists() throws Exception {
+        Member member = saveMember("open-exists-user", "열린추천");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode first = createRecommendation(accessToken);
+        long firstRequestId = first.path("requestId").asLong();
+
+        mockMvc.perform(post("/api/v1/personal/recommendations")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_OPEN_EXISTS"));
+
+        assertThat(personalRecommendationRepository.count()).isEqualTo(1);
+        PersonalRecommendation openRecommendation = personalRecommendationRepository.findById(firstRequestId)
+                .orElseThrow();
+        assertThat(openRecommendation.getClosedAt()).isNull();
+        assertThat(openRecommendation.getCloseReason()).isNull();
+    }
+
+    @Test
+    @DisplayName("개인 추천 생성은 만료 대상 열린 추천을 즉시 종료하고 새 추천을 생성한다")
+    void createPersonalRecommendationExpiresOldOpenRecommendationAndCreatesNewOne() throws Exception {
+        Member member = saveMember("expired-open-user", "만료추천");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode first = createRecommendation(accessToken);
+        long firstRequestId = first.path("requestId").asLong();
+        jdbcTemplate.update(
+                "update personal_recommendations set requested_at = ? where id = ?",
+                LocalDateTime.now().minusHours(25),
+                firstRequestId
+        );
+
+        JsonNode second = createRecommendation(accessToken);
+        long secondRequestId = second.path("requestId").asLong();
+
+        assertThat(secondRequestId).isNotEqualTo(firstRequestId);
+        assertThat(personalRecommendationRepository.count()).isEqualTo(2);
+
+        PersonalRecommendation expiredRecommendation = personalRecommendationRepository.findById(firstRequestId)
+                .orElseThrow();
+        PersonalRecommendation newRecommendation = personalRecommendationRepository.findById(secondRequestId)
+                .orElseThrow();
+        assertThat(expiredRecommendation.getClosedAt()).isNotNull();
+        assertThat(expiredRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.EXPIRED);
+        assertThat(newRecommendation.getClosedAt()).isNull();
+        assertThat(newRecommendation.getCloseReason()).isNull();
+    }
+
+    @Test
     @DisplayName("개인 추천 조회는 타인 추천 접근을 찾을 수 없음으로 거절한다")
     void getPersonalRecommendationRejectsOtherMemberRecommendation() throws Exception {
         Member owner = saveMember("owner-user", "추천주인");
@@ -324,41 +392,39 @@ class PersonalRecommendationIntegrationTest {
         saveMenuAttribute(bibimbap, spicy);
         saveTasteProfile(member, spicy, null);
 
-        JsonNode first = createRecommendation(accessToken);
-        JsonNode second = createRecommendation(accessToken);
-        long firstRequestId = first.path("requestId").asLong();
-        long firstCandidateId = first.path("candidates").get(0).path("id").asLong();
-        long secondCandidateId = second.path("candidates").get(0).path("id").asLong();
+        JsonNode recommendation = createRecommendation(accessToken);
+        long requestId = recommendation.path("requestId").asLong();
+        long candidateId = recommendation.path("candidates").get(0).path("id").asLong();
 
-        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", firstRequestId)
+        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "selectedCandidateId": %d
                                 }
-                                """.formatted(secondCandidateId)))
+                                """.formatted(candidateId + 10_000)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_CANDIDATE_NOT_FOUND"));
 
-        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", firstRequestId)
+        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "selectedCandidateId": %d
                                 }
-                                """.formatted(firstCandidateId)))
+                                """.formatted(candidateId)))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", firstRequestId)
+        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "selectedCandidateId": %d
                                 }
-                                """.formatted(firstCandidateId)))
+                                """.formatted(candidateId)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_ALREADY_CLOSED"));
     }

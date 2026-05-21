@@ -277,6 +277,9 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/personal/recommendations'].post.responses['403'].content['application/json'].examples.tasteProfileRequired.value.error.code")
                         .value("PERSONAL_RECOMMENDATION_TASTE_PROFILE_REQUIRED"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/personal/recommendations'].post.responses['409'].content['application/json'].examples.openExists.value.error.code")
+                        .value("PERSONAL_RECOMMENDATION_OPEN_EXISTS"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.contextJson.mealTime")
                         .value("LUNCH"))
                 .andExpect(jsonPath(
