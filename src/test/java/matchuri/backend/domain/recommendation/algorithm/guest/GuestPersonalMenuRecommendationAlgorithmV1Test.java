@@ -40,6 +40,7 @@ class GuestPersonalMenuRecommendationAlgorithmV1Test {
                 RecommendationContextSnapshot.of("{}"),
                 3,
                 List.of(),
+                List.of(),
                 Map.of()
         );
 

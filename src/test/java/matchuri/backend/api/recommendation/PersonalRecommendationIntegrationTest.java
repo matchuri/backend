@@ -15,7 +15,9 @@ import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.crypto.SecretKey;
 import matchuri.backend.domain.behavior.entity.ActionType;
 import matchuri.backend.domain.behavior.repository.MemberMenuActionRepository;
@@ -364,6 +366,7 @@ class PersonalRecommendationIntegrationTest {
 
         JsonNode source = createRecommendation(accessToken);
         long sourceRequestId = source.path("requestId").asLong();
+        List<Long> sourceCandidateMenuIds = candidateMenuIds(source);
         int sourceCandidateCount = source.path("candidates").size();
 
         MvcResult rerollResult = mockMvc.perform(post(
@@ -391,8 +394,10 @@ class PersonalRecommendationIntegrationTest {
                 .path("data")
                 .path("requestId")
                 .asLong();
+        JsonNode rerolledData = objectMapper.readTree(rerollResult.getResponse().getContentAsString()).path("data");
 
         assertThat(rerolledRequestId).isNotEqualTo(sourceRequestId);
+        assertThat(candidateMenuIds(rerolledData)).doesNotContainAnyElementsOf(sourceCandidateMenuIds);
         assertThat(personalRecommendationRepository.count()).isEqualTo(2);
         assertThat(memberMenuActionRepository.findAll())
                 .hasSize(sourceCandidateCount)
@@ -403,6 +408,34 @@ class PersonalRecommendationIntegrationTest {
         assertThat(sourceRecommendation.getClosedAt()).isNotNull();
         assertThat(sourceRecommendation.getCloseReason()).isEqualTo(
                 PersonalRecommendationCloseReason.REROLLED_WITH_SKIP);
+
+        jdbcTemplate.update(
+                "update member_menu_actions set created_at = ? where personal_recommendation_id = ?",
+                LocalDateTime.now().minusHours(25),
+                sourceRequestId
+        );
+
+        MvcResult afterSkipWindowResult = mockMvc.perform(post(
+                                "/api/v1/personal/recommendations/{requestId}/reroll",
+                                rerolledRequestId
+                        )
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "INPUT_CHANGED",
+                                  "contextJson": {
+                                    "mealTime": "LUNCH",
+                                    "mood": "다시 후보 허용"
+                                  }
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode afterSkipWindowData = objectMapper.readTree(afterSkipWindowResult.getResponse().getContentAsString())
+                .path("data");
+        assertThat(candidateMenuIds(afterSkipWindowData)).containsAnyElementsOf(sourceCandidateMenuIds);
     }
 
     @Test
@@ -418,6 +451,7 @@ class PersonalRecommendationIntegrationTest {
 
         JsonNode source = createRecommendation(accessToken);
         long sourceRequestId = source.path("requestId").asLong();
+        List<Long> sourceCandidateMenuIds = candidateMenuIds(source);
 
         MvcResult rerollResult = mockMvc.perform(post(
                                 "/api/v1/personal/recommendations/{requestId}/reroll",
@@ -441,8 +475,10 @@ class PersonalRecommendationIntegrationTest {
                 .path("data")
                 .path("requestId")
                 .asLong();
+        JsonNode rerolledData = objectMapper.readTree(rerollResult.getResponse().getContentAsString()).path("data");
 
         assertThat(rerolledRequestId).isNotEqualTo(sourceRequestId);
+        assertThat(candidateMenuIds(rerolledData)).containsAnyElementsOf(sourceCandidateMenuIds);
         assertThat(memberMenuActionRepository.count()).isZero();
 
         PersonalRecommendation sourceRecommendation = personalRecommendationRepository.findById(sourceRequestId)
@@ -583,6 +619,14 @@ class PersonalRecommendationIntegrationTest {
                 .andReturn();
 
         return objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
+    }
+
+    private List<Long> candidateMenuIds(JsonNode recommendationData) {
+        List<Long> menuIds = new ArrayList<>();
+        recommendationData.path("candidates")
+                .forEach(candidate -> menuIds.add(candidate.path("menuId").asLong()));
+
+        return menuIds;
     }
 
     private Member saveMember(String loginId, String nickname) {

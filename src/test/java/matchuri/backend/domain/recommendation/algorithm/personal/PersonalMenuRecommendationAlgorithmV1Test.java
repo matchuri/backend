@@ -41,6 +41,7 @@ class PersonalMenuRecommendationAlgorithmV1Test {
                 RecommendationContextSnapshot.of("{}"),
                 3,
                 List.of(5L),
+                List.of(),
                 Map.of(10L, 2L, 30L, 1L)
         );
 
@@ -77,11 +78,44 @@ class PersonalMenuRecommendationAlgorithmV1Test {
                 RecommendationContextSnapshot.of("{}"),
                 2,
                 List.of(),
+                List.of(),
                 Map.of()
         );
 
         MenuRecommendationResult result = algorithm.recommend(input);
 
         assertThat(result.candidates()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("최근 SKIP 메뉴를 제외한다")
+    void recommendFiltersRecentlySkippedMenus() {
+        TasteProfileSnapshot participant = new TasteProfileSnapshot(
+                1L,
+                "1",
+                List.of(10L),
+                List.of(),
+                List.of()
+        );
+        MenuRecommendationInput input = new MenuRecommendationInput(
+                RecommendationTargetType.PERSONAL,
+                List.of(participant),
+                List.of(
+                        new MenuRecommendationProfile(1L, "M1", "메뉴1", List.of(10L), List.of()),
+                        new MenuRecommendationProfile(2L, "M2", "메뉴2", List.of(10L), List.of()),
+                        new MenuRecommendationProfile(3L, "M3", "메뉴3", List.of(10L), List.of())
+                ),
+                RecommendationContextSnapshot.of("{}"),
+                3,
+                List.of(),
+                List.of(1L, 3L),
+                Map.of()
+        );
+
+        MenuRecommendationResult result = algorithm.recommend(input);
+
+        assertThat(result.candidates())
+                .extracting(candidate -> candidate.menuId())
+                .containsExactly(2L);
     }
 }
