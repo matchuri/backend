@@ -380,8 +380,8 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("24시간 지난 미선택 개인 추천은 선택 시점에 즉시 만료되고 거절된다")
-    void selectPersonalRecommendationExpiresOldOpenRecommendationImmediately() throws Exception {
+    @DisplayName("24시간이 지났어도 scheduler가 닫기 전이면 개인 추천을 선택할 수 있다")
+    void selectPersonalRecommendationAllowsExpiredByTimeUntilSchedulerClosesIt() throws Exception {
         Member member = saveMember("select-expired-user", "선택만료");
         String accessToken = accessToken(member);
         AttributeCategory spicy = attributeCategoryRepository.save(
@@ -403,19 +403,19 @@ class PersonalRecommendationIntegrationTest {
                                   "selectedCandidateId": %d
                                 }
                                 """.formatted(candidateId)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.closeReason").value(PersonalRecommendationCloseReason.SELECTED.name()));
 
-        PersonalRecommendation expiredRecommendation = personalRecommendationRepository.findById(requestId)
+        PersonalRecommendation selectedRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
-        assertThat(expiredRecommendation.getSelectedCandidate()).isNull();
-        assertThat(expiredRecommendation.getClosedAt()).isNotNull();
-        assertThat(expiredRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.EXPIRED);
+        assertThat(selectedRecommendation.getSelectedCandidate()).isNotNull();
+        assertThat(selectedRecommendation.getClosedAt()).isNotNull();
+        assertThat(selectedRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.SELECTED);
     }
 
     @Test
-    @DisplayName("24시간 지난 미선택 개인 추천은 재요청 시점에 즉시 만료되고 거절된다")
-    void rerollPersonalRecommendationExpiresOldOpenRecommendationImmediately() throws Exception {
+    @DisplayName("24시간이 지났어도 scheduler가 닫기 전이면 개인 추천을 재요청할 수 있다")
+    void rerollPersonalRecommendationAllowsExpiredByTimeUntilSchedulerClosesIt() throws Exception {
         Member member = saveMember("reroll-expired-user", "재요청만료");
         String accessToken = accessToken(member);
         AttributeCategory spicy = attributeCategoryRepository.save(
@@ -437,14 +437,73 @@ class PersonalRecommendationIntegrationTest {
                                   "contextJson": {}
                                 }
                                 """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requestId").isNumber());
+
+        PersonalRecommendation rerolledRecommendation = personalRecommendationRepository.findById(requestId)
+                .orElseThrow();
+        assertThat(rerolledRecommendation.getClosedAt()).isNotNull();
+        assertThat(rerolledRecommendation.getCloseReason()).isEqualTo(
+                PersonalRecommendationCloseReason.REROLLED_WITHOUT_SKIP);
+        assertThat(personalRecommendationRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("scheduler가 만료 종료한 개인 추천은 선택할 수 없다")
+    void selectPersonalRecommendationRejectsSchedulerExpiredRecommendation() throws Exception {
+        Member member = saveMember("select-scheduler-expired-user", "스케줄러선택만료");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode recommendation = createRecommendation(accessToken);
+        long requestId = recommendation.path("requestId").asLong();
+        long candidateId = recommendation.path("candidates").get(0).path("id").asLong();
+        expireRequestedAt(requestId);
+        personalRecommendationExpirationService.expireOpenPersonalRecommendations();
+
+        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "selectedCandidateId": %d
+                                }
+                                """.formatted(candidateId)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
+    }
 
-        PersonalRecommendation expiredRecommendation = personalRecommendationRepository.findById(requestId)
-                .orElseThrow();
-        assertThat(expiredRecommendation.getClosedAt()).isNotNull();
-        assertThat(expiredRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.EXPIRED);
-        assertThat(personalRecommendationRepository.count()).isEqualTo(1);
+    @Test
+    @DisplayName("scheduler가 만료 종료한 개인 추천은 재요청할 수 없다")
+    void rerollPersonalRecommendationRejectsSchedulerExpiredRecommendation() throws Exception {
+        Member member = saveMember("reroll-scheduler-expired-user", "스케줄러재요청만료");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode recommendation = createRecommendation(accessToken);
+        long requestId = recommendation.path("requestId").asLong();
+        expireRequestedAt(requestId);
+        personalRecommendationExpirationService.expireOpenPersonalRecommendations();
+
+        mockMvc.perform(post("/api/v1/personal/recommendations/{requestId}/reroll", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "INPUT_CHANGED",
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
     }
 
     @Test
