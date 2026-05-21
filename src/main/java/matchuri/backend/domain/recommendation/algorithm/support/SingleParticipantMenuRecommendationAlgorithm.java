@@ -29,6 +29,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
                 .filter(menu -> !containsAny(menu.ingredientIds(), participant.restrictionIngredientIds()))
                 .filter(menu -> !participant.dislikedMenuItemIds().contains(menu.menuId()))
                 .filter(menu -> !input.recentSelectedMenuIds().contains(menu.menuId()))
+                .filter(menu -> !input.recentlySkippedMenuIds().contains(menu.menuId()))
                 .map(menu -> score(menu, participant, input.selectedAttributeCategoryFrequency()))
                 .sorted(Comparator.comparing(ScoredMenu::totalScore).reversed()
                         .thenComparing(scoredMenu -> scoredMenu.menu().menuId()))

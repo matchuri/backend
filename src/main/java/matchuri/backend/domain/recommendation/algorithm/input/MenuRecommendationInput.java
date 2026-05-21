@@ -11,6 +11,7 @@ public record MenuRecommendationInput(
         RecommendationContextSnapshot context,
         int candidateLimit,
         List<Long> recentSelectedMenuIds,
+        List<Long> recentlySkippedMenuIds,
         Map<Long, Long> selectedAttributeCategoryFrequency
 ) {
     public MenuRecommendationInput {
@@ -18,6 +19,7 @@ public record MenuRecommendationInput(
         menus = menus == null ? List.of() : List.copyOf(menus);
         context = context == null ? RecommendationContextSnapshot.of(null) : context;
         recentSelectedMenuIds = recentSelectedMenuIds == null ? List.of() : List.copyOf(recentSelectedMenuIds);
+        recentlySkippedMenuIds = recentlySkippedMenuIds == null ? List.of() : List.copyOf(recentlySkippedMenuIds);
         selectedAttributeCategoryFrequency = selectedAttributeCategoryFrequency == null
                 ? Map.of()
                 : Map.copyOf(selectedAttributeCategoryFrequency);

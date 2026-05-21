@@ -65,6 +65,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private static final int RECENT_SELECTED_MENU_EXCLUSION_COUNT = 3;
     private static final int RECOMMENDATION_CANDIDATE_LIMIT = 3;
     private static final long PERSONAL_RECOMMENDATION_OPEN_HOURS = 24;
+    private static final long RECENT_SKIPPED_MENU_EXCLUSION_HOURS = 24;
     private static final String GUEST_PARTICIPANT_KEY = "guest";
 
     private final ActiveMemberReader activeMemberReader;
@@ -168,6 +169,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 RecommendationContextSnapshot.of(contextJson),
                 RECOMMENDATION_CANDIDATE_LIMIT,
                 findRecentlySelectedMenuIds(recommendations),
+                findRecentlySkippedMenuIds(member.getId()),
                 countSelectedAttributeCategoryFrequency(recommendations)
         );
         MenuRecommendationResult recommendationResult = algorithm.recommend(input);
@@ -215,6 +217,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 toMenuRecommendationProfiles(menuItems),
                 RecommendationContextSnapshot.of(command.contextJson()),
                 RECOMMENDATION_CANDIDATE_LIMIT,
+                List.of(),
                 List.of(),
                 Map.of()
         );
@@ -461,6 +464,18 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .map(PersonalRecommendation::getSelectedMenu)
                 .map(MenuItem::getId)
                 .limit(RECENT_SELECTED_MENU_EXCLUSION_COUNT)
+                .toList();
+    }
+
+    private List<Long> findRecentlySkippedMenuIds(Long memberId) {
+        LocalDateTime threshold = LocalDateTime.now().minusHours(RECENT_SKIPPED_MENU_EXCLUSION_HOURS);
+
+        return memberMenuActionRepository
+                .findByMemberIdAndActionTypeAndCreatedAtAfter(memberId, ActionType.SKIP, threshold)
+                .stream()
+                .map(MemberMenuAction::getMenuItem)
+                .map(MenuItem::getId)
+                .distinct()
                 .toList();
     }
 
