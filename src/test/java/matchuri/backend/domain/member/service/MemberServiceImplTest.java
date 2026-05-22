@@ -3,6 +3,7 @@ package matchuri.backend.domain.member.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
+import matchuri.backend.domain.member.result.MemberTasteUpdateResult;
 import matchuri.backend.domain.member.result.OnboardingNextStep;
 import matchuri.backend.domain.member.result.OnboardingStatusResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
@@ -49,6 +51,9 @@ import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
+import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
 import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -103,6 +108,9 @@ class MemberServiceImplTest {
 
     @Mock
     private EmailVerificationTokenVerifier emailVerificationTokenVerifier;
+
+    @Mock
+    private PersonalRecommendationRepository personalRecommendationRepository;
 
     @InjectMocks
     private MemberServiceImpl memberService;
@@ -349,18 +357,61 @@ class MemberServiceImplTest {
         when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(savedProfile.getId()))
                 .thenReturn(List.of(new MemberTasteProfileDislikedMenuItem(savedProfile, menuItem)));
 
-        MemberTasteProfileSummaryResult result = memberService.updateMyTasteProfile(
+        MemberTasteUpdateResult result = memberService.updateMyTasteProfile(
                 new UpdateMemberTasteProfileCommand(List.of(1L), List.of(101L), List.of(1001L))
         );
+        MemberTasteProfileSummaryResult profile = result.profile();
 
-        assertThat(result.profileVersion()).isEqualTo("v1");
-        assertThat(result.attributeCategories()).hasSize(1);
-        assertThat(result.restrictionIngredients()).hasSize(1);
-        assertThat(result.dislikedMenuItems()).hasSize(1);
+        assertThat(profile.profileVersion()).isEqualTo("v1");
+        assertThat(profile.attributeCategories()).hasSize(1);
+        assertThat(profile.restrictionIngredients()).hasSize(1);
+        assertThat(profile.dislikedMenuItems()).hasSize(1);
+        assertThat(result.openPersonalRecommendationId()).isNull();
         verify(memberTasteProfileRepository).saveAndFlush(any(MemberTasteProfile.class));
         verify(memberTasteProfileCategoryRepository).saveAll(any());
         verify(memberTasteProfileRestrictionIngredientRepository).saveAll(any());
         verify(memberTasteProfileDislikedMenuItemRepository).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("내 취향 프로필 저장은 미종료 개인 추천이 있으면 재요청용 추천 ID를 함께 반환한다")
+    void updateMyTasteProfileReturnsOpenPersonalRecommendationId() {
+        Member member = Member.builder()
+                .id(1L)
+                .loginId("tester01")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.ACTIVE)
+                .social(false)
+                .build();
+        MemberTasteProfile profile = new MemberTasteProfile(member, "v1");
+        PersonalRecommendation openRecommendation = mock(PersonalRecommendation.class);
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(memberTasteProfileRepository.findByMemberId(1L)).thenReturn(Optional.of(profile));
+        when(attributeCategoryRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
+        when(ingredientRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
+        when(menuItemRepository.findAllByIdInAndActiveTrue(List.of())).thenReturn(List.of());
+        when(memberTasteProfileCategoryRepository.findAllByProfileId(profile.getId())).thenReturn(List.of());
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileId(profile.getId())).thenReturn(List.of());
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileId(profile.getId())).thenReturn(List.of());
+        when(memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(List.of());
+        when(memberTasteProfileRestrictionIngredientRepository.findAllByProfileIdOrderByDisplay(profile.getId()))
+                .thenReturn(List.of());
+        when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(profile.getId()))
+                .thenReturn(List.of());
+        when(personalRecommendationRepository
+                .findFirstByMemberIdAndStatusAndSelectedCandidateIsNullAndClosedAtIsNullOrderByRequestedAtDescIdDesc(
+                        1L,
+                        PersonalRecommendationStatus.COMPLETED
+                ))
+                .thenReturn(Optional.of(openRecommendation));
+        when(openRecommendation.getId()).thenReturn(9001L);
+
+        MemberTasteUpdateResult result = memberService.updateMyTasteProfile(
+                new UpdateMemberTasteProfileCommand(List.of(), List.of(), List.of())
+        );
+
+        assertThat(result.openPersonalRecommendationId()).isEqualTo(9001L);
     }
 
     @Test
@@ -482,13 +533,15 @@ class MemberServiceImplTest {
         when(memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(profile.getId())).thenReturn(
                 List.of());
 
-        MemberTasteProfileSummaryResult result = memberService.updateMyTasteProfile(
+        MemberTasteUpdateResult result = memberService.updateMyTasteProfile(
                 new UpdateMemberTasteProfileCommand(List.of(), List.of(), List.of())
         );
+        MemberTasteProfileSummaryResult profileResult = result.profile();
 
-        assertThat(result.profileVersion()).isEqualTo("v1");
-        assertThat(result.attributeCategories()).isEmpty();
-        assertThat(result.restrictionIngredients()).isEmpty();
-        assertThat(result.dislikedMenuItems()).isEmpty();
+        assertThat(profileResult.profileVersion()).isEqualTo("v1");
+        assertThat(profileResult.attributeCategories()).isEmpty();
+        assertThat(profileResult.restrictionIngredients()).isEmpty();
+        assertThat(profileResult.dislikedMenuItems()).isEmpty();
+        assertThat(result.openPersonalRecommendationId()).isNull();
     }
 }

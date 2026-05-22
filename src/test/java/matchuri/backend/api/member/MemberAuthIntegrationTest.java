@@ -497,7 +497,8 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.attributeCategories[0].code").value("SPICY"))
                 .andExpect(jsonPath("$.data.restrictionIngredients[0].code").value("PEANUT"))
                 .andExpect(jsonPath("$.data.dislikedMenuItems[0].code").value("PORK_CUTLET"))
-                .andExpect(jsonPath("$.data.updatedAt").exists());
+                .andExpect(jsonPath("$.data.updatedAt").exists())
+                .andExpect(jsonPath("$.data.openPersonalRecommendationId").value(nullValue()));
 
         mockMvc.perform(get("/api/v1/members/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))

@@ -185,7 +185,7 @@ class OpenApiDocumentationIntegrationTest {
                         .value("MEMBER_AGREEMENT_REQUIRED"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/members/me/taste-profile'].patch.responses['200'].content['application/json'].schema.$ref")
-                        .value("#/components/schemas/MemberTasteProfileSummaryApiResponse"))
+                        .value("#/components/schemas/MemberTasteProfileUpdateApiResponse"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/members/me/taste-profile'].patch.responses['400'].content['application/json'].examples.invalidAttributeCategory.value.error.code")
                         .value("MEMBER_INVALID_TASTE_ATTRIBUTE_CATEGORY"))
@@ -207,6 +207,9 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.components.schemas.MemberTasteProfileSummaryResponse.properties.memberId.description")
                         .value("현재 로그인한 회원 ID입니다."))
+                .andExpect(jsonPath(
+                        "$.components.schemas.MemberTasteProfileUpdateResponse.properties.openPersonalRecommendationId.description")
+                        .value(org.hamcrest.Matchers.containsString("INPUT_CHANGED 재요청")))
                 .andExpect(jsonPath(
                         "$.components.schemas.MemberTasteAttributeCategoryResponse.properties.categoryType.description")
                         .value("선택된 attribute category의 상위 유형입니다."))
