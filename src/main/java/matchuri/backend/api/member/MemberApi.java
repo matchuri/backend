@@ -13,6 +13,7 @@ import matchuri.backend.api.member.dto.docs.CreateMemberApiResponse;
 import matchuri.backend.api.member.dto.docs.LoginIdExistsApiResponse;
 import matchuri.backend.api.member.dto.docs.MemberProfileApiResponse;
 import matchuri.backend.api.member.dto.docs.MemberTasteProfileSummaryApiResponse;
+import matchuri.backend.api.member.dto.docs.MemberTasteProfileUpdateApiResponse;
 import matchuri.backend.api.member.dto.docs.NicknameExistsApiResponse;
 import matchuri.backend.api.member.dto.docs.RegisterLocalMemberApiResponse;
 import matchuri.backend.api.member.dto.docs.UpdateMemberPasswordApiResponse;
@@ -25,6 +26,7 @@ import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.response.MemberProfileResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteProfileUpdateResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
 import matchuri.backend.api.member.dto.response.UpdateMemberPasswordResponse;
@@ -646,7 +648,9 @@ public interface MemberApi {
                     - 특정 목록을 비우려면 빈 배열을 보내야 합니다.
                     - 존재하지 않거나 비활성화된 참조 데이터 ID는 거절됩니다.
                     - `dislikedMenuItemIds`는 활성 `MenuItem` 검색/선택 결과의 ID 목록입니다.
-                    - 성공 시 조회 API와 동일한 구조를 반환합니다.
+                    - 성공 시 조회 API와 동일한 취향 프로필 구조에 `openPersonalRecommendationId`를 함께 반환합니다.
+                    - `openPersonalRecommendationId`가 있으면 취향 변경을 반영하기 위해 해당 추천 ID로 `INPUT_CHANGED` 재요청을 이어갈 수 있습니다.
+                    - 진행 중인 개인 추천이 없으면 `openPersonalRecommendationId`는 `null`입니다.
                     - `profileVersion`은 수정 시각 대체값이 아니라 프로필 정책/구조 버전이므로, 단순 저장만으로는 바뀌지 않습니다.
                     """)
     @ApiResponses({
@@ -655,7 +659,7 @@ public interface MemberApi {
                     description = "저장 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = MemberTasteProfileSummaryApiResponse.class),
+                            schema = @Schema(implementation = MemberTasteProfileUpdateApiResponse.class),
                             examples = @ExampleObject(
                                     name = "saved",
                                     value = """
@@ -689,7 +693,8 @@ public interface MemberApi {
                                                     "name": "돈까스"
                                                   }
                                                 ],
-                                                "updatedAt": "2026-04-20T18:00:00"
+                                                "updatedAt": "2026-04-20T18:00:00",
+                                                "openPersonalRecommendationId": 9001
                                               },
                                               "error": null
                                             }
@@ -825,7 +830,7 @@ public interface MemberApi {
                     )
             )
     })
-    ApiResponse<MemberTasteProfileSummaryResponse> updateMyTasteProfile(UpdateMemberTasteProfileRequest request);
+    ApiResponse<MemberTasteProfileUpdateResponse> updateMyTasteProfile(UpdateMemberTasteProfileRequest request);
 
     @Operation(
             summary = "회원 탈퇴",

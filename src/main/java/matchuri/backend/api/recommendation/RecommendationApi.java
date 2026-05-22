@@ -186,8 +186,12 @@ public interface RecommendationApi {
                     이전 개인 추천을 종료하고 새 개인 추천을 실행합니다.
 
                     `NOT_SATISFIED`는 이전 추천 후보 전체를 `SKIP` 행동 로그로 저장하고
-                    source 추천을 `REROLLED_WITH_SKIP`으로 종료합니다.
-                    `INPUT_CHANGED`는 `SKIP` 로그 없이 source 추천을 `REROLLED_WITHOUT_SKIP`으로 종료합니다.
+                    source 추천을 `REROLLED_WITH_SKIP`으로 종료합니다. \n
+                    `INPUT_CHANGED`는 `SKIP` 로그 없이 source 추천을 `REROLLED_WITHOUT_SKIP`으로 종료합니다. \n
+                    
+                    - 추천 결과 페이지 "재요청" 버튼
+                    - 취향 프로필 수정 후 모달 내부 "재요청" 버튼
+                    - 개인 메뉴 추천 페이지에서 진행 중인 요청이 있을 때
                     """
     )
     @ApiResponses({
