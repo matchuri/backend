@@ -12,6 +12,7 @@ import matchuri.backend.api.member.dto.response.MemberProfileResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteAttributeCategoryResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteDislikedMenuItemResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteProfileUpdateResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteRestrictionIngredientResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
 import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
@@ -32,6 +33,7 @@ import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
+import matchuri.backend.domain.member.result.MemberTasteUpdateResult;
 import matchuri.backend.domain.member.result.OnboardingStatusResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberPasswordResult;
@@ -147,6 +149,20 @@ public class MemberMapper {
                         ))
                         .toList(),
                 result.updatedAt()
+        );
+    }
+
+    public MemberTasteProfileUpdateResponse toMemberTasteProfileUpdateResponse(MemberTasteUpdateResult result) {
+        MemberTasteProfileSummaryResult profileResult = result.profile();
+        MemberTasteProfileSummaryResponse response = toMemberTasteProfileSummaryResponse(profileResult);
+        return new MemberTasteProfileUpdateResponse(
+                response.memberId(),
+                response.profileVersion(),
+                response.attributeCategories(),
+                response.restrictionIngredients(),
+                response.dislikedMenuItems(),
+                response.updatedAt(),
+                result.openPersonalRecommendationId()
         );
     }
 

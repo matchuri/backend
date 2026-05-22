@@ -29,6 +29,7 @@ import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIn
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
+import matchuri.backend.domain.member.result.MemberTasteUpdateResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberPasswordResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
@@ -42,6 +43,8 @@ import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
+import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -67,6 +70,7 @@ public class MemberServiceImpl implements MemberService {
     private final ActiveMemberReader activeMemberReader;
     private final OnboardingStatusResolver onboardingStatusResolver;
     private final EmailVerificationTokenVerifier emailVerificationTokenVerifier;
+    private final PersonalRecommendationRepository personalRecommendationRepository;
 
     @Override
     public boolean existsByLoginId(String loginId) {
@@ -119,6 +123,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public MemberTasteProfileSummaryResult getMyTasteProfile() {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
 
@@ -171,24 +176,15 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public MemberTasteProfileSummaryResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command) {
+    public MemberTasteUpdateResult updateMyTasteProfile(UpdateMemberTasteProfileCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         List<Long> attributeCategoryIds = command.attributeCategoryIds();
         List<Long> restrictionIngredientIds = command.restrictionIngredientIds();
         List<Long> dislikedMenuItemIds = command.dislikedMenuItemIds();
 
-        validateNoDuplicateIds(
-                attributeCategoryIds,
-                MemberErrorCode.DUPLICATE_TASTE_ATTRIBUTE_CATEGORY
-        );
-        validateNoDuplicateIds(
-                restrictionIngredientIds,
-                MemberErrorCode.DUPLICATE_TASTE_RESTRICTION_INGREDIENT
-        );
-        validateNoDuplicateIds(
-                dislikedMenuItemIds,
-                MemberErrorCode.DUPLICATE_TASTE_DISLIKED_MENU_ITEM
-        );
+        validateNoDuplicateIds(attributeCategoryIds, MemberErrorCode.DUPLICATE_TASTE_ATTRIBUTE_CATEGORY);
+        validateNoDuplicateIds(restrictionIngredientIds, MemberErrorCode.DUPLICATE_TASTE_RESTRICTION_INGREDIENT);
+        validateNoDuplicateIds(dislikedMenuItemIds, MemberErrorCode.DUPLICATE_TASTE_DISLIKED_MENU_ITEM);
 
         Map<Long, AttributeCategory> attributeCategoriesById = loadActiveAttributeCategories(attributeCategoryIds);
         Map<Long, Ingredient> ingredientsById = loadActiveIngredients(restrictionIngredientIds);
@@ -203,7 +199,16 @@ public class MemberServiceImpl implements MemberService {
         replaceRestrictionIngredientMappings(tasteProfile, restrictionIngredientIds, ingredientsById);
         replaceDislikedMenuItemMappings(tasteProfile, dislikedMenuItemIds, menuItemsById);
 
-        return MemberTasteProfileSummaryResult.of(
+        Long openPersonalRecommendationId =
+                personalRecommendationRepository
+                        .findFirstByMemberIdAndStatusAndSelectedCandidateIsNullAndClosedAtIsNullOrderByRequestedAtDescIdDesc(
+                                member.getId(),
+                                PersonalRecommendationStatus.COMPLETED
+                        )
+                        .map(recommendation -> recommendation.getId())
+                        .orElse(null);
+
+        MemberTasteProfileSummaryResult memberTasteProfileSummaryResult = MemberTasteProfileSummaryResult.of(
                 member.getId(),
                 tasteProfile,
                 memberTasteProfileCategoryRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId()),
@@ -211,6 +216,8 @@ public class MemberServiceImpl implements MemberService {
                         tasteProfile.getId()),
                 memberTasteProfileDislikedMenuItemRepository.findAllByProfileIdOrderByDisplay(tasteProfile.getId())
         );
+
+        return new MemberTasteUpdateResult(memberTasteProfileSummaryResult, openPersonalRecommendationId);
     }
 
     @Override

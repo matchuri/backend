@@ -23,4 +23,9 @@ public interface PersonalRecommendationRepository extends JpaRepository<Personal
             PersonalRecommendationStatus status,
             LocalDateTime requestedAt
     );
+
+    Optional<PersonalRecommendation> findFirstByMemberIdAndStatusAndSelectedCandidateIsNullAndClosedAtIsNullOrderByRequestedAtDescIdDesc(
+            long memberId,
+            PersonalRecommendationStatus status
+    );
 }
