@@ -11,6 +11,7 @@ public record GroupDetailResult(
         BigDecimal latitude,
         BigDecimal longitude,
         GroupRoomStatus status,
-        List<GroupMemberSummaryResult> members
+        List<GroupMemberSummaryResult> members,
+        GroupRecommendationResult activeRecommendation
 ) {
 }

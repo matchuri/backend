@@ -349,6 +349,80 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("그룹 추천 상세 조회는 활성 멤버에게 후보와 투표 진행률을 반환한다")
+    void getGroupRecommendationReturnsCandidatesAndVoteProgress() throws Exception {
+        Member owner = saveMember("recommendation-detail-owner", "추천상세방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 상세 그룹");
+        MenuItem menuItem = saveMenu("detail-menu", "상세 메뉴");
+        GroupRecommendation recommendation = saveGroupRecommendation(groupRoom);
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 42.5, "{\"algorithmType\":\"GROUP\"}")
+        );
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.candidates.length()").value(1))
+                .andExpect(jsonPath("$.data.candidates[0].candidateId").value(candidate.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].menuId").value(menuItem.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].score").value(42.5))
+                .andExpect(jsonPath("$.data.candidates[0].voteCount").value(0))
+                .andExpect(jsonPath("$.data.voteProgress.totalMemberCount").value(1))
+                .andExpect(jsonPath("$.data.voteProgress.votedMemberCount").value(0))
+                .andExpect(jsonPath("$.data.finalCandidate").value(nullValue()))
+                .andExpect(jsonPath("$.data.createdAt").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("그룹 추천 상세 조회는 비멤버 접근을 거절한다")
+    void getGroupRecommendationFailsForNonMember() throws Exception {
+        Member owner = saveMember("recommendation-detail-access-owner", "추천상세권한방장");
+        Member other = saveMember("recommendation-detail-access-other", "추천상세권한없음");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 상세 권한 그룹");
+        GroupRecommendation recommendation = saveGroupRecommendation(groupRoom);
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 후보 목록 조회는 후보만 rank 순서로 반환한다")
+    void getGroupRecommendationCandidatesReturnsCandidateList() throws Exception {
+        Member owner = saveMember("recommendation-candidates-owner", "추천후보방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 후보 그룹");
+        MenuItem firstMenu = saveMenu("candidate-first", "첫 후보");
+        MenuItem secondMenu = saveMenu("candidate-second", "두 번째 후보");
+        GroupRecommendation recommendation = saveGroupRecommendation(groupRoom);
+        GroupRecommendationCandidate secondCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, secondMenu, 2, 10.0, "{}")
+        );
+        GroupRecommendationCandidate firstCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, firstMenu, 1, 20.0, "{}")
+        );
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}/candidates",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.candidates.length()").value(2))
+                .andExpect(jsonPath("$.data.candidates[0].candidateId").value(firstCandidate.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].rankNo").value(1))
+                .andExpect(jsonPath("$.data.candidates[1].candidateId").value(secondCandidate.getId()))
+                .andExpect(jsonPath("$.data.candidates[1].rankNo").value(2));
+    }
+
+    @Test
     @DisplayName("내 그룹 목록은 현재 회원이 활성 멤버인 삭제되지 않은 그룹만 조회한다")
     void getMyGroupsReturnsActiveMembershipRoomsOnly() throws Exception {
         Member member = saveMember("group-list-user", "목록사용자");
@@ -442,6 +516,28 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.members[1].memberId").value(activeMember.getId()))
                 .andExpect(jsonPath("$.data.members[1].nickname").value("상세멤버"))
                 .andExpect(jsonPath("$.data.activeRecommendation").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("그룹 상세 조회는 열린 그룹 추천이 있으면 activeRecommendation을 반환한다")
+    void getGroupReturnsActiveRecommendation() throws Exception {
+        Member owner = saveMember("detail-active-recommendation-owner", "상세추천방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "상세 추천 그룹");
+        MenuItem menuItem = saveMenu("active-recommendation-menu", "진행 중 후보");
+        GroupRecommendation recommendation = saveGroupRecommendation(groupRoom);
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 33.0, "{}")
+        );
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.activeRecommendation.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.activeRecommendation.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.activeRecommendation.candidates.length()").value(1))
+                .andExpect(jsonPath("$.data.activeRecommendation.candidates[0].candidateId").value(candidate.getId()))
+                .andExpect(jsonPath("$.data.activeRecommendation.voteProgress.totalMemberCount").value(1))
+                .andExpect(jsonPath("$.data.activeRecommendation.voteProgress.votedMemberCount").value(0));
     }
 
     @Test
@@ -1414,6 +1510,14 @@ class GroupIntegrationTest {
 
     private void saveMenuIngredient(MenuItem menuItem, Ingredient ingredient) {
         menuIngredientRepository.save(new MenuIngredient(menuItem, ingredient));
+    }
+
+    private GroupRecommendation saveGroupRecommendation(GroupRoom groupRoom) {
+        return groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
     }
 
     private void saveTasteProfile(

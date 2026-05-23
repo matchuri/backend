@@ -97,4 +97,6 @@ public interface GroupRoomMemberRepository extends JpaRepository<GroupRoomMember
               groupMember.id asc
             """)
     List<GroupRoomMember> findActiveMembersByRoomId(@Param("roomId") Long roomId);
+
+    long countByRoomIdAndStatus(Long roomId, GroupMemberStatus status);
 }

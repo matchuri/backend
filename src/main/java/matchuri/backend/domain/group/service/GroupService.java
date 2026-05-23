@@ -1,5 +1,6 @@
 package matchuri.backend.domain.group.service;
 
+import java.util.List;
 import lombok.NonNull;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
@@ -17,6 +18,8 @@ import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
+import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
+import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
@@ -29,6 +32,10 @@ public interface GroupService {
     CreateGroupResult createGroup(CreateGroupCommand command);
 
     CreateGroupRecommendationResult createGroupRecommendation(CreateGroupRecommendationCommand command);
+
+    GroupRecommendationResult getGroupRecommendation(Long groupId, Long sessionId);
+
+    List<GroupRecommendationCandidateResult> getGroupRecommendationCandidates(Long groupId, Long sessionId);
 
     CreateNicknameGroupInviteResult createNicknameInvite(CreateNicknameGroupInviteCommand command);
 

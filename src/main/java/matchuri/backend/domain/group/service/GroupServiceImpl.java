@@ -34,6 +34,8 @@ import matchuri.backend.domain.group.exception.GroupErrorCode;
 import matchuri.backend.domain.group.repository.GroupInviteRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationVoteCountProjection;
+import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberCountProjection;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
@@ -42,6 +44,8 @@ import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
+import matchuri.backend.domain.group.result.GroupRecommendationResult;
+import matchuri.backend.domain.group.result.GroupVoteProgressResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
@@ -95,6 +99,7 @@ public class GroupServiceImpl implements GroupService {
     private final GroupInviteRepository groupInviteRepository;
     private final GroupRecommendationRepository groupRecommendationRepository;
     private final GroupRecommendationCandidateRepository groupRecommendationCandidateRepository;
+    private final GroupRecommendationVoteRepository groupRecommendationVoteRepository;
     private final MenuItemRepository menuItemRepository;
     private final MenuIngredientRepository menuIngredientRepository;
     private final MenuRecommendationAlgorithmResolver menuRecommendationAlgorithmResolver;
@@ -180,6 +185,33 @@ public class GroupServiceImpl implements GroupService {
                         .map(candidate -> GroupRecommendationCandidateResult.from(candidate, 0))
                         .toList()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GroupRecommendationResult getGroupRecommendation(Long groupId, Long sessionId) {
+        GroupRecommendation recommendation = getAccessibleGroupRecommendation(groupId, sessionId);
+        List<GroupRecommendationCandidate> candidates =
+                groupRecommendationCandidateRepository.findByGroupRecommendationIdOrderByRankNoAsc(sessionId);
+        Map<Long, Long> voteCounts = countVotesByCandidateIds(candidates);
+
+        return toGroupRecommendationResult(recommendation, candidates, voteCounts);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GroupRecommendationCandidateResult> getGroupRecommendationCandidates(Long groupId, Long sessionId) {
+        getAccessibleGroupRecommendation(groupId, sessionId);
+        List<GroupRecommendationCandidate> candidates =
+                groupRecommendationCandidateRepository.findByGroupRecommendationIdOrderByRankNoAsc(sessionId);
+        Map<Long, Long> voteCounts = countVotesByCandidateIds(candidates);
+
+        return candidates.stream()
+                .map(candidate -> GroupRecommendationCandidateResult.from(
+                        candidate,
+                        voteCounts.getOrDefault(candidate.getId(), 0L).intValue()
+                ))
+                .toList();
     }
 
     @Override
@@ -424,6 +456,11 @@ public class GroupServiceImpl implements GroupService {
                 .map(this::toMemberSummaryResult)
                 .toList();
 
+        GroupRecommendationResult activeRecommendation = groupRecommendationRepository
+                .findFirstByRoomIdAndStatusOrderByStartedAtDescIdDesc(groupId, GroupRecommendationStatus.OPEN)
+                .map(this::toGroupRecommendationResult)
+                .orElse(null);
+
         return new GroupDetailResult(
                 room.getId(),
                 room.getName(),
@@ -431,8 +468,79 @@ public class GroupServiceImpl implements GroupService {
                 room.getLatitude(),
                 room.getLongitude(),
                 room.getStatus(),
-                members
+                members,
+                activeRecommendation
         );
+    }
+
+    private GroupRecommendation getAccessibleGroupRecommendation(Long groupId, Long sessionId) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(groupId, GroupRoomStatus.DELETED)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, groupId));
+
+        if (!groupRoomMemberRepository.existsActiveMembershipInNotDeletedRoom(room.getId(), member.getId())) {
+            throw new BusinessException(GroupErrorCode.ACCESS_DENIED, room.getId());
+        }
+
+        return groupRecommendationRepository.findByIdAndRoomId(sessionId, room.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
+    }
+
+    private GroupRecommendationResult toGroupRecommendationResult(GroupRecommendation recommendation) {
+        List<GroupRecommendationCandidate> candidates = groupRecommendationCandidateRepository
+                .findByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId());
+        Map<Long, Long> voteCounts = countVotesByCandidateIds(candidates);
+
+        return toGroupRecommendationResult(recommendation, candidates, voteCounts);
+    }
+
+    private GroupRecommendationResult toGroupRecommendationResult(
+            GroupRecommendation recommendation,
+            List<GroupRecommendationCandidate> candidates,
+            Map<Long, Long> voteCounts
+    ) {
+        GroupRecommendationCandidateResult finalCandidate = recommendation.getSelectedCandidate() == null
+                ? null
+                : GroupRecommendationCandidateResult.from(
+                        recommendation.getSelectedCandidate(),
+                        voteCounts.getOrDefault(recommendation.getSelectedCandidate().getId(), 0L).intValue()
+                );
+
+        return new GroupRecommendationResult(
+                recommendation.getId(),
+                recommendation.getStatus(),
+                candidates.stream()
+                        .map(candidate -> GroupRecommendationCandidateResult.from(
+                                candidate,
+                                voteCounts.getOrDefault(candidate.getId(), 0L).intValue()
+                        ))
+                        .toList(),
+                new GroupVoteProgressResult(
+                        (int) groupRoomMemberRepository.countByRoomIdAndStatus(
+                                recommendation.getRoom().getId(),
+                                GroupMemberStatus.ACTIVE
+                        ),
+                        (int) groupRecommendationVoteRepository.countByGroupRecommendationId(recommendation.getId())
+                ),
+                finalCandidate,
+                recommendation.getCreatedAt()
+        );
+    }
+
+    private Map<Long, Long> countVotesByCandidateIds(List<GroupRecommendationCandidate> candidates) {
+        List<Long> candidateIds = candidates.stream()
+                .map(GroupRecommendationCandidate::getId)
+                .toList();
+
+        if (candidateIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return groupRecommendationVoteRepository.countVotesByCandidateIds(candidateIds).stream()
+                .collect(Collectors.toMap(
+                        GroupRecommendationVoteCountProjection::getCandidateId,
+                        GroupRecommendationVoteCountProjection::getVoteCount
+                ));
     }
 
     private List<TasteProfileSnapshot> toTasteProfileSnapshots(List<GroupRoomMember> activeMembers) {

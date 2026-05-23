@@ -2,6 +2,7 @@ package matchuri.backend.api.group;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
@@ -17,8 +18,11 @@ import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
+import matchuri.backend.api.group.dto.response.GroupVoteProgressResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
@@ -43,6 +47,8 @@ import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
+import matchuri.backend.domain.group.result.GroupRecommendationResult;
+import matchuri.backend.domain.group.result.GroupVoteProgressResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
@@ -213,7 +219,34 @@ public class GroupMapper {
                 result.members().stream()
                         .map(this::toGroupMemberSummaryResponse)
                         .toList(),
-                null
+                result.activeRecommendation() == null
+                        ? null
+                        : toGroupRecommendationSessionResponse(result.activeRecommendation())
+        );
+    }
+
+    public GroupRecommendationSessionResponse toGroupRecommendationSessionResponse(GroupRecommendationResult result) {
+        return new GroupRecommendationSessionResponse(
+                result.sessionId(),
+                result.status(),
+                result.candidates().stream()
+                        .map(this::toGroupRecommendationCandidateResponse)
+                        .toList(),
+                toGroupVoteProgressResponse(result.voteProgress()),
+                result.finalCandidate() == null ? null : toGroupRecommendationCandidateResponse(result.finalCandidate()),
+                result.createdAt()
+        );
+    }
+
+    public GroupRecommendationCandidateListResponse toGroupRecommendationCandidateListResponse(
+            Long sessionId,
+            List<GroupRecommendationCandidateResult> candidates
+    ) {
+        return new GroupRecommendationCandidateListResponse(
+                sessionId,
+                candidates.stream()
+                        .map(this::toGroupRecommendationCandidateResponse)
+                        .toList()
         );
     }
 
@@ -250,6 +283,13 @@ public class GroupMapper {
                 result.rankNo(),
                 result.score(),
                 result.voteCount()
+        );
+    }
+
+    private GroupVoteProgressResponse toGroupVoteProgressResponse(GroupVoteProgressResult result) {
+        return new GroupVoteProgressResponse(
+                result.totalMemberCount(),
+                result.votedMemberCount()
         );
     }
 
