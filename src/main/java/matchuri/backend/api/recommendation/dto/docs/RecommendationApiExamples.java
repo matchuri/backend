@@ -119,10 +119,9 @@ public final class RecommendationApiExamples {
                 "content": [
                   {
                     "id": 9001,
-                    "status": "COMPLETED",
+                    "status": "OPEN",
                     "requestedAt": "2026-05-06T12:10:00",
-                    "closedAt": null,
-                    "closeReason": null
+                    "closedAt": null
                   }
                 ],
                 "pageInfo": {
@@ -145,10 +144,9 @@ public final class RecommendationApiExamples {
               "success": true,
               "data": {
                 "requestId": 9001,
-                "status": "COMPLETED",
+                "status": "OPEN",
                 "requestedAt": "2026-05-06T12:10:00",
                 "closedAt": null,
-                "closeReason": null,
                 "candidates": [
                   {
                     "id": 10001,
@@ -182,10 +180,9 @@ public final class RecommendationApiExamples {
               "success": true,
               "data": {
                 "requestId": 9002,
-                "status": "COMPLETED",
+                "status": "OPEN",
                 "requestedAt": "2026-05-06T12:20:00",
                 "closedAt": null,
-                "closeReason": null,
                 "candidates": [
                   {
                     "id": 10004,
@@ -212,9 +209,8 @@ public final class RecommendationApiExamples {
               "success": true,
               "data": {
                 "id": 9001,
-                "status": "COMPLETED",
+                "status": "SELECTED",
                 "closedAt": "2026-05-06T12:15:00",
-                "closeReason": "SELECTED",
                 "contextJson": {
                   "mealTime": "LUNCH",
                   "budgetLevel": 2,
@@ -378,9 +374,9 @@ public final class RecommendationApiExamples {
               "success": true,
               "data": {
                 "id": 9001,
+                "status": "SELECTED",
                 "selectedCandidateId": 10001,
                 "closedAt": "2026-05-06T12:15:00",
-                "closeReason": "SELECTED",
                 "updatedAt": "2026-05-06T12:15:00"
               },
               "error": null
