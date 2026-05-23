@@ -45,7 +45,6 @@ import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
-import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCloseReason;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateRepository;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
@@ -171,9 +170,8 @@ class PersonalRecommendationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.error").value(nullValue()))
-                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.COMPLETED.name()))
+                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.OPEN.name()))
                 .andExpect(jsonPath("$.data.closedAt").value(nullValue()))
-                .andExpect(jsonPath("$.data.closeReason").value(nullValue()))
                 .andExpect(jsonPath("$.data.candidates.length()").value(2))
                 .andExpect(jsonPath("$.data.candidates[0].menuId").value(bibimbap.getId()))
                 .andExpect(jsonPath("$.data.candidates[0].rankNo").value(1))
@@ -193,7 +191,6 @@ class PersonalRecommendationIntegrationTest {
                 .andExpect(jsonPath("$.data.id").value(requestId))
                 .andExpect(jsonPath("$.data.contextJson.mealTime").value("LUNCH"))
                 .andExpect(jsonPath("$.data.closedAt").value(nullValue()))
-                .andExpect(jsonPath("$.data.closeReason").value(nullValue()))
                 .andExpect(jsonPath("$.data.candidates.length()").value(2))
                 .andExpect(jsonPath("$.data.selectedCandidateId").value(nullValue()));
 
@@ -210,7 +207,6 @@ class PersonalRecommendationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].id").value(requestId))
                 .andExpect(jsonPath("$.data.content[0].closedAt").value(nullValue()))
-                .andExpect(jsonPath("$.data.content[0].closeReason").value(nullValue()))
                 .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1));
 
         mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
@@ -223,23 +219,23 @@ class PersonalRecommendationIntegrationTest {
                                 """.formatted(firstCandidateId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(requestId))
+                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.SELECTED.name()))
                 .andExpect(jsonPath("$.data.selectedCandidateId").value(firstCandidateId))
-                .andExpect(jsonPath("$.data.closedAt").exists())
-                .andExpect(jsonPath("$.data.closeReason").value(PersonalRecommendationCloseReason.SELECTED.name()));
+                .andExpect(jsonPath("$.data.closedAt").exists());
 
         assertThat(memberMenuActionRepository.count()).isEqualTo(1);
         assertThat(memberMenuActionRepository.findAll().getFirst().getActionType()).isEqualTo(ActionType.CHOOSE);
 
         PersonalRecommendation selectedRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
+        assertThat(selectedRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.SELECTED);
         assertThat(selectedRecommendation.getClosedAt()).isNotNull();
-        assertThat(selectedRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.SELECTED);
 
         mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.closedAt").exists())
-                .andExpect(jsonPath("$.data.closeReason").value(PersonalRecommendationCloseReason.SELECTED.name()));
+                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.SELECTED.name()))
+                .andExpect(jsonPath("$.data.closedAt").exists());
     }
 
     @Test
@@ -281,7 +277,7 @@ class PersonalRecommendationIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.COMPLETED.name()))
+                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.OPEN.name()))
                 .andExpect(jsonPath("$.data.candidates.length()").value(0));
 
         assertThat(personalRecommendationRepository.count()).isEqualTo(1);
@@ -316,8 +312,8 @@ class PersonalRecommendationIntegrationTest {
         assertThat(personalRecommendationRepository.count()).isEqualTo(1);
         PersonalRecommendation openRecommendation = personalRecommendationRepository.findById(firstRequestId)
                 .orElseThrow();
+        assertThat(openRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
         assertThat(openRecommendation.getClosedAt()).isNull();
-        assertThat(openRecommendation.getCloseReason()).isNull();
     }
 
     @Test
@@ -349,10 +345,10 @@ class PersonalRecommendationIntegrationTest {
                 .orElseThrow();
         PersonalRecommendation newRecommendation = personalRecommendationRepository.findById(secondRequestId)
                 .orElseThrow();
+        assertThat(expiredRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.EXPIRED);
         assertThat(expiredRecommendation.getClosedAt()).isNotNull();
-        assertThat(expiredRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.EXPIRED);
+        assertThat(newRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
         assertThat(newRecommendation.getClosedAt()).isNull();
-        assertThat(newRecommendation.getCloseReason()).isNull();
     }
 
     @Test
@@ -375,8 +371,8 @@ class PersonalRecommendationIntegrationTest {
         PersonalRecommendation expiredRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
         assertThat(expiredCount).isEqualTo(1);
+        assertThat(expiredRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.EXPIRED);
         assertThat(expiredRecommendation.getClosedAt()).isNotNull();
-        assertThat(expiredRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.EXPIRED);
     }
 
     @Test
@@ -402,15 +398,15 @@ class PersonalRecommendationIntegrationTest {
                                 {
                                   "selectedCandidateId": %d
                                 }
-                                """.formatted(candidateId)))
+                """.formatted(candidateId)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.closeReason").value(PersonalRecommendationCloseReason.SELECTED.name()));
+                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.SELECTED.name()));
 
         PersonalRecommendation selectedRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
         assertThat(selectedRecommendation.getSelectedCandidate()).isNotNull();
+        assertThat(selectedRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.SELECTED);
         assertThat(selectedRecommendation.getClosedAt()).isNotNull();
-        assertThat(selectedRecommendation.getCloseReason()).isEqualTo(PersonalRecommendationCloseReason.SELECTED);
     }
 
     @Test
@@ -442,9 +438,8 @@ class PersonalRecommendationIntegrationTest {
 
         PersonalRecommendation rerolledRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
+        assertThat(rerolledRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.REROLLED_WITHOUT_SKIP);
         assertThat(rerolledRecommendation.getClosedAt()).isNotNull();
-        assertThat(rerolledRecommendation.getCloseReason()).isEqualTo(
-                PersonalRecommendationCloseReason.REROLLED_WITHOUT_SKIP);
         assertThat(personalRecommendationRepository.count()).isEqualTo(2);
     }
 
@@ -542,7 +537,7 @@ class PersonalRecommendationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.requestId").isNumber())
                 .andExpect(jsonPath("$.data.closedAt").value(nullValue()))
-                .andExpect(jsonPath("$.data.closeReason").value(nullValue()))
+                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.OPEN.name()))
                 .andReturn();
 
         long rerolledRequestId = objectMapper.readTree(rerollResult.getResponse().getContentAsString())
@@ -560,9 +555,8 @@ class PersonalRecommendationIntegrationTest {
 
         PersonalRecommendation sourceRecommendation = personalRecommendationRepository.findById(sourceRequestId)
                 .orElseThrow();
+        assertThat(sourceRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.REROLLED_WITH_SKIP);
         assertThat(sourceRecommendation.getClosedAt()).isNotNull();
-        assertThat(sourceRecommendation.getCloseReason()).isEqualTo(
-                PersonalRecommendationCloseReason.REROLLED_WITH_SKIP);
 
         jdbcTemplate.update(
                 "update member_menu_actions set created_at = ? where personal_recommendation_id = ?",
@@ -638,9 +632,8 @@ class PersonalRecommendationIntegrationTest {
 
         PersonalRecommendation sourceRecommendation = personalRecommendationRepository.findById(sourceRequestId)
                 .orElseThrow();
+        assertThat(sourceRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.REROLLED_WITHOUT_SKIP);
         assertThat(sourceRecommendation.getClosedAt()).isNotNull();
-        assertThat(sourceRecommendation.getCloseReason()).isEqualTo(
-                PersonalRecommendationCloseReason.REROLLED_WITHOUT_SKIP);
     }
 
     @Test

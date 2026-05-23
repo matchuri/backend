@@ -402,7 +402,7 @@ class MemberServiceImplTest {
         when(personalRecommendationRepository
                 .findFirstByMemberIdAndStatusAndSelectedCandidateIsNullAndClosedAtIsNullOrderByRequestedAtDescIdDesc(
                         1L,
-                        PersonalRecommendationStatus.COMPLETED
+                        PersonalRecommendationStatus.OPEN
                 ))
                 .thenReturn(Optional.of(openRecommendation));
         when(openRecommendation.getId()).thenReturn(9001L);

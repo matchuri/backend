@@ -271,8 +271,8 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].menuName")
                         .value("비빔밥"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.closeReason")
-                        .value(nullValue()))
+                        "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.status")
+                        .value("OPEN"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.resultJson")
                         .doesNotExist())
@@ -300,7 +300,7 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.contextJson.mealTime")
                         .value("LUNCH"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.closeReason")
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.status")
                         .value("SELECTED"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")
@@ -318,7 +318,7 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['200'].content['application/json'].examples.success.value.data.selectedCandidateId")
                         .value(10001))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['200'].content['application/json'].examples.success.value.data.closeReason")
+                        "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['200'].content['application/json'].examples.success.value.data.status")
                         .value("SELECTED"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/personal/recommendations/{requestId}'].patch.responses['404'].content['application/json'].examples.notFound.value.error.code")
