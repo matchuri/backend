@@ -74,7 +74,6 @@ public class RecommendationMapper {
                 result.status(),
                 result.requestedAt(),
                 result.closedAt(),
-                result.closeReason(),
                 toCandidateResponses(result.candidates())
         );
     }
@@ -84,7 +83,6 @@ public class RecommendationMapper {
                 result.id(),
                 result.status(),
                 result.closedAt(),
-                result.closeReason(),
                 toContextMap(result.contextJson()),
                 toCandidateResponses(result.candidates()),
                 result.selectedCandidateId()
@@ -106,17 +104,16 @@ public class RecommendationMapper {
                 result.id(),
                 result.status(),
                 result.requestedAt(),
-                result.closedAt(),
-                result.closeReason()
+                result.closedAt()
         );
     }
 
     public SelectPersonalRecommendationResponse toSelectResponse(SelectPersonalRecommendationResult result) {
         return new SelectPersonalRecommendationResponse(
                 result.id(),
+                result.status(),
                 result.selectedCandidateId(),
                 result.closedAt(),
-                result.closeReason(),
                 result.updatedAt()
         );
     }

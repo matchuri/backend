@@ -33,7 +33,7 @@ public class PersonalRecommendationExpirationService {
         LocalDateTime now = LocalDateTime.now();
         List<PersonalRecommendation> targets = personalRecommendationRepository
                 .findByStatusAndSelectedCandidateIsNullAndClosedAtIsNullAndRequestedAtLessThanEqual(
-                        PersonalRecommendationStatus.COMPLETED,
+                        PersonalRecommendationStatus.OPEN,
                         expirationThreshold(now)
                 );
 
@@ -43,9 +43,8 @@ public class PersonalRecommendationExpirationService {
     }
 
     public boolean isExpired(PersonalRecommendation recommendation, LocalDateTime now) {
-        return recommendation.getStatus() == PersonalRecommendationStatus.COMPLETED
+        return recommendation.getStatus() == PersonalRecommendationStatus.OPEN
                 && recommendation.getSelectedCandidate() == null
-                && !recommendation.isClosed()
                 && !recommendation.getRequestedAt().plusHours(EXPIRATION_HOURS).isAfter(now);
     }
 

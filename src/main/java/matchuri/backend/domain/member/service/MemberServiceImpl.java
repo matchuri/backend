@@ -203,7 +203,7 @@ public class MemberServiceImpl implements MemberService {
                 personalRecommendationRepository
                         .findFirstByMemberIdAndStatusAndSelectedCandidateIsNullAndClosedAtIsNullOrderByRequestedAtDescIdDesc(
                                 member.getId(),
-                                PersonalRecommendationStatus.COMPLETED
+                                PersonalRecommendationStatus.OPEN
                         )
                         .map(recommendation -> recommendation.getId())
                         .orElse(null);

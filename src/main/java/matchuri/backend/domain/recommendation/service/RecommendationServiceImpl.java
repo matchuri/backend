@@ -39,7 +39,6 @@ import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendatio
 import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
-import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCloseReason;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationRerollType;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.exception.GuestRecommendationErrorCode;
@@ -168,9 +167,6 @@ public class RecommendationServiceImpl implements RecommendationService {
         MenuRecommendationResult recommendationResult = algorithm.recommend(input);
 
         PersonalRecommendation personalRecommendation = PersonalRecommendation.of(member, contextJson);
-        personalRecommendation.markFiltered();
-        personalRecommendation.markScored();
-        personalRecommendation.complete();
         PersonalRecommendation savedPersonalRecommendation =
                 personalRecommendationRepository.save(personalRecommendation);
 
@@ -311,7 +307,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         LocalDateTime now = LocalDateTime.now();
 
         for (PersonalRecommendation recommendation : recommendations) {
-            if (!isUnclosedCompletedRecommendation(recommendation)) {
+            if (!recommendation.isOpen()) {
                 continue;
             }
 
@@ -323,18 +319,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
     }
 
-    private boolean isUnclosedCompletedRecommendation(PersonalRecommendation recommendation) {
-        return recommendation.getStatus() == PersonalRecommendationStatus.COMPLETED
-                && recommendation.getSelectedCandidate() == null
-                && !recommendation.isClosed();
-    }
-
     private void validatePersonalRecommendationOpen(PersonalRecommendation recommendation) {
-        if (recommendation.getCloseReason() == PersonalRecommendationCloseReason.EXPIRED) {
+        if (recommendation.getStatus() == PersonalRecommendationStatus.EXPIRED) {
             throw new BusinessException(RecommendationErrorCode.EXPIRED, recommendation.getId());
         }
 
-        if (recommendation.isClosed()) {
+        if (!recommendation.isOpen()) {
             throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, recommendation.getId());
         }
     }

@@ -41,15 +41,11 @@ public class PersonalRecommendation extends BaseEntity {
     private Member member;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20, comment = "개인 추천 상태")
+    @Column(nullable = false, length = 30, comment = "개인 추천 lifecycle 상태")
     private PersonalRecommendationStatus status;
 
     @Column(name = "closed_at", comment = "추천 종료 시각")
     private LocalDateTime closedAt;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "close_reason", length = 30, comment = "추천 종료 사유")
-    private PersonalRecommendationCloseReason closeReason;
 
     @Column(name = "requested_at", nullable = false, comment = "추천 실행 시각")
     private LocalDateTime requestedAt;
@@ -74,49 +70,41 @@ public class PersonalRecommendation extends BaseEntity {
                 member,
                 contextJson,
                 LocalDateTime.now(),
-                PersonalRecommendationStatus.REQUESTED
+                PersonalRecommendationStatus.OPEN
         );
     }
 
-    public void markFiltered() {
-        this.status = PersonalRecommendationStatus.FILTERED;
-    }
-
-    public void markScored() {
-        this.status = PersonalRecommendationStatus.SCORED;
-    }
-
-    public void complete() {
-        this.status = PersonalRecommendationStatus.COMPLETED;
-    }
-
-    public void fail() {
-        this.status = PersonalRecommendationStatus.FAILED;
+    public void fail(LocalDateTime closedAt) {
+        close(PersonalRecommendationStatus.FAILED, closedAt);
     }
 
     public void select(PersonalRecommendationCandidate selectedCandidate, LocalDateTime closedAt) {
         this.selectedCandidate = selectedCandidate;
-        close(PersonalRecommendationCloseReason.SELECTED, closedAt);
+        close(PersonalRecommendationStatus.SELECTED, closedAt);
     }
 
     public void closeAsRerolledWithSkip(LocalDateTime closedAt) {
-        close(PersonalRecommendationCloseReason.REROLLED_WITH_SKIP, closedAt);
+        close(PersonalRecommendationStatus.REROLLED_WITH_SKIP, closedAt);
     }
 
     public void closeAsRerolledWithoutSkip(LocalDateTime closedAt) {
-        close(PersonalRecommendationCloseReason.REROLLED_WITHOUT_SKIP, closedAt);
+        close(PersonalRecommendationStatus.REROLLED_WITHOUT_SKIP, closedAt);
     }
 
     public void expire(LocalDateTime closedAt) {
-        close(PersonalRecommendationCloseReason.EXPIRED, closedAt);
+        close(PersonalRecommendationStatus.EXPIRED, closedAt);
     }
 
     public boolean isClosed() {
         return this.closedAt != null;
     }
 
-    private void close(PersonalRecommendationCloseReason closeReason, LocalDateTime closedAt) {
-        this.closeReason = closeReason;
+    public boolean isOpen() {
+        return this.status == PersonalRecommendationStatus.OPEN;
+    }
+
+    private void close(PersonalRecommendationStatus status, LocalDateTime closedAt) {
+        this.status = status;
         this.closedAt = closedAt;
     }
 

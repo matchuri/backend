@@ -3,13 +3,13 @@ package matchuri.backend.domain.recommendation.result;
 import java.time.LocalDateTime;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
-import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCloseReason;
+import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 
 public record SelectPersonalRecommendationResult(
         Long id,
+        PersonalRecommendationStatus status,
         Long selectedCandidateId,
         LocalDateTime closedAt,
-        PersonalRecommendationCloseReason closeReason,
         LocalDateTime updatedAt
 ) {
     public static SelectPersonalRecommendationResult of(
@@ -18,9 +18,9 @@ public record SelectPersonalRecommendationResult(
     ) {
         return new SelectPersonalRecommendationResult(
                 personalRecommendation.getId(),
+                personalRecommendation.getStatus(),
                 selectedCandidate.getId(),
                 personalRecommendation.getClosedAt(),
-                personalRecommendation.getCloseReason(),
                 personalRecommendation.getUpdatedAt()
         );
     }
