@@ -1,5 +1,10 @@
 package matchuri.backend.api.group;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
@@ -7,16 +12,19 @@ import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
+import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
@@ -28,11 +36,13 @@ import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
+import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
@@ -41,7 +51,10 @@ import matchuri.backend.domain.group.result.UpdateGroupResult;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class GroupMapper {
+
+    private final ObjectMapper objectMapper;
 
     public CreateGroupCommand toCreateGroupCommand(CreateGroupRequest request) {
         return new CreateGroupCommand(
@@ -56,6 +69,25 @@ public class GroupMapper {
                 result.groupId(),
                 result.inviteCode(),
                 result.status()
+        );
+    }
+
+    public CreateGroupRecommendationCommand toCreateGroupRecommendationCommand(
+            Long groupId,
+            CreateGroupRecommendationRequest request
+    ) {
+        return new CreateGroupRecommendationCommand(groupId, toContextJson(request.contextJson()));
+    }
+
+    public CreateGroupRecommendationResponse toCreateGroupRecommendationResponse(
+            CreateGroupRecommendationResult result
+    ) {
+        return new CreateGroupRecommendationResponse(
+                result.sessionId(),
+                result.status(),
+                result.candidates().stream()
+                        .map(this::toGroupRecommendationCandidateResponse)
+                        .toList()
         );
     }
 
@@ -206,5 +238,28 @@ public class GroupMapper {
                 result.status(),
                 result.joinedAt()
         );
+    }
+
+    private GroupRecommendationCandidateResponse toGroupRecommendationCandidateResponse(
+            GroupRecommendationCandidateResult result
+    ) {
+        return new GroupRecommendationCandidateResponse(
+                result.candidateId(),
+                result.menuId(),
+                result.menuName(),
+                result.rankNo(),
+                result.score(),
+                result.voteCount()
+        );
+    }
+
+    private String toContextJson(Map<String, Object> contextJson) {
+        try {
+            Map<String, Object> normalizedContextJson = contextJson == null ? Map.of() : contextJson;
+
+            return objectMapper.writeValueAsString(normalizedContextJson);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalArgumentException("contextJson을 JSON 문자열로 변환할 수 없습니다.", exception);
+        }
     }
 }

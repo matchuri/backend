@@ -1,11 +1,16 @@
 package matchuri.backend.domain.group.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
@@ -19,17 +24,24 @@ import matchuri.backend.domain.group.entity.GroupInviteResponseType;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
+import matchuri.backend.domain.group.entity.GroupRecommendation;
+import matchuri.backend.domain.group.entity.GroupRecommendationCandidate;
+import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
 import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.exception.GroupErrorCode;
 import matchuri.backend.domain.group.repository.GroupInviteRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberCountProjection;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
+import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
@@ -40,9 +52,26 @@ import matchuri.backend.domain.group.result.RespondGroupInviteResult;
 import matchuri.backend.domain.group.result.UpdateGroupResult;
 import matchuri.backend.domain.group.support.GroupInviteCodeGenerator;
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
+import matchuri.backend.domain.menu.entity.AttributeCategory;
+import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.entity.MenuAttributeCategory;
+import matchuri.backend.domain.menu.entity.MenuItem;
+import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuItemRepository;
+import matchuri.backend.domain.recommendation.algorithm.MenuRecommendationAlgorithm;
+import matchuri.backend.domain.recommendation.algorithm.MenuRecommendationAlgorithmResolver;
+import matchuri.backend.domain.recommendation.algorithm.RecommendationAlgorithmType;
+import matchuri.backend.domain.recommendation.algorithm.RecommendationTargetType;
+import matchuri.backend.domain.recommendation.algorithm.input.MenuRecommendationInput;
+import matchuri.backend.domain.recommendation.algorithm.input.MenuRecommendationProfile;
+import matchuri.backend.domain.recommendation.algorithm.input.RecommendationContextSnapshot;
+import matchuri.backend.domain.recommendation.algorithm.input.TasteProfileSnapshot;
+import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationCandidateResult;
+import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationResult;
 import matchuri.backend.global.exception.BusinessException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
@@ -57,13 +86,20 @@ public class GroupServiceImpl implements GroupService {
 
     private static final int MAX_INVITE_CODE_GENERATION_ATTEMPTS = 5;
     private static final int NICKNAME_INVITE_EXPIRATION_HOURS = 24;
+    private static final int GROUP_RECOMMENDATION_CANDIDATE_LIMIT = 3;
 
     private final ActiveMemberReader activeMemberReader;
     private final MemberRepository memberRepository;
     private final GroupRoomRepository groupRoomRepository;
     private final GroupRoomMemberRepository groupRoomMemberRepository;
     private final GroupInviteRepository groupInviteRepository;
+    private final GroupRecommendationRepository groupRecommendationRepository;
+    private final GroupRecommendationCandidateRepository groupRecommendationCandidateRepository;
+    private final MenuItemRepository menuItemRepository;
+    private final MenuIngredientRepository menuIngredientRepository;
+    private final MenuRecommendationAlgorithmResolver menuRecommendationAlgorithmResolver;
     private final GroupInviteCodeGenerator groupInviteCodeGenerator;
+    private final ObjectMapper objectMapper;
 
     @Override
     public CreateGroupResult createGroup(CreateGroupCommand command) {
@@ -83,6 +119,67 @@ public class GroupServiceImpl implements GroupService {
                 savedGroupRoom.getId(),
                 savedGroupRoom.getInviteCode(),
                 savedGroupRoom.getStatus()
+        );
+    }
+
+    @Override
+    public CreateGroupRecommendationResult createGroupRecommendation(CreateGroupRecommendationCommand command) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, command.groupId()));
+
+        if (!room.isActive()) {
+            throw new BusinessException(GroupErrorCode.NOT_ACTIVE, room.getId());
+        }
+
+        GroupRoomMember membership = groupRoomMemberRepository
+                .findActiveMembershipInNotDeletedRoom(room.getId(), member.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.ACCESS_DENIED, room.getId()));
+
+        if (!membership.isOwner()) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_CREATE_FORBIDDEN, room.getId());
+        }
+
+        if (groupRecommendationRepository.existsByRoomIdAndStatus(room.getId(), GroupRecommendationStatus.OPEN)) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_OPEN_EXISTS, room.getId());
+        }
+
+        List<GroupRoomMember> activeMembers = groupRoomMemberRepository.findActiveMembersByRoomId(room.getId());
+        List<MenuItem> menuItems = menuItemRepository.searchActiveMenuItems(null, List.of(), true, List.of(), true);
+        Map<Long, MenuItem> menuItemById = menuItems.stream()
+                .collect(Collectors.toMap(MenuItem::getId, Function.identity()));
+
+        MenuRecommendationAlgorithm algorithm =
+                menuRecommendationAlgorithmResolver.resolve(RecommendationAlgorithmType.GROUP);
+
+        MenuRecommendationResult recommendationResult = algorithm.recommend(new MenuRecommendationInput(
+                RecommendationTargetType.GROUP,
+                toTasteProfileSnapshots(activeMembers),
+                toMenuRecommendationProfiles(menuItems),
+                RecommendationContextSnapshot.of(command.contextJson()),
+                GROUP_RECOMMENDATION_CANDIDATE_LIMIT,
+                List.of(),
+                List.of(),
+                Map.of()
+        ));
+
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                room,
+                command.contextJson(),
+                LocalDateTime.now()
+        ));
+        List<GroupRecommendationCandidate> candidates = saveGroupRecommendationCandidates(
+                recommendation,
+                recommendationResult,
+                menuItemById
+        );
+
+        return new CreateGroupRecommendationResult(
+                recommendation.getId(),
+                recommendation.getStatus(),
+                candidates.stream()
+                        .map(candidate -> GroupRecommendationCandidateResult.from(candidate, 0))
+                        .toList()
         );
     }
 
@@ -337,6 +434,96 @@ public class GroupServiceImpl implements GroupService {
                 room.getStatus(),
                 members
         );
+    }
+
+    private List<TasteProfileSnapshot> toTasteProfileSnapshots(List<GroupRoomMember> activeMembers) {
+        return activeMembers.stream()
+                .map(GroupRoomMember::getMember)
+                .map(member -> toTasteProfileSnapshot(member, member.getTasteProfile()))
+                .toList();
+    }
+
+    private TasteProfileSnapshot toTasteProfileSnapshot(Member member, MemberTasteProfile tasteProfile) {
+        if (tasteProfile == null) {
+            return new TasteProfileSnapshot(
+                    member.getId(),
+                    String.valueOf(member.getId()),
+                    List.of(),
+                    List.of(),
+                    List.of()
+            );
+        }
+
+        return new TasteProfileSnapshot(
+                member.getId(),
+                String.valueOf(member.getId()),
+                tasteProfile.getPreferAttributeCategories().stream()
+                        .map(AttributeCategory::getId)
+                        .toList(),
+                tasteProfile.getRestrictionIngredients().stream()
+                        .map(Ingredient::getId)
+                        .toList(),
+                tasteProfile.getDisLikeMenuItems().stream()
+                        .map(MenuItem::getId)
+                        .toList()
+        );
+    }
+
+    private List<MenuRecommendationProfile> toMenuRecommendationProfiles(List<MenuItem> menuItems) {
+        Map<Long, List<Long>> ingredientIdsByMenuId = menuIngredientRepository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        menuIngredient -> menuIngredient.getMenu().getId(),
+                        Collectors.mapping(menuIngredient -> menuIngredient.getIngredient().getId(),
+                                Collectors.toList())
+                ));
+
+        return menuItems.stream()
+                .map(menuItem -> new MenuRecommendationProfile(
+                        menuItem.getId(),
+                        menuItem.getCode(),
+                        menuItem.getName(),
+                        menuItem.getMenuAttributeCategories().stream()
+                                .map(MenuAttributeCategory::getAttributeCategory)
+                                .map(AttributeCategory::getId)
+                                .toList(),
+                        ingredientIdsByMenuId.getOrDefault(menuItem.getId(), List.of())
+                ))
+                .toList();
+    }
+
+    private List<GroupRecommendationCandidate> saveGroupRecommendationCandidates(
+            GroupRecommendation recommendation,
+            MenuRecommendationResult recommendationResult,
+            Map<Long, MenuItem> menuItemById
+    ) {
+        List<GroupRecommendationCandidate> candidates = recommendationResult.candidates().stream()
+                .map(candidate -> new GroupRecommendationCandidate(
+                        recommendation,
+                        menuItemById.get(candidate.menuId()),
+                        candidate.rankNo(),
+                        candidate.score(),
+                        toCandidateMetaJson(recommendationResult, candidate)
+                ))
+                .toList();
+
+        return groupRecommendationCandidateRepository.saveAll(candidates);
+    }
+
+    private String toCandidateMetaJson(
+            MenuRecommendationResult recommendationResult,
+            MenuRecommendationCandidateResult candidate
+    ) {
+        Map<String, Object> meta = new LinkedHashMap<>();
+        meta.put("algorithmType", recommendationResult.algorithmType().name());
+        meta.put("algorithmVersion", recommendationResult.algorithmVersion());
+        meta.put("scoreBreakdown", candidate.scoreBreakdown());
+        meta.put("candidateMeta", candidate.meta());
+
+        try {
+            return objectMapper.writeValueAsString(meta);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("그룹 추천 후보 메타 정보를 JSON으로 변환할 수 없습니다.", exception);
+        }
     }
 
     private Map<Long, Long> countActiveMembers(Page<@NonNull GroupRoomMember> memberships) {
