@@ -281,7 +281,7 @@ CREATE TABLE group_invites (
 CREATE TABLE group_recommendations (
     id BIGINT NOT NULL AUTO_INCREMENT,
     room_id BIGINT NOT NULL,
-    status VARCHAR(20) NOT NULL,
+    status VARCHAR(30) NOT NULL,
     started_at DATETIME(6) NOT NULL,
     ended_at DATETIME(6),
     selected_candidate_id BIGINT,
@@ -298,6 +298,8 @@ CREATE TABLE group_recommendation_candidates (
     group_recommendation_id BIGINT NOT NULL,
     menu_id BIGINT NOT NULL,
     rank_no INT NOT NULL,
+    score DOUBLE NOT NULL,
+    candidate_meta_json JSON,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (id),
