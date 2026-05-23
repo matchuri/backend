@@ -28,6 +28,7 @@ import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
@@ -39,6 +40,7 @@ import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
@@ -192,7 +194,10 @@ public class GroupController implements GroupApi {
             @PathVariable Long groupId,
             @Valid @RequestBody CreateGroupRecommendationRequest request
     ) {
-        return ApiResponse.success(CreateGroupRecommendationResponse.mockOpen());
+        CreateGroupRecommendationCommand command = groupMapper.toCreateGroupRecommendationCommand(groupId, request);
+        CreateGroupRecommendationResult result = groupService.createGroupRecommendation(command);
+
+        return ApiResponse.success(groupMapper.toCreateGroupRecommendationResponse(result));
     }
 
     @Override

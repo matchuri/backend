@@ -2,7 +2,10 @@ package matchuri.backend.domain.group.entity;
 
 public enum GroupRecommendationStatus {
     OPEN,
-    CLOSED,
     FINALIZED,
-    CANCELED
+    REROLLED_WITH_SKIP,
+    REROLLED_WITHOUT_SKIP,
+    CANCELED,
+    EXPIRED,
+    FAILED
 }

@@ -47,13 +47,23 @@ public class GroupRecommendationCandidate extends BaseEntity {
     @Column(name = "rank_no", nullable = false, comment = "후보 순위")
     private int rankNo;
 
+    @Column(nullable = false, comment = "추천 점수")
+    private double score;
+
+    @Column(name = "candidate_meta_json", columnDefinition = "json", comment = "후보 메타 JSON")
+    private String candidateMetaJson;
+
     public GroupRecommendationCandidate(
             GroupRecommendation groupRecommendation,
             MenuItem menuItem,
-            int rankNo
+            int rankNo,
+            double score,
+            String candidateMetaJson
     ) {
         this.groupRecommendation = groupRecommendation;
         this.menuItem = menuItem;
         this.rankNo = rankNo;
+        this.score = score;
+        this.candidateMetaJson = candidateMetaJson;
     }
 }

@@ -36,7 +36,7 @@ public class GroupRecommendation extends BaseEntity {
     private GroupRoom room;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20, comment = "그룹 추천 상태")
+    @Column(nullable = false, length = 30, comment = "그룹 추천 상태")
     private GroupRecommendationStatus status;
 
     @Column(name = "started_at", nullable = false, comment = "시작 시각")
@@ -59,19 +59,34 @@ public class GroupRecommendation extends BaseEntity {
         this.status = GroupRecommendationStatus.OPEN;
     }
 
-    public void close(LocalDateTime endedAt) {
-        this.status = GroupRecommendationStatus.CLOSED;
-        this.endedAt = endedAt;
-    }
-
     public void finalizeWith(GroupRecommendationCandidate selectedCandidate, LocalDateTime endedAt) {
         this.status = GroupRecommendationStatus.FINALIZED;
         this.selectedCandidate = selectedCandidate;
         this.endedAt = endedAt;
     }
 
+    public void rerollWithSkip(LocalDateTime endedAt) {
+        this.status = GroupRecommendationStatus.REROLLED_WITH_SKIP;
+        this.endedAt = endedAt;
+    }
+
+    public void rerollWithoutSkip(LocalDateTime endedAt) {
+        this.status = GroupRecommendationStatus.REROLLED_WITHOUT_SKIP;
+        this.endedAt = endedAt;
+    }
+
     public void cancel(LocalDateTime endedAt) {
         this.status = GroupRecommendationStatus.CANCELED;
+        this.endedAt = endedAt;
+    }
+
+    public void expire(LocalDateTime endedAt) {
+        this.status = GroupRecommendationStatus.EXPIRED;
+        this.endedAt = endedAt;
+    }
+
+    public void fail(LocalDateTime endedAt) {
+        this.status = GroupRecommendationStatus.FAILED;
         this.endedAt = endedAt;
     }
 }

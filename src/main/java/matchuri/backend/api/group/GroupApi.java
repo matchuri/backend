@@ -369,13 +369,16 @@ public interface GroupApi {
     ApiResponse<DeleteGroupResponse> deleteGroup(Long groupId);
 
     @Operation(
-            summary = "그룹 추천 시작 (Mock API)",
+            summary = "그룹 추천 시작",
             description = """
                     그룹 추천을 시작하고 후보 메뉴를 생성합니다.
 
-                    Mock API 상태:
-                    - request body validation만 수행합니다.
-                    - 그룹 취향 집계와 후보 생성 알고리즘은 아직 수행하지 않습니다.
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - MVP에서는 해당 그룹의 `OWNER`만 시작할 수 있습니다.
+                    - 한 그룹에는 동시에 `OPEN` 그룹 추천을 1개만 허용합니다.
+                    - 그룹 활성 멤버의 취향 프로필을 모아 후보를 생성합니다.
+                    - 취향 프로필이 없는 멤버는 빈 취향으로 반영합니다.
+                    - 생성된 후보에는 추천 점수와 내부 메타데이터를 저장합니다.
                     - API 경로는 사용자 흐름상 `recommendations`를 사용하며, 최신 저장 테이블은 `group_recommendations` 기준입니다.
                     """
     )

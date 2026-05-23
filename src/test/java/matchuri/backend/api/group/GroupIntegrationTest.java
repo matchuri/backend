@@ -15,7 +15,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import javax.crypto.SecretKey;
+import matchuri.backend.domain.group.entity.GroupRecommendation;
+import matchuri.backend.domain.group.entity.GroupRecommendationCandidate;
+import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
 import matchuri.backend.domain.group.entity.GroupInvite;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
@@ -24,13 +28,34 @@ import matchuri.backend.domain.group.entity.GroupRoom;
 import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.repository.GroupInviteRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
+import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
+import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
+import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersions;
+import matchuri.backend.domain.menu.entity.AttributeCategory;
+import matchuri.backend.domain.menu.entity.CategoryType;
+import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.entity.MenuAttributeCategory;
+import matchuri.backend.domain.menu.entity.MenuIngredient;
+import matchuri.backend.domain.menu.entity.MenuItem;
+import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.IngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,6 +92,39 @@ class GroupIntegrationTest {
     @Autowired
     private GroupInviteRepository groupInviteRepository;
 
+    @Autowired
+    private GroupRecommendationRepository groupRecommendationRepository;
+
+    @Autowired
+    private GroupRecommendationCandidateRepository groupRecommendationCandidateRepository;
+
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+
+    @Autowired
+    private AttributeCategoryRepository attributeCategoryRepository;
+
+    @Autowired
+    private IngredientRepository ingredientRepository;
+
+    @Autowired
+    private MenuAttributeCategoryRepository menuAttributeCategoryRepository;
+
+    @Autowired
+    private MenuIngredientRepository menuIngredientRepository;
+
+    @Autowired
+    private MemberTasteProfileRepository memberTasteProfileRepository;
+
+    @Autowired
+    private MemberTasteProfileCategoryRepository memberTasteProfileCategoryRepository;
+
+    @Autowired
+    private MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
+
+    @Autowired
+    private MemberTasteProfileDislikedMenuItemRepository memberTasteProfileDislikedMenuItemRepository;
+
     @BeforeEach
     void setUp() {
         clearData();
@@ -78,9 +136,20 @@ class GroupIntegrationTest {
     }
 
     private void clearData() {
+        groupRecommendationCandidateRepository.deleteAll();
+        groupRecommendationRepository.deleteAll();
         groupInviteRepository.deleteAll();
         groupRoomMemberRepository.deleteAll();
         groupRoomRepository.deleteAll();
+        memberTasteProfileDislikedMenuItemRepository.deleteAll();
+        memberTasteProfileRestrictionIngredientRepository.deleteAll();
+        memberTasteProfileCategoryRepository.deleteAll();
+        memberTasteProfileRepository.deleteAll();
+        menuIngredientRepository.deleteAll();
+        menuAttributeCategoryRepository.deleteAll();
+        menuItemRepository.deleteAll();
+        ingredientRepository.deleteAll();
+        attributeCategoryRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
@@ -145,6 +214,138 @@ class GroupIntegrationTest {
 
         assertThat(groupRoomRepository.count()).isZero();
         assertThat(groupRoomMemberRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("그룹 추천 생성은 OWNER가 그룹 취향 기반 후보를 저장한다")
+    void createGroupRecommendationCreatesCandidatesForOwner() throws Exception {
+        Member owner = saveMember("recommendation-owner", "추천방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 그룹");
+        AttributeCategory spicy = saveCategory("spicy", "매콤한", 1);
+        MenuItem kimchiStew = saveMenu("kimchi-stew", "김치찌개", spicy);
+        saveMenu("salad", "샐러드");
+        saveMenu("gimbap", "김밥");
+        saveTasteProfile(owner, new AttributeCategory[]{spicy}, new Ingredient[]{}, new MenuItem[]{});
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "contextJson": {
+                                    "mealTime": "LUNCH"
+                                  }
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sessionId").isNumber())
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.candidates.length()").value(3))
+                .andExpect(jsonPath("$.data.candidates[0].menuId").value(kimchiStew.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].score").value(50.0))
+                .andExpect(jsonPath("$.data.candidates[0].voteCount").value(0));
+
+        assertThat(groupRecommendationRepository.count()).isEqualTo(1);
+        assertThat(groupRecommendationCandidateRepository.count()).isEqualTo(3);
+
+        GroupRecommendation savedRecommendation = groupRecommendationRepository.findAll().getFirst();
+        List<GroupRecommendationCandidate> candidates = groupRecommendationCandidateRepository.findAll();
+
+        assertThat(savedRecommendation.getRoom().getId()).isEqualTo(groupRoom.getId());
+        assertThat(savedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.OPEN);
+        assertThat(savedRecommendation.getContextJson()).contains("LUNCH");
+        assertThat(candidates)
+                .extracting(candidate -> candidate.getCandidateMetaJson())
+                .allSatisfy(candidateMetaJson -> {
+                    assertThat(candidateMetaJson).contains("GROUP");
+                    assertThat(candidateMetaJson).contains("scoreBreakdown");
+                });
+    }
+
+    @Test
+    @DisplayName("그룹 추천 생성은 OWNER가 아닌 활성 멤버이면 거절한다")
+    void createGroupRecommendationFailsForNonOwnerMember() throws Exception {
+        Member owner = saveMember("recommendation-forbidden-owner", "추천권한방장");
+        Member member = saveMember("recommendation-forbidden-member", "추천권한멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 권한 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_CREATE_FORBIDDEN"));
+
+        assertThat(groupRecommendationRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("그룹 추천 생성은 열린 그룹 추천이 있으면 거절한다")
+    void createGroupRecommendationFailsWhenOpenRecommendationExists() throws Exception {
+        Member owner = saveMember("recommendation-open-owner", "열린추천방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "열린 추천 그룹");
+        groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_OPEN_EXISTS"));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 생성은 한 명이라도 제한한 재료가 포함된 메뉴를 제외한다")
+    void createGroupRecommendationExcludesAnyRestrictedIngredient() throws Exception {
+        Member owner = saveMember("recommendation-restriction-owner", "제한방장");
+        Member member = saveMember("recommendation-restriction-member", "제한멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "제한 추천 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        Ingredient pork = saveIngredient("pork", "돼지고기", 1);
+        MenuItem porkCutlet = saveMenu("pork-cutlet", "돈까스");
+        MenuItem bibimbap = saveMenu("bibimbap", "비빔밥");
+        saveMenuIngredient(porkCutlet, pork);
+        saveTasteProfile(member, new AttributeCategory[]{}, new Ingredient[]{pork}, new MenuItem[]{});
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.candidates.length()").value(1))
+                .andExpect(jsonPath("$.data.candidates[0].menuId").value(bibimbap.getId()));
+
+        assertThat(groupRecommendationCandidateRepository.findAll())
+                .extracting(candidate -> candidate.getMenuItem().getId())
+                .doesNotContain(porkCutlet.getId());
     }
 
     @Test
@@ -1191,6 +1392,53 @@ class GroupIntegrationTest {
 
     private GroupRoom saveGroupOwnedBy(Member member, String name) {
         return groupRoomRepository.save(GroupRoom.createOwnedBy(name, nextInviteCode(), member, null, null));
+    }
+
+    private AttributeCategory saveCategory(String code, String name, int sortOrder) {
+        return attributeCategoryRepository.save(new AttributeCategory(CategoryType.FLAVOR, code, name, sortOrder));
+    }
+
+    private Ingredient saveIngredient(String code, String name, int sortOrder) {
+        return ingredientRepository.save(new Ingredient(code, name, false, sortOrder));
+    }
+
+    private MenuItem saveMenu(String code, String name, AttributeCategory... categories) {
+        MenuItem menuItem = menuItemRepository.save(new MenuItem(code, name, name + " 설명"));
+
+        for (AttributeCategory category : categories) {
+            menuAttributeCategoryRepository.save(new MenuAttributeCategory(menuItem, category));
+        }
+
+        return menuItem;
+    }
+
+    private void saveMenuIngredient(MenuItem menuItem, Ingredient ingredient) {
+        menuIngredientRepository.save(new MenuIngredient(menuItem, ingredient));
+    }
+
+    private void saveTasteProfile(
+            Member member,
+            AttributeCategory[] categories,
+            Ingredient[] restrictionIngredients,
+            MenuItem[] dislikedMenuItems
+    ) {
+        MemberTasteProfile profile = memberTasteProfileRepository.save(new MemberTasteProfile(member, "v1"));
+
+        for (AttributeCategory category : categories) {
+            memberTasteProfileCategoryRepository.save(new MemberTasteProfileCategory(profile, category));
+        }
+
+        for (Ingredient ingredient : restrictionIngredients) {
+            memberTasteProfileRestrictionIngredientRepository.save(
+                    new MemberTasteProfileRestrictionIngredient(profile, ingredient)
+            );
+        }
+
+        for (MenuItem dislikedMenuItem : dislikedMenuItems) {
+            memberTasteProfileDislikedMenuItemRepository.save(
+                    new MemberTasteProfileDislikedMenuItem(profile, dislikedMenuItem)
+            );
+        }
     }
 
     private String nextInviteCode() {

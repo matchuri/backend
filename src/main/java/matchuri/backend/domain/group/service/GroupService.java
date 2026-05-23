@@ -2,6 +2,7 @@ package matchuri.backend.domain.group.service;
 
 import lombok.NonNull;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
+import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
 import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
@@ -11,6 +12,7 @@ import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.result.CreateGroupResult;
+import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
@@ -25,6 +27,8 @@ import org.springframework.data.domain.Page;
 public interface GroupService {
 
     CreateGroupResult createGroup(CreateGroupCommand command);
+
+    CreateGroupRecommendationResult createGroupRecommendation(CreateGroupRecommendationCommand command);
 
     CreateNicknameGroupInviteResult createNicknameInvite(CreateNicknameGroupInviteCommand command);
 
