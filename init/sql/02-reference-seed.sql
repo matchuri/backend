@@ -125,7 +125,19 @@ INSERT INTO menu_items (code, name, description, is_active, created_at, updated_
     ('PHO', '쌀국수', '쌀면과 향신료가 들어간 국물을 함께 먹는 베트남식 면 요리입니다.', b'1', NOW(6), NOW(6)),
     ('PAD_THAI', '팟타이', '쌀국수와 새우, 채소를 새콤달콤하게 볶은 태국식 면 요리입니다.', b'1', NOW(6), NOW(6)),
     ('CURRY_RICE', '카레라이스', '밥에 진한 카레 소스를 얹어 먹는 메뉴입니다.', b'1', NOW(6), NOW(6)),
-    ('BANH_MI', '반미', '바게트에 고기와 채소를 넣어 먹는 베트남식 샌드위치입니다.', b'1', NOW(6), NOW(6))
+    ('BANH_MI', '반미', '바게트에 고기와 채소를 넣어 먹는 베트남식 샌드위치입니다.', b'1', NOW(6), NOW(6)),
+    ('BOSSAM', '보쌈', '삶은 돼지고기를 채소와 곁들여 먹는 담백한 한식 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('JOKBAL', '족발', '돼지 족을 양념해 삶아 쫄깃하게 즐기는 한식 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('KALGUKSU', '칼국수', '손칼국수 면을 따뜻한 국물에 끓여 먹는 한식 면 요리입니다.', b'1', NOW(6), NOW(6)),
+    ('KONGGUKSU', '콩국수', '고소한 콩국물에 차가운 면을 말아 먹는 여름 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('CHICKEN_SALAD', '치킨샐러드', '닭고기와 신선한 채소를 함께 먹는 가벼운 샐러드 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('OMELET_RICE', '오므라이스', '볶음밥을 부드러운 계란으로 감싼 양식풍 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('TACO', '타코', '또르티야에 고기와 채소를 넣어 먹는 간편한 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('SHAKSHUKA', '샥슈카', '토마토 소스에 계란을 넣어 끓인 매콤하고 진한 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('TOMATO_PASTA', '토마토파스타', '토마토 소스를 곁들인 산뜻한 파스타 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('CREAM_RISOTTO', '크림리조또', '쌀과 크림, 치즈를 진하게 끓여낸 부드러운 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('SALMON_POKE', '연어포케', '연어와 채소를 밥 위에 올려 먹는 신선한 볼 메뉴입니다.', b'1', NOW(6), NOW(6)),
+    ('CHICKEN_CURRY', '치킨카레', '닭고기와 진한 카레 소스를 밥과 함께 먹는 메뉴입니다.', b'1', NOW(6), NOW(6))
 ON DUPLICATE KEY UPDATE
     code = VALUES(code);
 
@@ -479,6 +491,126 @@ FROM (
     SELECT 'BANH_MI' AS menu_code, 'TEXTURE' AS category_type, 'CRISPY' AS category_code
     UNION ALL
     SELECT 'BANH_MI' AS menu_code, 'TEMPERATURE' AS category_type, 'COLD' AS category_code
+    UNION ALL
+    SELECT 'BOSSAM' AS menu_code, 'FLAVOR' AS category_type, 'NUTTY' AS category_code
+    UNION ALL
+    SELECT 'BOSSAM' AS menu_code, 'COOKING_METHOD' AS category_type, 'STEAMED' AS category_code
+    UNION ALL
+    SELECT 'BOSSAM' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'KOREAN' AS category_code
+    UNION ALL
+    SELECT 'BOSSAM' AS menu_code, 'TEXTURE' AS category_type, 'SOFT' AS category_code
+    UNION ALL
+    SELECT 'BOSSAM' AS menu_code, 'TEMPERATURE' AS category_type, 'HOT' AS category_code
+    UNION ALL
+    SELECT 'JOKBAL' AS menu_code, 'FLAVOR' AS category_type, 'SALTY' AS category_code
+    UNION ALL
+    SELECT 'JOKBAL' AS menu_code, 'COOKING_METHOD' AS category_type, 'STEAMED' AS category_code
+    UNION ALL
+    SELECT 'JOKBAL' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'KOREAN' AS category_code
+    UNION ALL
+    SELECT 'JOKBAL' AS menu_code, 'TEXTURE' AS category_type, 'CHEWY' AS category_code
+    UNION ALL
+    SELECT 'JOKBAL' AS menu_code, 'TEMPERATURE' AS category_type, 'HOT' AS category_code
+    UNION ALL
+    SELECT 'KALGUKSU' AS menu_code, 'FLAVOR' AS category_type, 'RICH' AS category_code
+    UNION ALL
+    SELECT 'KALGUKSU' AS menu_code, 'COOKING_METHOD' AS category_type, 'SOUP' AS category_code
+    UNION ALL
+    SELECT 'KALGUKSU' AS menu_code, 'COOKING_METHOD' AS category_type, 'NOODLE_MIXED' AS category_code
+    UNION ALL
+    SELECT 'KALGUKSU' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'KOREAN' AS category_code
+    UNION ALL
+    SELECT 'KALGUKSU' AS menu_code, 'TEMPERATURE' AS category_type, 'HOT' AS category_code
+    UNION ALL
+    SELECT 'KONGGUKSU' AS menu_code, 'FLAVOR' AS category_type, 'NUTTY' AS category_code
+    UNION ALL
+    SELECT 'KONGGUKSU' AS menu_code, 'COOKING_METHOD' AS category_type, 'NOODLE_MIXED' AS category_code
+    UNION ALL
+    SELECT 'KONGGUKSU' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'KOREAN' AS category_code
+    UNION ALL
+    SELECT 'KONGGUKSU' AS menu_code, 'TEXTURE' AS category_type, 'SOFT' AS category_code
+    UNION ALL
+    SELECT 'KONGGUKSU' AS menu_code, 'TEMPERATURE' AS category_type, 'COLD' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_SALAD' AS menu_code, 'FLAVOR' AS category_type, 'FRESH' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_SALAD' AS menu_code, 'COOKING_METHOD' AS category_type, 'RAW_SALAD' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_SALAD' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'WESTERN' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_SALAD' AS menu_code, 'TEXTURE' AS category_type, 'CRUNCHY' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_SALAD' AS menu_code, 'TEMPERATURE' AS category_type, 'COLD' AS category_code
+    UNION ALL
+    SELECT 'OMELET_RICE' AS menu_code, 'FLAVOR' AS category_type, 'SWEET' AS category_code
+    UNION ALL
+    SELECT 'OMELET_RICE' AS menu_code, 'COOKING_METHOD' AS category_type, 'STIR_FRIED' AS category_code
+    UNION ALL
+    SELECT 'OMELET_RICE' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'WESTERN' AS category_code
+    UNION ALL
+    SELECT 'OMELET_RICE' AS menu_code, 'TEXTURE' AS category_type, 'SOFT' AS category_code
+    UNION ALL
+    SELECT 'OMELET_RICE' AS menu_code, 'TEMPERATURE' AS category_type, 'HOT' AS category_code
+    UNION ALL
+    SELECT 'TACO' AS menu_code, 'FLAVOR' AS category_type, 'FRESH' AS category_code
+    UNION ALL
+    SELECT 'TACO' AS menu_code, 'COOKING_METHOD' AS category_type, 'RAW_SALAD' AS category_code
+    UNION ALL
+    SELECT 'TACO' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'FAST_FOOD' AS category_code
+    UNION ALL
+    SELECT 'TACO' AS menu_code, 'TEXTURE' AS category_type, 'CRISPY' AS category_code
+    UNION ALL
+    SELECT 'TACO' AS menu_code, 'TEMPERATURE' AS category_type, 'COLD' AS category_code
+    UNION ALL
+    SELECT 'SHAKSHUKA' AS menu_code, 'FLAVOR' AS category_type, 'SPICY' AS category_code
+    UNION ALL
+    SELECT 'SHAKSHUKA' AS menu_code, 'FLAVOR' AS category_type, 'RICH' AS category_code
+    UNION ALL
+    SELECT 'SHAKSHUKA' AS menu_code, 'COOKING_METHOD' AS category_type, 'SOUP' AS category_code
+    UNION ALL
+    SELECT 'SHAKSHUKA' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'WESTERN' AS category_code
+    UNION ALL
+    SELECT 'SHAKSHUKA' AS menu_code, 'TEMPERATURE' AS category_type, 'HOT' AS category_code
+    UNION ALL
+    SELECT 'TOMATO_PASTA' AS menu_code, 'FLAVOR' AS category_type, 'FRESH' AS category_code
+    UNION ALL
+    SELECT 'TOMATO_PASTA' AS menu_code, 'COOKING_METHOD' AS category_type, 'NOODLE_MIXED' AS category_code
+    UNION ALL
+    SELECT 'TOMATO_PASTA' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'WESTERN' AS category_code
+    UNION ALL
+    SELECT 'TOMATO_PASTA' AS menu_code, 'TEXTURE' AS category_type, 'CHEWY' AS category_code
+    UNION ALL
+    SELECT 'TOMATO_PASTA' AS menu_code, 'TEMPERATURE' AS category_type, 'HOT' AS category_code
+    UNION ALL
+    SELECT 'CREAM_RISOTTO' AS menu_code, 'FLAVOR' AS category_type, 'RICH' AS category_code
+    UNION ALL
+    SELECT 'CREAM_RISOTTO' AS menu_code, 'COOKING_METHOD' AS category_type, 'STIR_FRIED' AS category_code
+    UNION ALL
+    SELECT 'CREAM_RISOTTO' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'WESTERN' AS category_code
+    UNION ALL
+    SELECT 'CREAM_RISOTTO' AS menu_code, 'TEXTURE' AS category_type, 'SOFT' AS category_code
+    UNION ALL
+    SELECT 'CREAM_RISOTTO' AS menu_code, 'TEMPERATURE' AS category_type, 'HOT' AS category_code
+    UNION ALL
+    SELECT 'SALMON_POKE' AS menu_code, 'FLAVOR' AS category_type, 'FRESH' AS category_code
+    UNION ALL
+    SELECT 'SALMON_POKE' AS menu_code, 'COOKING_METHOD' AS category_type, 'RAW_SALAD' AS category_code
+    UNION ALL
+    SELECT 'SALMON_POKE' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'ASIAN' AS category_code
+    UNION ALL
+    SELECT 'SALMON_POKE' AS menu_code, 'TEXTURE' AS category_type, 'SOFT' AS category_code
+    UNION ALL
+    SELECT 'SALMON_POKE' AS menu_code, 'TEMPERATURE' AS category_type, 'COLD' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_CURRY' AS menu_code, 'FLAVOR' AS category_type, 'RICH' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_CURRY' AS menu_code, 'COOKING_METHOD' AS category_type, 'STIR_FRIED' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_CURRY' AS menu_code, 'FOOD_CATEGORY' AS category_type, 'ASIAN' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_CURRY' AS menu_code, 'TEXTURE' AS category_type, 'SOFT' AS category_code
+    UNION ALL
+    SELECT 'CHICKEN_CURRY' AS menu_code, 'TEMPERATURE' AS category_type, 'HOT' AS category_code
 ) seed
 JOIN menu_items menu ON menu.code = seed.menu_code
 JOIN attribute_categories category
@@ -692,6 +824,62 @@ FROM (
     SELECT 'BANH_MI' AS menu_code, 'PORK' AS ingredient_code
     UNION ALL
     SELECT 'BANH_MI' AS menu_code, 'CILANTRO' AS ingredient_code
+    UNION ALL
+    SELECT 'BOSSAM' AS menu_code, 'PORK' AS ingredient_code
+    UNION ALL
+    SELECT 'BOSSAM' AS menu_code, 'GARLIC' AS ingredient_code
+    UNION ALL
+    SELECT 'BOSSAM' AS menu_code, 'SESAME' AS ingredient_code
+    UNION ALL
+    SELECT 'JOKBAL' AS menu_code, 'PORK' AS ingredient_code
+    UNION ALL
+    SELECT 'JOKBAL' AS menu_code, 'GARLIC' AS ingredient_code
+    UNION ALL
+    SELECT 'KALGUKSU' AS menu_code, 'WHEAT' AS ingredient_code
+    UNION ALL
+    SELECT 'KALGUKSU' AS menu_code, 'SHELLFISH' AS ingredient_code
+    UNION ALL
+    SELECT 'KONGGUKSU' AS menu_code, 'SOYBEAN' AS ingredient_code
+    UNION ALL
+    SELECT 'KONGGUKSU' AS menu_code, 'WHEAT' AS ingredient_code
+    UNION ALL
+    SELECT 'CHICKEN_SALAD' AS menu_code, 'CHICKEN' AS ingredient_code
+    UNION ALL
+    SELECT 'CHICKEN_SALAD' AS menu_code, 'EGG' AS ingredient_code
+    UNION ALL
+    SELECT 'CHICKEN_SALAD' AS menu_code, 'CHEESE' AS ingredient_code
+    UNION ALL
+    SELECT 'OMELET_RICE' AS menu_code, 'EGG' AS ingredient_code
+    UNION ALL
+    SELECT 'OMELET_RICE' AS menu_code, 'MILK' AS ingredient_code
+    UNION ALL
+    SELECT 'TACO' AS menu_code, 'WHEAT' AS ingredient_code
+    UNION ALL
+    SELECT 'TACO' AS menu_code, 'BEEF' AS ingredient_code
+    UNION ALL
+    SELECT 'TACO' AS menu_code, 'TOMATO' AS ingredient_code
+    UNION ALL
+    SELECT 'SHAKSHUKA' AS menu_code, 'TOMATO' AS ingredient_code
+    UNION ALL
+    SELECT 'SHAKSHUKA' AS menu_code, 'EGG' AS ingredient_code
+    UNION ALL
+    SELECT 'SHAKSHUKA' AS menu_code, 'ONION' AS ingredient_code
+    UNION ALL
+    SELECT 'TOMATO_PASTA' AS menu_code, 'TOMATO' AS ingredient_code
+    UNION ALL
+    SELECT 'TOMATO_PASTA' AS menu_code, 'WHEAT' AS ingredient_code
+    UNION ALL
+    SELECT 'CREAM_RISOTTO' AS menu_code, 'MILK' AS ingredient_code
+    UNION ALL
+    SELECT 'CREAM_RISOTTO' AS menu_code, 'CHEESE' AS ingredient_code
+    UNION ALL
+    SELECT 'SALMON_POKE' AS menu_code, 'FISH' AS ingredient_code
+    UNION ALL
+    SELECT 'SALMON_POKE' AS menu_code, 'SESAME' AS ingredient_code
+    UNION ALL
+    SELECT 'CHICKEN_CURRY' AS menu_code, 'CHICKEN' AS ingredient_code
+    UNION ALL
+    SELECT 'CHICKEN_CURRY' AS menu_code, 'MILK' AS ingredient_code
 ) seed
 JOIN menu_items menu ON menu.code = seed.menu_code
 JOIN ingredients ingredient ON ingredient.code = seed.ingredient_code
