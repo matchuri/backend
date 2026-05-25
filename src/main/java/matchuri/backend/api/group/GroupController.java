@@ -22,6 +22,7 @@ import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
@@ -49,6 +50,7 @@ import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
+import matchuri.backend.domain.group.result.GroupRecommendationSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.GroupVoteResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
@@ -203,6 +205,24 @@ public class GroupController implements GroupApi {
         CreateGroupRecommendationResult result = groupService.createGroupRecommendation(command);
 
         return ApiResponse.success(groupMapper.toCreateGroupRecommendationResponse(result));
+    }
+
+    @Override
+    @GetMapping("/{groupId}/recommendations")
+    public ApiResponse<PageResponse<GroupRecommendationSummaryResponse>> getRecommendations(
+            @PathVariable Long groupId,
+            @Min(0) @RequestParam(defaultValue = "0")
+            Integer page,
+
+            @Min(1) @Max(100) @RequestParam(defaultValue = "20")
+            Integer size
+    ) {
+        Page<GroupRecommendationSummaryResult> results =
+                groupService.getGroupRecommendations(groupId, page, size);
+        PageResponse<GroupRecommendationSummaryResponse> response =
+                PageResponse.of(results, groupMapper::toGroupRecommendationSummaryResponse);
+
+        return ApiResponse.success(response);
     }
 
     @Override

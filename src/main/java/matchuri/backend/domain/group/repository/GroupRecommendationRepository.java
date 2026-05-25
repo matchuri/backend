@@ -3,6 +3,8 @@ package matchuri.backend.domain.group.repository;
 import java.util.Optional;
 import matchuri.backend.domain.group.entity.GroupRecommendation;
 import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface GroupRecommendationRepository extends JpaRepository<GroupRecommendation, Long> {
@@ -15,4 +17,6 @@ public interface GroupRecommendationRepository extends JpaRepository<GroupRecomm
             Long roomId,
             GroupRecommendationStatus status
     );
+
+    Page<GroupRecommendation> findByRoomIdOrderByStartedAtDescIdDesc(Long roomId, Pageable pageable);
 }

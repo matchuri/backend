@@ -21,6 +21,7 @@ import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
+import matchuri.backend.domain.group.result.GroupRecommendationSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.GroupVoteResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
@@ -45,6 +46,8 @@ public interface GroupService {
     GroupRecommendationResult getGroupRecommendation(Long groupId, Long sessionId);
 
     GroupRecommendationCandidateListResult getGroupRecommendationCandidates(Long groupId, Long sessionId);
+
+    Page<GroupRecommendationSummaryResult> getGroupRecommendations(Long groupId, int page, int size);
 
     GroupVoteResult voteGroupRecommendation(Long groupId, Long sessionId, Long candidateId);
 

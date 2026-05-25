@@ -254,6 +254,18 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<@NonNull GroupRecommendationSummaryResult> getGroupRecommendations(Long groupId, int page, int size) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = getActiveGroupRoom(groupId);
+        validateActiveMembership(room.getId(), member.getId());
+
+        return groupRecommendationRepository
+                .findByRoomIdOrderByStartedAtDescIdDesc(room.getId(), PageRequest.of(page, size))
+                .map(GroupRecommendationSummaryResult::from);
+    }
+
+    @Override
     public GroupVoteResult voteGroupRecommendation(Long groupId, Long sessionId, Long candidateId) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         validateActiveMembership(groupId, member.getId());
