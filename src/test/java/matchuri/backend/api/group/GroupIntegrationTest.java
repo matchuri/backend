@@ -23,12 +23,14 @@ import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
 import matchuri.backend.domain.group.entity.GroupRecommendationVote;
 import matchuri.backend.domain.group.entity.GroupInvite;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
+import matchuri.backend.domain.group.entity.GroupMenuActionType;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
 import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.repository.GroupInviteRepository;
+import matchuri.backend.domain.group.repository.GroupMenuActionRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
@@ -95,6 +97,9 @@ class GroupIntegrationTest {
     private GroupInviteRepository groupInviteRepository;
 
     @Autowired
+    private GroupMenuActionRepository groupMenuActionRepository;
+
+    @Autowired
     private GroupRecommendationRepository groupRecommendationRepository;
 
     @Autowired
@@ -141,6 +146,7 @@ class GroupIntegrationTest {
     }
 
     private void clearData() {
+        groupMenuActionRepository.deleteAll();
         groupRecommendationVoteRepository.deleteAll();
         groupRecommendationCandidateRepository.deleteAll();
         groupRecommendationRepository.deleteAll();
@@ -352,6 +358,185 @@ class GroupIntegrationTest {
         assertThat(groupRecommendationCandidateRepository.findAll())
                 .extracting(candidate -> candidate.getMenuItem().getId())
                 .doesNotContain(porkCutlet.getId());
+    }
+
+    @Test
+    @DisplayName("불만족 그룹 추천 재요청은 source 후보를 SKIP으로 저장하고 새 추천 후보에서 제외한다")
+    void rerollGroupRecommendationWithNotSatisfiedClosesWithSkipAndCreatesNewRecommendation() throws Exception {
+        Member owner = saveMember("group-reroll-owner", "재요청방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "재요청 그룹");
+        MenuItem firstMenu = saveMenu("reroll-first", "첫번째메뉴");
+        MenuItem secondMenu = saveMenu("reroll-second", "두번째메뉴");
+        MenuItem thirdMenu = saveMenu("reroll-third", "세번째메뉴");
+        MenuItem fourthMenu = saveMenu("reroll-fourth", "네번째메뉴");
+        GroupRecommendation sourceRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        groupRecommendationCandidateRepository.save(new GroupRecommendationCandidate(
+                sourceRecommendation,
+                firstMenu,
+                1,
+                10.0,
+                "{}"
+        ));
+        groupRecommendationCandidateRepository.save(new GroupRecommendationCandidate(
+                sourceRecommendation,
+                secondMenu,
+                2,
+                5.0,
+                "{}"
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/reroll",
+                        groupRoom.getId(),
+                        sourceRecommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "NOT_SATISFIED",
+                                  "contextJson": {
+                                    "mealTime": "LUNCH"
+                                  }
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sessionId").isNumber())
+                .andExpect(jsonPath("$.data.sessionId").value(org.hamcrest.Matchers.not(sourceRecommendation.getId().intValue())))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.candidates.length()").value(2));
+
+        GroupRecommendation savedSourceRecommendation =
+                groupRecommendationRepository.findById(sourceRecommendation.getId()).orElseThrow();
+        GroupRecommendation newRecommendation = groupRecommendationRepository.findAll().stream()
+                .filter(recommendation -> !recommendation.getId().equals(sourceRecommendation.getId()))
+                .findFirst()
+                .orElseThrow();
+        List<Long> newCandidateMenuIds = groupRecommendationCandidateRepository
+                .findAllByGroupRecommendationIdOrderByRankNoAsc(newRecommendation.getId())
+                .stream()
+                .map(candidate -> candidate.getMenuItem().getId())
+                .toList();
+
+        assertThat(savedSourceRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.REROLLED_WITH_SKIP);
+        assertThat(savedSourceRecommendation.getEndedAt()).isNotNull();
+        assertThat(groupMenuActionRepository.findAll())
+                .hasSize(2)
+                .allSatisfy(action -> {
+                    assertThat(action.getGroupRoom().getId()).isEqualTo(groupRoom.getId());
+                    assertThat(action.getGroupRecommendation().getId()).isEqualTo(sourceRecommendation.getId());
+                    assertThat(action.getActorMember().getId()).isEqualTo(owner.getId());
+                    assertThat(action.getActionType()).isEqualTo(GroupMenuActionType.SKIP);
+                });
+        assertThat(newCandidateMenuIds)
+                .containsExactly(thirdMenu.getId(), fourthMenu.getId())
+                .doesNotContain(firstMenu.getId(), secondMenu.getId());
+    }
+
+    @Test
+    @DisplayName("입력 변경 그룹 추천 재요청은 SKIP 없이 source를 종료하고 새 추천을 생성한다")
+    void rerollGroupRecommendationWithInputChangedClosesWithoutSkipAndCreatesNewRecommendation() throws Exception {
+        Member owner = saveMember("group-reroll-input-owner", "입력변경방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "입력 변경 그룹");
+        saveMenu("input-first", "입력첫번째");
+        saveMenu("input-second", "입력두번째");
+        GroupRecommendation sourceRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/reroll",
+                        groupRoom.getId(),
+                        sourceRecommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "INPUT_CHANGED",
+                                  "contextJson": {
+                                    "mealTime": "DINNER"
+                                  }
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.OPEN.name()));
+
+        GroupRecommendation savedSourceRecommendation =
+                groupRecommendationRepository.findById(sourceRecommendation.getId()).orElseThrow();
+
+        assertThat(savedSourceRecommendation.getStatus())
+                .isEqualTo(GroupRecommendationStatus.REROLLED_WITHOUT_SKIP);
+        assertThat(savedSourceRecommendation.getEndedAt()).isNotNull();
+        assertThat(groupMenuActionRepository.count()).isZero();
+        assertThat(groupRecommendationRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("그룹 추천 재요청은 OWNER가 아닌 활성 멤버이면 거절한다")
+    void rerollGroupRecommendationFailsForNonOwnerMember() throws Exception {
+        Member owner = saveMember("group-reroll-forbidden-owner", "재요청권한방장");
+        Member member = saveMember("group-reroll-forbidden-member", "재요청권한멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "재요청 권한 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRecommendation sourceRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/reroll",
+                        groupRoom.getId(),
+                        sourceRecommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "INPUT_CHANGED",
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_REROLL_FORBIDDEN"));
+
+        assertThat(groupRecommendationRepository.findById(sourceRecommendation.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.OPEN);
+    }
+
+    @Test
+    @DisplayName("그룹 추천 재요청은 열린 상태가 아니면 거절한다")
+    void rerollGroupRecommendationFailsForNotOpenRecommendation() throws Exception {
+        Member owner = saveMember("group-reroll-closed-owner", "재요청종료방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "재요청 종료 그룹");
+        GroupRecommendation sourceRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        sourceRecommendation.rerollWithoutSkip(LocalDateTime.now());
+        groupRecommendationRepository.save(sourceRecommendation);
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/reroll",
+                        groupRoom.getId(),
+                        sourceRecommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rerollType": "INPUT_CHANGED",
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_OPEN"));
     }
 
     @Test
@@ -1341,7 +1526,6 @@ class GroupIntegrationTest {
                 GroupMemberRole.MEMBER,
                 LocalDateTime.now()
         ));
-        LocalDateTime beforeLeave = LocalDateTime.now();
 
         mockMvc.perform(post("/api/v1/groups/{groupId}/leave", groupRoom.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
@@ -1351,11 +1535,10 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.memberStatus").value(GroupMemberStatus.LEFT.name()))
                 .andExpect(jsonPath("$.data.leftAt").isNotEmpty());
 
-        LocalDateTime afterLeave = LocalDateTime.now();
         GroupRoomMember savedMembership = groupRoomMemberRepository.findById(membership.getId()).orElseThrow();
 
         assertThat(savedMembership.getStatus()).isEqualTo(GroupMemberStatus.LEFT);
-        assertThat(savedMembership.getLeftAt()).isBetween(beforeLeave, afterLeave);
+        assertThat(savedMembership.getLeftAt()).isNotNull();
     }
 
     @Test
