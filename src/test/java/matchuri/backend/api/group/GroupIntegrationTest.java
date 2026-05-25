@@ -1360,10 +1360,36 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.latitude").value(nullValue()))
                 .andExpect(jsonPath("$.data.longitude").value(nullValue()))
                 .andExpect(jsonPath("$.data.status").value(GroupRoomStatus.ACTIVE.name()))
-                .andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
+                .andExpect(jsonPath("$.data.updatedAt").isNotEmpty())
+                .andExpect(jsonPath("$.data.openGroupRecommendationId").value(nullValue()));
 
         assertThat(groupRoomRepository.findById(groupRoom.getId()).orElseThrow().getName())
                 .isEqualTo("수정 후 그룹");
+    }
+
+    @Test
+    @DisplayName("그룹 수정은 열린 그룹 추천이 있으면 재요청 가능한 추천 ID를 반환한다")
+    void updateGroupReturnsOpenGroupRecommendationId() throws Exception {
+        Member owner = saveMember("update-open-recommendation-owner", "열린추천수정방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "열린 추천 수정 그룹");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "latitude": 37.498095,
+                                  "longitude": 127.027610
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.groupId").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.openGroupRecommendationId").value(recommendation.getId()));
     }
 
     @Test

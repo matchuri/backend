@@ -389,6 +389,12 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups/{groupId}'].delete.responses['200'].content['application/json'].examples.success.value.data.status")
                         .value("DELETED"))
                 .andExpect(jsonPath(
+                        "$.components.schemas.UpdateGroupResponse.properties.openGroupRecommendationId.description")
+                        .value("그룹 수정 시점에 INPUT_CHANGED 재요청으로 이어갈 수 있는 열린 그룹 추천 ID입니다. 없으면 null입니다."))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].patch.responses['200'].content['application/json'].examples.success.value.data.openGroupRecommendationId")
+                        .value(5001))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].candidateId")
                         .value(8001))
                 .andExpect(jsonPath(
