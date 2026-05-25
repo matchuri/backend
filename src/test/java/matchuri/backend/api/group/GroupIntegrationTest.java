@@ -631,6 +631,185 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("그룹 추천 투표는 활성 멤버의 후보 선택을 저장한다")
+    void voteGroupRecommendationStoresMemberVote() throws Exception {
+        Member owner = saveMember("recommendation-vote-owner", "투표방장");
+        Member member = saveMember("recommendation-vote-member", "투표멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "투표 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        MenuItem menuItem = saveMenu("vote-menu", "투표메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 10.0, "{}")
+        );
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/votes",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "candidateId": %d
+                                }
+                                """.formatted(candidate.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.voteId").isNumber())
+                .andExpect(jsonPath("$.data.candidateId").value(candidate.getId()))
+                .andExpect(jsonPath("$.data.voteValue").doesNotExist())
+                .andExpect(jsonPath("$.data.votedAt").isNotEmpty());
+
+        List<GroupRecommendationVote> votes = groupRecommendationVoteRepository.findAll();
+        assertThat(votes).hasSize(1);
+        assertThat(votes.getFirst().getGroupRecommendation().getId()).isEqualTo(recommendation.getId());
+        assertThat(votes.getFirst().getCandidate().getId()).isEqualTo(candidate.getId());
+        assertThat(votes.getFirst().getMember().getId()).isEqualTo(member.getId());
+    }
+
+    @Test
+    @DisplayName("그룹 추천 투표는 같은 회원의 중복 투표를 거절한다")
+    void voteGroupRecommendationFailsForDuplicateVote() throws Exception {
+        Member owner = saveMember("recommendation-dup-vote-owner", "중복투표방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "중복 투표 그룹");
+        MenuItem menuItem = saveMenu("dup-vote-menu", "중복투표메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 10.0, "{}")
+        );
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, candidate, owner));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/votes",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "candidateId": %d
+                                }
+                                """.formatted(candidate.getId())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_ALREADY_VOTED"));
+
+        assertThat(groupRecommendationVoteRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("그룹 추천 투표는 다른 추천의 후보이면 찾을 수 없음으로 처리한다")
+    void voteGroupRecommendationFailsWhenCandidateBelongsToOtherRecommendation() throws Exception {
+        Member owner = saveMember("recommendation-wrong-candidate-owner", "후보다름방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "후보 소속 그룹");
+        MenuItem menuItem = saveMenu("wrong-candidate-menu", "후보다름메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendation otherRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate otherCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(otherRecommendation, menuItem, 1, 10.0, "{}")
+        );
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/votes",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "candidateId": %d
+                                }
+                                """.formatted(otherCandidate.getId())))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_CANDIDATE_NOT_FOUND"));
+
+        assertThat(groupRecommendationVoteRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("그룹 추천 투표는 열린 상태가 아니면 거절한다")
+    void voteGroupRecommendationFailsForNotOpenRecommendation() throws Exception {
+        Member owner = saveMember("recommendation-vote-closed-owner", "투표종료방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "투표 종료 그룹");
+        MenuItem menuItem = saveMenu("vote-closed-menu", "투표종료메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 10.0, "{}")
+        );
+        recommendation.rerollWithoutSkip(LocalDateTime.now());
+        groupRecommendationRepository.save(recommendation);
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/votes",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "candidateId": %d
+                                }
+                                """.formatted(candidate.getId())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_OPEN"));
+
+        assertThat(groupRecommendationVoteRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("그룹 추천 투표는 활성 멤버가 아니면 거절한다")
+    void voteGroupRecommendationFailsForNonMember() throws Exception {
+        Member owner = saveMember("recommendation-vote-access-owner", "투표접근방장");
+        Member other = saveMember("recommendation-vote-access-other", "투표접근없음");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "투표 접근 그룹");
+        MenuItem menuItem = saveMenu("vote-access-menu", "투표접근메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 10.0, "{}")
+        );
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/votes",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "candidateId": %d
+                                }
+                                """.formatted(candidate.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
+
+        assertThat(groupRecommendationVoteRepository.count()).isZero();
+    }
+
+    @Test
     @DisplayName("그룹 추천 조회는 활성 멤버가 아니면 거절한다")
     void getGroupRecommendationFailsForNonMember() throws Exception {
         Member owner = saveMember("recommendation-view-denied-owner", "조회거절방장");
