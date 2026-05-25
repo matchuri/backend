@@ -15,6 +15,7 @@ import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
+import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
@@ -44,6 +45,7 @@ import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
+import matchuri.backend.domain.group.result.FinalizeGroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
@@ -268,6 +270,17 @@ public class GroupMapper {
                 result.voteId(),
                 result.candidateId(),
                 result.votedAt()
+        );
+    }
+
+    public FinalizeGroupRecommendationResponse toFinalizeGroupRecommendationResponse(
+            FinalizeGroupRecommendationResult result
+    ) {
+        return new FinalizeGroupRecommendationResponse(
+                result.sessionId(),
+                result.status(),
+                toGroupRecommendationCandidateResponse(result.finalCandidate()),
+                result.finalizedAt()
         );
     }
 

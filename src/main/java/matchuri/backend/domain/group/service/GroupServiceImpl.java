@@ -291,6 +291,45 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public FinalizeGroupRecommendationResult finalizeGroupRecommendation(Long groupId, Long sessionId) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoomMember membership = validateActiveMembership(groupId, member.getId());
+
+        if (!membership.isOwner()) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_FINALIZE_FORBIDDEN, groupId);
+        }
+
+        GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
+
+        if (recommendation.getStatus() != GroupRecommendationStatus.OPEN) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_OPEN, sessionId);
+        }
+
+        List<GroupRecommendationCandidate> candidates = groupRecommendationCandidateRepository
+                .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId());
+
+        if (candidates.isEmpty()) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NO_CANDIDATES, sessionId);
+        }
+
+        Map<Long, Integer> voteCountsByCandidateId = countVotesByCandidateId(recommendation.getId());
+        GroupRecommendationCandidate selectedCandidate = selectFinalCandidate(candidates, voteCountsByCandidateId);
+        LocalDateTime finalizedAt = LocalDateTime.now();
+        recommendation.finalizeWith(selectedCandidate, finalizedAt);
+
+        return new FinalizeGroupRecommendationResult(
+                recommendation.getId(),
+                recommendation.getStatus(),
+                GroupRecommendationCandidateResult.from(
+                        selectedCandidate,
+                        voteCountsByCandidateId.getOrDefault(selectedCandidate.getId(), 0)
+                ),
+                finalizedAt
+        );
+    }
+
+    @Override
     public CreateNicknameGroupInviteResult createNicknameInvite(CreateNicknameGroupInviteCommand command) {
         Member requestMember = activeMemberReader.getCurrentAuthenticatedActiveMember();
         GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
@@ -596,6 +635,26 @@ public class GroupServiceImpl implements GroupService {
                         GroupCandidateVoteCountProjection::getCandidateId,
                         projection -> projection.getVoteCount().intValue()
                 ));
+    }
+
+    private GroupRecommendationCandidate selectFinalCandidate(
+            List<GroupRecommendationCandidate> candidates,
+            Map<Long, Integer> voteCountsByCandidateId
+    ) {
+        return candidates.stream()
+                .max((left, right) -> {
+                    int voteComparison = Integer.compare(
+                            voteCountsByCandidateId.getOrDefault(left.getId(), 0),
+                            voteCountsByCandidateId.getOrDefault(right.getId(), 0)
+                    );
+
+                    if (voteComparison != 0) {
+                        return voteComparison;
+                    }
+
+                    return Integer.compare(right.getRankNo(), left.getRankNo());
+                })
+                .orElseThrow();
     }
 
     private GroupVoteProgressResult toVoteProgress(GroupRecommendation recommendation) {

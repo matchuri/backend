@@ -17,12 +17,4 @@ public record FinalizeGroupRecommendationResponse(
         @Schema(description = "최종 확정 시각입니다.", example = "2026-05-06T12:25:00")
         LocalDateTime finalizedAt
 ) {
-    public static FinalizeGroupRecommendationResponse mockFinalized() {
-        return new FinalizeGroupRecommendationResponse(
-                5001L,
-                GroupRecommendationStatus.FINALIZED,
-                GroupRecommendationCandidateResponse.mockBibimbap(),
-                LocalDateTime.of(2026, 5, 6, 12, 25)
-        );
-    }
 }
