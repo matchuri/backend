@@ -523,13 +523,16 @@ public interface GroupApi {
     ApiResponse<GroupVoteResponse> vote(Long groupId, Long sessionId, @Valid VoteGroupRecommendationRequest request);
 
     @Operation(
-            summary = "그룹 추천 최종 메뉴 확정 (Mock API)",
+            summary = "그룹 추천 최종 메뉴 확정",
             description = """
                     투표 결과를 바탕으로 그룹의 최종 메뉴를 확정합니다.
 
-                    Mock API 상태:
-                    - 실제 투표 집계와 동률 처리 정책은 아직 수행하지 않습니다.
-                    - 항상 1순위 후보를 최종 후보로 반환합니다.
+                    정책:
+                    - 해당 그룹의 `ACTIVE` `OWNER` 멤버만 최종 확정할 수 있습니다.
+                    - 최다 득표 후보를 최종 후보로 저장합니다.
+                    - 동률이면 추천 순위 `rankNo`가 가장 낮은 후보를 선택합니다.
+                    - 투표가 0건이면 `rankNo=1` 후보를 선택합니다.
+                    - 확정 후 그룹 추천 상태는 `FINALIZED`가 됩니다.
                     """
     )
     @ApiResponses({
