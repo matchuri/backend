@@ -319,6 +319,21 @@ CREATE TABLE group_recommendation_votes (
     INDEX idx_group_recommendation_votes_member (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE group_menu_actions (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    group_room_id BIGINT NOT NULL,
+    group_recommendation_id BIGINT NOT NULL,
+    actor_member_id BIGINT NOT NULL,
+    menu_id BIGINT NOT NULL,
+    action_type VARCHAR(20) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    CONSTRAINT uk_group_menu_action_recommendation_menu_type UNIQUE (group_recommendation_id, menu_id, action_type),
+    INDEX idx_group_menu_actions_room (group_room_id),
+    INDEX idx_group_menu_actions_actor_member (actor_member_id),
+    INDEX idx_group_menu_actions_menu (menu_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE group_presence_events (
     id BIGINT NOT NULL AUTO_INCREMENT,
     room_id BIGINT NOT NULL,
@@ -404,6 +419,12 @@ ALTER TABLE group_recommendation_votes
     ADD CONSTRAINT fk_group_recommendation_votes_recommendation FOREIGN KEY (group_recommendation_id) REFERENCES group_recommendations (id),
     ADD CONSTRAINT fk_group_recommendation_votes_candidate FOREIGN KEY (candidate_id) REFERENCES group_recommendation_candidates (id),
     ADD CONSTRAINT fk_group_recommendation_votes_member FOREIGN KEY (member_id) REFERENCES members (id);
+
+ALTER TABLE group_menu_actions
+    ADD CONSTRAINT fk_group_menu_actions_room FOREIGN KEY (group_room_id) REFERENCES group_rooms (id),
+    ADD CONSTRAINT fk_group_menu_actions_recommendation FOREIGN KEY (group_recommendation_id) REFERENCES group_recommendations (id),
+    ADD CONSTRAINT fk_group_menu_actions_actor_member FOREIGN KEY (actor_member_id) REFERENCES members (id),
+    ADD CONSTRAINT fk_group_menu_actions_menu FOREIGN KEY (menu_id) REFERENCES menu_items (id);
 
 ALTER TABLE group_presence_events
     ADD CONSTRAINT fk_group_presence_events_room FOREIGN KEY (room_id) REFERENCES group_rooms (id),
