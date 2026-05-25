@@ -20,6 +20,7 @@ import matchuri.backend.api.group.dto.docs.GroupDetailApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupInviteSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationCandidateListApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationSessionApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupRecommendationSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupVoteApiResponse;
 import matchuri.backend.api.group.dto.docs.JoinGroupApiResponse;
@@ -43,6 +44,7 @@ import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
@@ -400,6 +402,47 @@ public interface GroupApi {
     ApiResponse<CreateGroupRecommendationResponse> createRecommendation(
             Long groupId,
             @Valid CreateGroupRecommendationRequest request
+    );
+
+    @Operation(
+            summary = "그룹 추천 요청 리스트 조회",
+            description = """
+                    특정 그룹 방에서 생성된 그룹 추천 요청 목록을 조회합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - 삭제된 그룹은 조회할 수 없습니다.
+                    - 응답은 `sessionId`, `status`, `startedAt`, `endedAt`만 포함하는 얇은 summary입니다.
+                    - `finalCandidate`, `finalMenuName`, `voteProgress`, `status` 필터는 1차 범위에서 제외합니다.
+                    - 최신순(`startedAt DESC`, `id DESC`)으로 정렬합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupRecommendationSummaryPageApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RECOMMENDATION_LIST_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<PageResponse<GroupRecommendationSummaryResponse>> getRecommendations(
+            Long groupId,
+
+            @Parameter(description = "0부터 시작하는 페이지 번호입니다.", example = "0")
+            @Min(0)
+            Integer page,
+
+            @Parameter(description = "페이지 크기입니다. 기본값은 20입니다.", example = "20")
+            @Min(1)
+            @Max(100)
+            Integer size
     );
 
     @Operation(

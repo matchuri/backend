@@ -240,6 +240,39 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String RECOMMENDATION_LIST_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "content": [
+                  {
+                    "sessionId": 5002,
+                    "status": "OPEN",
+                    "startedAt": "2026-05-26T12:20:00",
+                    "endedAt": null
+                  },
+                  {
+                    "sessionId": 5001,
+                    "status": "FINALIZED",
+                    "startedAt": "2026-05-26T12:00:00",
+                    "endedAt": "2026-05-26T12:15:00"
+                  }
+                ],
+                "pageInfo": {
+                  "page": 0,
+                  "size": 20,
+                  "totalElements": 2,
+                  "totalPages": 1,
+                  "first": true,
+                  "last": true,
+                  "hasNext": false,
+                  "hasPrevious": false
+                }
+              },
+              "error": null
+            }
+            """;
+
     public static final String RECOMMENDATION_SESSION_SUCCESS = """
             {
               "success": true,
