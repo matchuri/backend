@@ -23,6 +23,7 @@ import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateRespo
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteProgressResponse;
+import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
@@ -51,6 +52,7 @@ import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.GroupVoteProgressResult;
+import matchuri.backend.domain.group.result.GroupVoteResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
 import matchuri.backend.domain.group.result.RespondGroupInviteResult;
@@ -258,6 +260,14 @@ public class GroupMapper {
                 result.candidates().stream()
                         .map(this::toGroupRecommendationCandidateResponse)
                         .toList()
+        );
+    }
+
+    public GroupVoteResponse toGroupVoteResponse(GroupVoteResult result) {
+        return new GroupVoteResponse(
+                result.voteId(),
+                result.candidateId(),
+                result.votedAt()
         );
     }
 

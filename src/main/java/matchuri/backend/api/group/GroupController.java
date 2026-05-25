@@ -49,6 +49,7 @@ import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
+import matchuri.backend.domain.group.result.GroupVoteResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
 import matchuri.backend.domain.group.result.RespondGroupInviteResult;
@@ -251,7 +252,10 @@ public class GroupController implements GroupApi {
             @PathVariable Long sessionId,
             @Valid @RequestBody VoteGroupRecommendationRequest request
     ) {
-        return ApiResponse.success(GroupVoteResponse.mockVoted(request.candidateId(), request.voteValue()));
+        GroupVoteResult result = groupService.voteGroupRecommendation(groupId, sessionId, request.candidateId());
+        GroupVoteResponse response = groupMapper.toGroupVoteResponse(result);
+
+        return ApiResponse.success(response);
     }
 
     @Override

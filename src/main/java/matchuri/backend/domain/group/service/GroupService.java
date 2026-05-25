@@ -21,6 +21,7 @@ import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
+import matchuri.backend.domain.group.result.GroupVoteResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
 import matchuri.backend.domain.group.result.RespondGroupInviteResult;
@@ -43,6 +44,8 @@ public interface GroupService {
     GroupRecommendationResult getGroupRecommendation(Long groupId, Long sessionId);
 
     GroupRecommendationCandidateListResult getGroupRecommendationCandidates(Long groupId, Long sessionId);
+
+    GroupVoteResult voteGroupRecommendation(Long groupId, Long sessionId, Long candidateId);
 
     CreateNicknameGroupInviteResult createNicknameInvite(CreateNicknameGroupInviteCommand command);
 

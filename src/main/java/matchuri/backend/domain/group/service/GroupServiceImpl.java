@@ -254,6 +254,43 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public GroupVoteResult voteGroupRecommendation(Long groupId, Long sessionId, Long candidateId) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        validateActiveMembership(groupId, member.getId());
+
+        GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
+
+        if (recommendation.getStatus() != GroupRecommendationStatus.OPEN) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_OPEN, sessionId);
+        }
+
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository
+                .findByIdAndGroupRecommendationId(candidateId, recommendation.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_CANDIDATE_NOT_FOUND,
+                        candidateId));
+
+        if (groupRecommendationVoteRepository.existsByGroupRecommendationIdAndMemberId(
+                recommendation.getId(),
+                member.getId()
+        )) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_ALREADY_VOTED, sessionId, member.getId());
+        }
+
+        GroupRecommendationVote vote = groupRecommendationVoteRepository.save(new GroupRecommendationVote(
+                recommendation,
+                candidate,
+                member
+        ));
+
+        return new GroupVoteResult(
+                vote.getId(),
+                candidate.getId(),
+                vote.getCreatedAt()
+        );
+    }
+
+    @Override
     public CreateNicknameGroupInviteResult createNicknameInvite(CreateNicknameGroupInviteCommand command) {
         Member requestMember = activeMemberReader.getCurrentAuthenticatedActiveMember();
         GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)

@@ -19,4 +19,6 @@ public interface GroupRecommendationVoteRepository extends JpaRepository<GroupRe
     );
 
     long countByGroupRecommendationId(Long recommendationId);
+
+    boolean existsByGroupRecommendationIdAndMemberId(Long recommendationId, Long memberId);
 }
