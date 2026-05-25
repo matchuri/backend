@@ -392,6 +392,15 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups/{groupId}/recommendations'].post.responses['200'].content['application/json'].examples.success.value.data.candidates[0].candidateId")
                         .value(8001))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].sessionId")
+                        .value(5002))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].finalCandidate")
+                        .doesNotExist())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].voteProgress")
+                        .doesNotExist())
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.finalCandidate")
                         .value((Object) null))
                 .andExpect(jsonPath(

@@ -636,6 +636,104 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("그룹 추천 요청 목록 조회는 그룹별 추천 summary를 최신순 페이지로 반환한다")
+    void getGroupRecommendationsReturnsSummariesByGroup() throws Exception {
+        Member owner = saveMember("recommendation-list-owner", "목록방장");
+        Member member = saveMember("recommendation-list-member", "목록멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 목록 그룹");
+        GroupRoom otherGroupRoom = saveGroupOwnedBy(owner, "다른 추천 목록 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRecommendation oldRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.of(2026, 5, 26, 12, 0)
+        ));
+        oldRecommendation.rerollWithoutSkip(LocalDateTime.of(2026, 5, 26, 12, 15));
+        groupRecommendationRepository.save(oldRecommendation);
+        GroupRecommendation latestRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.of(2026, 5, 26, 12, 30)
+        ));
+        groupRecommendationRepository.save(new GroupRecommendation(
+                otherGroupRoom,
+                "{}",
+                LocalDateTime.of(2026, 5, 26, 13, 0)
+        ));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content.length()").value(2))
+                .andExpect(jsonPath("$.data.content[0].sessionId").value(latestRecommendation.getId()))
+                .andExpect(jsonPath("$.data.content[0].status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.content[0].startedAt").value("2026-05-26T12:30:00"))
+                .andExpect(jsonPath("$.data.content[0].endedAt").value(nullValue()))
+                .andExpect(jsonPath("$.data.content[0].finalCandidate").doesNotExist())
+                .andExpect(jsonPath("$.data.content[0].finalMenuName").doesNotExist())
+                .andExpect(jsonPath("$.data.content[0].voteProgress").doesNotExist())
+                .andExpect(jsonPath("$.data.content[1].sessionId").value(oldRecommendation.getId()))
+                .andExpect(jsonPath("$.data.content[1].status")
+                        .value(GroupRecommendationStatus.REROLLED_WITHOUT_SKIP.name()))
+                .andExpect(jsonPath("$.data.content[1].endedAt").value("2026-05-26T12:15:00"))
+                .andExpect(jsonPath("$.data.pageInfo.totalElements").value(2))
+                .andExpect(jsonPath("$.data.pageInfo.totalPages").value(1));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 요청 목록 조회는 비멤버이면 거절한다")
+    void getGroupRecommendationsFailsForNonMember() throws Exception {
+        Member owner = saveMember("recommendation-list-denied-owner", "목록거절방장");
+        Member other = saveMember("recommendation-list-denied-other", "목록거절비멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "목록 거절 그룹");
+        groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 요청 목록 조회는 삭제된 그룹이면 찾을 수 없음으로 처리한다")
+    void getGroupRecommendationsFailsForDeletedGroup() throws Exception {
+        Member owner = saveMember("recommendation-list-deleted-owner", "목록삭제방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "목록 삭제 그룹");
+        groupRoom.delete();
+        groupRoomRepository.save(groupRoom);
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 요청 목록 조회는 페이지 크기가 허용 범위를 넘으면 실패한다")
+    void getGroupRecommendationsFailsWithInvalidPageSize() throws Exception {
+        Member owner = saveMember("recommendation-list-invalid-page-owner", "목록페이지방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "목록 페이지 그룹");
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .param("size", "101"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
     @DisplayName("그룹 추천 투표는 활성 멤버의 후보 선택을 저장한다")
     void voteGroupRecommendationStoresMemberVote() throws Exception {
         Member owner = saveMember("recommendation-vote-owner", "투표방장");
