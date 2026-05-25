@@ -31,6 +31,7 @@ import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
+import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
@@ -457,6 +458,40 @@ public interface GroupApi {
             )
     })
     ApiResponse<GroupRecommendationCandidateListResponse> getRecommendationCandidates(Long groupId, Long sessionId);
+
+    @Operation(
+            summary = "그룹 추천 재요청",
+            description = """
+                    열린 그룹 추천을 종료하고 새 그룹 추천을 생성합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - MVP에서는 해당 그룹의 `ACTIVE` OWNER 멤버만 재요청할 수 있습니다.
+                    - source 그룹 추천은 해당 그룹에 속하고 `OPEN` 상태여야 합니다.
+                    - `NOT_SATISFIED`는 source 후보 전체를 `group_menu_actions.SKIP`으로 저장한 뒤 source를 `REROLLED_WITH_SKIP`으로 종료합니다.
+                    - `INPUT_CHANGED`는 `SKIP` 로그 없이 source를 `REROLLED_WITHOUT_SKIP`으로 종료합니다.
+                    - 새 후보 계산에서는 같은 그룹의 최근 24시간 `SKIP` 메뉴를 제외합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 추천 재요청 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateGroupRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.CREATE_RECOMMENDATION_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<CreateGroupRecommendationResponse> rerollRecommendation(
+            Long groupId,
+            Long sessionId,
+            @Valid RerollGroupRecommendationRequest request
+    );
 
     @Operation(
             summary = "그룹 추천 후보 투표 (Mock API)",
