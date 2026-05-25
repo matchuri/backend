@@ -17,6 +17,8 @@ import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
+import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
+import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
@@ -29,6 +31,10 @@ public interface GroupService {
     CreateGroupResult createGroup(CreateGroupCommand command);
 
     CreateGroupRecommendationResult createGroupRecommendation(CreateGroupRecommendationCommand command);
+
+    GroupRecommendationResult getGroupRecommendation(Long groupId, Long sessionId);
+
+    GroupRecommendationCandidateListResult getGroupRecommendationCandidates(Long groupId, Long sessionId);
 
     CreateNicknameGroupInviteResult createNicknameInvite(CreateNicknameGroupInviteCommand command);
 

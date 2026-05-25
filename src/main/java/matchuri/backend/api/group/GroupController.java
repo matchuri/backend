@@ -45,6 +45,8 @@ import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
+import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
+import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
@@ -206,7 +208,9 @@ public class GroupController implements GroupApi {
             @PathVariable Long groupId,
             @PathVariable Long sessionId
     ) {
-        return ApiResponse.success(GroupRecommendationSessionResponse.mockOpen());
+        GroupRecommendationResult result = groupService.getGroupRecommendation(groupId, sessionId);
+
+        return ApiResponse.success(groupMapper.toGroupRecommendationSessionResponse(result));
     }
 
     @Override
@@ -215,7 +219,10 @@ public class GroupController implements GroupApi {
             @PathVariable Long groupId,
             @PathVariable Long sessionId
     ) {
-        return ApiResponse.success(GroupRecommendationCandidateListResponse.mock());
+        GroupRecommendationCandidateListResult result =
+                groupService.getGroupRecommendationCandidates(groupId, sessionId);
+
+        return ApiResponse.success(groupMapper.toGroupRecommendationCandidateListResponse(result));
     }
 
     @Override

@@ -131,7 +131,7 @@ public interface GroupApi {
                     - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
                     - 그룹의 모든 `ACTIVE` 멤버에게 고정 초대 코드를 함께 반환합니다.
                     - 삭제된 그룹은 조회할 수 없습니다.
-                    - 그룹 추천 구현 전까지 `activeRecommendation`은 null입니다.
+                    - 열린 그룹 추천이 있으면 `activeRecommendation`을 함께 반환합니다.
                     """
     )
     @ApiResponses({
@@ -402,13 +402,15 @@ public interface GroupApi {
     );
 
     @Operation(
-            summary = "그룹 추천 세션 상세 조회 (Mock API)",
+            summary = "그룹 추천 세션 상세 조회",
             description = """
                     그룹 추천 상태, 후보, 투표 진행률, 최종 후보를 조회합니다.
 
-                    Mock API 상태:
-                    - `groupId`, `sessionId` 존재 여부와 접근 권한은 아직 검증하지 않습니다.
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
                     - `sessionId`는 API 표현 이름이며 저장 모델은 `group_recommendations.id`로 해석합니다.
+                    - 후보별 현재 투표 수와 전체 투표 진행률을 함께 반환합니다.
                     """
     )
     @ApiResponses({
@@ -428,12 +430,15 @@ public interface GroupApi {
     ApiResponse<GroupRecommendationSessionResponse> getRecommendation(Long groupId, Long sessionId);
 
     @Operation(
-            summary = "그룹 추천 후보 목록 조회 (Mock API)",
+            summary = "그룹 추천 후보 목록 조회",
             description = """
                     그룹 추천 후보 메뉴 목록만 조회합니다.
 
-                    Mock API 상태:
-                    - 후보 3개와 현재 투표수를 고정 응답으로 반환합니다.
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - 후보는 추천 순위 오름차순으로 반환합니다.
+                    - 후보별 현재 투표 수를 함께 반환합니다.
                     - 실제 저장 테이블은 `group_recommendation_candidates` 기준입니다.
                     """
     )
