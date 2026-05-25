@@ -485,13 +485,15 @@ public class GroupServiceImpl implements GroupService {
             room.updateName(command.name());
         }
 
-        if (command.latitude() != null) {
+        if (command.latitude() != null && command.longitude() != null) {
             room.updateLatitude(command.latitude());
-        }
-
-        if (command.longitude() != null) {
             room.updateLongitude(command.longitude());
         }
+
+        Long openGroupRecommendationId = groupRecommendationRepository
+                .findFirstByRoomIdAndStatusOrderByStartedAtDesc(room.getId(), GroupRecommendationStatus.OPEN)
+                .map(GroupRecommendation::getId)
+                .orElse(null);
 
         return new UpdateGroupResult(
                 room.getId(),
@@ -499,7 +501,8 @@ public class GroupServiceImpl implements GroupService {
                 room.getLatitude(),
                 room.getLongitude(),
                 room.getStatus(),
-                room.getUpdatedAt()
+                room.getUpdatedAt(),
+                openGroupRecommendationId
         );
     }
 

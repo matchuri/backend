@@ -22,6 +22,13 @@ public record UpdateGroupResponse(
         GroupRoomStatus status,
 
         @Schema(description = "수정 시각입니다.", example = "2026-05-18T12:30:00")
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+
+        @Schema(
+                description = "그룹 수정 시점에 INPUT_CHANGED 재요청으로 이어갈 수 있는 열린 그룹 추천 ID입니다. 없으면 null입니다.",
+                example = "5001",
+                nullable = true
+        )
+        Long openGroupRecommendationId
 ) {
 }

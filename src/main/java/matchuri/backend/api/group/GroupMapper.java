@@ -199,7 +199,8 @@ public class GroupMapper {
                 result.latitude(),
                 result.longitude(),
                 result.status(),
-                result.updatedAt()
+                result.updatedAt(),
+                result.openGroupRecommendationId()
         );
     }
 

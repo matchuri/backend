@@ -10,6 +10,7 @@ public record UpdateGroupResult(
         BigDecimal latitude,
         BigDecimal longitude,
         GroupRoomStatus status,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        Long openGroupRecommendationId
 ) {
 }
