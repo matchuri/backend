@@ -20,6 +20,7 @@ import javax.crypto.SecretKey;
 import matchuri.backend.domain.group.entity.GroupRecommendation;
 import matchuri.backend.domain.group.entity.GroupRecommendationCandidate;
 import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
+import matchuri.backend.domain.group.entity.GroupRecommendationVote;
 import matchuri.backend.domain.group.entity.GroupInvite;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
@@ -30,6 +31,7 @@ import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.repository.GroupInviteRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
 import matchuri.backend.domain.member.entity.Member;
@@ -99,6 +101,9 @@ class GroupIntegrationTest {
     private GroupRecommendationCandidateRepository groupRecommendationCandidateRepository;
 
     @Autowired
+    private GroupRecommendationVoteRepository groupRecommendationVoteRepository;
+
+    @Autowired
     private MenuItemRepository menuItemRepository;
 
     @Autowired
@@ -136,6 +141,7 @@ class GroupIntegrationTest {
     }
 
     private void clearData() {
+        groupRecommendationVoteRepository.deleteAll();
         groupRecommendationCandidateRepository.deleteAll();
         groupRecommendationRepository.deleteAll();
         groupInviteRepository.deleteAll();
@@ -346,6 +352,162 @@ class GroupIntegrationTest {
         assertThat(groupRecommendationCandidateRepository.findAll())
                 .extracting(candidate -> candidate.getMenuItem().getId())
                 .doesNotContain(porkCutlet.getId());
+    }
+
+    @Test
+    @DisplayName("그룹 추천 상세 조회는 후보와 투표 진행률을 실제 저장값으로 반환한다")
+    void getGroupRecommendationReturnsStoredSession() throws Exception {
+        Member owner = saveMember("recommendation-view-owner", "조회방장");
+        Member member = saveMember("recommendation-view-member", "조회멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 조회 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        MenuItem bibimbap = saveMenu("view-bibimbap", "비빔밥");
+        MenuItem gimbap = saveMenu("view-gimbap", "김밥");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate firstCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, bibimbap, 1, 70.0, "{}")
+        );
+        GroupRecommendationCandidate secondCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, gimbap, 2, 30.0, "{}")
+        );
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, firstCandidate, owner));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.candidates.length()").value(2))
+                .andExpect(jsonPath("$.data.candidates[0].candidateId").value(firstCandidate.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].menuId").value(bibimbap.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].menuName").value("비빔밥"))
+                .andExpect(jsonPath("$.data.candidates[0].rankNo").value(1))
+                .andExpect(jsonPath("$.data.candidates[0].score").value(70.0))
+                .andExpect(jsonPath("$.data.candidates[0].voteCount").value(1))
+                .andExpect(jsonPath("$.data.candidates[1].candidateId").value(secondCandidate.getId()))
+                .andExpect(jsonPath("$.data.candidates[1].voteCount").value(0))
+                .andExpect(jsonPath("$.data.voteProgress.totalMemberCount").value(2))
+                .andExpect(jsonPath("$.data.voteProgress.votedMemberCount").value(1))
+                .andExpect(jsonPath("$.data.finalCandidate").value(nullValue()))
+                .andExpect(jsonPath("$.data.createdAt").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("그룹 추천 후보 목록 조회는 후보별 투표 수를 반환한다")
+    void getGroupRecommendationCandidatesReturnsVoteCounts() throws Exception {
+        Member owner = saveMember("recommendation-candidates-owner", "후보방장");
+        Member member = saveMember("recommendation-candidates-member", "후보멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "후보 조회 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        MenuItem ramen = saveMenu("candidate-ramen", "라멘");
+        MenuItem udon = saveMenu("candidate-udon", "우동");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate firstCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, ramen, 1, 10.0, "{}")
+        );
+        GroupRecommendationCandidate secondCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, udon, 2, 5.0, "{}")
+        );
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, secondCandidate, owner));
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, secondCandidate, member));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}/candidates",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.candidates.length()").value(2))
+                .andExpect(jsonPath("$.data.candidates[0].candidateId").value(firstCandidate.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].voteCount").value(0))
+                .andExpect(jsonPath("$.data.candidates[1].candidateId").value(secondCandidate.getId()))
+                .andExpect(jsonPath("$.data.candidates[1].voteCount").value(2));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 조회는 활성 멤버가 아니면 거절한다")
+    void getGroupRecommendationFailsForNonMember() throws Exception {
+        Member owner = saveMember("recommendation-view-denied-owner", "조회거절방장");
+        Member other = saveMember("recommendation-view-denied-other", "조회거절비멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "조회 거절 그룹");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 조회는 추천이 해당 그룹에 속하지 않으면 찾을 수 없음으로 처리한다")
+    void getGroupRecommendationFailsWhenRecommendationDoesNotBelongToGroup() throws Exception {
+        Member owner = saveMember("recommendation-wrong-group-owner", "다른그룹방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "조회 대상 그룹");
+        GroupRoom otherGroupRoom = saveGroupOwnedBy(owner, "다른 추천 그룹");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                otherGroupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("그룹 상세 조회는 열린 그룹 추천이 있으면 activeRecommendation을 반환한다")
+    void getGroupReturnsActiveRecommendation() throws Exception {
+        Member owner = saveMember("group-active-recommendation-owner", "활성추천방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "활성 추천 그룹");
+        MenuItem menuItem = saveMenu("active-rec-menu", "활성추천메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 20.0, "{}")
+        );
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.activeRecommendation.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.activeRecommendation.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.activeRecommendation.candidates[0].candidateId").value(candidate.getId()))
+                .andExpect(jsonPath("$.data.activeRecommendation.voteProgress.totalMemberCount").value(1))
+                .andExpect(jsonPath("$.data.activeRecommendation.voteProgress.votedMemberCount").value(0));
     }
 
     @Test
