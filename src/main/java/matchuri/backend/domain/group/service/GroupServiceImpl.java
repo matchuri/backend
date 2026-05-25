@@ -9,52 +9,11 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.group.command.CreateGroupCommand;
-import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
-import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
-import matchuri.backend.domain.group.command.DeleteGroupCommand;
-import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
-import matchuri.backend.domain.group.command.GetMyGroupsCommand;
-import matchuri.backend.domain.group.command.JoinGroupCommand;
-import matchuri.backend.domain.group.command.LeaveGroupCommand;
-import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
-import matchuri.backend.domain.group.command.UpdateGroupCommand;
-import matchuri.backend.domain.group.entity.GroupInvite;
-import matchuri.backend.domain.group.entity.GroupInviteResponseType;
-import matchuri.backend.domain.group.entity.GroupInviteStatus;
-import matchuri.backend.domain.group.entity.GroupMemberRole;
-import matchuri.backend.domain.group.entity.GroupMemberStatus;
-import matchuri.backend.domain.group.entity.GroupRecommendation;
-import matchuri.backend.domain.group.entity.GroupRecommendationCandidate;
-import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
-import matchuri.backend.domain.group.entity.GroupRoom;
-import matchuri.backend.domain.group.entity.GroupRoomMember;
-import matchuri.backend.domain.group.entity.GroupRoomStatus;
+import matchuri.backend.domain.group.command.*;
+import matchuri.backend.domain.group.entity.*;
 import matchuri.backend.domain.group.exception.GroupErrorCode;
-import matchuri.backend.domain.group.repository.GroupInviteRepository;
-import matchuri.backend.domain.group.repository.GroupCandidateVoteCountProjection;
-import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
-import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
-import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
-import matchuri.backend.domain.group.repository.GroupRoomMemberCountProjection;
-import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
-import matchuri.backend.domain.group.repository.GroupRoomRepository;
-import matchuri.backend.domain.group.result.CreateGroupResult;
-import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
-import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
-import matchuri.backend.domain.group.result.DeleteGroupResult;
-import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
-import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
-import matchuri.backend.domain.group.result.GroupDetailResult;
-import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
-import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
-import matchuri.backend.domain.group.result.GroupRecommendationResult;
-import matchuri.backend.domain.group.result.GroupSummaryResult;
-import matchuri.backend.domain.group.result.GroupVoteProgressResult;
-import matchuri.backend.domain.group.result.JoinGroupResult;
-import matchuri.backend.domain.group.result.LeaveGroupResult;
-import matchuri.backend.domain.group.result.RespondGroupInviteResult;
-import matchuri.backend.domain.group.result.UpdateGroupResult;
+import matchuri.backend.domain.group.repository.*;
+import matchuri.backend.domain.group.result.*;
 import matchuri.backend.domain.group.support.GroupInviteCodeGenerator;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
@@ -92,12 +51,14 @@ public class GroupServiceImpl implements GroupService {
     private static final int MAX_INVITE_CODE_GENERATION_ATTEMPTS = 5;
     private static final int NICKNAME_INVITE_EXPIRATION_HOURS = 24;
     private static final int GROUP_RECOMMENDATION_CANDIDATE_LIMIT = 3;
+    private static final long RECENT_GROUP_SKIPPED_MENU_EXCLUSION_HOURS = 24;
 
     private final ActiveMemberReader activeMemberReader;
     private final MemberRepository memberRepository;
     private final GroupRoomRepository groupRoomRepository;
     private final GroupRoomMemberRepository groupRoomMemberRepository;
     private final GroupInviteRepository groupInviteRepository;
+    private final GroupMenuActionRepository groupMenuActionRepository;
     private final GroupRecommendationRepository groupRecommendationRepository;
     private final GroupRecommendationCandidateRepository groupRecommendationCandidateRepository;
     private final GroupRecommendationVoteRepository groupRecommendationVoteRepository;
@@ -131,18 +92,9 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public CreateGroupRecommendationResult createGroupRecommendation(CreateGroupRecommendationCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(command.groupId(), GroupRoomStatus.DELETED)
-                .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, command.groupId()));
+        GroupRoom room = getActiveGroupRoom(command.groupId());
 
-        if (!room.isActive()) {
-            throw new BusinessException(GroupErrorCode.NOT_ACTIVE, room.getId());
-        }
-
-        GroupRoomMember membership = groupRoomMemberRepository
-                .findActiveMembershipInNotDeletedRoom(room.getId(), member.getId())
-                .orElseThrow(() -> new BusinessException(GroupErrorCode.ACCESS_DENIED, room.getId()));
-
-        if (!membership.isOwner()) {
+        if (!validateActiveMembership(room.getId(), member.getId()).isOwner()) {
             throw new BusinessException(GroupErrorCode.RECOMMENDATION_CREATE_FORBIDDEN, room.getId());
         }
 
@@ -150,6 +102,50 @@ public class GroupServiceImpl implements GroupService {
             throw new BusinessException(GroupErrorCode.RECOMMENDATION_OPEN_EXISTS, room.getId());
         }
 
+        return createGroupRecommendation(room, command.contextJson(), recentlySkippedMenuIds(room.getId()));
+    }
+
+    @Override
+    public CreateGroupRecommendationResult rerollGroupRecommendation(
+            Long groupId,
+            Long sessionId,
+            GroupRecommendationRerollType rerollType,
+            String contextJson
+    ) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = getActiveGroupRoom(groupId);
+        GroupRoomMember membership = validateActiveMembership(room.getId(), member.getId());
+
+        if (!membership.isOwner()) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_REROLL_FORBIDDEN, room.getId());
+        }
+
+        GroupRecommendation sourceRecommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
+
+        if (sourceRecommendation.getStatus() != GroupRecommendationStatus.OPEN) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_OPEN, sessionId);
+        }
+
+        LocalDateTime endedAt = LocalDateTime.now();
+
+        if (rerollType == GroupRecommendationRerollType.NOT_SATISFIED) {
+            saveGroupSkipActions(room, sourceRecommendation, member);
+            sourceRecommendation.rerollWithSkip(endedAt);
+        } else if (rerollType == GroupRecommendationRerollType.INPUT_CHANGED) {
+            sourceRecommendation.rerollWithoutSkip(endedAt);
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 그룹 추천 재요청 타입입니다. rerollType=" + rerollType);
+        }
+
+        return createGroupRecommendation(room, contextJson, recentlySkippedMenuIds(room.getId()));
+    }
+
+    private CreateGroupRecommendationResult createGroupRecommendation(
+            GroupRoom room,
+            String contextJson,
+            List<Long> excludedMenuIds
+    ) {
         List<GroupRoomMember> activeMembers = groupRoomMemberRepository.findActiveMembersByRoomId(room.getId());
         List<MenuItem> menuItems = menuItemRepository.searchActiveMenuItems(null, List.of(), true, List.of(), true);
         Map<Long, MenuItem> menuItemById = menuItems.stream()
@@ -162,16 +158,16 @@ public class GroupServiceImpl implements GroupService {
                 RecommendationTargetType.GROUP,
                 toTasteProfileSnapshots(activeMembers),
                 toMenuRecommendationProfiles(menuItems),
-                RecommendationContextSnapshot.of(command.contextJson()),
+                RecommendationContextSnapshot.of(contextJson),
                 GROUP_RECOMMENDATION_CANDIDATE_LIMIT,
                 List.of(),
-                List.of(),
+                excludedMenuIds,
                 Map.of()
         ));
 
         GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
                 room,
-                command.contextJson(),
+                contextJson,
                 LocalDateTime.now()
         ));
         List<GroupRecommendationCandidate> candidates = saveGroupRecommendationCandidates(
@@ -186,6 +182,47 @@ public class GroupServiceImpl implements GroupService {
                 candidates.stream()
                         .map(candidate -> GroupRecommendationCandidateResult.from(candidate, 0))
                         .toList()
+        );
+    }
+
+    private GroupRoom getActiveGroupRoom(Long groupId) {
+        GroupRoom room = groupRoomRepository.findByIdAndStatusNot(groupId, GroupRoomStatus.DELETED)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, groupId));
+
+        if (!room.isActive()) {
+            throw new BusinessException(GroupErrorCode.NOT_ACTIVE, room.getId());
+        }
+
+        return room;
+    }
+
+    private void saveGroupSkipActions(
+            GroupRoom room,
+            GroupRecommendation sourceRecommendation,
+            Member actorMember
+    ) {
+        List<GroupMenuAction> skipActions = groupRecommendationCandidateRepository
+                .findAllByGroupRecommendationIdOrderByRankNoAsc(sourceRecommendation.getId())
+                .stream()
+                .map(candidate -> new GroupMenuAction(
+                        room,
+                        sourceRecommendation,
+                        actorMember,
+                        candidate.getMenuItem(),
+                        GroupMenuActionType.SKIP
+                ))
+                .toList();
+
+        groupMenuActionRepository.saveAll(skipActions);
+    }
+
+    private List<Long> recentlySkippedMenuIds(Long groupRoomId) {
+        LocalDateTime threshold = LocalDateTime.now().minusHours(RECENT_GROUP_SKIPPED_MENU_EXCLUSION_HOURS);
+
+        return groupMenuActionRepository.findMenuItemIdsByGroupRoomIdAndActionTypeAndCreatedAtAfter(
+                groupRoomId,
+                GroupMenuActionType.SKIP,
+                threshold
         );
     }
 

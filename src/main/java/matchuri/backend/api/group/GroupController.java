@@ -10,6 +10,7 @@ import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
+import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
@@ -223,6 +224,24 @@ public class GroupController implements GroupApi {
                 groupService.getGroupRecommendationCandidates(groupId, sessionId);
 
         return ApiResponse.success(groupMapper.toGroupRecommendationCandidateListResponse(result));
+    }
+
+    @Override
+    @PostMapping("/{groupId}/recommendations/{sessionId}/reroll")
+    public ApiResponse<CreateGroupRecommendationResponse> rerollRecommendation(
+            @PathVariable Long groupId,
+            @PathVariable Long sessionId,
+            @Valid @RequestBody RerollGroupRecommendationRequest request
+    ) {
+        CreateGroupRecommendationCommand command = groupMapper.toCreateGroupRecommendationCommand(groupId, request);
+        CreateGroupRecommendationResult result = groupService.rerollGroupRecommendation(
+                command.groupId(),
+                sessionId,
+                request.rerollType(),
+                command.contextJson()
+        );
+
+        return ApiResponse.success(groupMapper.toCreateGroupRecommendationResponse(result));
     }
 
     @Override

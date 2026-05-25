@@ -11,6 +11,7 @@ import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
+import matchuri.backend.domain.group.entity.GroupRecommendationRerollType;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
@@ -31,6 +32,13 @@ public interface GroupService {
     CreateGroupResult createGroup(CreateGroupCommand command);
 
     CreateGroupRecommendationResult createGroupRecommendation(CreateGroupRecommendationCommand command);
+
+    CreateGroupRecommendationResult rerollGroupRecommendation(
+            Long groupId,
+            Long sessionId,
+            GroupRecommendationRerollType rerollType,
+            String contextJson
+    );
 
     GroupRecommendationResult getGroupRecommendation(Long groupId, Long sessionId);
 

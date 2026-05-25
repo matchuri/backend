@@ -9,6 +9,7 @@ import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
+import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
@@ -81,6 +82,13 @@ public class GroupMapper {
     public CreateGroupRecommendationCommand toCreateGroupRecommendationCommand(
             Long groupId,
             CreateGroupRecommendationRequest request
+    ) {
+        return new CreateGroupRecommendationCommand(groupId, toContextJson(request.contextJson()));
+    }
+
+    public CreateGroupRecommendationCommand toCreateGroupRecommendationCommand(
+            Long groupId,
+            RerollGroupRecommendationRequest request
     ) {
         return new CreateGroupRecommendationCommand(groupId, toContextJson(request.contextJson()));
     }
