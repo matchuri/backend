@@ -494,13 +494,15 @@ public interface GroupApi {
     );
 
     @Operation(
-            summary = "그룹 추천 후보 투표 (Mock API)",
+            summary = "그룹 추천 후보 투표",
             description = """
                     그룹 추천 후보에 투표합니다.
 
-                    Mock API 상태:
-                    - request body validation만 수행합니다.
-                    - 중복 투표, 후보 소속, 세션 상태 검증은 아직 수행하지 않습니다.
+                    정책:
+                    - 활성 그룹 멤버만 투표할 수 있습니다.
+                    - 열린 그룹 추천(`OPEN`)에만 투표할 수 있습니다.
+                    - 회원은 추천 세션당 한 번만 투표할 수 있습니다.
+                    - `voteValue`는 사용하지 않고 후보 선택 여부만 저장합니다.
                     - 실제 저장 테이블은 `group_recommendation_votes` 기준입니다.
                     """
     )

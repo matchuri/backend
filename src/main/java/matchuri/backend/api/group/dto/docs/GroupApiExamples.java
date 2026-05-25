@@ -325,7 +325,6 @@ public final class GroupApiExamples {
               "data": {
                 "voteId": 91001,
                 "candidateId": 8001,
-                "voteValue": 1,
                 "votedAt": "2026-05-06T12:20:00"
               },
               "error": null
