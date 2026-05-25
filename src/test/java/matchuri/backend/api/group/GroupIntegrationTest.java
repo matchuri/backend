@@ -32,6 +32,7 @@ import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.repository.GroupInviteRepository;
 import matchuri.backend.domain.group.repository.GroupMenuActionRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationReadinessRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
@@ -110,6 +111,9 @@ class GroupIntegrationTest {
     private GroupRecommendationCandidateRepository groupRecommendationCandidateRepository;
 
     @Autowired
+    private GroupRecommendationReadinessRepository groupRecommendationReadinessRepository;
+
+    @Autowired
     private GroupRecommendationVoteRepository groupRecommendationVoteRepository;
 
     @Autowired
@@ -153,6 +157,7 @@ class GroupIntegrationTest {
         jdbcTemplate.update("update group_recommendations set selected_candidate_id = null");
         groupMenuActionRepository.deleteAll();
         groupRecommendationVoteRepository.deleteAll();
+        groupRecommendationReadinessRepository.deleteAll();
         groupRecommendationCandidateRepository.deleteAll();
         groupRecommendationRepository.deleteAll();
         groupInviteRepository.deleteAll();
@@ -234,15 +239,10 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("그룹 추천 생성은 OWNER가 그룹 취향 기반 후보를 저장한다")
-    void createGroupRecommendationCreatesCandidatesForOwner() throws Exception {
+    @DisplayName("그룹 추천 생성은 OWNER가 준비 세션을 저장하고 후보는 아직 생성하지 않는다")
+    void createGroupRecommendationCreatesPreparingSessionForOwner() throws Exception {
         Member owner = saveMember("recommendation-owner", "추천방장");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 그룹");
-        AttributeCategory spicy = saveCategory("spicy", "매콤한", 1);
-        MenuItem kimchiStew = saveMenu("kimchi-stew", "김치찌개", spicy);
-        saveMenu("salad", "샐러드");
-        saveMenu("gimbap", "김밥");
-        saveTasteProfile(owner, new AttributeCategory[]{spicy}, new Ingredient[]{}, new MenuItem[]{});
 
         mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
@@ -257,27 +257,18 @@ class GroupIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.sessionId").isNumber())
-                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.OPEN.name()))
-                .andExpect(jsonPath("$.data.candidates.length()").value(3))
-                .andExpect(jsonPath("$.data.candidates[0].menuId").value(kimchiStew.getId()))
-                .andExpect(jsonPath("$.data.candidates[0].score").value(50.0))
-                .andExpect(jsonPath("$.data.candidates[0].voteCount").value(0));
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()))
+                .andExpect(jsonPath("$.data.candidates.length()").value(0));
 
         assertThat(groupRecommendationRepository.count()).isEqualTo(1);
-        assertThat(groupRecommendationCandidateRepository.count()).isEqualTo(3);
+        assertThat(groupRecommendationCandidateRepository.count()).isZero();
+        assertThat(groupRecommendationReadinessRepository.count()).isZero();
 
         GroupRecommendation savedRecommendation = groupRecommendationRepository.findAll().getFirst();
-        List<GroupRecommendationCandidate> candidates = groupRecommendationCandidateRepository.findAll();
 
         assertThat(savedRecommendation.getRoom().getId()).isEqualTo(groupRoom.getId());
-        assertThat(savedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.OPEN);
+        assertThat(savedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.PREPARING);
         assertThat(savedRecommendation.getContextJson()).contains("LUNCH");
-        assertThat(candidates)
-                .extracting(candidate -> candidate.getCandidateMetaJson())
-                .allSatisfy(candidateMetaJson -> {
-                    assertThat(candidateMetaJson).contains("GROUP");
-                    assertThat(candidateMetaJson).contains("scoreBreakdown");
-                });
     }
 
     @Test
@@ -308,10 +299,33 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("그룹 추천 생성은 열린 그룹 추천이 있으면 거절한다")
-    void createGroupRecommendationFailsWhenOpenRecommendationExists() throws Exception {
+    @DisplayName("그룹 추천 생성은 진행 중인 그룹 추천이 있으면 거절한다")
+    void createGroupRecommendationFailsWhenActiveRecommendationExists() throws Exception {
         Member owner = saveMember("recommendation-open-owner", "열린추천방장");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "열린 추천 그룹");
+        groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "contextJson": {}
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_ACTIVE_EXISTS"));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 생성은 열린 그룹 추천이 있어도 진행 중으로 보고 거절한다")
+    void createGroupRecommendationFailsWhenOpenRecommendationExists() throws Exception {
+        Member owner = saveMember("recommendation-already-open-owner", "이미열린추천방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "이미 열린 추천 그룹");
         groupRecommendationRepository.save(new GroupRecommendation(
                 groupRoom,
                 "{}",
@@ -327,12 +341,12 @@ class GroupIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_OPEN_EXISTS"));
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_ACTIVE_EXISTS"));
     }
 
     @Test
-    @DisplayName("그룹 추천 생성은 한 명이라도 제한한 재료가 포함된 메뉴를 제외한다")
-    void createGroupRecommendationExcludesAnyRestrictedIngredient() throws Exception {
+    @DisplayName("그룹 추천 생성은 준비 세션만 만들기 때문에 제한 재료 후보 필터링을 아직 수행하지 않는다")
+    void createGroupRecommendationDoesNotGenerateCandidatesDuringPreparing() throws Exception {
         Member owner = saveMember("recommendation-restriction-owner", "제한방장");
         Member member = saveMember("recommendation-restriction-member", "제한멤버");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "제한 추천 그룹");
@@ -357,12 +371,13 @@ class GroupIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.candidates.length()").value(1))
-                .andExpect(jsonPath("$.data.candidates[0].menuId").value(bibimbap.getId()));
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()))
+                .andExpect(jsonPath("$.data.candidates.length()").value(0));
 
-        assertThat(groupRecommendationCandidateRepository.findAll())
-                .extracting(candidate -> candidate.getMenuItem().getId())
-                .doesNotContain(porkCutlet.getId());
+        assertThat(groupRecommendationCandidateRepository.findAll()).isEmpty();
+        assertThat(menuItemRepository.findAll())
+                .extracting(MenuItem::getId)
+                .contains(porkCutlet.getId(), bibimbap.getId());
     }
 
     @Test
