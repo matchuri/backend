@@ -70,6 +70,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -83,6 +84,9 @@ class GroupIntegrationTest {
 
     @Autowired
     private MatchuriProperties matchuriProperties;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -146,6 +150,7 @@ class GroupIntegrationTest {
     }
 
     private void clearData() {
+        jdbcTemplate.update("update group_recommendations set selected_candidate_id = null");
         groupMenuActionRepository.deleteAll();
         groupRecommendationVoteRepository.deleteAll();
         groupRecommendationCandidateRepository.deleteAll();
@@ -805,6 +810,245 @@ class GroupIntegrationTest {
                                 """.formatted(candidate.getId())))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
+
+        assertThat(groupRecommendationVoteRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("그룹 추천 최종 확정은 OWNER가 최다 득표 후보를 저장한다")
+    void finalizeGroupRecommendationSelectsMostVotedCandidateForOwner() throws Exception {
+        Member owner = saveMember("recommendation-finalize-owner", "확정방장");
+        Member member = saveMember("recommendation-finalize-member", "확정멤버");
+        Member anotherMember = saveMember("recommendation-finalize-another", "확정멤버둘");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "확정 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(groupRoom, member, GroupMemberRole.MEMBER, LocalDateTime.now()));
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                anotherMember,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        MenuItem bibimbap = saveMenu("finalize-bibimbap", "확정비빔밥");
+        MenuItem gimbap = saveMenu("finalize-gimbap", "확정김밥");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate firstCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, bibimbap, 1, 70.0, "{}")
+        );
+        GroupRecommendationCandidate secondCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, gimbap, 2, 60.0, "{}")
+        );
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, firstCandidate, owner));
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, secondCandidate, member));
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, secondCandidate,
+                anotherMember));
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.FINALIZED.name()))
+                .andExpect(jsonPath("$.data.finalCandidate.candidateId").value(secondCandidate.getId()))
+                .andExpect(jsonPath("$.data.finalCandidate.menuId").value(gimbap.getId()))
+                .andExpect(jsonPath("$.data.finalCandidate.rankNo").value(2))
+                .andExpect(jsonPath("$.data.finalCandidate.voteCount").value(2))
+                .andExpect(jsonPath("$.data.finalizedAt").isNotEmpty());
+
+        GroupRecommendation finalizedRecommendation =
+                groupRecommendationRepository.findById(recommendation.getId()).orElseThrow();
+        assertThat(finalizedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.FINALIZED);
+        assertThat(finalizedRecommendation.getSelectedCandidate().getId()).isEqualTo(secondCandidate.getId());
+        assertThat(finalizedRecommendation.getEndedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("그룹 추천 최종 확정은 동률이면 추천 순위가 높은 후보를 저장한다")
+    void finalizeGroupRecommendationBreaksVoteTieByRankNo() throws Exception {
+        Member owner = saveMember("recommendation-finalize-tie-owner", "동률확정방장");
+        Member member = saveMember("recommendation-finalize-tie-member", "동률확정멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "동률 확정 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        MenuItem firstMenu = saveMenu("finalize-tie-first", "동률첫번째");
+        MenuItem secondMenu = saveMenu("finalize-tie-second", "동률두번째");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate firstCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, firstMenu, 1, 70.0, "{}")
+        );
+        GroupRecommendationCandidate secondCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, secondMenu, 2, 70.0, "{}")
+        );
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, firstCandidate, owner));
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, secondCandidate, member));
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.finalCandidate.candidateId").value(firstCandidate.getId()))
+                .andExpect(jsonPath("$.data.finalCandidate.rankNo").value(1))
+                .andExpect(jsonPath("$.data.finalCandidate.voteCount").value(1));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 최종 확정은 투표가 없으면 1순위 후보를 저장한다")
+    void finalizeGroupRecommendationSelectsRankOneWhenNoVotes() throws Exception {
+        Member owner = saveMember("recommendation-finalize-no-vote-owner", "무투표확정방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "무투표 확정 그룹");
+        MenuItem firstMenu = saveMenu("finalize-no-vote-first", "무투표첫번째");
+        MenuItem secondMenu = saveMenu("finalize-no-vote-second", "무투표두번째");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate firstCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, firstMenu, 1, 70.0, "{}")
+        );
+        groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, secondMenu, 2, 60.0, "{}")
+        );
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.finalCandidate.candidateId").value(firstCandidate.getId()))
+                .andExpect(jsonPath("$.data.finalCandidate.voteCount").value(0));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 최종 확정은 OWNER가 아닌 활성 멤버이면 거절한다")
+    void finalizeGroupRecommendationFailsForNonOwnerMember() throws Exception {
+        Member owner = saveMember("recommendation-finalize-forbidden-owner", "확정권한방장");
+        Member member = saveMember("recommendation-finalize-forbidden-member", "확정권한멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "확정 권한 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        MenuItem menuItem = saveMenu("finalize-forbidden-menu", "확정권한메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 10.0, "{}")
+        );
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_FINALIZE_FORBIDDEN"));
+
+        assertThat(groupRecommendationRepository.findById(recommendation.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.OPEN);
+    }
+
+    @Test
+    @DisplayName("그룹 추천 최종 확정은 열린 상태가 아니면 거절한다")
+    void finalizeGroupRecommendationFailsForNotOpenRecommendation() throws Exception {
+        Member owner = saveMember("recommendation-finalize-closed-owner", "확정종료방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "확정 종료 그룹");
+        MenuItem menuItem = saveMenu("finalize-closed-menu", "확정종료메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 10.0, "{}")
+        );
+        recommendation.finalizeWith(candidate, LocalDateTime.now());
+        groupRecommendationRepository.save(recommendation);
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_OPEN"));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 최종 확정은 후보가 없으면 거절한다")
+    void finalizeGroupRecommendationFailsWhenNoCandidates() throws Exception {
+        Member owner = saveMember("recommendation-finalize-empty-owner", "후보없음방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "후보 없음 그룹");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NO_CANDIDATES"));
+
+        assertThat(groupRecommendationRepository.findById(recommendation.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.OPEN);
+    }
+
+    @Test
+    @DisplayName("확정된 그룹 추천에는 더 이상 투표할 수 없다")
+    void voteGroupRecommendationFailsAfterFinalized() throws Exception {
+        Member owner = saveMember("recommendation-vote-finalized-owner", "확정후투표방장");
+        Member member = saveMember("recommendation-vote-finalized-member", "확정후투표멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "확정 후 투표 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        MenuItem menuItem = saveMenu("vote-finalized-menu", "확정후투표메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 10.0, "{}")
+        );
+        recommendation.finalizeWith(candidate, LocalDateTime.now());
+        groupRecommendationRepository.save(recommendation);
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/votes",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "candidateId": %d
+                                }
+                                """.formatted(candidate.getId())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_OPEN"));
 
         assertThat(groupRecommendationVoteRepository.count()).isZero();
     }
