@@ -1,6 +1,7 @@
 package matchuri.backend.domain.group.entity;
 
 public enum GroupRecommendationStatus {
+    PREPARING,
     OPEN,
     FINALIZED,
     REROLLED_WITH_SKIP,

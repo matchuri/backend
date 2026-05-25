@@ -59,6 +59,16 @@ public class GroupRecommendation extends BaseEntity {
         this.status = GroupRecommendationStatus.OPEN;
     }
 
+    public static GroupRecommendation preparing(GroupRoom room, String contextJson, LocalDateTime startedAt) {
+        GroupRecommendation recommendation = new GroupRecommendation(room, contextJson, startedAt);
+        recommendation.status = GroupRecommendationStatus.PREPARING;
+        return recommendation;
+    }
+
+    public void open() {
+        this.status = GroupRecommendationStatus.OPEN;
+    }
+
     public void finalizeWith(GroupRecommendationCandidate selectedCandidate, LocalDateTime endedAt) {
         this.status = GroupRecommendationStatus.FINALIZED;
         this.selectedCandidate = selectedCandidate;

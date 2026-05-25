@@ -98,11 +98,21 @@ public class GroupServiceImpl implements GroupService {
             throw new BusinessException(GroupErrorCode.RECOMMENDATION_CREATE_FORBIDDEN, room.getId());
         }
 
-        if (groupRecommendationRepository.existsByRoomIdAndStatus(room.getId(), GroupRecommendationStatus.OPEN)) {
-            throw new BusinessException(GroupErrorCode.RECOMMENDATION_OPEN_EXISTS, room.getId());
+        if (hasActiveRecommendation(room.getId())) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_ACTIVE_EXISTS, room.getId());
         }
 
-        return createGroupRecommendation(room, command.contextJson(), recentlySkippedMenuIds(room.getId()));
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                room,
+                command.contextJson(),
+                LocalDateTime.now()
+        ));
+
+        return new CreateGroupRecommendationResult(
+                recommendation.getId(),
+                recommendation.getStatus(),
+                List.of()
+        );
     }
 
     @Override
@@ -138,10 +148,17 @@ public class GroupServiceImpl implements GroupService {
             throw new IllegalArgumentException("지원하지 않는 그룹 추천 재요청 타입입니다. rerollType=" + rerollType);
         }
 
-        return createGroupRecommendation(room, contextJson, recentlySkippedMenuIds(room.getId()));
+        return createOpenGroupRecommendation(room, contextJson, recentlySkippedMenuIds(room.getId()));
     }
 
-    private CreateGroupRecommendationResult createGroupRecommendation(
+    private boolean hasActiveRecommendation(Long roomId) {
+        return groupRecommendationRepository.existsByRoomIdAndStatusIn(
+                roomId,
+                List.of(GroupRecommendationStatus.PREPARING, GroupRecommendationStatus.OPEN)
+        );
+    }
+
+    private CreateGroupRecommendationResult createOpenGroupRecommendation(
             GroupRoom room,
             String contextJson,
             List<Long> excludedMenuIds
