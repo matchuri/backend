@@ -209,6 +209,18 @@ public final class GroupApiExamples {
               "success": true,
               "data": {
                 "sessionId": 5001,
+                "status": "PREPARING",
+                "candidates": []
+              },
+              "error": null
+            }
+            """;
+
+    public static final String REROLL_RECOMMENDATION_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "sessionId": 5001,
                 "status": "OPEN",
                 "candidates": [
                   {

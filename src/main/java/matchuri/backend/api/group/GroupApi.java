@@ -377,14 +377,13 @@ public interface GroupApi {
     @Operation(
             summary = "그룹 추천 시작",
             description = """
-                    그룹 추천을 시작하고 후보 메뉴를 생성합니다.
+                    그룹 추천 준비 세션을 시작합니다.
 
                     - 로그인한 활성 회원만 사용할 수 있습니다.
                     - MVP에서는 해당 그룹의 `OWNER`만 시작할 수 있습니다.
-                    - 한 그룹에는 동시에 `OPEN` 그룹 추천을 1개만 허용합니다.
-                    - 그룹 활성 멤버의 취향 프로필을 모아 후보를 생성합니다.
-                    - 취향 프로필이 없는 멤버는 빈 취향으로 반영합니다.
-                    - 생성된 후보에는 추천 점수와 내부 메타데이터를 저장합니다.
+                    - 한 그룹에는 동시에 `PREPARING` 또는 `OPEN` 그룹 추천을 1개만 허용합니다.
+                    - 생성 직후 상태는 `PREPARING`이며, 후보는 아직 생성하지 않습니다.
+                    - 그룹원 준비 완료 API가 추가되면 모든 활성 멤버가 준비 완료한 시점에 후보를 생성하고 `OPEN`으로 전환합니다.
                     - API 경로는 사용자 흐름상 `recommendations`를 사용하며, 최신 저장 테이블은 `group_recommendations` 기준입니다.
                     """
     )
@@ -528,7 +527,7 @@ public interface GroupApi {
                             schema = @Schema(implementation = CreateGroupRecommendationApiResponse.class),
                             examples = @ExampleObject(
                                     name = "success",
-                                    value = GroupApiExamples.CREATE_RECOMMENDATION_SUCCESS
+                                    value = GroupApiExamples.REROLL_RECOMMENDATION_SUCCESS
                             )
                     )
             )
