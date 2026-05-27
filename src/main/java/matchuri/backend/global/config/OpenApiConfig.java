@@ -90,6 +90,7 @@ public class OpenApiConfig {
         return openApi -> {
             openApi.setTags(API_FLOW_TAGS);
             API_OPERATION_METADATA.forEach((key, metadata) -> applyApiMetadata(openApi, key, metadata));
+            sortPathsByApiOperationMetadata(openApi);
         };
     }
 
@@ -107,6 +108,27 @@ public class OpenApiConfig {
         operation.setTags(List.of(metadata.tagName()));
         operation.addExtension("x-api-id", metadata.apiId());
         operation.setSummary(withApiIdPrefix(metadata.apiId(), operation.getSummary()));
+    }
+
+    private static void sortPathsByApiOperationMetadata(OpenAPI openApi) {
+        Paths paths = openApi.getPaths();
+        if (paths == null) {
+            return;
+        }
+
+        Paths sortedPaths = new Paths();
+        API_OPERATION_METADATA.keySet().forEach(key -> {
+            if (paths.containsKey(key.path()) && !sortedPaths.containsKey(key.path())) {
+                sortedPaths.addPathItem(key.path(), paths.get(key.path()));
+            }
+        });
+        paths.forEach((path, pathItem) -> {
+            if (!sortedPaths.containsKey(path)) {
+                sortedPaths.addPathItem(path, pathItem);
+            }
+        });
+
+        openApi.setPaths(sortedPaths);
     }
 
     private static String withApiIdPrefix(String apiId, String summary) {

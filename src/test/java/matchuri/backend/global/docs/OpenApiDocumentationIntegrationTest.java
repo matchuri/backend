@@ -1,5 +1,6 @@
 package matchuri.backend.global.docs;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -21,6 +22,32 @@ class OpenApiDocumentationIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Test
+    @DisplayName("OpenAPI 문서의 path 산출 순서가 API ID 순서를 따른다")
+    void sortsOpenApiPathsByApiIdOrder() throws Exception {
+        String openApiJson = mockMvc.perform(get("/docs/openapi"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertAppearsInOrder(openApiJson,
+                "\"/api/v1/auth/email\":",
+                "\"/api/v1/auth/email/confirm\":",
+                "\"/api/v1/members/exists/{loginId}\":",
+                "\"/api/v1/members/exists/nickname/{nickname}\":",
+                "\"/api/v1/members/signup\":",
+                "\"/api/v1/auth/oauth2/{provider}\":",
+                "\"/api/v1/auth/oauth2/exchange\":",
+                "\"/api/v1/auth/login\":",
+                "\"/api/v1/auth/refresh\":",
+                "\"/api/v1/auth/logout\":",
+                "\"/api/v1/auth/recovery/login-id\":",
+                "\"/api/v1/auth/recovery/password\":",
+                "\"/api/v1/members\":");
+    }
 
     @Test
     @DisplayName("OpenAPI 문서에 loginId 중복 확인 API의 요약과 제약 설명이 노출된다")
@@ -695,5 +722,19 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.components.schemas.SubmitRequiredAgreementsResponse.properties.accessToken.description")
                         .value(org.hamcrest.Matchers.containsString("새 access token")));
+    }
+
+    private static void assertAppearsInOrder(String content, String... fragments) {
+        int previousIndex = -1;
+        for (String fragment : fragments) {
+            int currentIndex = content.indexOf(fragment);
+            assertThat(currentIndex)
+                    .as("Expected OpenAPI content to contain %s", fragment)
+                    .isNotNegative();
+            assertThat(currentIndex)
+                    .as("Expected %s to appear after the previous API path", fragment)
+                    .isGreaterThan(previousIndex);
+            previousIndex = currentIndex;
+        }
     }
 }
