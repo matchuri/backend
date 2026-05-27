@@ -418,6 +418,11 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/candidates'].get.responses['200'].content['application/json'].examples.success.value.data.candidates[1].menuName")
                         .value("돈까스"))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/readiness'].get.summary")
+                        .value("그룹 추천 준비 상태 조회"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/readiness'].get.responses['200'].content['application/json'].examples.success.value.data.progress.readyMemberCount")
+                        .value(2))
                 .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/ready'].post.summary")
                         .value("그룹 추천 준비 완료"))
                 .andExpect(jsonPath(
