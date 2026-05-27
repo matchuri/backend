@@ -254,10 +254,15 @@ public class GroupMapper {
         return new GroupRecommendationSessionResponse(
                 result.sessionId(),
                 result.status(),
+                result.readiness() == null
+                        ? null
+                        : toGroupRecommendationReadinessProgressResponse(result.readiness()),
                 result.candidates().stream()
                         .map(this::toGroupRecommendationCandidateResponse)
                         .toList(),
-                toGroupVoteProgressResponse(result.voteProgress()),
+                result.voteProgress() == null
+                        ? null
+                        : toGroupVoteProgressResponse(result.voteProgress()),
                 result.finalCandidate() == null
                         ? null
                         : toGroupRecommendationCandidateResponse(result.finalCandidate()),

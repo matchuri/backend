@@ -12,10 +12,13 @@ public record GroupRecommendationSessionResponse(
         @Schema(description = "그룹 추천 상태입니다.", example = "OPEN")
         GroupRecommendationStatus status,
 
+        @Schema(description = "준비 단계 진행률입니다. PREPARING 상태가 아니면 null입니다.", nullable = true)
+        GroupRecommendationReadinessProgressResponse readiness,
+
         @Schema(description = "추천 후보 목록입니다.")
         List<GroupRecommendationCandidateResponse> candidates,
 
-        @Schema(description = "투표 진행률입니다.")
+        @Schema(description = "투표 진행률입니다. PREPARING 상태이면 null입니다.", nullable = true)
         GroupVoteProgressResponse voteProgress,
 
         @Schema(description = "최종 확정 후보입니다. 확정 전에는 null입니다.")
@@ -28,6 +31,7 @@ public record GroupRecommendationSessionResponse(
         return new GroupRecommendationSessionResponse(
                 5001L,
                 GroupRecommendationStatus.OPEN,
+                null,
                 GroupMocks.candidates(),
                 GroupVoteProgressResponse.mockInProgress(),
                 null,

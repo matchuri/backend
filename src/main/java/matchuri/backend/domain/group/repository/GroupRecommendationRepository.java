@@ -21,5 +21,12 @@ public interface GroupRecommendationRepository extends JpaRepository<GroupRecomm
             GroupRecommendationStatus status
     );
 
+    Optional<GroupRecommendation> findFirstByRoomIdAndStatusInOrderByStartedAtDescIdDesc(
+            Long roomId,
+            Collection<GroupRecommendationStatus> statuses
+    );
+
+    Optional<GroupRecommendation> findFirstByRoomIdOrderByStartedAtDescIdDesc(Long roomId);
+
     Page<GroupRecommendation> findByRoomIdOrderByStartedAtDescIdDesc(Long roomId, Pageable pageable);
 }

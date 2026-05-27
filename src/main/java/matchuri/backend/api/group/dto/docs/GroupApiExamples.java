@@ -27,7 +27,7 @@ public final class GroupApiExamples {
                     "name": "오늘 점심 메뉴 회의",
                     "status": "ACTIVE",
                     "memberCount": 4,
-                    "latestRecommendationStatus": null,
+                    "latestRecommendationStatus": "PREPARING",
                     "createdAt": "2026-05-06T12:00:00"
                   }
                 ],
@@ -86,7 +86,19 @@ public final class GroupApiExamples {
                     "joinedAt": "2026-05-06T12:02:00"
                   }
                 ],
-                "activeRecommendation": null
+                "activeRecommendation": {
+                  "sessionId": 5001,
+                  "status": "PREPARING",
+                  "readiness": {
+                    "totalMemberCount": 4,
+                    "readyMemberCount": 2,
+                    "allReady": false
+                  },
+                  "candidates": [],
+                  "voteProgress": null,
+                  "finalCandidate": null,
+                  "createdAt": "2026-05-06T12:05:00"
+                }
               },
               "error": null
             }
@@ -260,7 +272,7 @@ public final class GroupApiExamples {
                 "content": [
                   {
                     "sessionId": 5002,
-                    "status": "OPEN",
+                    "status": "PREPARING",
                     "startedAt": "2026-05-26T12:20:00",
                     "endedAt": null
                   },
@@ -292,6 +304,7 @@ public final class GroupApiExamples {
               "data": {
                 "sessionId": 5001,
                 "status": "OPEN",
+                "readiness": null,
                 "candidates": [
                   {
                     "candidateId": 8001,

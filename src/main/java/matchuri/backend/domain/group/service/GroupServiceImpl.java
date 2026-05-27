@@ -733,7 +733,10 @@ public class GroupServiceImpl implements GroupService {
                 .map(this::toMemberSummaryResult)
                 .toList();
         GroupRecommendationResult activeRecommendation = groupRecommendationRepository
-                .findFirstByRoomIdAndStatusOrderByStartedAtDesc(groupId, GroupRecommendationStatus.OPEN)
+                .findFirstByRoomIdAndStatusInOrderByStartedAtDescIdDesc(
+                        groupId,
+                        List.of(GroupRecommendationStatus.PREPARING, GroupRecommendationStatus.OPEN)
+                )
                 .map(this::toGroupRecommendationResult)
                 .orElse(null);
 
@@ -755,7 +758,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     private GroupRecommendationResult toGroupRecommendationResult(GroupRecommendation recommendation) {
-        List<GroupRecommendationCandidateResult> candidates = toCandidateResults(recommendation);
+        boolean preparing = recommendation.getStatus() == GroupRecommendationStatus.PREPARING;
+        List<GroupRecommendationCandidateResult> candidates = preparing ? List.of() : toCandidateResults(recommendation);
         GroupRecommendationCandidateResult finalCandidate = recommendation.getSelectedCandidate() == null
                 ? null
                 : candidates.stream()
@@ -770,8 +774,16 @@ public class GroupServiceImpl implements GroupService {
         return new GroupRecommendationResult(
                 recommendation.getId(),
                 recommendation.getStatus(),
+                preparing
+                        ? readinessProgress(
+                                recommendation.getId(),
+                                recommendation.getRoom().getId(),
+                                groupRoomMemberRepository.findActiveMembersByRoomId(recommendation.getRoom().getId())
+                                        .size()
+                        )
+                        : null,
                 candidates,
-                toVoteProgress(recommendation),
+                preparing ? null : toVoteProgress(recommendation),
                 finalCandidate,
                 recommendation.getCreatedAt()
         );
@@ -947,7 +959,9 @@ public class GroupServiceImpl implements GroupService {
                 room.getName(),
                 room.getStatus(),
                 activeMemberCounts.getOrDefault(room.getId(), 0L).intValue(),
-                null,
+                groupRecommendationRepository.findFirstByRoomIdOrderByStartedAtDescIdDesc(room.getId())
+                        .map(GroupRecommendation::getStatus)
+                        .orElse(null),
                 room.getCreatedAt()
         );
     }
