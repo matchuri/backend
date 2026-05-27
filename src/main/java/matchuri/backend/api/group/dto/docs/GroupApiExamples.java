@@ -365,6 +365,40 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String RECOMMENDATION_READINESS_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "sessionId": 5001,
+                "status": "PREPARING",
+                "progress": {
+                  "totalMemberCount": 4,
+                  "readyMemberCount": 2,
+                  "allReady": false
+                },
+                "members": [
+                  {
+                    "memberId": 1,
+                    "nickname": "김철수",
+                    "role": "OWNER",
+                    "ready": true,
+                    "readinessStatus": "READY",
+                    "readinessUpdatedAt": "2026-05-26T12:05:00"
+                  },
+                  {
+                    "memberId": 2,
+                    "nickname": "김덕배",
+                    "role": "MEMBER",
+                    "ready": false,
+                    "readinessStatus": null,
+                    "readinessUpdatedAt": null
+                  }
+                ]
+              },
+              "error": null
+            }
+            """;
+
     public static final String READY_RECOMMENDATION_SUCCESS = """
             {
               "success": true,

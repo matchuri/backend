@@ -19,6 +19,7 @@ import matchuri.backend.api.group.dto.docs.GroupApiExamples;
 import matchuri.backend.api.group.dto.docs.GroupDetailApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupInviteSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationCandidateListApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupRecommendationReadinessApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationSessionApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupSummaryPageApiResponse;
@@ -44,6 +45,7 @@ import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationRespon
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
@@ -505,6 +507,36 @@ public interface GroupApi {
             )
     })
     ApiResponse<GroupRecommendationCandidateListResponse> getRecommendationCandidates(Long groupId, Long sessionId);
+
+    @Operation(
+            summary = "그룹 추천 준비 상태 조회",
+            description = """
+                    그룹 추천 준비 세션의 준비 진행률과 현재 활성 멤버별 준비 상태를 조회합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - `sessionId`는 해당 그룹에 속한 그룹 추천이어야 합니다.
+                    - 분모는 현재 `ACTIVE` 그룹 멤버 기준입니다.
+                    - `status=READY`인 현재 활성 멤버만 준비 완료로 계산합니다.
+                    - 아직 준비 액션이 없거나 `CANCELED` 상태인 멤버는 준비 미완료로 계산합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupRecommendationReadinessApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RECOMMENDATION_READINESS_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<GroupRecommendationReadinessResponse> getRecommendationReadiness(Long groupId, Long sessionId);
 
     @Operation(
             summary = "그룹 추천 준비 완료",
