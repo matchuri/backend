@@ -563,10 +563,18 @@ public interface GroupApi {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ReadyGroupRecommendationApiResponse.class),
-                            examples = @ExampleObject(
-                                    name = "success",
-                                    value = GroupApiExamples.READY_RECOMMENDATION_SUCCESS
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "preparing",
+                                            summary = "아직 전원 준비 전",
+                                            value = GroupApiExamples.READY_RECOMMENDATION_SUCCESS
+                                    ),
+                                    @ExampleObject(
+                                            name = "opened",
+                                            summary = "마지막 인원 준비 완료로 후보 생성",
+                                            value = GroupApiExamples.READY_RECOMMENDATION_OPEN_SUCCESS
+                                    )
+                            }
                     )
             )
     })
