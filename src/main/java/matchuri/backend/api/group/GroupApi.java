@@ -25,6 +25,7 @@ import matchuri.backend.api.group.dto.docs.GroupSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupVoteApiResponse;
 import matchuri.backend.api.group.dto.docs.JoinGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.LeaveGroupApiResponse;
+import matchuri.backend.api.group.dto.docs.ReadyGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.RespondGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.UpdateGroupApiResponse;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
@@ -49,6 +50,7 @@ import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.api.group.dto.response.ReadyGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
@@ -503,6 +505,36 @@ public interface GroupApi {
             )
     })
     ApiResponse<GroupRecommendationCandidateListResponse> getRecommendationCandidates(Long groupId, Long sessionId);
+
+    @Operation(
+            summary = "그룹 추천 준비 완료",
+            description = """
+                    현재 회원이 그룹 추천 준비 세션에서 준비 완료 상태가 됩니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 준비 완료할 수 있습니다.
+                    - source 그룹 추천은 해당 그룹에 속하고 `PREPARING` 상태여야 합니다.
+                    - 같은 회원의 중복 호출은 idempotent하게 `READY` 상태를 유지합니다.
+                    - 모든 현재 `ACTIVE` 그룹 멤버가 준비 완료하면 후보를 생성하고 세션을 `OPEN`으로 전환합니다.
+                    - 응답은 준비 진행률과, `OPEN` 전환 시 생성된 후보 목록을 함께 반환합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "준비 완료 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ReadyGroupRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.READY_RECOMMENDATION_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<ReadyGroupRecommendationResponse> readyRecommendation(Long groupId, Long sessionId);
 
     @Operation(
             summary = "그룹 추천 재요청",

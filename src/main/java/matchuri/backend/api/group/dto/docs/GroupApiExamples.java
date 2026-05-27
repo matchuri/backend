@@ -365,6 +365,23 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String READY_RECOMMENDATION_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "sessionId": 5001,
+                "status": "PREPARING",
+                "readiness": {
+                  "totalMemberCount": 4,
+                  "readyMemberCount": 3,
+                  "allReady": false
+                },
+                "candidates": []
+              },
+              "error": null
+            }
+            """;
+
     public static final String VOTE_SUCCESS = """
             {
               "success": true,
