@@ -21,6 +21,8 @@ import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessMemberResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessProgressResponse;
@@ -54,6 +56,8 @@ import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
+import matchuri.backend.domain.group.result.GroupRecommendationReadinessMemberResult;
+import matchuri.backend.domain.group.result.GroupRecommendationReadinessResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupRecommendationSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessProgressResult;
@@ -283,6 +287,19 @@ public class GroupMapper {
         );
     }
 
+    public GroupRecommendationReadinessResponse toGroupRecommendationReadinessResponse(
+            GroupRecommendationReadinessResult result
+    ) {
+        return new GroupRecommendationReadinessResponse(
+                result.sessionId(),
+                result.status(),
+                toGroupRecommendationReadinessProgressResponse(result.progress()),
+                result.members().stream()
+                        .map(this::toGroupRecommendationReadinessMemberResponse)
+                        .toList()
+        );
+    }
+
     public ReadyGroupRecommendationResponse toReadyGroupRecommendationResponse(
             ReadyGroupRecommendationResult result
     ) {
@@ -355,6 +372,19 @@ public class GroupMapper {
         return new GroupVoteProgressResponse(
                 result.totalMemberCount(),
                 result.votedMemberCount()
+        );
+    }
+
+    private GroupRecommendationReadinessMemberResponse toGroupRecommendationReadinessMemberResponse(
+            GroupRecommendationReadinessMemberResult result
+    ) {
+        return new GroupRecommendationReadinessMemberResponse(
+                result.memberId(),
+                result.nickname(),
+                result.role(),
+                result.ready(),
+                result.readinessStatus(),
+                result.readinessUpdatedAt()
         );
     }
 

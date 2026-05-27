@@ -293,6 +293,43 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public GroupRecommendationReadinessResult getGroupRecommendationReadiness(Long groupId, Long sessionId) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = getActiveGroupRoom(groupId);
+        validateActiveMembership(room.getId(), member.getId());
+
+        GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, room.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
+
+        List<GroupRoomMember> activeMembers = groupRoomMemberRepository.findActiveMembersByRoomId(room.getId());
+        Map<Long, GroupRecommendationReadiness> readinessByMemberId = groupRecommendationReadinessRepository
+                .findAllByGroupRecommendationId(recommendation.getId())
+                .stream()
+                .collect(Collectors.toMap(
+                        readiness -> readiness.getMember().getId(),
+                        Function.identity()
+                ));
+
+        GroupRecommendationReadinessProgressResult progress = readinessProgress(
+                recommendation.getId(),
+                room.getId(),
+                activeMembers.size()
+        );
+
+        List<GroupRecommendationReadinessMemberResult> recommendationReadinessMemberResults = activeMembers.stream()
+                .map(groupMember -> toReadinessMemberResult(groupMember, readinessByMemberId))
+                .toList();
+
+        return new GroupRecommendationReadinessResult(
+                recommendation.getId(),
+                recommendation.getStatus(),
+                progress,
+                recommendationReadinessMemberResults
+        );
+    }
+
+    @Override
     public ReadyGroupRecommendationResult readyGroupRecommendation(Long groupId, Long sessionId) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         GroupRoom room = getActiveGroupRoom(groupId);
@@ -315,16 +352,12 @@ public class GroupServiceImpl implements GroupService {
                         ))
                 );
 
-        List<GroupRoomMember> activeMembers = groupRoomMemberRepository.findActiveMembersByRoomId(room.getId());
-        int totalMemberCount = activeMembers.size();
-        int readyMemberCount = Math.toIntExact(groupRecommendationReadinessRepository
-                .countActiveMemberReadinessByRecommendationIdAndStatus(
-                        recommendation.getId(),
-                        room.getId(),
-                        GroupRecommendationReadinessStatus.READY
-                ));
-        GroupRecommendationReadinessProgressResult readiness =
-                GroupRecommendationReadinessProgressResult.of(totalMemberCount, readyMemberCount);
+        int totalMemberCount = groupRoomMemberRepository.findActiveMembersByRoomId(room.getId()).size();
+        GroupRecommendationReadinessProgressResult readiness = readinessProgress(
+                recommendation.getId(),
+                room.getId(),
+                totalMemberCount
+        );
 
         List<GroupRecommendationCandidate> candidates = List.of();
         if (readiness.allReady()) {
@@ -343,6 +376,39 @@ public class GroupServiceImpl implements GroupService {
                 candidates.stream()
                         .map(candidate -> GroupRecommendationCandidateResult.from(candidate, 0))
                         .toList()
+        );
+    }
+
+    private GroupRecommendationReadinessProgressResult readinessProgress(
+            Long recommendationId,
+            Long roomId,
+            int totalMemberCount
+    ) {
+        int readyMemberCount = Math.toIntExact(groupRecommendationReadinessRepository
+                .countActiveMemberReadinessByRecommendationIdAndStatus(
+                        recommendationId,
+                        roomId,
+                        GroupRecommendationReadinessStatus.READY
+                ));
+
+        return GroupRecommendationReadinessProgressResult.of(totalMemberCount, readyMemberCount);
+    }
+
+    private GroupRecommendationReadinessMemberResult toReadinessMemberResult(
+            GroupRoomMember groupMember,
+            Map<Long, GroupRecommendationReadiness> readinessByMemberId
+    ) {
+        Member member = groupMember.getMember();
+        GroupRecommendationReadiness readiness = readinessByMemberId.get(member.getId());
+        GroupRecommendationReadinessStatus readinessStatus = readiness == null ? null : readiness.getStatus();
+
+        return new GroupRecommendationReadinessMemberResult(
+                member.getId(),
+                member.getNickname(),
+                groupMember.getRole(),
+                readinessStatus == GroupRecommendationReadinessStatus.READY,
+                readinessStatus,
+                readiness == null ? null : readiness.getUpdatedAt()
         );
     }
 

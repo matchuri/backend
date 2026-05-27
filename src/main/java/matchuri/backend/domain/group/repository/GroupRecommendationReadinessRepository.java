@@ -1,5 +1,6 @@
 package matchuri.backend.domain.group.repository;
 
+import java.util.List;
 import java.util.Optional;
 import matchuri.backend.domain.group.entity.GroupRecommendationReadiness;
 import matchuri.backend.domain.group.entity.GroupRecommendationReadinessStatus;
@@ -14,6 +15,8 @@ public interface GroupRecommendationReadinessRepository
             Long groupRecommendationId,
             Long memberId
     );
+
+    List<GroupRecommendationReadiness> findAllByGroupRecommendationId(Long groupRecommendationId);
 
     @Query("""
             select count(readiness)

@@ -21,6 +21,7 @@ import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationRespon
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
@@ -50,6 +51,7 @@ import matchuri.backend.domain.group.result.FinalizeGroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
+import matchuri.backend.domain.group.result.GroupRecommendationReadinessResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupRecommendationSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
@@ -248,6 +250,18 @@ public class GroupController implements GroupApi {
                 groupService.getGroupRecommendationCandidates(groupId, sessionId);
 
         return ApiResponse.success(groupMapper.toGroupRecommendationCandidateListResponse(result));
+    }
+
+    @Override
+    @GetMapping("/{groupId}/recommendations/{sessionId}/readiness")
+    public ApiResponse<GroupRecommendationReadinessResponse> getRecommendationReadiness(
+            @PathVariable Long groupId,
+            @PathVariable Long sessionId
+    ) {
+        GroupRecommendationReadinessResult result =
+                groupService.getGroupRecommendationReadiness(groupId, sessionId);
+
+        return ApiResponse.success(groupMapper.toGroupRecommendationReadinessResponse(result));
     }
 
     @Override
