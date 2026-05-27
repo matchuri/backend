@@ -19,6 +19,8 @@ import java.util.List;
 import javax.crypto.SecretKey;
 import matchuri.backend.domain.group.entity.GroupRecommendation;
 import matchuri.backend.domain.group.entity.GroupRecommendationCandidate;
+import matchuri.backend.domain.group.entity.GroupRecommendationReadiness;
+import matchuri.backend.domain.group.entity.GroupRecommendationReadinessStatus;
 import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
 import matchuri.backend.domain.group.entity.GroupRecommendationVote;
 import matchuri.backend.domain.group.entity.GroupInvite;
@@ -378,6 +380,166 @@ class GroupIntegrationTest {
         assertThat(menuItemRepository.findAll())
                 .extracting(MenuItem::getId)
                 .contains(porkCutlet.getId(), bibimbap.getId());
+    }
+
+    @Test
+    @DisplayName("그룹 추천 준비 완료는 현재 회원을 READY로 저장하고 아직 전원이 아니면 PREPARING을 유지한다")
+    void readyGroupRecommendationMarksMemberReadyBeforeAllMembersReady() throws Exception {
+        Member owner = saveMember("ready-owner", "준비방장");
+        Member member = saveMember("ready-member", "준비멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/ready",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()))
+                .andExpect(jsonPath("$.data.readiness.totalMemberCount").value(2))
+                .andExpect(jsonPath("$.data.readiness.readyMemberCount").value(1))
+                .andExpect(jsonPath("$.data.readiness.allReady").value(false))
+                .andExpect(jsonPath("$.data.candidates.length()").value(0));
+
+        List<GroupRecommendationReadiness> readinesses = groupRecommendationReadinessRepository.findAll();
+        assertThat(readinesses).hasSize(1);
+        assertThat(readinesses.getFirst().getMember().getId()).isEqualTo(member.getId());
+        assertThat(readinesses.getFirst().getStatus()).isEqualTo(GroupRecommendationReadinessStatus.READY);
+        assertThat(groupRecommendationRepository.findById(recommendation.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.PREPARING);
+    }
+
+    @Test
+    @DisplayName("그룹 추천 준비 완료는 중복 호출되어도 READY 상태를 유지한다")
+    void readyGroupRecommendationIsIdempotentForSameMember() throws Exception {
+        Member owner = saveMember("ready-idempotent-owner", "준비중복방장");
+        Member member = saveMember("ready-idempotent-member", "준비중복멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 중복 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/ready",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()))
+                .andExpect(jsonPath("$.data.readiness.readyMemberCount").value(1));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/ready",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()))
+                .andExpect(jsonPath("$.data.readiness.readyMemberCount").value(1));
+
+        assertThat(groupRecommendationReadinessRepository.findAll()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("마지막 그룹원이 준비 완료하면 후보를 생성하고 그룹 추천을 OPEN으로 전환한다")
+    void readyGroupRecommendationOpensAndCreatesCandidatesWhenAllMembersReady() throws Exception {
+        Member owner = saveMember("ready-open-owner", "준비오픈방장");
+        Member member = saveMember("ready-open-member", "준비오픈멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 오픈 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        saveMenu("ready-open-first", "준비오픈첫번째");
+        saveMenu("ready-open-second", "준비오픈두번째");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{\"mealTime\":\"LUNCH\"}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/ready",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/ready",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.readiness.totalMemberCount").value(2))
+                .andExpect(jsonPath("$.data.readiness.readyMemberCount").value(2))
+                .andExpect(jsonPath("$.data.readiness.allReady").value(true))
+                .andExpect(jsonPath("$.data.candidates.length()").value(2));
+
+        GroupRecommendation openedRecommendation =
+                groupRecommendationRepository.findById(recommendation.getId()).orElseThrow();
+        assertThat(openedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.OPEN);
+        assertThat(groupRecommendationCandidateRepository
+                .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId()))
+                .hasSize(2);
+    }
+
+    @Test
+    @DisplayName("그룹 추천 준비 완료는 PREPARING 상태가 아니면 실패한다")
+    void readyGroupRecommendationFailsWhenRecommendationIsNotPreparing() throws Exception {
+        Member owner = saveMember("ready-not-preparing-owner", "준비상태아님방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 상태 아님 그룹");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/ready",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_PREPARING"));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 준비 완료는 비멤버이면 거절한다")
+    void readyGroupRecommendationFailsForNonMember() throws Exception {
+        Member owner = saveMember("ready-access-owner", "준비접근방장");
+        Member other = saveMember("ready-access-other", "준비접근없음");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 접근 그룹");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/ready",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(other))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_ACCESS_DENIED"));
     }
 
     @Test
