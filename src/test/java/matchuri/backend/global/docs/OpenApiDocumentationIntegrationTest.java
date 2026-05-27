@@ -344,10 +344,13 @@ class OpenApiDocumentationIntegrationTest {
                         .value("내 그룹 목록 조회"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].latestRecommendationStatus")
-                        .value(nullValue()))
+                        .value("PREPARING"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation")
-                        .value(nullValue()))
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation.status")
+                        .value("PREPARING"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation.readiness.readyMemberCount")
+                        .value(2))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.inviteCode")
                         .value("LUNCH42"))
@@ -411,6 +414,9 @@ class OpenApiDocumentationIntegrationTest {
                         .doesNotExist())
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.finalCandidate")
+                        .value((Object) null))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.readiness")
                         .value((Object) null))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}'].get.responses['200'].content['application/json'].examples.success.value.data.resultJson")

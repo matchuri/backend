@@ -852,6 +852,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
                 .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.readiness").value(nullValue()))
                 .andExpect(jsonPath("$.data.candidates.length()").value(2))
                 .andExpect(jsonPath("$.data.candidates[0].candidateId").value(firstCandidate.getId()))
                 .andExpect(jsonPath("$.data.candidates[0].menuId").value(bibimbap.getId()))
@@ -865,6 +866,40 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.voteProgress.votedMemberCount").value(1))
                 .andExpect(jsonPath("$.data.finalCandidate").value(nullValue()))
                 .andExpect(jsonPath("$.data.createdAt").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("그룹 추천 상세 조회는 준비 세션이면 readiness 진행률을 반환하고 투표 진행률은 반환하지 않는다")
+    void getGroupRecommendationReturnsReadinessForPreparingSession() throws Exception {
+        Member owner = saveMember("recommendation-preparing-view-owner", "준비상세방장");
+        Member member = saveMember("recommendation-preparing-view-member", "준비상세멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 상세 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        groupRecommendationReadinessRepository.save(new GroupRecommendationReadiness(recommendation, owner));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()))
+                .andExpect(jsonPath("$.data.readiness.totalMemberCount").value(2))
+                .andExpect(jsonPath("$.data.readiness.readyMemberCount").value(1))
+                .andExpect(jsonPath("$.data.readiness.allReady").value(false))
+                .andExpect(jsonPath("$.data.candidates.length()").value(0))
+                .andExpect(jsonPath("$.data.voteProgress").value(nullValue()))
+                .andExpect(jsonPath("$.data.finalCandidate").value(nullValue()));
     }
 
     @Test
@@ -928,7 +963,7 @@ class GroupIntegrationTest {
         ));
         oldRecommendation.rerollWithoutSkip(LocalDateTime.of(2026, 5, 26, 12, 15));
         groupRecommendationRepository.save(oldRecommendation);
-        GroupRecommendation latestRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+        GroupRecommendation latestRecommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
                 groupRoom,
                 "{}",
                 LocalDateTime.of(2026, 5, 26, 12, 30)
@@ -947,7 +982,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content.length()").value(2))
                 .andExpect(jsonPath("$.data.content[0].sessionId").value(latestRecommendation.getId()))
-                .andExpect(jsonPath("$.data.content[0].status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.content[0].status").value(GroupRecommendationStatus.PREPARING.name()))
                 .andExpect(jsonPath("$.data.content[0].startedAt").value("2026-05-26T12:30:00"))
                 .andExpect(jsonPath("$.data.content[0].endedAt").value(nullValue()))
                 .andExpect(jsonPath("$.data.content[0].finalCandidate").doesNotExist())
@@ -1484,9 +1519,69 @@ class GroupIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.activeRecommendation.sessionId").value(recommendation.getId()))
                 .andExpect(jsonPath("$.data.activeRecommendation.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.activeRecommendation.readiness").value(nullValue()))
                 .andExpect(jsonPath("$.data.activeRecommendation.candidates[0].candidateId").value(candidate.getId()))
                 .andExpect(jsonPath("$.data.activeRecommendation.voteProgress.totalMemberCount").value(1))
                 .andExpect(jsonPath("$.data.activeRecommendation.voteProgress.votedMemberCount").value(0));
+    }
+
+    @Test
+    @DisplayName("그룹 상세 조회는 준비 중인 그룹 추천도 activeRecommendation으로 반환한다")
+    void getGroupReturnsPreparingActiveRecommendation() throws Exception {
+        Member owner = saveMember("group-preparing-recommendation-owner", "준비추천방장");
+        Member member = saveMember("group-preparing-recommendation-member", "준비추천멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 추천 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        groupRecommendationReadinessRepository.save(new GroupRecommendationReadiness(recommendation, owner));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.activeRecommendation.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.activeRecommendation.status")
+                        .value(GroupRecommendationStatus.PREPARING.name()))
+                .andExpect(jsonPath("$.data.activeRecommendation.readiness.totalMemberCount").value(2))
+                .andExpect(jsonPath("$.data.activeRecommendation.readiness.readyMemberCount").value(1))
+                .andExpect(jsonPath("$.data.activeRecommendation.candidates.length()").value(0))
+                .andExpect(jsonPath("$.data.activeRecommendation.voteProgress").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("내 그룹 목록은 최신 그룹 추천 상태를 반환한다")
+    void getMyGroupsReturnsLatestRecommendationStatus() throws Exception {
+        Member owner = saveMember("group-list-recommendation-owner", "목록추천방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "목록 추천 그룹");
+        GroupRecommendation oldRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.of(2026, 5, 26, 12, 0)
+        ));
+        oldRecommendation.rerollWithoutSkip(LocalDateTime.of(2026, 5, 26, 12, 10));
+        groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.of(2026, 5, 26, 12, 30)
+        ));
+
+        mockMvc.perform(get("/api/v1/groups")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.content[0].latestRecommendationStatus")
+                        .value(GroupRecommendationStatus.PREPARING.name()));
     }
 
     @Test
