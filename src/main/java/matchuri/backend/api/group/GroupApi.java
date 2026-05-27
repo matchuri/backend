@@ -150,10 +150,18 @@ public interface GroupApi {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = GroupDetailApiResponse.class),
-                            examples = @ExampleObject(
-                                    name = "success",
-                                    value = GroupApiExamples.GROUP_DETAIL_SUCCESS
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "preparing",
+                                            summary = "준비 중인 그룹 추천 포함",
+                                            value = GroupApiExamples.GROUP_DETAIL_SUCCESS
+                                    ),
+                                    @ExampleObject(
+                                            name = "open",
+                                            summary = "열린 그룹 추천 포함",
+                                            value = GroupApiExamples.GROUP_DETAIL_OPEN_RECOMMENDATION_SUCCESS
+                                    )
+                            }
                     )
             )
     })

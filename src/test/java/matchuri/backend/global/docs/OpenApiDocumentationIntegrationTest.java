@@ -346,13 +346,22 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups'].get.responses['200'].content['application/json'].examples.success.value.data.content[0].latestRecommendationStatus")
                         .value("PREPARING"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation.status")
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.preparing.value.data.activeRecommendation.status")
                         .value("PREPARING"))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.activeRecommendation.readiness.readyMemberCount")
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.preparing.value.data.activeRecommendation.readiness.readyMemberCount")
                         .value(2))
                 .andExpect(jsonPath(
-                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.success.value.data.inviteCode")
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.open.value.data.activeRecommendation.status")
+                        .value("OPEN"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.open.value.data.activeRecommendation.candidates[0].menuName")
+                        .value("비빔밥"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.open.value.data.activeRecommendation.voteProgress.votedMemberCount")
+                        .value(3))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.preparing.value.data.inviteCode")
                         .value("LUNCH42"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}'].patch.responses['200'].content['application/json'].examples.success.value.data.name")
