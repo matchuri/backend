@@ -23,12 +23,14 @@ import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListR
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSummaryResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessProgressResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteProgressResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
 import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
+import matchuri.backend.api.group.dto.response.ReadyGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
@@ -54,12 +56,14 @@ import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResu
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupRecommendationSummaryResult;
+import matchuri.backend.domain.group.result.GroupRecommendationReadinessProgressResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.GroupVoteProgressResult;
 import matchuri.backend.domain.group.result.GroupVoteResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
 import matchuri.backend.domain.group.result.RespondGroupInviteResult;
+import matchuri.backend.domain.group.result.ReadyGroupRecommendationResult;
 import matchuri.backend.domain.group.result.UpdateGroupResult;
 import org.springframework.stereotype.Component;
 
@@ -279,6 +283,19 @@ public class GroupMapper {
         );
     }
 
+    public ReadyGroupRecommendationResponse toReadyGroupRecommendationResponse(
+            ReadyGroupRecommendationResult result
+    ) {
+        return new ReadyGroupRecommendationResponse(
+                result.sessionId(),
+                result.status(),
+                toGroupRecommendationReadinessProgressResponse(result.readiness()),
+                result.candidates().stream()
+                        .map(this::toGroupRecommendationCandidateResponse)
+                        .toList()
+        );
+    }
+
     public GroupVoteResponse toGroupVoteResponse(GroupVoteResult result) {
         return new GroupVoteResponse(
                 result.voteId(),
@@ -338,6 +355,16 @@ public class GroupMapper {
         return new GroupVoteProgressResponse(
                 result.totalMemberCount(),
                 result.votedMemberCount()
+        );
+    }
+
+    private GroupRecommendationReadinessProgressResponse toGroupRecommendationReadinessProgressResponse(
+            GroupRecommendationReadinessProgressResult result
+    ) {
+        return new GroupRecommendationReadinessProgressResponse(
+                result.totalMemberCount(),
+                result.readyMemberCount(),
+                result.allReady()
         );
     }
 
