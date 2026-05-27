@@ -27,6 +27,7 @@ import matchuri.backend.domain.group.result.GroupVoteResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
 import matchuri.backend.domain.group.result.RespondGroupInviteResult;
+import matchuri.backend.domain.group.result.ReadyGroupRecommendationResult;
 import matchuri.backend.domain.group.result.UpdateGroupResult;
 import org.springframework.data.domain.Page;
 
@@ -48,6 +49,8 @@ public interface GroupService {
     GroupRecommendationCandidateListResult getGroupRecommendationCandidates(Long groupId, Long sessionId);
 
     Page<GroupRecommendationSummaryResult> getGroupRecommendations(Long groupId, int page, int size);
+
+    ReadyGroupRecommendationResult readyGroupRecommendation(Long groupId, Long sessionId);
 
     GroupVoteResult voteGroupRecommendation(Long groupId, Long sessionId, Long candidateId);
 

@@ -61,6 +61,7 @@ public class GroupServiceImpl implements GroupService {
     private final GroupMenuActionRepository groupMenuActionRepository;
     private final GroupRecommendationRepository groupRecommendationRepository;
     private final GroupRecommendationCandidateRepository groupRecommendationCandidateRepository;
+    private final GroupRecommendationReadinessRepository groupRecommendationReadinessRepository;
     private final GroupRecommendationVoteRepository groupRecommendationVoteRepository;
     private final MenuItemRepository menuItemRepository;
     private final MenuIngredientRepository menuIngredientRepository;
@@ -148,7 +149,25 @@ public class GroupServiceImpl implements GroupService {
             throw new IllegalArgumentException("지원하지 않는 그룹 추천 재요청 타입입니다. rerollType=" + rerollType);
         }
 
-        return createOpenGroupRecommendation(room, contextJson, recentlySkippedMenuIds(room.getId()));
+        GroupRecommendation newRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                room,
+                contextJson,
+                LocalDateTime.now()
+        ));
+        List<GroupRecommendationCandidate> candidates = generateCandidatesForRecommendation(
+                room,
+                newRecommendation,
+                contextJson,
+                recentlySkippedMenuIds(room.getId())
+        );
+
+        return new CreateGroupRecommendationResult(
+                newRecommendation.getId(),
+                newRecommendation.getStatus(),
+                candidates.stream()
+                        .map(candidate -> GroupRecommendationCandidateResult.from(candidate, 0))
+                        .toList()
+        );
     }
 
     private boolean hasActiveRecommendation(Long roomId) {
@@ -158,8 +177,9 @@ public class GroupServiceImpl implements GroupService {
         );
     }
 
-    private CreateGroupRecommendationResult createOpenGroupRecommendation(
+    private List<GroupRecommendationCandidate> generateCandidatesForRecommendation(
             GroupRoom room,
+            GroupRecommendation recommendation,
             String contextJson,
             List<Long> excludedMenuIds
     ) {
@@ -182,24 +202,14 @@ public class GroupServiceImpl implements GroupService {
                 Map.of()
         ));
 
-        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
-                room,
-                contextJson,
-                LocalDateTime.now()
-        ));
         List<GroupRecommendationCandidate> candidates = saveGroupRecommendationCandidates(
                 recommendation,
                 recommendationResult,
                 menuItemById
         );
+        recommendation.open();
 
-        return new CreateGroupRecommendationResult(
-                recommendation.getId(),
-                recommendation.getStatus(),
-                candidates.stream()
-                        .map(candidate -> GroupRecommendationCandidateResult.from(candidate, 0))
-                        .toList()
-        );
+        return candidates;
     }
 
     private GroupRoom getActiveGroupRoom(Long groupId) {
@@ -280,6 +290,60 @@ public class GroupServiceImpl implements GroupService {
         return groupRecommendationRepository
                 .findByRoomIdOrderByStartedAtDescIdDesc(room.getId(), PageRequest.of(page, size))
                 .map(GroupRecommendationSummaryResult::from);
+    }
+
+    @Override
+    public ReadyGroupRecommendationResult readyGroupRecommendation(Long groupId, Long sessionId) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = getActiveGroupRoom(groupId);
+        validateActiveMembership(room.getId(), member.getId());
+
+        GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, room.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
+
+        if (recommendation.getStatus() != GroupRecommendationStatus.PREPARING) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_PREPARING, sessionId);
+        }
+
+        groupRecommendationReadinessRepository
+                .findByGroupRecommendationIdAndMemberId(recommendation.getId(), member.getId())
+                .ifPresentOrElse(
+                        GroupRecommendationReadiness::ready,
+                        () -> groupRecommendationReadinessRepository.save(new GroupRecommendationReadiness(
+                                recommendation,
+                                member
+                        ))
+                );
+
+        List<GroupRoomMember> activeMembers = groupRoomMemberRepository.findActiveMembersByRoomId(room.getId());
+        int totalMemberCount = activeMembers.size();
+        int readyMemberCount = Math.toIntExact(groupRecommendationReadinessRepository
+                .countActiveMemberReadinessByRecommendationIdAndStatus(
+                        recommendation.getId(),
+                        room.getId(),
+                        GroupRecommendationReadinessStatus.READY
+                ));
+        GroupRecommendationReadinessProgressResult readiness =
+                GroupRecommendationReadinessProgressResult.of(totalMemberCount, readyMemberCount);
+
+        List<GroupRecommendationCandidate> candidates = List.of();
+        if (readiness.allReady()) {
+            candidates = generateCandidatesForRecommendation(
+                    room,
+                    recommendation,
+                    recommendation.getContextJson(),
+                    recentlySkippedMenuIds(room.getId())
+            );
+        }
+
+        return new ReadyGroupRecommendationResult(
+                recommendation.getId(),
+                recommendation.getStatus(),
+                readiness,
+                candidates.stream()
+                        .map(candidate -> GroupRecommendationCandidateResult.from(candidate, 0))
+                        .toList()
+        );
     }
 
     @Override

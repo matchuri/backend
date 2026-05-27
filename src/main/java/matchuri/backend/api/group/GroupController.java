@@ -27,6 +27,7 @@ import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
 import matchuri.backend.api.group.dto.response.JoinGroupResponse;
 import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.api.group.dto.response.ReadyGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
 import matchuri.backend.domain.group.command.CreateGroupCommand;
@@ -55,6 +56,7 @@ import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.GroupVoteResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
 import matchuri.backend.domain.group.result.LeaveGroupResult;
+import matchuri.backend.domain.group.result.ReadyGroupRecommendationResult;
 import matchuri.backend.domain.group.result.RespondGroupInviteResult;
 import matchuri.backend.domain.group.result.UpdateGroupResult;
 import matchuri.backend.domain.group.service.GroupService;
@@ -246,6 +248,17 @@ public class GroupController implements GroupApi {
                 groupService.getGroupRecommendationCandidates(groupId, sessionId);
 
         return ApiResponse.success(groupMapper.toGroupRecommendationCandidateListResponse(result));
+    }
+
+    @Override
+    @PostMapping("/{groupId}/recommendations/{sessionId}/ready")
+    public ApiResponse<ReadyGroupRecommendationResponse> readyRecommendation(
+            @PathVariable Long groupId,
+            @PathVariable Long sessionId
+    ) {
+        ReadyGroupRecommendationResult result = groupService.readyGroupRecommendation(groupId, sessionId);
+
+        return ApiResponse.success(groupMapper.toReadyGroupRecommendationResponse(result));
     }
 
     @Override
