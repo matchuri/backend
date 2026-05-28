@@ -1,6 +1,7 @@
 package matchuri.backend.domain.group.repository;
 
 import java.util.List;
+import java.util.Optional;
 import matchuri.backend.domain.group.entity.GroupRecommendationVote;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +22,6 @@ public interface GroupRecommendationVoteRepository extends JpaRepository<GroupRe
     long countByGroupRecommendationId(Long recommendationId);
 
     boolean existsByGroupRecommendationIdAndMemberId(Long recommendationId, Long memberId);
+
+    Optional<GroupRecommendationVote> findByGroupRecommendationIdAndMemberId(Long recommendationId, Long memberId);
 }

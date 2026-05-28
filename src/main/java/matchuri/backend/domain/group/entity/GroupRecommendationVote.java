@@ -13,7 +13,7 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import matchuri.backend.domain.common.CreatedAtEntity;
+import matchuri.backend.domain.common.BaseEntity;
 import matchuri.backend.domain.member.entity.Member;
 
 @Getter
@@ -29,7 +29,7 @@ import matchuri.backend.domain.member.entity.Member;
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroupRecommendationVote extends CreatedAtEntity {
+public class GroupRecommendationVote extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,5 +56,13 @@ public class GroupRecommendationVote extends CreatedAtEntity {
         this.groupRecommendation = groupRecommendation;
         this.candidate = candidate;
         this.member = member;
+    }
+
+    public boolean hasCandidate(Long candidateId) {
+        return candidate.getId().equals(candidateId);
+    }
+
+    public void changeCandidate(GroupRecommendationCandidate candidate) {
+        this.candidate = candidate;
     }
 }

@@ -413,6 +413,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @Transactional
     public GroupVoteResult voteGroupRecommendation(Long groupId, Long sessionId, Long candidateId) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         validateActiveMembership(groupId, member.getId());
@@ -429,23 +430,26 @@ public class GroupServiceImpl implements GroupService {
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_CANDIDATE_NOT_FOUND,
                         candidateId));
 
-        if (groupRecommendationVoteRepository.existsByGroupRecommendationIdAndMemberId(
-                recommendation.getId(),
-                member.getId()
-        )) {
-            throw new BusinessException(GroupErrorCode.RECOMMENDATION_ALREADY_VOTED, sessionId, member.getId());
-        }
+        GroupRecommendationVote vote = groupRecommendationVoteRepository
+                .findByGroupRecommendationIdAndMemberId(recommendation.getId(), member.getId())
+                .map(existingVote -> {
+                    if (!existingVote.hasCandidate(candidate.getId())) {
+                        existingVote.changeCandidate(candidate);
+                    }
 
-        GroupRecommendationVote vote = groupRecommendationVoteRepository.save(new GroupRecommendationVote(
-                recommendation,
-                candidate,
-                member
-        ));
+                    return existingVote;
+                })
+                .orElseGet(() -> new GroupRecommendationVote(
+                        recommendation,
+                        candidate,
+                        member
+                ));
+        GroupRecommendationVote savedVote = groupRecommendationVoteRepository.saveAndFlush(vote);
 
         return new GroupVoteResult(
-                vote.getId(),
+                savedVote.getId(),
                 candidate.getId(),
-                vote.getCreatedAt()
+                savedVote.getUpdatedAt()
         );
     }
 
