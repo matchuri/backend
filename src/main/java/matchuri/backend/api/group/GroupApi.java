@@ -630,9 +630,11 @@ public interface GroupApi {
                     정책:
                     - 활성 그룹 멤버만 투표할 수 있습니다.
                     - 열린 그룹 추천(`OPEN`)에만 투표할 수 있습니다.
-                    - 회원은 추천 세션당 한 번만 투표할 수 있습니다.
+                    - 회원은 추천 세션당 하나의 투표 row를 가지며, 다시 투표하면 기존 투표 후보를 변경합니다.
+                    - 같은 후보로 다시 투표하면 idempotent하게 기존 투표 정보를 반환합니다.
                     - `voteValue`는 사용하지 않고 후보 선택 여부만 저장합니다.
                     - 실제 저장 테이블은 `group_recommendation_votes` 기준입니다.
+                    - 응답의 `votedAt`은 최초 투표 또는 재투표로 마지막 반영된 시각입니다.
                     """
     )
     @ApiResponses({
@@ -642,10 +644,18 @@ public interface GroupApi {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = GroupVoteApiResponse.class),
-                            examples = @ExampleObject(
-                                    name = "success",
-                                    value = GroupApiExamples.VOTE_SUCCESS
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "success",
+                                            summary = "최초 투표",
+                                            value = GroupApiExamples.VOTE_SUCCESS
+                                    ),
+                                    @ExampleObject(
+                                            name = "revote",
+                                            summary = "기존 투표 후보 변경",
+                                            value = GroupApiExamples.REVOTE_SUCCESS
+                                    )
+                            }
                     )
             )
     })

@@ -551,6 +551,18 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String REVOTE_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "voteId": 91001,
+                "candidateId": 8002,
+                "votedAt": "2026-05-06T12:23:00"
+              },
+              "error": null
+            }
+            """;
+
     public static final String FINALIZE_RECOMMENDATION_SUCCESS = """
             {
               "success": true,
