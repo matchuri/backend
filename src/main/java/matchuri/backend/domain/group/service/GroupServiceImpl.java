@@ -641,19 +641,13 @@ public class GroupServiceImpl implements GroupService {
             room.updateLongitude(command.longitude());
         }
 
-        Long openGroupRecommendationId = groupRecommendationRepository
-                .findFirstByRoomIdAndStatusOrderByStartedAtDesc(room.getId(), GroupRecommendationStatus.OPEN)
-                .map(GroupRecommendation::getId)
-                .orElse(null);
-
         return new UpdateGroupResult(
                 room.getId(),
                 room.getName(),
                 room.getLatitude(),
                 room.getLongitude(),
                 room.getStatus(),
-                room.getUpdatedAt(),
-                openGroupRecommendationId
+                room.getUpdatedAt()
         );
     }
 
