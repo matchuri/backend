@@ -497,6 +497,12 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/ready'].post.responses['200'].content['application/json'].examples.opened.value.data.candidates[0].menuName")
                         .value("비빔밥"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/reroll'].post.deprecated")
+                        .value(true))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/reroll'].post.description")
+                        .value(org.hamcrest.Matchers.containsString("MVP 8단계 클라이언트 연동 범위에서 제외")))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/votes'].post.responses['200'].content['application/json'].examples.success.value.data.candidateId")
                         .value(8001))
                 .andExpect(jsonPath(
