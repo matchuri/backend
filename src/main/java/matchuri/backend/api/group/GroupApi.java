@@ -280,9 +280,8 @@ public interface GroupApi {
                     - 요청에는 최소 1개 이상의 지원 필드가 포함되어야 합니다.
                     - 현재 회원이 해당 그룹의 `ACTIVE` OWNER 멤버일 때만 수정할 수 있습니다.
                     - 그룹이 `ACTIVE` 상태일 때만 수정할 수 있습니다.
-                    - 수정 시점에 열린 그룹 추천이 있으면 `openGroupRecommendationId`를 함께 반환합니다.
-                    - `openGroupRecommendationId`가 있으면 위치 변경 등을 반영하기 위해 해당 추천 ID로 `INPUT_CHANGED` 재요청을 이어갈 수 있습니다.
-                    - 진행 중인 그룹 추천이 없으면 `openGroupRecommendationId`는 `null`입니다.
+                    - 그룹 추천 재요청은 MVP 8단계 클라이언트 계약에서 제외되었으므로 수정 응답은 재요청용 추천 ID를 반환하지 않습니다.
+                    - 이미 `PREPARING`인 추천 세션의 후보 생성은 후보 생성 시점의 최신 그룹 위치를 사용합니다.
                     """
     )
     @ApiResponses({

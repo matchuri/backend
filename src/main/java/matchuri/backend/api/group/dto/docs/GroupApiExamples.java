@@ -181,8 +181,7 @@ public final class GroupApiExamples {
                 "latitude": 37.498095,
                 "longitude": 127.027610,
                 "status": "ACTIVE",
-                "updatedAt": "2026-05-18T12:30:00",
-                "openGroupRecommendationId": 5001
+                "updatedAt": "2026-05-18T12:30:00"
               },
               "error": null
             }
