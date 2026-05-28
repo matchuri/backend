@@ -500,6 +500,9 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/votes'].post.responses['200'].content['application/json'].examples.success.value.data.candidateId")
                         .value(8001))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/votes'].post.responses['200'].content['application/json'].examples.revote.value.data.candidateId")
+                        .value(8002))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/votes'].post.responses['200'].content['application/json'].examples.success.value.data.voteValue")
                         .doesNotExist())
                 .andExpect(jsonPath(

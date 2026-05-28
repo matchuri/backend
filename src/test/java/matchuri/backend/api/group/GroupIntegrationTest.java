@@ -1088,11 +1088,56 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("그룹 추천 투표는 같은 회원의 중복 투표를 거절한다")
-    void voteGroupRecommendationFailsForDuplicateVote() throws Exception {
-        Member owner = saveMember("recommendation-dup-vote-owner", "중복투표방장");
-        GroupRoom groupRoom = saveGroupOwnedBy(owner, "중복 투표 그룹");
-        MenuItem menuItem = saveMenu("dup-vote-menu", "중복투표메뉴");
+    @DisplayName("그룹 추천 투표는 같은 회원의 기존 투표 후보를 변경한다")
+    void voteGroupRecommendationChangesExistingMemberVote() throws Exception {
+        Member owner = saveMember("recommendation-revote-owner", "재투표방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "재투표 그룹");
+        MenuItem firstMenuItem = saveMenu("revote-first-menu", "재투표첫메뉴");
+        MenuItem secondMenuItem = saveMenu("revote-second-menu", "재투표둘째메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate firstCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, firstMenuItem, 1, 10.0, "{}")
+        );
+        GroupRecommendationCandidate secondCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, secondMenuItem, 2, 9.0, "{}")
+        );
+        GroupRecommendationVote existingVote = groupRecommendationVoteRepository.save(new GroupRecommendationVote(
+                recommendation,
+                firstCandidate,
+                owner
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/votes",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "candidateId": %d
+                                }
+                                """.formatted(secondCandidate.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.voteId").value(existingVote.getId()))
+                .andExpect(jsonPath("$.data.candidateId").value(secondCandidate.getId()))
+                .andExpect(jsonPath("$.data.votedAt").isNotEmpty());
+
+        assertThat(groupRecommendationVoteRepository.count()).isEqualTo(1);
+        GroupRecommendationVote updatedVote = groupRecommendationVoteRepository.findAll().getFirst();
+        assertThat(updatedVote.getId()).isEqualTo(existingVote.getId());
+        assertThat(updatedVote.getCandidate().getId()).isEqualTo(secondCandidate.getId());
+    }
+
+    @Test
+    @DisplayName("그룹 추천 투표는 같은 후보 재투표를 성공으로 처리한다")
+    void voteGroupRecommendationIsIdempotentForSameCandidate() throws Exception {
+        Member owner = saveMember("recommendation-idempotent-vote-owner", "재투표동일방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "동일 후보 재투표 그룹");
+        MenuItem menuItem = saveMenu("idempotent-vote-menu", "동일재투표메뉴");
         GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
                 groupRoom,
                 "{}",
@@ -1101,7 +1146,11 @@ class GroupIntegrationTest {
         GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
                 new GroupRecommendationCandidate(recommendation, menuItem, 1, 10.0, "{}")
         );
-        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, candidate, owner));
+        GroupRecommendationVote existingVote = groupRecommendationVoteRepository.save(new GroupRecommendationVote(
+                recommendation,
+                candidate,
+                owner
+        ));
 
         mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/votes",
                         groupRoom.getId(),
@@ -1113,10 +1162,14 @@ class GroupIntegrationTest {
                                   "candidateId": %d
                                 }
                                 """.formatted(candidate.getId())))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_ALREADY_VOTED"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.voteId").value(existingVote.getId()))
+                .andExpect(jsonPath("$.data.candidateId").value(candidate.getId()))
+                .andExpect(jsonPath("$.data.votedAt").isNotEmpty());
 
         assertThat(groupRecommendationVoteRepository.count()).isEqualTo(1);
+        assertThat(groupRecommendationVoteRepository.findAll().getFirst().getCandidate().getId())
+                .isEqualTo(candidate.getId());
     }
 
     @Test
