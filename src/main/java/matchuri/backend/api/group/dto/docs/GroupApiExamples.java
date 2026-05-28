@@ -188,6 +188,18 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String REROLL_RECOMMENDATION_DISABLED = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "status": 410,
+                "code": "GROUP_RECOMMENDATION_REROLL_DISABLED",
+                "message": "그룹 추천 재요청은 현재 MVP에서 지원하지 않습니다."
+              }
+            }
+            """;
+
     public static final String CREATE_NICKNAME_INVITE_SUCCESS = """
             {
               "success": true,

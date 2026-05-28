@@ -43,6 +43,7 @@ import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
+import matchuri.backend.domain.group.exception.GroupErrorCode;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
@@ -64,6 +65,7 @@ import matchuri.backend.domain.group.result.UpdateGroupResult;
 import matchuri.backend.domain.group.service.GroupService;
 import matchuri.backend.global.api.ApiResponse;
 import matchuri.backend.global.api.PageResponse;
+import matchuri.backend.global.exception.BusinessException;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -282,15 +284,7 @@ public class GroupController implements GroupApi {
             @PathVariable Long sessionId,
             @Valid @RequestBody RerollGroupRecommendationRequest request
     ) {
-        CreateGroupRecommendationCommand command = groupMapper.toCreateGroupRecommendationCommand(groupId, request);
-        CreateGroupRecommendationResult result = groupService.rerollGroupRecommendation(
-                command.groupId(),
-                sessionId,
-                request.rerollType(),
-                command.contextJson()
-        );
-
-        return ApiResponse.success(groupMapper.toCreateGroupRecommendationResponse(result));
+        throw new BusinessException(GroupErrorCode.RECOMMENDATION_REROLL_DISABLED);
     }
 
     @Override

@@ -597,8 +597,9 @@ public interface GroupApi {
                     Deprecated:
                     - 그룹 추천 재요청은 MVP 8단계 클라이언트 연동 범위에서 제외되었습니다.
                     - 엔드포인트와 도메인 구현은 MVP 이후 재도입 검토를 위해 호환 목적으로 보존합니다.
+                    - API 호출 시 `410 Gone`과 `GROUP_RECOMMENDATION_REROLL_DISABLED`를 반환합니다.
 
-                    구현 기준:
+                    보존된 구현 기준:
                     - 로그인한 활성 회원만 사용할 수 있습니다.
                     - 해당 그룹의 `ACTIVE` OWNER 멤버만 재요청할 수 있습니다.
                     - source 그룹 추천은 해당 그룹에 속하고 `OPEN` 상태여야 합니다.
@@ -609,14 +610,13 @@ public interface GroupApi {
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200",
-                    description = "그룹 추천 재요청 성공",
+                    responseCode = "410",
+                    description = "그룹 추천 재요청은 MVP 클라이언트 계약에서 제외됨",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CreateGroupRecommendationApiResponse.class),
                             examples = @ExampleObject(
-                                    name = "success",
-                                    value = GroupApiExamples.REROLL_RECOMMENDATION_SUCCESS
+                                    name = "disabled",
+                                    value = GroupApiExamples.REROLL_RECOMMENDATION_DISABLED
                             )
                     )
             )
