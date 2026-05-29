@@ -274,6 +274,10 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
 
+        if (recommendation.getStatus() != GroupRecommendationStatus.OPEN) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_OPEN, sessionId);
+        }
+
         return new GroupRecommendationCandidateListResult(
                 recommendation.getId(),
                 toCandidateResults(recommendation)
