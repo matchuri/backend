@@ -38,6 +38,7 @@ import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
+import matchuri.backend.domain.group.service.GroupRecommendationExpirationService;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
@@ -116,6 +117,9 @@ class GroupIntegrationTest {
 
     @Autowired
     private GroupRecommendationVoteRepository groupRecommendationVoteRepository;
+
+    @Autowired
+    private GroupRecommendationExpirationService groupRecommendationExpirationService;
 
     @Autowired
     private MenuItemRepository menuItemRepository;
@@ -343,6 +347,79 @@ class GroupIntegrationTest {
                                 """))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_ACTIVE_EXISTS"));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 시작은 24시간 지난 진행 중 추천을 만료하고 새 준비 세션을 생성한다")
+    void createGroupRecommendationExpiresOldActiveRecommendationAndCreatesPreparingSession() throws Exception {
+        Member owner = saveMember("expired-active-group-owner", "만료추천방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "만료 추천 그룹");
+        GroupRecommendation oldRecommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().minusHours(25)
+        ));
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "contextJson": {
+                                    "mealTime": "LUNCH"
+                                  }
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.sessionId").value(org.hamcrest.Matchers.not(oldRecommendation.getId().intValue())))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()));
+
+        GroupRecommendation expiredRecommendation = groupRecommendationRepository.findById(oldRecommendation.getId())
+                .orElseThrow();
+        assertThat(expiredRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.EXPIRED);
+        assertThat(expiredRecommendation.getEndedAt()).isNotNull();
+        assertThat(groupRecommendationRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("그룹 추천 만료 서비스는 24시간 지난 PREPARING/OPEN 추천만 종료한다")
+    void expirationServiceClosesActiveGroupRecommendationsAfter24Hours() {
+        Member owner = saveMember("group-expiration-service-owner", "그룹만료방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "그룹 만료 서비스");
+        GroupRecommendation oldPreparing = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().minusHours(25)
+        ));
+        GroupRecommendation oldOpen = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().minusHours(25)
+        ));
+        GroupRecommendation recentPreparing = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().minusHours(23)
+        ));
+        GroupRecommendation alreadyClosed = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().minusHours(25)
+        ));
+        alreadyClosed.rerollWithoutSkip(LocalDateTime.now().minusHours(1));
+        groupRecommendationRepository.save(alreadyClosed);
+
+        int expiredCount = groupRecommendationExpirationService.expireActiveGroupRecommendations();
+
+        assertThat(expiredCount).isEqualTo(2);
+        assertThat(groupRecommendationRepository.findById(oldPreparing.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.EXPIRED);
+        assertThat(groupRecommendationRepository.findById(oldOpen.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.EXPIRED);
+        assertThat(groupRecommendationRepository.findById(recentPreparing.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.PREPARING);
+        assertThat(groupRecommendationRepository.findById(alreadyClosed.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.REROLLED_WITHOUT_SKIP);
     }
 
     @Test
