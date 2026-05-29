@@ -413,9 +413,7 @@ public class GroupServiceImpl implements GroupService {
                 member.getId(),
                 member.getNickname(),
                 groupMember.getRole(),
-                readinessStatus == GroupRecommendationReadinessStatus.READY,
-                readinessStatus,
-                readiness == null ? null : readiness.getUpdatedAt()
+                readinessStatus == GroupRecommendationReadinessStatus.READY
         );
     }
 

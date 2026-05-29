@@ -386,9 +386,7 @@ public class GroupMapper {
                 result.memberId(),
                 result.nickname(),
                 result.role(),
-                result.ready(),
-                result.readinessStatus(),
-                result.readinessUpdatedAt()
+                result.ready()
         );
     }
 

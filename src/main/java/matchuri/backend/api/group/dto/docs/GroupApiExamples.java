@@ -485,17 +485,13 @@ public final class GroupApiExamples {
                     "memberId": 1,
                     "nickname": "김철수",
                     "role": "OWNER",
-                    "ready": true,
-                    "readinessStatus": "READY",
-                    "readinessUpdatedAt": "2026-05-26T12:05:00"
+                    "ready": true
                   },
                   {
                     "memberId": 2,
                     "nickname": "김덕배",
                     "role": "MEMBER",
-                    "ready": false,
-                    "readinessStatus": null,
-                    "readinessUpdatedAt": null
+                    "ready": false
                   }
                 ]
               },
