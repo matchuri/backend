@@ -498,6 +498,8 @@ public interface GroupApi {
                     구현 기준:
                     - 로그인한 활성 회원만 사용할 수 있습니다.
                     - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - 후보가 생성된 `OPEN` 상태의 추천 세션에서만 조회할 수 있습니다.
+                    - `PREPARING` 상태의 준비 진행률은 추천 상세 또는 준비 상태 조회 API를 사용합니다.
                     - 후보는 추천 순위 오름차순으로 반환합니다.
                     - 후보별 현재 투표 수를 함께 반환합니다.
                     - 실제 저장 테이블은 `group_recommendation_candidates` 기준입니다.
@@ -513,6 +515,17 @@ public interface GroupApi {
                             examples = @ExampleObject(
                                     name = "success",
                                     value = GroupApiExamples.RECOMMENDATION_CANDIDATES_SUCCESS
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "후보 조회 가능한 OPEN 상태가 아님",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notOpen",
+                                    value = GroupApiExamples.RECOMMENDATION_NOT_OPEN_ERROR
                             )
                     )
             )

@@ -199,6 +199,18 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String RECOMMENDATION_NOT_OPEN_ERROR = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "status": 409,
+                "code": "GROUP_RECOMMENDATION_NOT_OPEN",
+                "message": "열린 상태의 그룹 추천이 아닙니다. sessionId : 5001"
+              }
+            }
+            """;
+
     public static final String CREATE_NICKNAME_INVITE_SUCCESS = """
             {
               "success": true,
