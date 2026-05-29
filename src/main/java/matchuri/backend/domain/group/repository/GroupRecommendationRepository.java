@@ -1,6 +1,8 @@
 package matchuri.backend.domain.group.repository;
 
 import java.util.Collection;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import matchuri.backend.domain.group.entity.GroupRecommendation;
 import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
@@ -29,4 +31,9 @@ public interface GroupRecommendationRepository extends JpaRepository<GroupRecomm
     Optional<GroupRecommendation> findFirstByRoomIdOrderByStartedAtDescIdDesc(Long roomId);
 
     Page<GroupRecommendation> findByRoomIdOrderByStartedAtDescIdDesc(Long roomId, Pageable pageable);
+
+    List<GroupRecommendation> findByStatusInAndEndedAtIsNullAndStartedAtLessThanEqual(
+            Collection<GroupRecommendationStatus> statuses,
+            LocalDateTime startedAt
+    );
 }

@@ -67,6 +67,7 @@ public class GroupServiceImpl implements GroupService {
     private final MenuIngredientRepository menuIngredientRepository;
     private final MenuRecommendationAlgorithmResolver menuRecommendationAlgorithmResolver;
     private final GroupInviteCodeGenerator groupInviteCodeGenerator;
+    private final GroupRecommendationExpirationService groupRecommendationExpirationService;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -98,6 +99,8 @@ public class GroupServiceImpl implements GroupService {
         if (!validateActiveMembership(room.getId(), member.getId()).isOwner()) {
             throw new BusinessException(GroupErrorCode.RECOMMENDATION_CREATE_FORBIDDEN, room.getId());
         }
+
+        groupRecommendationExpirationService.expireActiveGroupRecommendations();
 
         if (hasActiveRecommendation(room.getId())) {
             throw new BusinessException(GroupErrorCode.RECOMMENDATION_ACTIVE_EXISTS, room.getId());
