@@ -922,6 +922,25 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("그룹 추천 후보 목록 조회는 PREPARING 세션이면 거절한다")
+    void getGroupRecommendationCandidatesFailsForPreparingRecommendation() throws Exception {
+        Member owner = saveMember("recommendation-candidates-preparing-owner", "준비후보방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 후보 조회 그룹");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}/candidates",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_OPEN"));
+    }
+
+    @Test
     @DisplayName("그룹 추천 요청 목록 조회는 그룹별 추천 summary를 최신순 페이지로 반환한다")
     void getGroupRecommendationsReturnsSummariesByGroup() throws Exception {
         Member owner = saveMember("recommendation-list-owner", "목록방장");

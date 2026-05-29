@@ -476,6 +476,9 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/candidates'].get.responses['200'].content['application/json'].examples.success.value.data.candidates[1].menuName")
                         .value("돈까스"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/candidates'].get.responses['409'].content['application/json'].examples.notOpen.value.error.code")
+                        .value("GROUP_RECOMMENDATION_NOT_OPEN"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/readiness'].get.summary")
                         .value("[GREC.020.000] 그룹 추천 준비 상태 조회"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/readiness'].get['x-api-id']")
