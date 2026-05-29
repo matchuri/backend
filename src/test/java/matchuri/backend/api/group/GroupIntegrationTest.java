@@ -501,17 +501,16 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.members.length()").value(3))
                 .andExpect(jsonPath("$.data.members[0].memberId").value(owner.getId()))
                 .andExpect(jsonPath("$.data.members[0].ready").value(true))
-                .andExpect(jsonPath("$.data.members[0].readinessStatus")
-                        .value(GroupRecommendationReadinessStatus.READY.name()))
-                .andExpect(jsonPath("$.data.members[0].readinessUpdatedAt").isNotEmpty())
+                .andExpect(jsonPath("$.data.members[0].readinessStatus").doesNotExist())
+                .andExpect(jsonPath("$.data.members[0].readinessUpdatedAt").doesNotExist())
                 .andExpect(jsonPath("$.data.members[1].memberId").value(member.getId()))
                 .andExpect(jsonPath("$.data.members[1].ready").value(false))
-                .andExpect(jsonPath("$.data.members[1].readinessStatus")
-                        .value(GroupRecommendationReadinessStatus.CANCELED.name()))
+                .andExpect(jsonPath("$.data.members[1].readinessStatus").doesNotExist())
+                .andExpect(jsonPath("$.data.members[1].readinessUpdatedAt").doesNotExist())
                 .andExpect(jsonPath("$.data.members[2].memberId").value(waitingMember.getId()))
                 .andExpect(jsonPath("$.data.members[2].ready").value(false))
-                .andExpect(jsonPath("$.data.members[2].readinessStatus").value(nullValue()))
-                .andExpect(jsonPath("$.data.members[2].readinessUpdatedAt").value(nullValue()));
+                .andExpect(jsonPath("$.data.members[2].readinessStatus").doesNotExist())
+                .andExpect(jsonPath("$.data.members[2].readinessUpdatedAt").doesNotExist());
     }
 
     @Test

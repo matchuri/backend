@@ -488,6 +488,12 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/readiness'].get.responses['200'].content['application/json'].examples.success.value.data.progress.readyMemberCount")
                         .value(2))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/readiness'].get.responses['200'].content['application/json'].examples.success.value.data.members[0].readinessStatus")
+                        .doesNotExist())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/readiness'].get.responses['200'].content['application/json'].examples.success.value.data.members[0].readinessUpdatedAt")
+                        .doesNotExist())
                 .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/ready'].post.summary")
                         .value("[GREC.030.000] 그룹 추천 준비 완료"))
                 .andExpect(jsonPath(
