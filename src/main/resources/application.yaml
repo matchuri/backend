@@ -132,6 +132,16 @@ matchuri:
       token-ttl-seconds: ${MATCHURI_EMAIL_VERIFICATION_TOKEN_TTL_SECONDS:600}
       resend-cooldown-seconds: ${MATCHURI_EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS:60}
       max-attempts: ${MATCHURI_EMAIL_VERIFICATION_MAX_ATTEMPTS:5}
+
+cloudflare:
+  r2:
+    endpoint: ${MATCHURI_R2_ENDPOINT}
+    access-key: ${MATCHURI_R2_ACCESS_KEY}
+    secret-key: ${MATCHURI_R2_SECRET_KEY}
+    bucket: ${MATCHURI_R2_BUCKET}
+    public-url: ${MATCHURI_R2_PUBLIC_URL}
+
+
 logging:
   level:
     root: INFO
