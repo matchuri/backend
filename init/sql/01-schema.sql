@@ -88,6 +88,38 @@ CREATE TABLE menu_ingredients (
     INDEX idx_menu_ingredients_ingredient (ingredient_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE image_assets (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    storage_provider VARCHAR(30) NOT NULL,
+    bucket VARCHAR(100) NOT NULL,
+    object_key VARCHAR(512) NOT NULL,
+    original_filename VARCHAR(255),
+    content_type VARCHAR(50) NOT NULL,
+    content_length BIGINT NOT NULL,
+    checksum VARCHAR(64) NOT NULL,
+    width INT NOT NULL,
+    height INT NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    CONSTRAINT uk_image_assets_object_key UNIQUE (object_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE menu_item_images (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    menu_id BIGINT NOT NULL,
+    image_asset_id BIGINT NOT NULL,
+    image_role VARCHAR(20) NOT NULL,
+    sort_order INT NOT NULL,
+    is_primary BIT(1) NOT NULL DEFAULT b'1',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    CONSTRAINT uk_menu_item_images_menu UNIQUE (menu_id),
+    INDEX idx_menu_item_images_image_asset (image_asset_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE member_agreements (
     id BIGINT NOT NULL AUTO_INCREMENT,
     member_id BIGINT NOT NULL,
@@ -353,6 +385,10 @@ ALTER TABLE menu_attribute_categories
 ALTER TABLE menu_ingredients
     ADD CONSTRAINT fk_menu_ingredients_menu FOREIGN KEY (menu_id) REFERENCES menu_items (id),
     ADD CONSTRAINT fk_menu_ingredients_ingredient FOREIGN KEY (ingredient_id) REFERENCES ingredients (id);
+
+ALTER TABLE menu_item_images
+    ADD CONSTRAINT fk_menu_item_images_menu FOREIGN KEY (menu_id) REFERENCES menu_items (id),
+    ADD CONSTRAINT fk_menu_item_images_image_asset FOREIGN KEY (image_asset_id) REFERENCES image_assets (id);
 
 ALTER TABLE member_agreements
     ADD CONSTRAINT fk_member_agreements_member FOREIGN KEY (member_id) REFERENCES members (id);
