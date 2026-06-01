@@ -135,11 +135,18 @@ matchuri:
 
 cloudflare:
   r2:
-    endpoint: ${MATCHURI_R2_ENDPOINT}
-    access-key: ${MATCHURI_R2_ACCESS_KEY}
-    secret-key: ${MATCHURI_R2_SECRET_KEY}
-    bucket: ${MATCHURI_R2_BUCKET}
-    public-url: ${MATCHURI_R2_PUBLIC_URL}
+    endpoint: ${MATCHURI_R2_ENDPOINT:http://localhost:9000}
+    access-key: ${MATCHURI_R2_ACCESS_KEY:dummy-r2-access-key}
+    secret-key: ${MATCHURI_R2_SECRET_KEY:dummy-r2-secret-key}
+    bucket: ${MATCHURI_R2_BUCKET:matchuri-image-bucket}
+    public-url: ${MATCHURI_R2_PUBLIC_URL:https://asset.matchuri.com}
+    region: ${MATCHURI_R2_REGION:auto}
+    max-upload-bytes: ${MATCHURI_IMAGE_MAX_UPLOAD_BYTES:5242880}
+    min-image-width: ${MATCHURI_IMAGE_MIN_WIDTH:300}
+    min-image-height: ${MATCHURI_IMAGE_MIN_HEIGHT:300}
+    max-image-width: ${MATCHURI_IMAGE_MAX_WIDTH:4096}
+    max-image-height: ${MATCHURI_IMAGE_MAX_HEIGHT:4096}
+    cache-control: ${MATCHURI_IMAGE_CACHE_CONTROL:public, max-age=604800}
 
 
 logging:
