@@ -295,6 +295,12 @@ public class OpenApiConfig {
         metadata.put(
                 key("/api/v1/admin/menu-items/{menuItemId}", PathItem.HttpMethod.DELETE),
                 meta("ADMIN.110.000", "09 Admin"));
+        metadata.put(
+                key("/api/v1/admin/menu-items/{menuItemId}/images", PathItem.HttpMethod.POST),
+                meta("ADMIN.120.000", "09 Admin"));
+        metadata.put(
+                key("/api/v1/admin/menu-items/{menuItemId}/images/primary", PathItem.HttpMethod.DELETE),
+                meta("ADMIN.130.000", "09 Admin"));
 
         return metadata;
     }

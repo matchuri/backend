@@ -131,6 +131,7 @@ public class RecommendationMapper {
                 result.id(),
                 result.menuId(),
                 result.menuName(),
+                result.thumbnailUrl(),
                 result.rankNo(),
                 result.score()
         );
@@ -142,6 +143,7 @@ public class RecommendationMapper {
         return new GuestPersonalRecommendationCandidateResponse(
                 result.menuId(),
                 result.menuName(),
+                result.thumbnailUrl(),
                 result.rankNo(),
                 result.score()
         );

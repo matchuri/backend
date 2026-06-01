@@ -26,6 +26,7 @@ import matchuri.backend.domain.menu.entity.MenuAttributeCategory;
 import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
+import matchuri.backend.domain.menu.support.MenuThumbnailUrlResolver;
 import matchuri.backend.domain.recommendation.algorithm.MenuRecommendationAlgorithm;
 import matchuri.backend.domain.recommendation.algorithm.MenuRecommendationAlgorithmResolver;
 import matchuri.backend.domain.recommendation.algorithm.RecommendationAlgorithmType;
@@ -65,6 +66,7 @@ public class GroupServiceImpl implements GroupService {
     private final GroupRecommendationVoteRepository groupRecommendationVoteRepository;
     private final MenuItemRepository menuItemRepository;
     private final MenuIngredientRepository menuIngredientRepository;
+    private final MenuThumbnailUrlResolver menuThumbnailUrlResolver;
     private final MenuRecommendationAlgorithmResolver menuRecommendationAlgorithmResolver;
     private final GroupInviteCodeGenerator groupInviteCodeGenerator;
     private final GroupRecommendationExpirationService groupRecommendationExpirationService;
@@ -167,9 +169,7 @@ public class GroupServiceImpl implements GroupService {
         return new CreateGroupRecommendationResult(
                 newRecommendation.getId(),
                 newRecommendation.getStatus(),
-                candidates.stream()
-                        .map(candidate -> GroupRecommendationCandidateResult.from(candidate, 0))
-                        .toList()
+                toCandidateResults(candidates, 0)
         );
     }
 
@@ -380,9 +380,7 @@ public class GroupServiceImpl implements GroupService {
                 recommendation.getId(),
                 recommendation.getStatus(),
                 readiness,
-                candidates.stream()
-                        .map(candidate -> GroupRecommendationCandidateResult.from(candidate, 0))
-                        .toList()
+                toCandidateResults(candidates, 0)
         );
     }
 
@@ -771,7 +769,9 @@ public class GroupServiceImpl implements GroupService {
                         .findFirst()
                         .orElseGet(() -> GroupRecommendationCandidateResult.from(
                                 recommendation.getSelectedCandidate(),
-                                0
+                                0,
+                                menuThumbnailUrlResolver.resolve(
+                                        recommendation.getSelectedCandidate().getMenuItem().getId())
                         ));
 
         return new GroupRecommendationResult(
@@ -794,15 +794,39 @@ public class GroupServiceImpl implements GroupService {
 
     private List<GroupRecommendationCandidateResult> toCandidateResults(GroupRecommendation recommendation) {
         Map<Long, Integer> voteCountsByCandidateId = countVotesByCandidateId(recommendation.getId());
+        List<GroupRecommendationCandidate> candidates = groupRecommendationCandidateRepository
+                .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId());
+        Map<Long, String> thumbnailUrlsByMenuId = thumbnailUrlsByMenuId(candidates);
 
-        return groupRecommendationCandidateRepository
-                .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId())
-                .stream()
+        return candidates.stream()
                 .map(candidate -> GroupRecommendationCandidateResult.from(
                         candidate,
-                        voteCountsByCandidateId.getOrDefault(candidate.getId(), 0)
+                        voteCountsByCandidateId.getOrDefault(candidate.getId(), 0),
+                        thumbnailUrlsByMenuId.get(candidate.getMenuItem().getId())
                 ))
                 .toList();
+    }
+
+    private List<GroupRecommendationCandidateResult> toCandidateResults(
+            List<GroupRecommendationCandidate> candidates,
+            int voteCount
+    ) {
+        Map<Long, String> thumbnailUrlsByMenuId = thumbnailUrlsByMenuId(candidates);
+
+        return candidates.stream()
+                .map(candidate -> GroupRecommendationCandidateResult.from(
+                        candidate,
+                        voteCount,
+                        thumbnailUrlsByMenuId.get(candidate.getMenuItem().getId())
+                ))
+                .toList();
+    }
+
+    private Map<Long, String> thumbnailUrlsByMenuId(List<GroupRecommendationCandidate> candidates) {
+        return menuThumbnailUrlResolver.resolveAll(candidates.stream()
+                .map(GroupRecommendationCandidate::getMenuItem)
+                .map(MenuItem::getId)
+                .toList());
     }
 
     private Map<Long, Integer> countVotesByCandidateId(Long recommendationId) {

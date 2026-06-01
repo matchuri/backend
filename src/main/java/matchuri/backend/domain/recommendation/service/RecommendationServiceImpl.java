@@ -26,6 +26,7 @@ import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
+import matchuri.backend.domain.menu.support.MenuThumbnailUrlResolver;
 import matchuri.backend.domain.recommendation.algorithm.MenuRecommendationAlgorithm;
 import matchuri.backend.domain.recommendation.algorithm.MenuRecommendationAlgorithmResolver;
 import matchuri.backend.domain.recommendation.algorithm.RecommendationAlgorithmType;
@@ -77,6 +78,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final MemberMenuActionRepository memberMenuActionRepository;
     private final MenuRecommendationAlgorithmResolver menuRecommendationAlgorithmResolver;
     private final PersonalRecommendationExpirationService personalRecommendationExpirationService;
+    private final MenuThumbnailUrlResolver menuThumbnailUrlResolver;
     private final ObjectMapper objectMapper;
 
     /**
@@ -173,7 +175,11 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<PersonalRecommendationCandidate> savedCandidates =
                 saveRecommendationCandidates(savedPersonalRecommendation, recommendationResult, menuItemById);
 
-        return PersonalRecommendationResult.of(savedPersonalRecommendation, savedCandidates);
+        return PersonalRecommendationResult.of(
+                savedPersonalRecommendation,
+                savedCandidates,
+                thumbnailUrlsByMenuId(savedCandidates)
+        );
     }
 
     /**
@@ -220,6 +226,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     return new GuestPersonalRecommendationCandidateResult(
                             candidate.menuId(),
                             menuItem.getName(),
+                            menuThumbnailUrlResolver.resolve(candidate.menuId()),
                             candidate.rankNo(),
                             candidate.score()
                     );
@@ -239,7 +246,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 personalRecommendationCandidateRepository.findByPersonalRecommendationIdOrderByRankNoAsc(
                         personalRecommendationId);
 
-        return PersonalRecommendationResult.of(personalRecommendation, candidates);
+        return PersonalRecommendationResult.of(personalRecommendation, candidates, thumbnailUrlsByMenuId(candidates));
     }
 
     @Override
@@ -253,7 +260,10 @@ public class RecommendationServiceImpl implements RecommendationService {
         return personalRecommendationCandidateRepository
                 .findByPersonalRecommendationIdOrderByRankNoAsc(personalRecommendationId)
                 .stream()
-                .map(PersonalRecommendationCandidateResult::from)
+                .map(candidate -> PersonalRecommendationCandidateResult.from(
+                        candidate,
+                        menuThumbnailUrlResolver.resolve(candidate.getMenuItem().getId())
+                ))
                 .toList();
     }
 
@@ -490,6 +500,13 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .toList();
 
         return personalRecommendationCandidateRepository.saveAll(personalRecommendationCandidates);
+    }
+
+    private Map<Long, String> thumbnailUrlsByMenuId(List<PersonalRecommendationCandidate> candidates) {
+        return menuThumbnailUrlResolver.resolveAll(candidates.stream()
+                .map(PersonalRecommendationCandidate::getMenuItem)
+                .map(MenuItem::getId)
+                .toList());
     }
 
     private String toCandidateMetaJson(

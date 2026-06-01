@@ -366,6 +366,7 @@ public class GroupMapper {
                 result.candidateId(),
                 result.menuId(),
                 result.menuName(),
+                result.thumbnailUrl(),
                 result.rankNo(),
                 result.score(),
                 result.voteCount()

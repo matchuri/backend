@@ -155,6 +155,7 @@ public class MenuReferenceMapper {
                 result.code(),
                 result.name(),
                 result.description(),
+                result.thumbnailUrl(),
                 toAttributeCategoryResponses(result.attributeCategories()),
                 toRestrictionIngredientResponses(result.ingredients())
         );

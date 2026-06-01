@@ -2,6 +2,7 @@ package matchuri.backend.domain.recommendation.result;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
@@ -19,6 +20,14 @@ public record PersonalRecommendationResult(
             PersonalRecommendation personalRecommendation,
             List<PersonalRecommendationCandidate> candidates
     ) {
+        return of(personalRecommendation, candidates, Map.of());
+    }
+
+    public static PersonalRecommendationResult of(
+            PersonalRecommendation personalRecommendation,
+            List<PersonalRecommendationCandidate> candidates,
+            Map<Long, String> thumbnailUrlsByMenuId
+    ) {
         Long selectedCandidateId = personalRecommendation.getSelectedCandidate() == null
                 ? null
                 : personalRecommendation.getSelectedCandidate().getId();
@@ -31,7 +40,10 @@ public record PersonalRecommendationResult(
                 personalRecommendation.getContextJson(),
                 selectedCandidateId,
                 candidates.stream()
-                        .map(PersonalRecommendationCandidateResult::from)
+                        .map(candidate -> PersonalRecommendationCandidateResult.from(
+                                candidate,
+                                thumbnailUrlsByMenuId.get(candidate.getMenuItem().getId())
+                        ))
                         .toList()
         );
     }

@@ -16,6 +16,7 @@ import matchuri.backend.domain.menu.result.AttributeCategoryResult;
 import matchuri.backend.domain.menu.result.MenuItemDetailResult;
 import matchuri.backend.domain.menu.result.MenuItemSummaryResult;
 import matchuri.backend.domain.menu.result.RestrictionIngredientResult;
+import matchuri.backend.domain.menu.support.MenuThumbnailUrlResolver;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
     private final MenuItemRepository menuItemRepository;
     private final MenuAttributeCategoryRepository menuAttributeCategoryRepository;
     private final MenuIngredientRepository menuIngredientRepository;
+    private final MenuThumbnailUrlResolver menuThumbnailUrlResolver;
 
     @Override
     public List<AttributeCategoryResult> getActiveAttributeCategories(GetAttributeCategoriesCommand command) {
@@ -98,7 +100,8 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
                 .map(menuIngredient -> RestrictionIngredientResult.from(menuIngredient.getIngredient()))
                 .toList();
 
-        return MenuItemDetailResult.of(menuItem, attributeCategories, ingredients);
+        return MenuItemDetailResult.of(menuItem, menuThumbnailUrlResolver.resolve(menuItemId), attributeCategories,
+                ingredients);
     }
 
     private List<Long> distinctIds(List<Long> ids) {

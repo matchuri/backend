@@ -8,12 +8,14 @@ public record MenuItemDetailResult(
         String code,
         String name,
         String description,
+        String thumbnailUrl,
         List<AttributeCategoryResult> attributeCategories,
         List<RestrictionIngredientResult> ingredients
 ) {
 
     public static MenuItemDetailResult of(
             MenuItem menuItem,
+            String thumbnailUrl,
             List<AttributeCategoryResult> attributeCategories,
             List<RestrictionIngredientResult> ingredients
     ) {
@@ -22,6 +24,7 @@ public record MenuItemDetailResult(
                 menuItem.getCode(),
                 menuItem.getName(),
                 menuItem.getDescription(),
+                thumbnailUrl,
                 attributeCategories,
                 ingredients
         );
