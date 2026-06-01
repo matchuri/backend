@@ -66,7 +66,7 @@ public class MenuImageAdminServiceImpl implements MenuImageAdminService {
 
     @Override
     public MenuImageResult uploadPrimaryImage(Long menuItemId, MultipartFile file) {
-        getMenuItem(menuItemId);
+        validateMenuItemExists(menuItemId);
         ValidatedImage image = imageUploadValidator.validate(file);
         String objectKey = imageObjectKeyGenerator.menuImageKey(menuItemId, image.contentType());
 
@@ -83,7 +83,7 @@ public class MenuImageAdminServiceImpl implements MenuImageAdminService {
     @Override
     @Transactional
     public void deletePrimaryImage(Long menuItemId) {
-        getMenuItem(menuItemId);
+        validateMenuItemExists(menuItemId);
         MenuItemImage menuItemImage = menuItemImageRepository.findByMenuId(menuItemId)
                 .orElse(null);
 
@@ -128,6 +128,10 @@ public class MenuImageAdminServiceImpl implements MenuImageAdminService {
     private MenuItem getMenuItem(Long menuItemId) {
         return menuItemRepository.findById(menuItemId)
                 .orElseThrow(() -> new BusinessException(MenuErrorCode.NOT_FOUND, menuItemId));
+    }
+
+    private void validateMenuItemExists(Long menuItemId) {
+        getMenuItem(menuItemId);
     }
 
     private MenuItemImage replaceImage(MenuItemImage existingImage, ImageAsset newImageAsset) {
