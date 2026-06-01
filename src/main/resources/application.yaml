@@ -6,6 +6,10 @@ spring:
     name: backend
   profiles:
     default: ${MATCHURI_SPRING_PROFILE:local}
+  servlet:
+    multipart:
+      max-file-size: ${MATCHURI_MULTIPART_MAX_FILE_SIZE:5MB}
+      max-request-size: ${MATCHURI_MULTIPART_MAX_REQUEST_SIZE:6MB}
   security:
     oauth2:
       client:
