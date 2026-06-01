@@ -25,12 +25,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class MenuImageAdminServiceImpl implements MenuImageAdminService {
 
     private final MenuItemRepository menuItemRepository;
@@ -42,6 +42,7 @@ public class MenuImageAdminServiceImpl implements MenuImageAdminService {
     private final ImageUrlResolver imageUrlResolver;
     private final ObjectStorageClient objectStorageClient;
     private final R2Config r2Config;
+    private final TransactionTemplate transactionTemplate;
 
     @Override
     @Transactional(readOnly = true)
@@ -65,30 +66,14 @@ public class MenuImageAdminServiceImpl implements MenuImageAdminService {
 
     @Override
     public MenuImageResult uploadPrimaryImage(Long menuItemId, MultipartFile file) {
-        MenuItem menuItem = getMenuItem(menuItemId);
+        getMenuItem(menuItemId);
         ValidatedImage image = imageUploadValidator.validate(file);
         String objectKey = imageObjectKeyGenerator.menuImageKey(menuItemId, image.contentType());
 
         objectStorageClient.upload(new UploadObjectCommand(objectKey, image.contentType(), image.bytes()));
 
         try {
-            ImageAsset imageAsset = imageAssetRepository.save(new ImageAsset(
-                    ImageStorageProvider.CLOUDFLARE_R2,
-                    r2Config.getBucket(),
-                    objectKey,
-                    normalizeOriginalFilename(file.getOriginalFilename()),
-                    image.contentType(),
-                    image.bytes().length,
-                    imageChecksumCalculator.sha256Hex(image.bytes()),
-                    image.width(),
-                    image.height()
-            ));
-
-            MenuItemImage menuItemImage = menuItemImageRepository.findByMenuId(menuItemId)
-                    .map(existingImage -> replaceImage(existingImage, imageAsset))
-                    .orElseGet(() -> menuItemImageRepository.save(new MenuItemImage(menuItem, imageAsset)));
-
-            return toResult(menuItemImage);
+            return transactionTemplate.execute(status -> saveUploadedImage(menuItemId, file, image, objectKey));
         } catch (RuntimeException exception) {
             deleteUploadedObjectAfterDbFailure(objectKey, menuItemId);
             throw exception;
@@ -96,6 +81,7 @@ public class MenuImageAdminServiceImpl implements MenuImageAdminService {
     }
 
     @Override
+    @Transactional
     public void deletePrimaryImage(Long menuItemId) {
         getMenuItem(menuItemId);
         MenuItemImage menuItemImage = menuItemImageRepository.findByMenuId(menuItemId)
@@ -111,6 +97,32 @@ public class MenuImageAdminServiceImpl implements MenuImageAdminService {
         imageAsset.markDeleted();
 
         deleteObjectAfterCommit(objectKey, menuItemId);
+    }
+
+    private MenuImageResult saveUploadedImage(
+            Long menuItemId,
+            MultipartFile file,
+            ValidatedImage image,
+            String objectKey
+    ) {
+        MenuItem menuItem = getMenuItem(menuItemId);
+        ImageAsset imageAsset = imageAssetRepository.save(new ImageAsset(
+                ImageStorageProvider.CLOUDFLARE_R2,
+                r2Config.getBucket(),
+                objectKey,
+                normalizeOriginalFilename(file.getOriginalFilename()),
+                image.contentType(),
+                image.bytes().length,
+                imageChecksumCalculator.sha256Hex(image.bytes()),
+                image.width(),
+                image.height()
+        ));
+
+        MenuItemImage menuItemImage = menuItemImageRepository.findByMenuId(menuItemId)
+                .map(existingImage -> replaceImage(existingImage, imageAsset))
+                .orElseGet(() -> menuItemImageRepository.save(new MenuItemImage(menuItem, imageAsset)));
+
+        return toResult(menuItemImage);
     }
 
     private MenuItem getMenuItem(Long menuItemId) {
