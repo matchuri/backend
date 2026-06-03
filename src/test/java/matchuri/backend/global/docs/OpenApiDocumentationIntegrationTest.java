@@ -540,18 +540,46 @@ class OpenApiDocumentationIntegrationTest {
                         .value("RT.010.000"))
                 .andExpect(jsonPath("$.paths['/api/v1/realtime/events'].get.tags[0]")
                         .value("07 Realtime"))
+                .andExpect(jsonPath("$.paths['/api/v1/realtime/events'].get.description")
+                        .value(org.hamcrest.Matchers.containsString("GROUP_INVITE_CREATED")))
+                .andExpect(jsonPath("$.paths['/api/v1/realtime/events'].get.description")
+                        .value(org.hamcrest.Matchers.containsString("GROUP_RECOMMENDATION_VOTE_COMPLETED")))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/realtime/events'].get.responses['200'].content['text/event-stream']")
                         .exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/realtime/events'].get.responses['200'].content['text/event-stream'].schema.type")
+                        .value("string"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/realtime/events'].get.responses['200'].content['text/event-stream'].examples.inviteCreated.value")
+                        .value(org.hamcrest.Matchers.containsString("event: GROUP_INVITE_CREATED")))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/realtime/events'].get.responses['200'].content['text/event-stream'].examples.voteCompleted.value")
+                        .value(org.hamcrest.Matchers.containsString("\"eventType\":\"GROUP_RECOMMENDATION_VOTE_COMPLETED\"")))
                 .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/realtime/events'].get.summary")
                         .value("[RT.020.000] 그룹 실시간 이벤트 스트림"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/realtime/events'].get['x-api-id']")
                         .value("RT.020.000"))
                 .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/realtime/events'].get.tags[0]")
                         .value("07 Realtime"))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/realtime/events'].get.description")
+                        .value(org.hamcrest.Matchers.containsString("GROUP_MEMBER_JOINED")))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/realtime/events'].get.description")
+                        .value(org.hamcrest.Matchers.containsString("GROUP_DELETED")))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/realtime/events'].get.description")
+                        .value(org.hamcrest.Matchers.containsString("GROUP_RECOMMENDATION_FINALIZED")))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/realtime/events'].get.responses['200'].content['text/event-stream']")
-                        .exists());
+                        .exists())
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/realtime/events'].get.responses['200'].content['text/event-stream'].schema.type")
+                        .value("string"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/realtime/events'].get.responses['200'].content['text/event-stream'].examples.groupDeleted.value")
+                        .value(org.hamcrest.Matchers.containsString("event: GROUP_DELETED")))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/realtime/events'].get.responses['200'].content['text/event-stream'].examples.voteUpdated.value")
+                        .value(org.hamcrest.Matchers.containsString("\"eventType\":\"GROUP_RECOMMENDATION_VOTE_UPDATED\"")));
     }
 
     @Test
