@@ -4,6 +4,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.realtime.entity.RealtimeEventType;
+import matchuri.backend.domain.realtime.event.GroupDeletedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupInviteCreatedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupMemberJoinedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupMemberLeftRealtimeEvent;
@@ -13,6 +14,7 @@ import matchuri.backend.domain.realtime.event.GroupRecommendationReadinessUpdate
 import matchuri.backend.domain.realtime.event.GroupRecommendationStartedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupRecommendationVoteCompletedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupRecommendationVoteUpdatedRealtimeEvent;
+import matchuri.backend.domain.realtime.result.GroupDeletedRealtimePayload;
 import matchuri.backend.domain.realtime.result.GroupInviteCreatedRealtimePayload;
 import matchuri.backend.domain.realtime.result.GroupMemberJoinedRealtimePayload;
 import matchuri.backend.domain.realtime.result.GroupMemberLeftRealtimePayload;
@@ -57,8 +59,9 @@ public class RealtimeDomainEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(GroupMemberJoinedRealtimeEvent event) {
-        realtimeEventService.sendToMember(
-                event.ownerMemberId(),
+        realtimeEventService.sendToGroupMembers(
+                event.groupId(),
+                activeMemberIds(event.groupId()),
                 RealtimeEventType.GROUP_MEMBER_JOINED,
                 event.groupId(),
                 null,
@@ -74,8 +77,9 @@ public class RealtimeDomainEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(GroupMemberLeftRealtimeEvent event) {
-        realtimeEventService.sendToMember(
-                event.ownerMemberId(),
+        realtimeEventService.sendToGroupMembers(
+                event.groupId(),
+                activeMemberIds(event.groupId()),
                 RealtimeEventType.GROUP_MEMBER_LEFT,
                 event.groupId(),
                 null,
@@ -85,6 +89,23 @@ public class RealtimeDomainEventListener {
                         event.memberId(),
                         event.memberNickname(),
                         event.leftAt()
+                )
+        );
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handle(GroupDeletedRealtimeEvent event) {
+        realtimeEventService.sendToGroupMembers(
+                event.groupId(),
+                event.targetMemberIds(),
+                RealtimeEventType.GROUP_DELETED,
+                event.groupId(),
+                null,
+                event.deletedByMemberId(),
+                new GroupDeletedRealtimePayload(
+                        event.groupId(),
+                        event.deletedByMemberId(),
+                        event.deletedAt()
                 )
         );
     }

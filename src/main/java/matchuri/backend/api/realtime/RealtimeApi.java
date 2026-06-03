@@ -18,7 +18,7 @@ public interface RealtimeApi {
 
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
                     - 응답은 `text/event-stream`입니다.
-                    - 그룹 초대와 그룹장 전용 알림을 수신합니다.
+                    - 그룹 초대와 그룹장 전용 투표 완료 알림을 수신합니다.
                     - 연결 직후 `REALTIME_CONNECTED` 이벤트를 보냅니다.
                     - 기본 연결 timeout은 30분이며, 서버는 30초마다 heartbeat comment를 보낼 수 있습니다.
                     """
@@ -51,7 +51,7 @@ public interface RealtimeApi {
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
                     - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 연결할 수 있습니다.
                     - 응답은 `text/event-stream`입니다.
-                    - 추천 시작, 준비 상태, 후보 생성, 투표 진행률, 최종 확정 이벤트를 수신합니다.
+                    - 멤버 참여/탈퇴, 그룹 삭제, 추천 시작, 준비 상태, 후보 생성, 투표 진행률, 최종 확정 이벤트를 수신합니다.
                     - 연결 직후 `REALTIME_CONNECTED` 이벤트를 보냅니다.
                     - 기본 연결 timeout은 30분이며, 서버는 30초마다 heartbeat comment를 보낼 수 있습니다.
                     """

@@ -37,6 +37,7 @@ import matchuri.backend.domain.recommendation.algorithm.input.RecommendationCont
 import matchuri.backend.domain.recommendation.algorithm.input.TasteProfileSnapshot;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationResult;
+import matchuri.backend.domain.realtime.event.GroupDeletedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupInviteCreatedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupMemberJoinedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupMemberLeftRealtimeEvent;
@@ -643,7 +644,6 @@ public class GroupServiceImpl implements GroupService {
 
         eventPublisher.publishEvent(new GroupMemberJoinedRealtimeEvent(
                 room.getId(),
-                room.getHostMember().getId(),
                 member.getId(),
                 member.getNickname(),
                 membership.getJoinedAt()
@@ -678,7 +678,6 @@ public class GroupServiceImpl implements GroupService {
 
         eventPublisher.publishEvent(new GroupMemberLeftRealtimeEvent(
                 room.getId(),
-                room.getHostMember().getId(),
                 member.getId(),
                 member.getNickname(),
                 membership.getLeftAt()
@@ -702,9 +701,21 @@ public class GroupServiceImpl implements GroupService {
         }
 
         LocalDateTime deletedAt = LocalDateTime.now();
+        List<Long> targetMemberIds = groupRoomMemberRepository.findActiveMembersByRoomId(room.getId()).stream()
+                .map(GroupRoomMember::getMember)
+                .map(Member::getId)
+                .toList();
+
         room.delete();
         revokeActiveInvites(room);
         leaveActiveMembers(room, deletedAt);
+
+        eventPublisher.publishEvent(new GroupDeletedRealtimeEvent(
+                room.getId(),
+                member.getId(),
+                targetMemberIds,
+                deletedAt
+        ));
 
         return new DeleteGroupResult(room.getId(), room.getStatus(), deletedAt);
     }
@@ -802,7 +813,6 @@ public class GroupServiceImpl implements GroupService {
             invite.accept(now);
             eventPublisher.publishEvent(new GroupMemberJoinedRealtimeEvent(
                     room.getId(),
-                    room.getHostMember().getId(),
                     member.getId(),
                     member.getNickname(),
                     membership.getJoinedAt()

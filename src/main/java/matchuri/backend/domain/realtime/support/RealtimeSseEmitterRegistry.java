@@ -186,6 +186,9 @@ public class RealtimeSseEmitterRegistry {
         }
     }
 
-    private record EmitterConnection(String id, Long memberId, SseEmitter emitter) {
+    private record EmitterConnection(
+            String id,
+            Long memberId,
+            SseEmitter emitter) {
     }
 }
