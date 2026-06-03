@@ -28,16 +28,8 @@ public class RealtimeEventService {
     public SseEmitter connectMemberStream() {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         SseEmitter emitter = emitterRegistry.registerMember(member.getId());
-        LocalDateTime connectedAt = LocalDateTime.now();
 
-        sendToMember(
-                member.getId(),
-                RealtimeEventType.REALTIME_CONNECTED,
-                null,
-                null,
-                member.getId(),
-                new RealtimeConnectedPayload(member.getId(), null, connectedAt)
-        );
+        sendConnected(emitter, member.getId(), null);
 
         return emitter;
     }
@@ -51,16 +43,8 @@ public class RealtimeEventService {
         }
 
         SseEmitter emitter = emitterRegistry.registerGroup(groupId, member.getId());
-        LocalDateTime connectedAt = LocalDateTime.now();
 
-        sendToGroup(
-                groupId,
-                RealtimeEventType.REALTIME_CONNECTED,
-                groupId,
-                null,
-                member.getId(),
-                new RealtimeConnectedPayload(member.getId(), groupId, connectedAt)
-        );
+        sendConnected(emitter, member.getId(), groupId);
 
         return emitter;
     }
@@ -112,6 +96,23 @@ public class RealtimeEventService {
         java.util.ArrayList<Long> result = new java.util.ArrayList<>();
         memberIds.forEach(result::add);
         return result;
+    }
+
+    private void sendConnected(SseEmitter emitter, Long memberId, Long groupId) {
+        RealtimeEventEnvelope envelope = envelope(
+                RealtimeEventType.REALTIME_CONNECTED,
+                groupId,
+                null,
+                memberId,
+                new RealtimeConnectedPayload(memberId, groupId, LocalDateTime.now())
+        );
+
+        emitterRegistry.sendToEmitter(
+                emitter,
+                envelope.eventId(),
+                RealtimeEventType.REALTIME_CONNECTED.name(),
+                envelope
+        );
     }
 
     private RealtimeEventEnvelope envelope(

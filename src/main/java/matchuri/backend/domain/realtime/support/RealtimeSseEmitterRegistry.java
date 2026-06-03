@@ -68,6 +68,32 @@ public class RealtimeSseEmitterRegistry {
         );
     }
 
+    public boolean sendToEmitter(SseEmitter emitter, String eventId, String eventName, Object data) {
+        try {
+            sendEvent(emitter, eventId, eventName, data);
+            return true;
+        } catch (IOException | IllegalStateException exception) {
+            log.debug("SSE direct send failed. eventName={}", eventName, exception);
+            emitter.completeWithError(exception);
+            return false;
+        }
+    }
+
+    public int countMemberConnections(Long memberId) {
+        List<EmitterConnection> connections = memberEmitters.get(memberId);
+        return connections == null ? 0 : connections.size();
+    }
+
+    public int countGroupConnections(Long groupId) {
+        List<EmitterConnection> connections = groupEmitters.get(groupId);
+        return connections == null ? 0 : connections.size();
+    }
+
+    public int countTotalConnections() {
+        return memberEmitters.values().stream().mapToInt(List::size).sum()
+                + groupEmitters.values().stream().mapToInt(List::size).sum();
+    }
+
     @Scheduled(fixedRateString = "PT30S")
     public void sendHeartbeat() {
         memberEmitters.values().forEach(this::sendHeartbeat);
@@ -86,10 +112,7 @@ public class RealtimeSseEmitterRegistry {
     private void send(List<EmitterConnection> connections, String eventId, String eventName, Object data) {
         connections.forEach(connection -> {
             try {
-                connection.emitter().send(SseEmitter.event()
-                        .id(eventId)
-                        .name(eventName)
-                        .data(data, MediaType.APPLICATION_JSON));
+                sendEvent(connection.emitter(), eventId, eventName, data);
             } catch (IOException | IllegalStateException exception) {
                 log.debug("SSE send failed. connectionId={}, eventName={}", connection.id(), eventName, exception);
                 connection.emitter().completeWithError(exception);
@@ -111,10 +134,7 @@ public class RealtimeSseEmitterRegistry {
             }
 
             try {
-                connection.emitter().send(SseEmitter.event()
-                        .id(eventId)
-                        .name(eventName)
-                        .data(data, MediaType.APPLICATION_JSON));
+                sendEvent(connection.emitter(), eventId, eventName, data);
             } catch (IOException | IllegalStateException exception) {
                 log.debug("SSE send failed. connectionId={}, eventName={}", connection.id(), eventName, exception);
                 connection.emitter().completeWithError(exception);
@@ -133,6 +153,13 @@ public class RealtimeSseEmitterRegistry {
                 connections.remove(connection);
             }
         });
+    }
+
+    private void sendEvent(SseEmitter emitter, String eventId, String eventName, Object data) throws IOException {
+        emitter.send(SseEmitter.event()
+                .id(eventId)
+                .name(eventName)
+                .data(data, MediaType.APPLICATION_JSON));
     }
 
     private void removeMemberEmitter(Long memberId, EmitterConnection connection) {
