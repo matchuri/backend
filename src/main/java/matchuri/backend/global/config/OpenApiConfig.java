@@ -37,6 +37,7 @@ public class OpenApiConfig {
             tag("04 Recommendation", "개인 추천 플로우 API"),
             tag("05 Group", "그룹 생성/참여 플로우 API"),
             tag("06 Group Recommendation", "그룹 추천/투표 플로우 API"),
+            tag("07 Realtime", "실시간 이벤트 API"),
             tag("09 Admin", "관리자 데이터 운영 API"));
     private static final Map<ApiOperationKey, ApiOperationMetadata> API_OPERATION_METADATA = apiOperationMetadata();
 
@@ -267,6 +268,11 @@ public class OpenApiConfig {
         metadata.put(
                 key("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize", PathItem.HttpMethod.PATCH),
                 meta("GREC.090.000", "06 Group Recommendation"));
+
+        metadata.put(key("/api/v1/realtime/events", PathItem.HttpMethod.GET), meta("RT.010.000", "07 Realtime"));
+        metadata.put(
+                key("/api/v1/groups/{groupId}/realtime/events", PathItem.HttpMethod.GET),
+                meta("RT.020.000", "07 Realtime"));
 
         metadata.put(
                 key("/api/v1/admin/attribute-categories", PathItem.HttpMethod.GET),
