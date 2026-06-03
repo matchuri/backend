@@ -12,7 +12,9 @@ import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.result.GroupVoteProgressResult;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.realtime.entity.RealtimeEventType;
+import matchuri.backend.domain.realtime.event.GroupRecommendationVoteCompletedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupRecommendationVoteUpdatedRealtimeEvent;
+import matchuri.backend.domain.realtime.result.GroupRecommendationVoteCompletedRealtimePayload;
 import matchuri.backend.domain.realtime.result.GroupRecommendationVoteUpdatedRealtimePayload;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,6 +65,41 @@ class RealtimeDomainEventListenerTest {
                     assertThat(payload.voteProgress().totalMemberCount()).isEqualTo(2);
                     assertThat(payload.voteProgress().votedMemberCount()).isEqualTo(1);
                     assertThat(payload.voteProgress().allVoted()).isFalse();
+                });
+    }
+
+    @Test
+    @DisplayName("전원 투표 완료 이벤트는 그룹장에게 수동 확정 필요 상태를 전송한다")
+    void sendsVoteCompletedOnlyToOwner() {
+        Long groupId = 3001L;
+        Long sessionId = 5001L;
+        Long ownerMemberId = 1001L;
+
+        ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+
+        listener.handle(new GroupRecommendationVoteCompletedRealtimeEvent(
+                groupId,
+                sessionId,
+                ownerMemberId,
+                new GroupVoteProgressResult(2, 2)
+        ));
+
+        verify(realtimeEventService).sendToMember(
+                eq(ownerMemberId),
+                eq(RealtimeEventType.GROUP_RECOMMENDATION_VOTE_COMPLETED),
+                eq(groupId),
+                eq(sessionId),
+                eq(null),
+                payloadCaptor.capture()
+        );
+
+        assertThat(payloadCaptor.getValue())
+                .isInstanceOfSatisfying(GroupRecommendationVoteCompletedRealtimePayload.class, payload -> {
+                    assertThat(payload.sessionId()).isEqualTo(sessionId);
+                    assertThat(payload.voteProgress().totalMemberCount()).isEqualTo(2);
+                    assertThat(payload.voteProgress().votedMemberCount()).isEqualTo(2);
+                    assertThat(payload.voteProgress().allVoted()).isTrue();
+                    assertThat(payload.finalizeRequired()).isTrue();
                 });
     }
 
