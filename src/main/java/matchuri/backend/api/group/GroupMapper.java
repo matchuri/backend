@@ -355,7 +355,8 @@ public class GroupMapper {
                 result.nickname(),
                 result.role(),
                 result.status(),
-                result.joinedAt()
+                result.joinedAt(),
+                result.isMe()
         );
     }
 

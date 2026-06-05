@@ -843,7 +843,7 @@ public class GroupServiceImpl implements GroupService {
 
         List<GroupMemberSummaryResult> members = groupRoomMemberRepository.findActiveMembersByRoomId(groupId)
                 .stream()
-                .map(this::toMemberSummaryResult)
+                .map(membership -> toMemberSummaryResult(membership, member.getId()))
                 .toList();
         GroupRecommendationResult activeRecommendation = groupRecommendationRepository
                 .findFirstByRoomIdAndStatusInOrderByStartedAtDescIdDesc(
@@ -1178,7 +1178,7 @@ public class GroupServiceImpl implements GroupService {
                 .forEach(membership -> membership.leave(leftAt));
     }
 
-    private GroupMemberSummaryResult toMemberSummaryResult(GroupRoomMember membership) {
+    private GroupMemberSummaryResult toMemberSummaryResult(GroupRoomMember membership, Long currentMemberId) {
         Member member = membership.getMember();
 
         return new GroupMemberSummaryResult(
@@ -1186,7 +1186,8 @@ public class GroupServiceImpl implements GroupService {
                 member.getNickname(),
                 membership.getRole(),
                 membership.getStatus(),
-                membership.getJoinedAt()
+                membership.getJoinedAt(),
+                member.getId().equals(currentMemberId)
         );
     }
 }

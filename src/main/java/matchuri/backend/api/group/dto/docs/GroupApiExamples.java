@@ -62,28 +62,32 @@ public final class GroupApiExamples {
                     "nickname": "점심탐험가",
                     "role": "OWNER",
                     "status": "ACTIVE",
-                    "joinedAt": "2026-05-06T12:01:00"
+                    "joinedAt": "2026-05-06T12:01:00",
+                    "isMe": true
                   },
                   {
                     "memberId": 2,
                     "nickname": "든든한한끼",
                     "role": "MEMBER",
                     "status": "ACTIVE",
-                    "joinedAt": "2026-05-06T12:02:00"
+                    "joinedAt": "2026-05-06T12:02:00",
+                    "isMe": false
                   },
                   {
                     "memberId": 3,
                     "nickname": "매콤러버",
                     "role": "MEMBER",
                     "status": "ACTIVE",
-                    "joinedAt": "2026-05-06T12:02:00"
+                    "joinedAt": "2026-05-06T12:02:00",
+                    "isMe": false
                   },
                   {
                     "memberId": 4,
                     "nickname": "국물파",
                     "role": "MEMBER",
                     "status": "ACTIVE",
-                    "joinedAt": "2026-05-06T12:02:00"
+                    "joinedAt": "2026-05-06T12:02:00",
+                    "isMe": false
                   }
                 ],
                 "activeRecommendation": {
@@ -120,14 +124,16 @@ public final class GroupApiExamples {
                     "nickname": "점심탐험가",
                     "role": "OWNER",
                     "status": "ACTIVE",
-                    "joinedAt": "2026-05-06T12:01:00"
+                    "joinedAt": "2026-05-06T12:01:00",
+                    "isMe": true
                   },
                   {
                     "memberId": 2,
                     "nickname": "든든한한끼",
                     "role": "MEMBER",
                     "status": "ACTIVE",
-                    "joinedAt": "2026-05-06T12:02:00"
+                    "joinedAt": "2026-05-06T12:02:00",
+                    "isMe": false
                   }
                 ],
                 "activeRecommendation": {

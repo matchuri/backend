@@ -138,6 +138,7 @@ public interface GroupApi {
                     - 로그인한 활성 회원만 사용할 수 있습니다.
                     - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
                     - 그룹의 모든 `ACTIVE` 멤버에게 고정 초대 코드를 함께 반환합니다.
+                    - 멤버 목록의 각 항목은 현재 로그인한 회원이면 `isMe=true`, 아니면 `false`를 반환합니다.
                     - 삭제된 그룹은 조회할 수 없습니다.
                     - `PREPARING` 또는 `OPEN` 추천 세션이 있으면 `activeRecommendation`을 함께 반환합니다.
                     - `PREPARING`이면 readiness 진행률을, `OPEN`이면 후보와 투표 진행률을 포함합니다.

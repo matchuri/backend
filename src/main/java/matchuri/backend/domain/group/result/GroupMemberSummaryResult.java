@@ -9,6 +9,7 @@ public record GroupMemberSummaryResult(
         String nickname,
         GroupMemberRole role,
         GroupMemberStatus status,
-        LocalDateTime joinedAt
+        LocalDateTime joinedAt,
+        boolean isMe
 ) {
 }

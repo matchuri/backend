@@ -19,7 +19,10 @@ public record GroupMemberSummaryResponse(
         GroupMemberStatus status,
 
         @Schema(description = "그룹 참여 시각입니다.", example = "2026-05-06T12:01:00")
-        LocalDateTime joinedAt
+        LocalDateTime joinedAt,
+
+        @Schema(description = "현재 로그인한 회원 본인 여부입니다.", example = "true")
+        boolean isMe
 ) {
     public static GroupMemberSummaryResponse mockOwner() {
         return new GroupMemberSummaryResponse(
@@ -27,7 +30,8 @@ public record GroupMemberSummaryResponse(
                 "점심탐험가",
                 GroupMemberRole.OWNER,
                 GroupMemberStatus.ACTIVE,
-                LocalDateTime.of(2026, 5, 6, 12, 1)
+                LocalDateTime.of(2026, 5, 6, 12, 1),
+                true
         );
     }
 
@@ -37,7 +41,8 @@ public record GroupMemberSummaryResponse(
                 nickname,
                 GroupMemberRole.MEMBER,
                 GroupMemberStatus.ACTIVE,
-                LocalDateTime.of(2026, 5, 6, 12, 2)
+                LocalDateTime.of(2026, 5, 6, 12, 2),
+                false
         );
     }
 }
