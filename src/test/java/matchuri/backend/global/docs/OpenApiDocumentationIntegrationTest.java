@@ -407,6 +407,14 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.preparing.value.data.inviteCode")
                         .value("LUNCH42"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.preparing.value.data.members[0].isMe")
+                        .value(true))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}'].get.responses['200'].content['application/json'].examples.preparing.value.data.members[1].isMe")
+                        .value(false))
+                .andExpect(jsonPath("$.components.schemas.GroupMemberSummaryResponse.properties.isMe.description")
+                        .value("현재 로그인한 회원 본인 여부입니다."))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}'].patch.responses['200'].content['application/json'].examples.success.value.data.name")
                         .value("점심 회의방"))
                 .andExpect(jsonPath(

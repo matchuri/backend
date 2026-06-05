@@ -1801,8 +1801,19 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.members[0].memberId").value(owner.getId()))
                 .andExpect(jsonPath("$.data.members[0].nickname").value("상세방장"))
                 .andExpect(jsonPath("$.data.members[0].role").value(GroupMemberRole.OWNER.name()))
+                .andExpect(jsonPath("$.data.members[0].isMe").value(true))
                 .andExpect(jsonPath("$.data.members[1].memberId").value(activeMember.getId()))
                 .andExpect(jsonPath("$.data.members[1].nickname").value("상세멤버"))
+                .andExpect(jsonPath("$.data.members[1].isMe").value(false))
+                .andExpect(jsonPath("$.data.activeRecommendation").value(nullValue()));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(activeMember))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.members[0].memberId").value(owner.getId()))
+                .andExpect(jsonPath("$.data.members[0].isMe").value(false))
+                .andExpect(jsonPath("$.data.members[1].memberId").value(activeMember.getId()))
+                .andExpect(jsonPath("$.data.members[1].isMe").value(true))
                 .andExpect(jsonPath("$.data.activeRecommendation").value(nullValue()));
     }
 
