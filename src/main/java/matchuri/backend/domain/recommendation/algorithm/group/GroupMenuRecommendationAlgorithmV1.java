@@ -13,6 +13,7 @@ import matchuri.backend.domain.recommendation.algorithm.input.MenuRecommendation
 import matchuri.backend.domain.recommendation.algorithm.input.TasteProfileSnapshot;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationResult;
+import matchuri.backend.domain.recommendation.algorithm.support.RecommendationScoreNormalizer;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -71,6 +72,10 @@ public class GroupMenuRecommendationAlgorithmV1 implements MenuRecommendationAlg
         }
 
         double dislikedPenalty = dislikedMemberCount * DISLIKED_MENU_PENALTY;
+        double rawScore = preferenceScore - dislikedPenalty;
+        double maxPossibleScore = participants.stream()
+                .filter(participant -> !participant.preferredAttributeCategoryIds().isEmpty())
+                .count() * PARTICIPANT_PREFERENCE_SCORE;
 
         return new ScoredMenu(
                 menu,
@@ -79,7 +84,8 @@ public class GroupMenuRecommendationAlgorithmV1 implements MenuRecommendationAlg
                 dislikedMemberCount,
                 preferenceScore,
                 dislikedPenalty,
-                preferenceScore - dislikedPenalty
+                RecommendationScoreNormalizer.normalize(rawScore, maxPossibleScore),
+                rawScore
         );
     }
 
@@ -91,12 +97,14 @@ public class GroupMenuRecommendationAlgorithmV1 implements MenuRecommendationAlg
                     return new MenuRecommendationCandidateResult(
                             scoredMenu.menu().menuId(),
                             index + 1,
-                            scoredMenu.totalScore(),
+                            scoredMenu.normalizedScore(),
                             Map.of(
                                     "preferenceMatchingCount", scoredMenu.preferenceMatchingCount(),
                                     "dislikedMemberCount", scoredMenu.dislikedMemberCount(),
                                     "preferenceScore", scoredMenu.preferenceScore(),
-                                    "dislikedPenalty", scoredMenu.dislikedPenalty()
+                                    "dislikedPenalty", scoredMenu.dislikedPenalty(),
+                                    "normalizedScore", scoredMenu.normalizedScore(),
+                                    "rawScore", scoredMenu.totalScore()
                             ),
                             Map.of(
                                     "participantCount", scoredMenu.participantCount()
@@ -136,6 +144,7 @@ public class GroupMenuRecommendationAlgorithmV1 implements MenuRecommendationAlg
             int dislikedMemberCount,
             double preferenceScore,
             double dislikedPenalty,
+            double normalizedScore,
             double totalScore
     ) {
     }

@@ -48,7 +48,7 @@ public class PersonalRecommendationCandidate extends BaseEntity {
     @Column(name = "rank_no", nullable = false, comment = "후보 순위")
     private int rankNo;
 
-    @Column(comment = "추천 점수")
+    @Column(comment = "0~100 정규화 추천 점수")
     private Double score;
 
     @Column(name = "candidate_meta_json", columnDefinition = "json", comment = "후보 메타 JSON")

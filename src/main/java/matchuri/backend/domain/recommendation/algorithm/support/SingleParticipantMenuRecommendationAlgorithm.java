@@ -15,6 +15,9 @@ import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendatio
 
 public abstract class SingleParticipantMenuRecommendationAlgorithm implements MenuRecommendationAlgorithm {
 
+    private static final double CATEGORY_SCORE_MAX = 50.0;
+    private static final double HISTORY_SCORE_MAX = 50.0;
+
     /**
      * 단일 참여자의 제한 재료, 비선호 메뉴, 최근 선택 메뉴를 제외한 뒤 취향과 선택 이력 기반 점수로 추천 후보를 만든다.
      *
@@ -67,6 +70,12 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
                 historyWeightMatchingCount,
                 categoryMatchingScore,
                 historyWeightScore,
+                calculateNormalizedScore(
+                        categoryMatchingScore,
+                        historyWeightMatchingCount,
+                        participant,
+                        selectedAttributeCategoryFrequency
+                ),
                 categoryMatchingScore + historyWeightScore
         );
     }
@@ -79,12 +88,14 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
                     return new MenuRecommendationCandidateResult(
                             scoredMenu.menu().menuId(),
                             index + 1,
-                            scoredMenu.totalScore(),
+                            scoredMenu.normalizedScore(),
                             Map.of(
                                     "categoryMatchingCount", scoredMenu.categoryMatchingCount(),
                                     "historyWeightMatchingCount", scoredMenu.historyWeightMatchingCount(),
                                     "categoryMatchingScore", scoredMenu.categoryMatchingScore(),
-                                    "historyWeightScore", scoredMenu.historyWeightScore()
+                                    "historyWeightScore", scoredMenu.historyWeightScore(),
+                                    "normalizedScore", scoredMenu.normalizedScore(),
+                                    "rawScore", scoredMenu.totalScore()
                             ),
                             Map.of()
                     );
@@ -97,7 +108,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
             return 0;
         }
 
-        return matchingCount * (50.0 / preferredCategoryCount);
+        return matchingCount * (CATEGORY_SCORE_MAX / preferredCategoryCount);
     }
 
     private double calculateHistoryWeightScore(
@@ -113,7 +124,52 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
             return 0;
         }
 
-        return historyWeightMatchingCount * (50.0 / maxFrequency);
+        return historyWeightMatchingCount * (HISTORY_SCORE_MAX / maxFrequency);
+    }
+
+    private double calculateNormalizedScore(
+            double categoryMatchingScore,
+            long historyWeightMatchingCount,
+            TasteProfileSnapshot participant,
+            Map<Long, Long> selectedAttributeCategoryFrequency
+    ) {
+        double normalizableScore = categoryMatchingScore
+                + calculateNormalizedHistoryWeightScore(historyWeightMatchingCount, selectedAttributeCategoryFrequency);
+        double maxPossibleScore = calculateMaxPossibleScore(participant, selectedAttributeCategoryFrequency);
+
+        return RecommendationScoreNormalizer.normalize(normalizableScore, maxPossibleScore);
+    }
+
+    private double calculateNormalizedHistoryWeightScore(
+            long historyWeightMatchingCount,
+            Map<Long, Long> selectedAttributeCategoryFrequency
+    ) {
+        long totalFrequency = selectedAttributeCategoryFrequency.values().stream()
+                .mapToLong(Long::longValue)
+                .sum();
+
+        if (totalFrequency == 0) {
+            return 0;
+        }
+
+        return historyWeightMatchingCount * (HISTORY_SCORE_MAX / totalFrequency);
+    }
+
+    private double calculateMaxPossibleScore(
+            TasteProfileSnapshot participant,
+            Map<Long, Long> selectedAttributeCategoryFrequency
+    ) {
+        double maxScore = 0;
+
+        if (!participant.preferredAttributeCategoryIds().isEmpty()) {
+            maxScore += CATEGORY_SCORE_MAX;
+        }
+
+        if (!selectedAttributeCategoryFrequency.isEmpty()) {
+            maxScore += HISTORY_SCORE_MAX;
+        }
+
+        return maxScore;
     }
 
     private long countMatches(List<Long> sourceIds, List<Long> targetIds) {
@@ -137,6 +193,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
             long historyWeightMatchingCount,
             double categoryMatchingScore,
             double historyWeightScore,
+            double normalizedScore,
             double totalScore
     ) {
     }

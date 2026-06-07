@@ -18,7 +18,7 @@ public record PersonalRecommendationCandidateResponse(
         @Schema(description = "추천 순위입니다.", example = "1")
         Integer rankNo,
 
-        @Schema(description = "추천 점수입니다.", example = "93.5")
+        @Schema(description = "0에서 100 사이로 정규화된 추천 점수입니다.", example = "93.5")
         Double score
 ) {
     public static PersonalRecommendationCandidateResponse mockBibimbap() {
