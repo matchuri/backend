@@ -55,6 +55,38 @@ class PersonalMenuRecommendationAlgorithmV1Test {
         assertThat(result.candidates())
                 .extracting(candidate -> candidate.rankNo())
                 .containsExactly(1, 2);
+        assertThat(result.candidates())
+                .extracting(candidate -> candidate.score())
+                .containsExactly(83.3, 16.7);
+    }
+
+    @Test
+    @DisplayName("개인 추천 응답 점수는 0에서 100 사이로 정규화하고 원점수는 메타에 남긴다")
+    void recommendNormalizesPersonalCandidateScore() {
+        TasteProfileSnapshot participant = new TasteProfileSnapshot(
+                1L,
+                "1",
+                List.of(10L),
+                List.of(),
+                List.of()
+        );
+        MenuRecommendationInput input = new MenuRecommendationInput(
+                RecommendationTargetType.PERSONAL,
+                List.of(participant),
+                List.of(
+                        new MenuRecommendationProfile(1L, "M1", "메뉴1", List.of(10L, 20L, 30L), List.of())
+                ),
+                RecommendationContextSnapshot.of("{}"),
+                3,
+                List.of(),
+                List.of(),
+                Map.of(20L, 2L, 30L, 2L)
+        );
+
+        MenuRecommendationResult result = algorithm.recommend(input);
+
+        assertThat(result.candidates().getFirst().score()).isEqualTo(100.0);
+        assertThat(result.candidates().getFirst().scoreBreakdown().get("rawScore")).isEqualTo(150.0);
     }
 
     @Test
