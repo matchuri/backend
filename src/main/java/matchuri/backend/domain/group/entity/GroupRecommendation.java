@@ -59,6 +59,18 @@ public class GroupRecommendation extends BaseEntity {
         this.status = GroupRecommendationStatus.OPEN;
     }
 
+    public GroupRecommendation(GroupRoom room, LocalDateTime startedAt) {
+        this.room = room;
+        this.startedAt = startedAt;
+        this.status = GroupRecommendationStatus.OPEN;
+    }
+
+    public static GroupRecommendation preparing(GroupRoom room, LocalDateTime startedAt) {
+        GroupRecommendation recommendation = new GroupRecommendation(room, startedAt);
+        recommendation.status = GroupRecommendationStatus.PREPARING;
+        return recommendation;
+    }
+
     public static GroupRecommendation preparing(GroupRoom room, String contextJson, LocalDateTime startedAt) {
         GroupRecommendation recommendation = new GroupRecommendation(room, contextJson, startedAt);
         recommendation.status = GroupRecommendationStatus.PREPARING;
@@ -66,6 +78,11 @@ public class GroupRecommendation extends BaseEntity {
     }
 
     public void open() {
+        this.status = GroupRecommendationStatus.OPEN;
+    }
+
+    public void openWithContextJson(String contextJson) {
+        this.contextJson = contextJson;
         this.status = GroupRecommendationStatus.OPEN;
     }
 

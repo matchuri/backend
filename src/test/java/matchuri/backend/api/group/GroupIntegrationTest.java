@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -258,9 +259,6 @@ class GroupIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "contextJson": {
-                                    "mealTime": "LUNCH"
-                                  }
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -277,7 +275,7 @@ class GroupIntegrationTest {
 
         assertThat(savedRecommendation.getRoom().getId()).isEqualTo(groupRoom.getId());
         assertThat(savedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.PREPARING);
-        assertThat(savedRecommendation.getContextJson()).contains("LUNCH");
+        assertThat(savedRecommendation.getContextJson()).isNull();
     }
 
     @Test
@@ -291,13 +289,10 @@ class GroupIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "contextJson": {
-                                    "mealTime": "LUNCH",
-                                    "latitude": 37.498095,
-                                    "longitude": 127.027610,
-                                    "level": 5,
-                                    "address": "서울 강남구 테헤란로 123"
-                                  }
+                                  "latitude": 37.498095,
+                                  "longitude": 127.027610,
+                                  "level": 5,
+                                  "address": "서울 강남구 테헤란로 123"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -310,7 +305,7 @@ class GroupIntegrationTest {
         assertThat(updatedGroup.getAddress()).isEqualTo("서울 강남구 테헤란로 123");
 
         GroupRecommendation savedRecommendation = groupRecommendationRepository.findAll().getFirst();
-        assertThat(savedRecommendation.getContextJson()).contains("서울 강남구 테헤란로 123");
+        assertThat(savedRecommendation.getContextJson()).isNull();
     }
 
     @Test
@@ -331,7 +326,6 @@ class GroupIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "contextJson": {}
                                 }
                                 """))
                 .andExpect(status().isForbidden())
@@ -356,7 +350,6 @@ class GroupIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "contextJson": {}
                                 }
                                 """))
                 .andExpect(status().isConflict())
@@ -379,7 +372,6 @@ class GroupIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "contextJson": {}
                                 }
                                 """))
                 .andExpect(status().isConflict())
@@ -402,9 +394,6 @@ class GroupIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "contextJson": {
-                                    "mealTime": "LUNCH"
-                                  }
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -482,7 +471,6 @@ class GroupIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "contextJson": {}
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -671,6 +659,11 @@ class GroupIntegrationTest {
         Member owner = saveMember("ready-open-owner", "준비오픈방장");
         Member member = saveMember("ready-open-member", "준비오픈멤버");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 오픈 그룹");
+        groupRoom.updateLatitude(new BigDecimal("37.498095"));
+        groupRoom.updateLongitude(new BigDecimal("127.027610"));
+        groupRoom.updateLevel(5);
+        groupRoom.updateAddress("서울 강남구 테헤란로 123");
+        groupRoomRepository.save(groupRoom);
         groupRoomMemberRepository.save(new GroupRoomMember(
                 groupRoom,
                 member,
@@ -681,7 +674,7 @@ class GroupIntegrationTest {
         saveMenu("ready-open-second", "준비오픈두번째");
         GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
                 groupRoom,
-                "{\"mealTime\":\"LUNCH\"}",
+                null,
                 LocalDateTime.now()
         ));
 
@@ -706,6 +699,9 @@ class GroupIntegrationTest {
         GroupRecommendation openedRecommendation =
                 groupRecommendationRepository.findById(recommendation.getId()).orElseThrow();
         assertThat(openedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.OPEN);
+        assertThat(openedRecommendation.getContextJson()).contains("37.498095");
+        assertThat(openedRecommendation.getContextJson()).contains("127.027610");
+        assertThat(openedRecommendation.getContextJson()).contains("서울 강남구 테헤란로 123");
         assertThat(groupRecommendationCandidateRepository
                 .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId()))
                 .hasSize(2);

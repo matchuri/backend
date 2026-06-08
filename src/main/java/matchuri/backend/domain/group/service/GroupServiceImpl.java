@@ -124,13 +124,15 @@ public class GroupServiceImpl implements GroupService {
             throw new BusinessException(GroupErrorCode.RECOMMENDATION_ACTIVE_EXISTS, room.getId());
         }
 
-        updateRoomLocationFromContextJson(room, command.contextJson());
+        room.updateLatitude(command.latitude());
+        room.updateLongitude(command.longitude());
+        room.updateLevel(command.level());
+        room.updateAddress(command.address());
 
-        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
-                room,
-                command.contextJson(),
-                LocalDateTime.now()
-        ));
+        GroupRecommendation recommendation = groupRecommendationRepository.save(
+                GroupRecommendation.preparing(room, LocalDateTime.now())
+        );
+
         int totalMemberCount = groupRoomMemberRepository.findActiveMembersByRoomId(room.getId()).size();
         GroupRecommendationReadinessProgressResult readiness =
                 GroupRecommendationReadinessProgressResult.of(totalMemberCount, 0);
@@ -220,6 +222,9 @@ public class GroupServiceImpl implements GroupService {
         List<MenuItem> menuItems = menuItemRepository.searchActiveMenuItems(null, List.of(), true, List.of(), true);
         Map<Long, MenuItem> menuItemById = menuItems.stream()
                 .collect(Collectors.toMap(MenuItem::getId, Function.identity()));
+        String recommendationContextJson = contextJson == null
+                ? toRecommendationContextJson(room)
+                : contextJson;
 
         MenuRecommendationAlgorithm algorithm =
                 menuRecommendationAlgorithmResolver.resolve(RecommendationAlgorithmType.GROUP);
@@ -228,7 +233,7 @@ public class GroupServiceImpl implements GroupService {
                 RecommendationTargetType.GROUP,
                 toTasteProfileSnapshots(activeMembers),
                 toMenuRecommendationProfiles(menuItems),
-                RecommendationContextSnapshot.of(contextJson),
+                RecommendationContextSnapshot.of(recommendationContextJson),
                 GROUP_RECOMMENDATION_CANDIDATE_LIMIT,
                 List.of(),
                 excludedMenuIds,
@@ -240,7 +245,7 @@ public class GroupServiceImpl implements GroupService {
                 recommendationResult,
                 menuItemById
         );
-        recommendation.open();
+        recommendation.openWithContextJson(recommendationContextJson);
 
         return candidates;
     }
@@ -401,7 +406,7 @@ public class GroupServiceImpl implements GroupService {
             candidates = generateCandidatesForRecommendation(
                     room,
                     recommendation,
-                    recommendation.getContextJson(),
+                    null,
                     recentlySkippedMenuIds(room.getId())
             );
         }
@@ -752,18 +757,10 @@ public class GroupServiceImpl implements GroupService {
             room.updateName(command.name());
         }
 
-        if (command.latitude() != null && command.longitude() != null) {
-            room.updateLatitude(command.latitude());
-            room.updateLongitude(command.longitude());
-        }
-
-        if (command.level() != null) {
-            room.updateLevel(command.level());
-        }
-
-        if (command.address() != null) {
-            room.updateAddress(command.address());
-        }
+        room.updateLatitude(command.latitude());
+        room.updateLongitude(command.longitude());
+        room.updateLevel(command.level());
+        room.updateAddress(command.address());
 
         return new UpdateGroupResult(
                 room.getId(),
@@ -1147,6 +1144,28 @@ public class GroupServiceImpl implements GroupService {
 
         if (invite.isExpired(now)) {
             throw new BusinessException(GroupErrorCode.INVITE_EXPIRED, invite.getId());
+        }
+    }
+
+    private String toRecommendationContextJson(GroupRoom room) {
+        Map<String, Object> context = new LinkedHashMap<>();
+        if (room.getLatitude() != null) {
+            context.put("latitude", room.getLatitude());
+        }
+        if (room.getLongitude() != null) {
+            context.put("longitude", room.getLongitude());
+        }
+        if (room.getLevel() != null) {
+            context.put("level", room.getLevel());
+        }
+        if (room.getAddress() != null) {
+            context.put("address", room.getAddress());
+        }
+
+        try {
+            return objectMapper.writeValueAsString(context);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("그룹 추천 컨텍스트 정보를 JSON으로 변환할 수 없습니다.", exception);
         }
     }
 

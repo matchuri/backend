@@ -1,15 +1,36 @@
 package matchuri.backend.api.group.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
-import java.util.Map;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 
 public record CreateGroupRecommendationRequest(
-        @Schema(
-                description = "그룹 추천 컨텍스트입니다. MVP에서는 mealTime, partySize, locationLabel 같은 느슨한 JSON 값으로 시작합니다.",
-                example = "{\"mealTime\":\"LUNCH\",\"partySize\":4}"
-        )
-        @NotNull(message = "contextJson은 null일 수 없습니다.")
-        Map<String, Object> contextJson
+        @Schema(description = "이번 그룹 추천 요청 위치의 위도입니다. 포함 시 그룹의 기억 위치를 갱신합니다.", example = "37.498095")
+        @DecimalMin(value = "-90.0", message = "latitude는 -90 이상이어야 합니다.")
+        @DecimalMax(value = "90.0", message = "latitude는 90 이하여야 합니다.")
+        BigDecimal latitude,
+
+        @Schema(description = "이번 그룹 추천 요청 위치의 경도입니다. 포함 시 그룹의 기억 위치를 갱신합니다.", example = "127.027610")
+        @DecimalMin(value = "-180.0", message = "longitude는 -180 이상이어야 합니다.")
+        @DecimalMax(value = "180.0", message = "longitude는 180 이하여야 합니다.")
+        BigDecimal longitude,
+
+        @Schema(description = "이번 그룹 추천 요청 위치의 지도 확대/축소 레벨입니다. 포함 시 그룹의 기억 위치를 갱신합니다.", example = "5")
+        @Min(value = 0, message = "level은 0 이상이어야 합니다.")
+        Integer level,
+
+        @Schema(description = "이번 그룹 추천 요청 위치의 주소 문자열입니다. 포함 시 그룹의 기억 위치를 갱신합니다.", example = "서울 강남구 테헤란로 123")
+        @Size(max = 255, message = "address는 255자를 초과할 수 없습니다.")
+        String address
 ) {
+
+    @Schema(hidden = true)
+    @AssertTrue(message = "address는 비어 있을 수 없습니다.")
+    public boolean isAddressNullOrNotBlank() {
+        return address == null || !address.isBlank();
+    }
 }

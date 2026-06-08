@@ -127,19 +127,19 @@ public class GroupRoom extends BaseEntity {
     }
 
     public void updateLatitude(BigDecimal latitude) {
-        this.latitude = latitude;
+        if (latitude != null) this.latitude = latitude;
     }
 
     public void updateLongitude(BigDecimal longitude) {
-        this.longitude = longitude;
+        if (longitude != null) this.longitude = longitude;
     }
 
     public void updateLevel(Integer level) {
-        this.level = level;
+        if (level != null) this.level = level;
     }
 
     public void updateAddress(String address) {
-        this.address = address;
+        if (address != null) this.address = address;
     }
 
     public void close() {
