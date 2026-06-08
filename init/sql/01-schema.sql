@@ -271,6 +271,8 @@ CREATE TABLE group_rooms (
     host_member_id BIGINT NOT NULL,
     latitude DECIMAL(10,7),
     longitude DECIMAL(10,7),
+    location_level INT,
+    location_address VARCHAR(255),
     status VARCHAR(20) NOT NULL,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),

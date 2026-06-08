@@ -113,12 +113,16 @@ JOIN menu_items menu ON menu.code = seed.menu_code
 ON DUPLICATE KEY UPDATE profile_id = VALUES(profile_id);
 
 -- Local sample groups for group recommendation flows
-INSERT INTO group_rooms (name, invite_code, host_member_id, latitude, longitude, status, created_at, updated_at)
-SELECT seed.name, seed.invite_code, host.id, seed.latitude, seed.longitude, 'ACTIVE', NOW(6), NOW(6)
+INSERT INTO group_rooms (
+    name, invite_code, host_member_id, latitude, longitude, location_level, location_address, status, created_at,
+    updated_at
+)
+SELECT seed.name, seed.invite_code, host.id, seed.latitude, seed.longitude, seed.location_level,
+       seed.location_address, 'ACTIVE', NOW(6), NOW(6)
 FROM (
-    SELECT '점심 결정 A팀' AS name, 'LUNCHA2026' AS invite_code, 'tester01' AS host_login_id, 37.5665000 AS latitude, 126.9780000 AS longitude
+    SELECT '점심 결정 A팀' AS name, 'LUNCHA2026' AS invite_code, 'tester01' AS host_login_id, 37.5665000 AS latitude, 126.9780000 AS longitude, 5 AS location_level, '서울 중구 세종대로' AS location_address
     UNION ALL
-    SELECT '매운맛 탐험대' AS name, 'SPICY2026' AS invite_code, 'tester04' AS host_login_id, 37.4979000 AS latitude, 127.0276000 AS longitude
+    SELECT '매운맛 탐험대' AS name, 'SPICY2026' AS invite_code, 'tester04' AS host_login_id, 37.4979000 AS latitude, 127.0276000 AS longitude, 5 AS location_level, '서울 강남구 강남대로' AS location_address
 ) seed
 JOIN members host ON host.login_id = seed.host_login_id
 ON DUPLICATE KEY UPDATE
@@ -126,6 +130,8 @@ ON DUPLICATE KEY UPDATE
     host_member_id = VALUES(host_member_id),
     latitude = VALUES(latitude),
     longitude = VALUES(longitude),
+    location_level = VALUES(location_level),
+    location_address = VALUES(location_address),
     status = VALUES(status),
     updated_at = VALUES(updated_at);
 

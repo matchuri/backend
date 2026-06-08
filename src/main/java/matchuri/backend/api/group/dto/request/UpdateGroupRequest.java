@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
@@ -20,12 +21,26 @@ public record UpdateGroupRequest(
         @Schema(description = "변경할 그룹 추천 기준 위치의 경도입니다. 생략하면 변경하지 않습니다.", example = "127.027610")
         @DecimalMin(value = "-180.0", message = "longitude는 -180 이상이어야 합니다.")
         @DecimalMax(value = "180.0", message = "longitude는 180 이하여야 합니다.")
-        BigDecimal longitude
+        BigDecimal longitude,
+
+        @Schema(description = "변경할 그룹 추천 기준 위치의 지도 확대/축소 레벨입니다. 생략하면 변경하지 않습니다.", example = "5")
+        @Min(value = 0, message = "level은 0 이상이어야 합니다.")
+        Integer level,
+
+        @Schema(description = "변경할 그룹 추천 기준 위치의 주소 문자열입니다. 생략하면 변경하지 않습니다.", example = "서울 강남구 테헤란로 123")
+        @Size(max = 255, message = "address는 255자를 초과할 수 없습니다.")
+        String address
 ) {
 
     @Schema(hidden = true)
     @AssertTrue(message = "name은 비어 있을 수 없습니다.")
     public boolean isNameNullOrNotBlank() {
         return name == null || !name.isBlank();
+    }
+
+    @Schema(hidden = true)
+    @AssertTrue(message = "address는 비어 있을 수 없습니다.")
+    public boolean isAddressNullOrNotBlank() {
+        return address == null || !address.isBlank();
     }
 }

@@ -192,7 +192,9 @@ class GroupIntegrationTest {
                                 {
                                   "name": "오늘 점심 메뉴 회의",
                                   "latitude": 37.498095,
-                                  "longitude": 127.027610
+                                  "longitude": 127.027610,
+                                  "level": 5,
+                                  "address": "서울 강남구 테헤란로 123"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -213,6 +215,8 @@ class GroupIntegrationTest {
         assertThat(savedGroup.getHostMember().getId()).isEqualTo(member.getId());
         assertThat(savedGroup.getLatitude()).isEqualByComparingTo("37.498095");
         assertThat(savedGroup.getLongitude()).isEqualByComparingTo("127.027610");
+        assertThat(savedGroup.getLevel()).isEqualTo(5);
+        assertThat(savedGroup.getAddress()).isEqualTo("서울 강남구 테헤란로 123");
         assertThat(savedGroup.getStatus()).isEqualTo(GroupRoomStatus.ACTIVE);
         assertThat(savedMember.getRoom().getId()).isEqualTo(savedGroup.getId());
         assertThat(savedMember.getMember().getId()).isEqualTo(member.getId());
@@ -274,6 +278,39 @@ class GroupIntegrationTest {
         assertThat(savedRecommendation.getRoom().getId()).isEqualTo(groupRoom.getId());
         assertThat(savedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.PREPARING);
         assertThat(savedRecommendation.getContextJson()).contains("LUNCH");
+    }
+
+    @Test
+    @DisplayName("그룹 추천 생성은 요청 위치를 그룹의 기억 위치로 갱신한다")
+    void createGroupRecommendationUpdatesRememberedGroupLocation() throws Exception {
+        Member owner = saveMember("recommendation-location-owner", "추천위치방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 위치 그룹");
+
+        mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "contextJson": {
+                                    "mealTime": "LUNCH",
+                                    "latitude": 37.498095,
+                                    "longitude": 127.027610,
+                                    "level": 5,
+                                    "address": "서울 강남구 테헤란로 123"
+                                  }
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()));
+
+        GroupRoom updatedGroup = groupRoomRepository.findById(groupRoom.getId()).orElseThrow();
+        assertThat(updatedGroup.getLatitude()).isEqualByComparingTo("37.498095");
+        assertThat(updatedGroup.getLongitude()).isEqualByComparingTo("127.027610");
+        assertThat(updatedGroup.getLevel()).isEqualTo(5);
+        assertThat(updatedGroup.getAddress()).isEqualTo("서울 강남구 테헤란로 123");
+
+        GroupRecommendation savedRecommendation = groupRecommendationRepository.findAll().getFirst();
+        assertThat(savedRecommendation.getContextJson()).contains("서울 강남구 테헤란로 123");
     }
 
     @Test
@@ -1889,7 +1926,9 @@ class GroupIntegrationTest {
                         .content("""
                                 {
                                   "latitude": 37.498095,
-                                  "longitude": 127.027610
+                                  "longitude": 127.027610,
+                                  "level": 5,
+                                  "address": "서울 강남구 테헤란로 123"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -1909,7 +1948,9 @@ class GroupIntegrationTest {
                         .content("""
                                 {
                                   "latitude": 37.498095,
-                                  "longitude": 127.027610
+                                  "longitude": 127.027610,
+                                  "level": 5,
+                                  "address": "서울 강남구 테헤란로 123"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -1917,12 +1958,16 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.name").value("위치 수정 그룹"))
                 .andExpect(jsonPath("$.data.latitude").value(37.498095))
                 .andExpect(jsonPath("$.data.longitude").value(127.027610))
+                .andExpect(jsonPath("$.data.level").value(5))
+                .andExpect(jsonPath("$.data.address").value("서울 강남구 테헤란로 123"))
                 .andExpect(jsonPath("$.data.status").value(GroupRoomStatus.ACTIVE.name()));
 
         GroupRoom updatedGroup = groupRoomRepository.findById(groupRoom.getId()).orElseThrow();
         assertThat(updatedGroup.getName()).isEqualTo("위치 수정 그룹");
         assertThat(updatedGroup.getLatitude()).isEqualByComparingTo("37.498095");
         assertThat(updatedGroup.getLongitude()).isEqualByComparingTo("127.027610");
+        assertThat(updatedGroup.getLevel()).isEqualTo(5);
+        assertThat(updatedGroup.getAddress()).isEqualTo("서울 강남구 테헤란로 123");
     }
 
     @Test

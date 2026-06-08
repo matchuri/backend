@@ -61,6 +61,12 @@ public class GroupRoom extends BaseEntity {
     @Column(precision = 10, scale = 7, comment = "경도")
     private BigDecimal longitude;
 
+    @Column(name = "location_level", comment = "지도 확대/축소 레벨")
+    private Integer level;
+
+    @Column(name = "location_address", comment = "주소 문자열")
+    private String address;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20, comment = "그룹 방 상태")
     private GroupRoomStatus status;
@@ -73,13 +79,17 @@ public class GroupRoom extends BaseEntity {
             String inviteCode,
             Member hostMember,
             BigDecimal latitude,
-            BigDecimal longitude
+            BigDecimal longitude,
+            Integer level,
+            String address
     ) {
         this.name = name;
         this.inviteCode = inviteCode;
         this.hostMember = hostMember;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.level = level;
+        this.address = address;
         this.status = GroupRoomStatus.ACTIVE;
     }
 
@@ -90,7 +100,19 @@ public class GroupRoom extends BaseEntity {
             BigDecimal latitude,
             BigDecimal longitude
     ) {
-        GroupRoom newGroupRoom = new GroupRoom(name, inviteCode, hostMember, latitude, longitude);
+        return createOwnedBy(name, inviteCode, hostMember, latitude, longitude, null, null);
+    }
+
+    public static GroupRoom createOwnedBy(
+            String name,
+            String inviteCode,
+            Member hostMember,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            Integer level,
+            String address
+    ) {
+        GroupRoom newGroupRoom = new GroupRoom(name, inviteCode, hostMember, latitude, longitude, level, address);
         newGroupRoom.addGroupMember(hostMember, GroupMemberRole.OWNER);
         return newGroupRoom;
     }
@@ -110,6 +132,14 @@ public class GroupRoom extends BaseEntity {
 
     public void updateLongitude(BigDecimal longitude) {
         this.longitude = longitude;
+    }
+
+    public void updateLevel(Integer level) {
+        this.level = level;
+    }
+
+    public void updateAddress(String address) {
+        this.address = address;
     }
 
     public void close() {

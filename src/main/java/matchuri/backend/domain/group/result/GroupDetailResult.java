@@ -10,6 +10,8 @@ public record GroupDetailResult(
         String inviteCode,
         BigDecimal latitude,
         BigDecimal longitude,
+        Integer level,
+        String address,
         GroupRoomStatus status,
         List<GroupMemberSummaryResult> members,
         GroupRecommendationResult activeRecommendation

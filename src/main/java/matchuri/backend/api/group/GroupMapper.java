@@ -81,7 +81,9 @@ public class GroupMapper {
         return new CreateGroupCommand(
                 request.name(),
                 request.latitude(),
-                request.longitude()
+                request.longitude(),
+                request.level(),
+                request.address()
         );
     }
 
@@ -196,7 +198,9 @@ public class GroupMapper {
                 groupId,
                 request.name(),
                 request.latitude(),
-                request.longitude()
+                request.longitude(),
+                request.level(),
+                request.address()
         );
     }
 
@@ -206,6 +210,8 @@ public class GroupMapper {
                 result.name(),
                 result.latitude(),
                 result.longitude(),
+                result.level(),
+                result.address(),
                 result.status(),
                 result.updatedAt()
         );
@@ -237,6 +243,8 @@ public class GroupMapper {
                 result.inviteCode(),
                 result.latitude(),
                 result.longitude(),
+                result.level(),
+                result.address(),
                 result.status(),
                 result.members().stream()
                         .map(this::toGroupMemberSummaryResponse)

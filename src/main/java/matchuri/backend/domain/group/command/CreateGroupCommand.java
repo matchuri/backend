@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 public record CreateGroupCommand(
         String name,
         BigDecimal latitude,
-        BigDecimal longitude
+        BigDecimal longitude,
+        Integer level,
+        String address
 ) {
 }

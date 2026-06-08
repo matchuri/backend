@@ -55,6 +55,8 @@ public final class GroupApiExamples {
                 "inviteCode": "LUNCH42",
                 "latitude": 37.498095,
                 "longitude": 127.027610,
+                "level": 5,
+                "address": "서울 강남구 테헤란로 123",
                 "status": "ACTIVE",
                 "members": [
                   {
@@ -117,6 +119,8 @@ public final class GroupApiExamples {
                 "inviteCode": "LUNCH42",
                 "latitude": 37.498095,
                 "longitude": 127.027610,
+                "level": 5,
+                "address": "서울 강남구 테헤란로 123",
                 "status": "ACTIVE",
                 "members": [
                   {
@@ -186,6 +190,8 @@ public final class GroupApiExamples {
                 "name": "점심 회의방",
                 "latitude": 37.498095,
                 "longitude": 127.027610,
+                "level": 5,
+                "address": "서울 강남구 테헤란로 123",
                 "status": "ACTIVE",
                 "updatedAt": "2026-05-18T12:30:00"
               },

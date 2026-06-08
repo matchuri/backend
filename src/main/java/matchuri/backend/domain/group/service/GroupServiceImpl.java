@@ -1,7 +1,9 @@
 package matchuri.backend.domain.group.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,7 +96,9 @@ public class GroupServiceImpl implements GroupService {
                 inviteCode,
                 hostMember,
                 command.latitude(),
-                command.longitude());
+                command.longitude(),
+                command.level(),
+                command.address());
 
         GroupRoom savedGroupRoom = groupRoomRepository.save(groupRoom);
 
@@ -119,6 +123,8 @@ public class GroupServiceImpl implements GroupService {
         if (hasActiveRecommendation(room.getId())) {
             throw new BusinessException(GroupErrorCode.RECOMMENDATION_ACTIVE_EXISTS, room.getId());
         }
+
+        updateRoomLocationFromContextJson(room, command.contextJson());
 
         GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
                 room,
@@ -182,6 +188,7 @@ public class GroupServiceImpl implements GroupService {
                 contextJson,
                 LocalDateTime.now()
         ));
+        updateRoomLocationFromContextJson(room, contextJson);
         List<GroupRecommendationCandidate> candidates = generateCandidatesForRecommendation(
                 room,
                 newRecommendation,
@@ -750,11 +757,21 @@ public class GroupServiceImpl implements GroupService {
             room.updateLongitude(command.longitude());
         }
 
+        if (command.level() != null) {
+            room.updateLevel(command.level());
+        }
+
+        if (command.address() != null) {
+            room.updateAddress(command.address());
+        }
+
         return new UpdateGroupResult(
                 room.getId(),
                 room.getName(),
                 room.getLatitude(),
                 room.getLongitude(),
+                room.getLevel(),
+                room.getAddress(),
                 room.getStatus(),
                 room.getUpdatedAt()
         );
@@ -859,6 +876,8 @@ public class GroupServiceImpl implements GroupService {
                 room.getInviteCode(),
                 room.getLatitude(),
                 room.getLongitude(),
+                room.getLevel(),
+                room.getAddress(),
                 room.getStatus(),
                 members,
                 activeRecommendation
@@ -1129,6 +1148,81 @@ public class GroupServiceImpl implements GroupService {
         if (invite.isExpired(now)) {
             throw new BusinessException(GroupErrorCode.INVITE_EXPIRED, invite.getId());
         }
+    }
+
+    private void updateRoomLocationFromContextJson(GroupRoom room, String contextJson) {
+        if (contextJson == null || contextJson.isBlank()) {
+            return;
+        }
+
+        try {
+            JsonNode contextNode = objectMapper.readTree(contextJson);
+            if (contextNode == null || !contextNode.isObject()) {
+                return;
+            }
+
+            BigDecimal latitude = toLocationDecimal(contextNode.get("latitude"), new BigDecimal("-90"),
+                    new BigDecimal("90"));
+            BigDecimal longitude = toLocationDecimal(contextNode.get("longitude"), new BigDecimal("-180"),
+                    new BigDecimal("180"));
+            if (latitude != null && longitude != null) {
+                room.updateLatitude(latitude);
+                room.updateLongitude(longitude);
+            }
+
+            Integer level = toLocationLevel(contextNode.get("level"));
+            if (level != null) {
+                room.updateLevel(level);
+            }
+
+            String address = toLocationAddress(contextNode.get("address"));
+            if (address != null) {
+                room.updateAddress(address);
+            }
+        } catch (JsonProcessingException ignored) {
+            // contextJson is an open-ended recommendation snapshot; invalid location data must not break creation.
+        }
+    }
+
+    private BigDecimal toLocationDecimal(JsonNode valueNode, BigDecimal min, BigDecimal max) {
+        if (valueNode == null || valueNode.isNull()) {
+            return null;
+        }
+
+        try {
+            BigDecimal value = valueNode.isNumber()
+                    ? valueNode.decimalValue()
+                    : new BigDecimal(valueNode.asText());
+            if (value.compareTo(min) < 0 || value.compareTo(max) > 0) {
+                return null;
+            }
+
+            return value;
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    private Integer toLocationLevel(JsonNode valueNode) {
+        if (valueNode == null || valueNode.isNull() || !valueNode.canConvertToInt()) {
+            return null;
+        }
+
+        int value = valueNode.intValue();
+        return value >= 0 ? value : null;
+    }
+
+    private String toLocationAddress(JsonNode valueNode) {
+        if (valueNode == null || valueNode.isNull() || !valueNode.isTextual()) {
+            return null;
+        }
+
+        String address = valueNode.textValue();
+        if (address.isBlank()) {
+            return null;
+        }
+
+        return address;
     }
 
     private String createUniqueInviteCode() {

@@ -9,6 +9,8 @@ public record UpdateGroupResult(
         String name,
         BigDecimal latitude,
         BigDecimal longitude,
+        Integer level,
+        String address,
         GroupRoomStatus status,
         LocalDateTime updatedAt
 ) {
