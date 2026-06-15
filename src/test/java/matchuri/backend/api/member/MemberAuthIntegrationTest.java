@@ -883,9 +883,17 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
+    @DisplayName("네이버 OAuth2 시작 요청은 Spring Security authorization 엔드포인트로 리다이렉트한다")
+    void startNaverOAuth2LoginRedirects() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/oauth2/naver"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string(HttpHeaders.LOCATION, "/oauth2/authorization/naver"));
+    }
+
+    @Test
     @DisplayName("지원하지 않는 OAuth2 provider 시작 요청은 거절한다")
     void startOAuth2LoginRejectsUnsupportedProvider() throws Exception {
-        mockMvc.perform(get("/api/v1/auth/oauth2/naver"))
+        mockMvc.perform(get("/api/v1/auth/oauth2/apple"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("AUTH_OAUTH2_PROVIDER_NOT_SUPPORTED"));
     }
@@ -914,6 +922,19 @@ class MemberAuthIntegrationTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string(HttpHeaders.LOCATION,
                         org.hamcrest.Matchers.containsString("https://kauth.kakao.com/oauth/authorize")))
+                .andReturn();
+
+        assertThat(result.getRequest().getSession(false)).isNotNull();
+        assertThat(result.getResponse().getCookie("matchuri_oauth2_auth_request")).isNull();
+    }
+
+    @Test
+    @DisplayName("네이버 Spring Security OAuth2 authorization 엔드포인트는 네이버 인증 서버로 리다이렉트한다")
+    void naverAuthorizationEndpointRedirectsToNaver() throws Exception {
+        MvcResult result = mockMvc.perform(get("/oauth2/authorization/naver"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string(HttpHeaders.LOCATION,
+                        org.hamcrest.Matchers.containsString("https://nid.naver.com/oauth2.0/authorize")))
                 .andReturn();
 
         assertThat(result.getRequest().getSession(false)).isNotNull();
@@ -987,6 +1008,35 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.refreshToken").value(nullValue()))
                 .andExpect(jsonPath("$.data.member.id").value(member.getId()))
                 .andExpect(jsonPath("$.data.member.nickname").value("kakao_kakao"))
+                .andExpect(jsonPath("$.data.onboarding.nextStep").value("REQUIRED_AGREEMENTS"));
+    }
+
+    @Test
+    @DisplayName("유효한 네이버 소셜 교환 코드는 액세스 토큰으로 교환된다")
+    void exchangeNaverOAuth2Code() throws Exception {
+        Member member = memberRepository.save(
+                Member.createSocialMember(SocialProviderType.NAVER, "naver-user-1", "naver@example.com",
+                        "naver_naver"));
+        authExchangeCodeRepository.save(AuthExchangeCode.issue(
+                member,
+                SocialProviderType.NAVER,
+                "valid-naver-exchange-code",
+                LocalDateTime.now().plusMinutes(5)
+        ));
+
+        mockMvc.perform(post("/api/v1/auth/oauth2/exchange")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "provider": "NAVER",
+                                  "code": "valid-naver-exchange-code"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").isString())
+                .andExpect(jsonPath("$.data.refreshToken").value(nullValue()))
+                .andExpect(jsonPath("$.data.member.id").value(member.getId()))
+                .andExpect(jsonPath("$.data.member.nickname").value("naver_naver"))
                 .andExpect(jsonPath("$.data.onboarding.nextStep").value("REQUIRED_AGREEMENTS"));
     }
 
