@@ -6,7 +6,7 @@ public record CreateGroupRecommendationCommand(
         Long groupId,
         BigDecimal latitude,
         BigDecimal longitude,
-        Integer level,
+        Integer radiusMeters,
         String address
 ) {
 }

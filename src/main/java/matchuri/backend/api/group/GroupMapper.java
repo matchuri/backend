@@ -75,7 +75,7 @@ public class GroupMapper {
                 request.name(),
                 request.latitude(),
                 request.longitude(),
-                request.level(),
+                request.radiusMeters(),
                 request.address()
         );
     }
@@ -96,7 +96,7 @@ public class GroupMapper {
                 groupId,
                 request.latitude(),
                 request.longitude(),
-                request.level(),
+                request.radiusMeters(),
                 request.address()
         );
     }
@@ -198,7 +198,7 @@ public class GroupMapper {
                 request.name(),
                 request.latitude(),
                 request.longitude(),
-                request.level(),
+                request.radiusMeters(),
                 request.address()
         );
     }
@@ -209,7 +209,7 @@ public class GroupMapper {
                 result.name(),
                 result.latitude(),
                 result.longitude(),
-                result.level(),
+                result.radiusMeters(),
                 result.address(),
                 result.status(),
                 result.updatedAt()
@@ -242,7 +242,7 @@ public class GroupMapper {
                 result.inviteCode(),
                 result.latitude(),
                 result.longitude(),
-                result.level(),
+                result.radiusMeters(),
                 result.address(),
                 result.status(),
                 result.members().stream()

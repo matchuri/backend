@@ -113,27 +113,33 @@ JOIN menu_items menu ON menu.code = seed.menu_code
 ON DUPLICATE KEY UPDATE profile_id = VALUES(profile_id);
 
 -- Local sample groups for group recommendation flows
-INSERT INTO group_rooms (
-    name, invite_code, host_member_id, latitude, longitude, location_level, location_address, status, created_at,
-    updated_at
-)
-SELECT seed.name, seed.invite_code, host.id, seed.latitude, seed.longitude, seed.location_level,
-       seed.location_address, 'ACTIVE', NOW(6), NOW(6)
+INSERT INTO group_rooms (name, invite_code, host_member_id, status, created_at, updated_at)
+SELECT seed.name, seed.invite_code, host.id, 'ACTIVE', NOW(6), NOW(6)
 FROM (
-    SELECT '점심 결정 A팀' AS name, 'LUNCHA2026' AS invite_code, 'tester01' AS host_login_id, 37.5665000 AS latitude, 126.9780000 AS longitude, 5 AS location_level, '서울 중구 세종대로' AS location_address
+    SELECT '점심 결정 A팀' AS name, 'LUNCHA2026' AS invite_code, 'tester01' AS host_login_id
     UNION ALL
-    SELECT '매운맛 탐험대' AS name, 'SPICY2026' AS invite_code, 'tester04' AS host_login_id, 37.4979000 AS latitude, 127.0276000 AS longitude, 5 AS location_level, '서울 강남구 강남대로' AS location_address
+    SELECT '매운맛 탐험대' AS name, 'SPICY2026' AS invite_code, 'tester04' AS host_login_id
 ) seed
 JOIN members host ON host.login_id = seed.host_login_id
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     host_member_id = VALUES(host_member_id),
-    latitude = VALUES(latitude),
-    longitude = VALUES(longitude),
-    location_level = VALUES(location_level),
-    location_address = VALUES(location_address),
     status = VALUES(status),
     updated_at = VALUES(updated_at);
+
+INSERT INTO group_locations (group_room_id, latitude, longitude, radius_meters, address, created_at, updated_at)
+SELECT room.id, seed.latitude, seed.longitude, seed.radius_meters, seed.address, NOW(6), NOW(6)
+FROM (
+    SELECT 'LUNCHA2026' AS invite_code, 37.5665000 AS latitude, 126.9780000 AS longitude, 1000 AS radius_meters, '서울 중구 세종대로' AS address
+    UNION ALL
+    SELECT 'SPICY2026' AS invite_code, 37.4979000 AS latitude, 127.0276000 AS longitude, 1000 AS radius_meters, '서울 강남구 강남대로' AS address
+) seed
+JOIN group_rooms room ON room.invite_code = seed.invite_code
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM group_locations location
+    WHERE location.group_room_id = room.id
+);
 
 INSERT INTO group_room_members (room_id, member_id, role, status, joined_at, left_at, created_at, updated_at)
 SELECT room.id, member.id, seed.role, 'ACTIVE', NOW(6), NULL, NOW(6), NOW(6)

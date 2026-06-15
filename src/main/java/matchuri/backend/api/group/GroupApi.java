@@ -276,7 +276,7 @@ public interface GroupApi {
                     그룹 정보를 수정합니다.
 
                     구현 기준:
-                    - 현재 MVP에서는 그룹 이름과 위치(위도/경도/지도 레벨/주소)를 수정합니다.
+                    - 현재 MVP에서는 그룹 이름과 위치(위도/경도/반경 거리/주소)를 수정합니다.
                     - 생략된 필드는 변경하지 않습니다.
                     - 요청에는 최소 1개 이상의 지원 필드가 포함되어야 합니다.
                     - 현재 회원이 해당 그룹의 `ACTIVE` OWNER 멤버일 때만 수정할 수 있습니다.
@@ -398,7 +398,7 @@ public interface GroupApi {
                     - 한 그룹에는 동시에 `PREPARING` 또는 `OPEN` 그룹 추천을 1개만 허용합니다.
                     - 생성 직후 상태는 `PREPARING`이며, 후보는 아직 생성하지 않습니다.
                     - 준비 상태에서는 `group_recommendations.context_json`을 저장하지 않습니다.
-                    - 요청에 정상 위치 값(`latitude`, `longitude`, `level`, `address`)이 있으면 그룹의 기억 위치만 갱신합니다.
+                    - 요청에 정상 위치 값(`latitude`, `longitude`, `radiusMeters`, `address`)이 있으면 그룹의 기억 위치만 갱신합니다.
                     - 그룹원 준비 완료 API가 추가되면 모든 활성 멤버가 준비 완료한 시점에 후보를 생성하고 `OPEN`으로 전환합니다.
                     - 후보 생성 시점에 현재 그룹 기억 위치를 확정 `contextJson` 스냅샷으로 기록합니다.
                     - API 경로는 사용자 흐름상 `recommendations`를 사용하며, 최신 저장 테이블은 `group_recommendations` 기준입니다.

@@ -7,11 +7,11 @@ public record UpdateGroupCommand(
         String name,
         BigDecimal latitude,
         BigDecimal longitude,
-        Integer level,
+        Integer radiusMeters,
         String address
 ) {
 
     public boolean hasNoFields() {
-        return name == null && latitude == null && longitude == null && level == null && address == null;
+        return name == null && latitude == null && longitude == null && radiusMeters == null && address == null;
     }
 }

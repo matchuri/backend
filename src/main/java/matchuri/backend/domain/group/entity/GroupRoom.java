@@ -14,7 +14,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,18 +54,6 @@ public class GroupRoom extends BaseEntity {
     @JoinColumn(name = "host_member_id", nullable = false, comment = "방장 회원 ID")
     private Member hostMember;
 
-    @Column(precision = 10, scale = 7, comment = "위도")
-    private BigDecimal latitude;
-
-    @Column(precision = 10, scale = 7, comment = "경도")
-    private BigDecimal longitude;
-
-    @Column(name = "location_level", comment = "지도 확대/축소 레벨")
-    private Integer level;
-
-    @Column(name = "location_address", comment = "주소 문자열")
-    private String address;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20, comment = "그룹 방 상태")
     private GroupRoomStatus status;
@@ -77,42 +64,20 @@ public class GroupRoom extends BaseEntity {
     private GroupRoom(
             String name,
             String inviteCode,
-            Member hostMember,
-            BigDecimal latitude,
-            BigDecimal longitude,
-            Integer level,
-            String address
+            Member hostMember
     ) {
         this.name = name;
         this.inviteCode = inviteCode;
         this.hostMember = hostMember;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.level = level;
-        this.address = address;
         this.status = GroupRoomStatus.ACTIVE;
     }
 
     public static GroupRoom createOwnedBy(
             String name,
             String inviteCode,
-            Member hostMember,
-            BigDecimal latitude,
-            BigDecimal longitude
+            Member hostMember
     ) {
-        return createOwnedBy(name, inviteCode, hostMember, latitude, longitude, null, null);
-    }
-
-    public static GroupRoom createOwnedBy(
-            String name,
-            String inviteCode,
-            Member hostMember,
-            BigDecimal latitude,
-            BigDecimal longitude,
-            Integer level,
-            String address
-    ) {
-        GroupRoom newGroupRoom = new GroupRoom(name, inviteCode, hostMember, latitude, longitude, level, address);
+        GroupRoom newGroupRoom = new GroupRoom(name, inviteCode, hostMember);
         newGroupRoom.addGroupMember(hostMember, GroupMemberRole.OWNER);
         return newGroupRoom;
     }
@@ -124,22 +89,6 @@ public class GroupRoom extends BaseEntity {
 
     public void updateName(String name) {
         this.name = name;
-    }
-
-    public void updateLatitude(BigDecimal latitude) {
-        if (latitude != null) this.latitude = latitude;
-    }
-
-    public void updateLongitude(BigDecimal longitude) {
-        if (longitude != null) this.longitude = longitude;
-    }
-
-    public void updateLevel(Integer level) {
-        if (level != null) this.level = level;
-    }
-
-    public void updateAddress(String address) {
-        if (address != null) this.address = address;
     }
 
     public void close() {

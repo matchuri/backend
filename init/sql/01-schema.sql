@@ -269,16 +269,25 @@ CREATE TABLE group_rooms (
     name VARCHAR(100) NOT NULL,
     invite_code VARCHAR(32) NOT NULL,
     host_member_id BIGINT NOT NULL,
-    latitude DECIMAL(10,7),
-    longitude DECIMAL(10,7),
-    location_level INT,
-    location_address VARCHAR(255),
     status VARCHAR(20) NOT NULL,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (id),
     CONSTRAINT uk_group_rooms_invite_code UNIQUE (invite_code),
     INDEX idx_group_rooms_host_member (host_member_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE group_locations (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    group_room_id BIGINT NOT NULL,
+    latitude DECIMAL(10,7),
+    longitude DECIMAL(10,7),
+    radius_meters INT,
+    address VARCHAR(255),
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    INDEX idx_group_locations_room (group_room_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE group_room_members (
