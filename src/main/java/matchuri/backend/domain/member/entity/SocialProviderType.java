@@ -26,6 +26,6 @@ public enum SocialProviderType {
     }
 
     public boolean isOAuth2LoginSupported() {
-        return this == GOOGLE || this == KAKAO;
+        return this == GOOGLE || this == KAKAO || this == NAVER;
     }
 }

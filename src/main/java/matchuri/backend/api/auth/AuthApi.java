@@ -240,7 +240,7 @@ public interface AuthApi {
                     
                     - 일반 JSON API가 아니라 `302 Redirect` 응답입니다.
                     - 브라우저 이동 또는 팝업/리다이렉트 흐름에서 사용합니다.
-                    - 현재 지원 provider는 `google`, `kakao`입니다.
+                    - 현재 지원 provider는 `google`, `kakao`, `naver`입니다.
                     - 로그인 성공 후 프론트는 최종적으로 `code`를 전달받고, 별도 교환 API를 호출해 `accessToken`을 받습니다.
                     """
     )
@@ -260,7 +260,7 @@ public interface AuthApi {
                     
                     - 성공 시 응답 body에는 `accessToken`과 회원 요약 정보가 포함됩니다.
                     - `refreshToken`은 이미 OAuth2 성공 리다이렉트 단계에서 `HttpOnly` 쿠키로 처리되므로 body에는 포함되지 않습니다.
-                    - 현재 지원 provider는 `GOOGLE`, `KAKAO`입니다.
+                    - 현재 지원 provider는 `GOOGLE`, `KAKAO`, `NAVER`입니다.
                     - 같은 교환 코드는 한 번만 사용할 수 있습니다.
                     - 만료되었거나 이미 사용한 코드는 `AUTH_OAUTH2_EXCHANGE_CODE_INVALID`를 반환합니다.
                     """
