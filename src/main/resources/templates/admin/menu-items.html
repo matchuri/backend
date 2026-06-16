@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>메뉴 관리 - Matchuri Admin</title>
+    <style>
+        body { color: #1f2933; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; }
+        header { align-items: center; border-bottom: 1px solid #d9e2ec; display: flex; gap: 18px; justify-content: space-between; padding: 16px 24px; }
+        nav { display: flex; flex-wrap: wrap; gap: 10px; }
+        nav a, .button { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 6px; color: #1e3a8a; font-weight: 700; padding: 8px 11px; text-decoration: none; }
+        main { margin: 24px auto; max-width: 1120px; padding: 0 20px; }
+        .message { background: #e0f2fe; border-radius: 6px; margin-bottom: 16px; padding: 12px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border-bottom: 1px solid #d9e2ec; padding: 10px; text-align: left; vertical-align: top; }
+        th { background: #f5f7fa; color: #52606d; font-size: 13px; }
+        .inactive { color: #991b1b; font-weight: 700; }
+        .active { color: #166534; font-weight: 700; }
+        .actions { align-items: center; display: flex; gap: 8px; justify-content: space-between; margin-bottom: 14px; }
+        .logout { background: transparent; border: 0; color: #52606d; cursor: pointer; font-weight: 700; }
+    </style>
+</head>
+<body>
+<header>
+    <strong>Matchuri Admin</strong>
+    <nav>
+        <a th:href="@{/admin/menu-items}">Menus</a>
+        <a th:href="@{/admin/attribute-categories}">Categories</a>
+        <a th:href="@{/admin/ingredients}">Ingredients</a>
+    </nav>
+    <form th:action="@{/admin/logout}" method="post">
+        <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button class="logout" type="submit">Logout</button>
+    </form>
+</header>
+<main>
+    <div class="message" th:if="${message}" th:text="${message}"></div>
+    <div class="actions">
+        <h1>메뉴 관리</h1>
+        <a class="button" th:href="@{/admin/menu-items/new}">새 메뉴</a>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="menuItem : ${menuItems}">
+            <td th:text="${menuItem.id()}">1</td>
+            <td th:text="${menuItem.code()}">CODE</td>
+            <td th:text="${menuItem.name()}">메뉴</td>
+            <td th:text="${menuItem.description()}">설명</td>
+            <td>
+                <span class="active" th:if="${menuItem.isActive()}">활성</span>
+                <span class="inactive" th:unless="${menuItem.isActive()}">비활성</span>
+            </td>
+            <td><a th:href="@{'/admin/menu-items/' + ${menuItem.id()}}">편집</a></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

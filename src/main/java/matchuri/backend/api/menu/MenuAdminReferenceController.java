@@ -5,11 +5,14 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
+import matchuri.backend.api.menu.dto.request.CreateAdminMenuItemRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemReferencesRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
+import matchuri.backend.api.menu.dto.response.AdminMenuItemDetailResponse;
 import matchuri.backend.api.menu.dto.response.AdminMenuItemResponse;
 import matchuri.backend.api.menu.mapper.MenuReferenceMapper;
 import matchuri.backend.domain.menu.service.MenuAdminReferenceService;
@@ -62,6 +65,29 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
     }
 
     @Override
+    @GetMapping("/menu-items/{menuItemId}")
+    public ApiResponse<AdminMenuItemDetailResponse> getAdminMenuItem(
+            @PathVariable Long menuItemId
+    ) {
+        var result = menuAdminReferenceService.getMenuItemDetail(menuItemId);
+        var response = menuReferenceMapper.toAdminMenuItemDetailResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PostMapping("/menu-items")
+    public ApiResponse<AdminMenuItemDetailResponse> createAdminMenuItem(
+            @Valid @RequestBody CreateAdminMenuItemRequest request
+    ) {
+        var command = menuReferenceMapper.toCreateAdminMenuItemCommand(request);
+        var result = menuAdminReferenceService.createMenuItem(command);
+        var response = menuReferenceMapper.toAdminMenuItemDetailResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
     @PatchMapping("/menu-items/{menuItemId}")
     public ApiResponse<AdminMenuItemResponse> updateAdminMenuItem(
             @PathVariable Long menuItemId,
@@ -71,6 +97,19 @@ public class MenuAdminReferenceController implements MenuAdminReferenceApi {
         var command = menuReferenceMapper.toUpdateAdminMenuItemCommand(menuItemId, request);
         var result = menuAdminReferenceService.updateMenuItem(command);
         var response = menuReferenceMapper.toAdminMenuItemResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PatchMapping("/menu-items/{menuItemId}/references")
+    public ApiResponse<AdminMenuItemDetailResponse> updateAdminMenuItemReferences(
+            @PathVariable Long menuItemId,
+            @Valid @RequestBody UpdateAdminMenuItemReferencesRequest request
+    ) {
+        var command = menuReferenceMapper.toUpdateAdminMenuItemReferencesCommand(menuItemId, request);
+        var result = menuAdminReferenceService.updateMenuItemReferences(command);
+        var response = menuReferenceMapper.toAdminMenuItemDetailResponse(result);
 
         return ApiResponse.success(response);
     }

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>재료 관리 - Matchuri Admin</title>
+    <style>
+        body { color: #1f2933; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; }
+        header { align-items: center; border-bottom: 1px solid #d9e2ec; display: flex; gap: 18px; justify-content: space-between; padding: 16px 24px; }
+        nav { display: flex; flex-wrap: wrap; gap: 10px; }
+        nav a { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 6px; color: #1e3a8a; font-weight: 700; padding: 8px 11px; text-decoration: none; }
+        main { margin: 24px auto; max-width: 1120px; padding: 0 20px; }
+        .message { background: #e0f2fe; border-radius: 6px; margin-bottom: 16px; padding: 12px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border-bottom: 1px solid #d9e2ec; padding: 10px; text-align: left; vertical-align: top; }
+        th { background: #f5f7fa; color: #52606d; font-size: 13px; }
+        input, select { border: 1px solid #bcccdc; border-radius: 6px; box-sizing: border-box; padding: 8px; width: 100%; }
+        button { background: #2563eb; border: 0; border-radius: 6px; color: #ffffff; cursor: pointer; font-weight: 700; padding: 9px 12px; }
+        .create { border: 1px solid #d9e2ec; border-radius: 8px; margin-bottom: 24px; padding: 16px; }
+        .create-grid { display: grid; gap: 10px; grid-template-columns: 1fr 1.4fr .8fr .7fr auto; }
+        .logout { background: transparent; color: #52606d; padding: 0; }
+    </style>
+</head>
+<body>
+<header>
+    <strong>Matchuri Admin</strong>
+    <nav>
+        <a th:href="@{/admin/menu-items}">Menus</a>
+        <a th:href="@{/admin/attribute-categories}">Categories</a>
+        <a th:href="@{/admin/ingredients}">Ingredients</a>
+    </nav>
+    <form th:action="@{/admin/logout}" method="post">
+        <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button class="logout" type="submit">Logout</button>
+    </form>
+</header>
+<main>
+    <div class="message" th:if="${message}" th:text="${message}"></div>
+    <h1>재료 관리</h1>
+    <form class="create" th:action="@{/admin/ingredients}" method="post">
+        <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <div class="create-grid">
+            <input name="code" placeholder="Code" required>
+            <input name="name" placeholder="Name" required>
+            <select name="allergen">
+                <option value="false">일반</option>
+                <option value="true">알레르기</option>
+            </select>
+            <input name="sortOrder" type="number" placeholder="Sort" required>
+            <button type="submit">생성</button>
+        </div>
+    </form>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Allergen</th>
+            <th>Sort</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="ingredient : ${ingredients}">
+            <form th:action="@{'/admin/ingredients/' + ${ingredient.id()}}" method="post">
+                <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <td th:text="${ingredient.id()}">1</td>
+                <td th:text="${ingredient.code()}">PEANUT</td>
+                <td><input name="name" th:value="${ingredient.name()}" required></td>
+                <td>
+                    <select name="allergen">
+                        <option value="false" th:selected="${!ingredient.allergen()}">일반</option>
+                        <option value="true" th:selected="${ingredient.allergen()}">알레르기</option>
+                    </select>
+                </td>
+                <td><input name="sortOrder" type="number" th:value="${ingredient.sortOrder()}" required></td>
+                <td>
+                    <select name="isActive">
+                        <option value="true" th:selected="${ingredient.isActive()}">활성</option>
+                        <option value="false" th:selected="${!ingredient.isActive()}">비활성</option>
+                    </select>
+                </td>
+                <td><button type="submit">저장</button></td>
+            </form>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

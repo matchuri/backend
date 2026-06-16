@@ -3,11 +3,14 @@ package matchuri.backend.api.menu.mapper;
 import java.util.List;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
+import matchuri.backend.api.menu.dto.request.CreateAdminMenuItemRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemReferencesRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
+import matchuri.backend.api.menu.dto.response.AdminMenuItemDetailResponse;
 import matchuri.backend.api.menu.dto.response.AdminMenuItemResponse;
 import matchuri.backend.api.menu.dto.response.AttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.MenuItemDetailResponse;
@@ -15,15 +18,18 @@ import matchuri.backend.api.menu.dto.response.MenuItemSummaryResponse;
 import matchuri.backend.api.menu.dto.response.RestrictionIngredientResponse;
 import matchuri.backend.domain.menu.command.CreateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.CreateAdminIngredientCommand;
+import matchuri.backend.domain.menu.command.CreateAdminMenuItemCommand;
 import matchuri.backend.domain.menu.command.GetAttributeCategoriesCommand;
 import matchuri.backend.domain.menu.command.GetRestrictionIngredientsCommand;
 import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminAttributeCategoryCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminIngredientCommand;
 import matchuri.backend.domain.menu.command.UpdateAdminMenuItemCommand;
+import matchuri.backend.domain.menu.command.UpdateAdminMenuItemReferencesCommand;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.result.AdminAttributeCategoryResult;
 import matchuri.backend.domain.menu.result.AdminIngredientResult;
+import matchuri.backend.domain.menu.result.AdminMenuItemDetailResult;
 import matchuri.backend.domain.menu.result.AdminMenuItemResult;
 import matchuri.backend.domain.menu.result.AttributeCategoryResult;
 import matchuri.backend.domain.menu.result.MenuItemDetailResult;
@@ -51,6 +57,16 @@ public class MenuReferenceMapper {
                 request.name().trim(),
                 request.allergen(),
                 request.sortOrder()
+        );
+    }
+
+    public CreateAdminMenuItemCommand toCreateAdminMenuItemCommand(CreateAdminMenuItemRequest request) {
+        return new CreateAdminMenuItemCommand(
+                request.code().trim(),
+                request.name().trim(),
+                trimNullable(request.description()),
+                request.attributeCategoryIds(),
+                request.ingredientIds()
         );
     }
 
@@ -88,6 +104,17 @@ public class MenuReferenceMapper {
                 trimNullable(request.name()),
                 trimNullable(request.description()),
                 request.isActive()
+        );
+    }
+
+    public UpdateAdminMenuItemReferencesCommand toUpdateAdminMenuItemReferencesCommand(
+            Long menuItemId,
+            UpdateAdminMenuItemReferencesRequest request
+    ) {
+        return new UpdateAdminMenuItemReferencesCommand(
+                menuItemId,
+                request.attributeCategoryIds(),
+                request.ingredientIds()
         );
     }
 
@@ -200,6 +227,19 @@ public class MenuReferenceMapper {
                 result.name(),
                 result.description(),
                 result.isActive()
+        );
+    }
+
+    public AdminMenuItemDetailResponse toAdminMenuItemDetailResponse(AdminMenuItemDetailResult result) {
+        return new AdminMenuItemDetailResponse(
+                result.id(),
+                result.code(),
+                result.name(),
+                result.description(),
+                result.isActive(),
+                result.thumbnailUrl(),
+                toAdminAttributeCategoryResponses(result.attributeCategories()),
+                toAdminIngredientResponses(result.ingredients())
         );
     }
 

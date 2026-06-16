@@ -23,9 +23,13 @@ import matchuri.backend.domain.member.support.agreement.RequiredAgreementVersion
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
+import matchuri.backend.domain.menu.entity.MenuAttributeCategory;
+import matchuri.backend.domain.menu.entity.MenuIngredient;
 import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +61,12 @@ class MenuAdminReferenceIntegrationTest {
     private MenuItemRepository menuItemRepository;
 
     @Autowired
+    private MenuAttributeCategoryRepository menuAttributeCategoryRepository;
+
+    @Autowired
+    private MenuIngredientRepository menuIngredientRepository;
+
+    @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
@@ -64,6 +74,8 @@ class MenuAdminReferenceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        menuAttributeCategoryRepository.deleteAll();
+        menuIngredientRepository.deleteAll();
         menuItemRepository.deleteAll();
         attributeCategoryRepository.deleteAll();
         ingredientRepository.deleteAll();
@@ -181,6 +193,135 @@ class MenuAdminReferenceIntegrationTest {
                 .andExpect(jsonPath("$.data[1].id").value(sushi.getId()))
                 .andExpect(jsonPath("$.data[1].code").value("SUSHI"))
                 .andExpect(jsonPath("$.data[1].isActive").value(false));
+    }
+
+    @Test
+    @DisplayName("관리자는 메뉴를 생성하면서 attribute category와 ingredient를 연결할 수 있다")
+    void createAdminMenuItemWithReferences() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-menu-create-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        Ingredient kimchi = ingredientRepository.save(new Ingredient("KIMCHI", "김치", false, 10));
+
+        mockMvc.perform(post("/api/v1/admin/menu-items")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "code": "KIMCHI_FRIED_RICE",
+                                  "name": "김치볶음밥",
+                                  "description": "김치와 밥을 볶은 한식 메뉴입니다.",
+                                  "attributeCategoryIds": [%d],
+                                  "ingredientIds": [%d]
+                                }
+                                """.formatted(spicy.getId(), kimchi.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.code").value("KIMCHI_FRIED_RICE"))
+                .andExpect(jsonPath("$.data.isActive").value(true))
+                .andExpect(jsonPath("$.data.attributeCategories.length()").value(1))
+                .andExpect(jsonPath("$.data.attributeCategories[0].id").value(spicy.getId()))
+                .andExpect(jsonPath("$.data.ingredients.length()").value(1))
+                .andExpect(jsonPath("$.data.ingredients[0].id").value(kimchi.getId()));
+
+        MenuItem menuItem = menuItemRepository.findByCode("KIMCHI_FRIED_RICE").orElseThrow();
+        assertThat(menuAttributeCategoryRepository.findAllByMenuIdOrderByAttributeCategoryCategoryTypeAscAttributeCategorySortOrderAscAttributeCategoryIdAsc(
+                menuItem.getId())).hasSize(1);
+        assertThat(menuIngredientRepository.findAllByMenuIdOrderByIngredientSortOrderAscIngredientIdAsc(
+                menuItem.getId())).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("관리자는 메뉴 상세에서 attribute category와 ingredient 연결을 조회할 수 있다")
+    void getAdminMenuItemReturnsReferences() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-menu-detail-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        MenuItem menuItem = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "밥과 나물을 비빈 메뉴"));
+        AttributeCategory korean = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FOOD_CATEGORY, "KOREAN", "한식", 10));
+        Ingredient egg = ingredientRepository.save(new Ingredient("EGG", "달걀", true, 10));
+        menuAttributeCategoryRepository.save(new MenuAttributeCategory(menuItem, korean));
+        menuIngredientRepository.save(new MenuIngredient(menuItem, egg));
+
+        mockMvc.perform(get("/api/v1/admin/menu-items/{menuItemId}", menuItem.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(menuItem.getId()))
+                .andExpect(jsonPath("$.data.thumbnailUrl").value(nullValue()))
+                .andExpect(jsonPath("$.data.attributeCategories[0].code").value("KOREAN"))
+                .andExpect(jsonPath("$.data.ingredients[0].code").value("EGG"));
+    }
+
+    @Test
+    @DisplayName("관리자는 메뉴 attribute category와 ingredient 연결을 최신 입력 기준으로 전체 교체할 수 있다")
+    void updateAdminMenuItemReferencesReplacesMappings() throws Exception {
+        Member admin = memberRepository.save(new Member(
+                "admin-menu-reference-user",
+                "hashed-password",
+                null,
+                false,
+                null,
+                null,
+                MemberRole.ADMIN,
+                MemberStatus.ACTIVE
+        ));
+        MenuItem menuItem = menuItemRepository.save(new MenuItem("NOODLE", "국수", "면 메뉴"));
+        AttributeCategory oldCategory = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FOOD_CATEGORY, "KOREAN", "한식", 10));
+        AttributeCategory newCategory = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.TEXTURE, "SOFT", "부드러운", 20));
+        Ingredient oldIngredient = ingredientRepository.save(new Ingredient("PORK", "돼지고기", false, 10));
+        Ingredient newIngredient = ingredientRepository.save(new Ingredient("BEEF", "소고기", false, 20));
+        menuAttributeCategoryRepository.save(new MenuAttributeCategory(menuItem, oldCategory));
+        menuIngredientRepository.save(new MenuIngredient(menuItem, oldIngredient));
+
+        mockMvc.perform(patch("/api/v1/admin/menu-items/{menuItemId}/references", menuItem.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(admin)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "attributeCategoryIds": [%d],
+                                  "ingredientIds": [%d]
+                                }
+                                """.formatted(newCategory.getId(), newIngredient.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.attributeCategories.length()").value(1))
+                .andExpect(jsonPath("$.data.attributeCategories[0].id").value(newCategory.getId()))
+                .andExpect(jsonPath("$.data.ingredients.length()").value(1))
+                .andExpect(jsonPath("$.data.ingredients[0].id").value(newIngredient.getId()));
+
+        assertThat(menuAttributeCategoryRepository.findAllByMenuIdOrderByAttributeCategoryCategoryTypeAscAttributeCategorySortOrderAscAttributeCategoryIdAsc(
+                menuItem.getId()))
+                .singleElement()
+                .extracting(mapping -> mapping.getAttributeCategory().getId())
+                .isEqualTo(newCategory.getId());
+        assertThat(menuIngredientRepository.findAllByMenuIdOrderByIngredientSortOrderAscIngredientIdAsc(
+                menuItem.getId()))
+                .singleElement()
+                .extracting(mapping -> mapping.getIngredient().getId())
+                .isEqualTo(newIngredient.getId());
     }
 
     @Test

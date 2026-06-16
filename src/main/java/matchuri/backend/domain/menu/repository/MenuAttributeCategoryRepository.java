@@ -13,6 +13,10 @@ public interface MenuAttributeCategoryRepository extends JpaRepository<MenuAttri
 
     boolean existsByMenuAndAttributeCategory(MenuItem menu, AttributeCategory attributeCategory);
 
+    List<MenuAttributeCategory> findAllByMenuIdOrderByAttributeCategoryCategoryTypeAscAttributeCategorySortOrderAscAttributeCategoryIdAsc(
+            Long menuId
+    );
+
     List<MenuAttributeCategory> findAllByMenuIdAndAttributeCategoryActiveTrueOrderByAttributeCategoryCategoryTypeAscAttributeCategorySortOrderAscAttributeCategoryIdAsc(
             Long menuId
     );

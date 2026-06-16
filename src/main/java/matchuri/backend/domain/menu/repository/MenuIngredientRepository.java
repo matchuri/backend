@@ -13,6 +13,8 @@ public interface MenuIngredientRepository extends JpaRepository<MenuIngredient, 
 
     boolean existsByMenuAndIngredient(MenuItem menu, Ingredient ingredient);
 
+    List<MenuIngredient> findAllByMenuIdOrderByIngredientSortOrderAscIngredientIdAsc(Long menuId);
+
     List<MenuIngredient> findAllByMenuIdAndIngredientActiveTrueOrderByIngredientSortOrderAscIngredientIdAsc(Long menuId);
 
     List<MenuIngredient> findAllByIngredientIdNotIn(Collection<Long> ingredientIds);

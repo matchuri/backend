@@ -1,5 +1,6 @@
 package matchuri.backend.domain.menu.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import matchuri.backend.domain.image.entity.ImageAsset;
@@ -60,7 +61,9 @@ public class MenuImageAdminServiceImpl implements MenuImageAdminService {
                 menuItem.getName(),
                 menuItem.getDescription(),
                 menuItem.isActive(),
-                thumbnailUrl
+                thumbnailUrl,
+                List.of(),
+                List.of()
         );
     }
 

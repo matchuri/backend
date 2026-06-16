@@ -13,15 +13,19 @@ import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminAttributeCategoryListApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminIngredientApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminIngredientListApiResponse;
+import matchuri.backend.api.menu.dto.docs.AdminMenuItemDetailApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminMenuItemApiResponse;
 import matchuri.backend.api.menu.dto.docs.AdminMenuItemListApiResponse;
 import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
+import matchuri.backend.api.menu.dto.request.CreateAdminMenuItemRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
 import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemReferencesRequest;
 import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
 import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
+import matchuri.backend.api.menu.dto.response.AdminMenuItemDetailResponse;
 import matchuri.backend.api.menu.dto.response.AdminMenuItemResponse;
 import matchuri.backend.global.api.ApiResponse;
 
@@ -254,6 +258,113 @@ public interface MenuAdminReferenceApi {
     ApiResponse<List<AdminMenuItemResponse>> getAdminMenuItems();
 
     @Operation(
+            summary = "관리자 메뉴 상세 조회",
+            description = """
+                    운영 관리용 `menu item` 단건 상세를 조회합니다.
+                    
+                    - `ADMIN` 권한이 필요합니다.
+                    - 메뉴 기본 정보, 대표 이미지 URL, attribute category 연결, ingredient 연결을 함께 반환합니다.
+                    - 연결 목록에는 활성/비활성 상태를 포함합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminMenuItemDetailApiResponse.class)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 메뉴",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 404,
+                                                "code": "MENU_NOT_FOUND",
+                                                "message": "메뉴를 찾을 수 없습니다. menuId : 999",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(name = "forbidden", value = ErrorExamples.AUTH_FORBIDDEN)
+                    )
+            )
+    })
+    ApiResponse<AdminMenuItemDetailResponse> getAdminMenuItem(Long menuItemId);
+
+    @Operation(
+            summary = "관리자 메뉴 생성",
+            description = """
+                    운영 관리용 `menu item`을 생성합니다.
+                    
+                    - `ADMIN` 권한이 필요합니다.
+                    - 생성 직후 기본 활성 상태는 `true`입니다.
+                    - `code`는 생성 이후 안정적인 비즈니스 키로 보고 수정하지 않습니다.
+                    - attribute category와 ingredient 연결은 활성 데이터만 허용합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "생성 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminMenuItemDetailApiResponse.class)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(name = "forbidden", value = ErrorExamples.AUTH_FORBIDDEN)
+                    )
+            )
+    })
+    ApiResponse<AdminMenuItemDetailResponse> createAdminMenuItem(CreateAdminMenuItemRequest request);
+
+    @Operation(
             summary = "관리자 메뉴 수정",
             description = """
                     운영 관리용 `menu item`의 수정 가능 필드만 갱신합니다.
@@ -336,6 +447,74 @@ public interface MenuAdminReferenceApi {
     ApiResponse<AdminMenuItemResponse> updateAdminMenuItem(
             Long menuItemId,
             UpdateAdminMenuItemRequest request
+    );
+
+    @Operation(
+            summary = "관리자 메뉴 연결 수정",
+            description = """
+                    운영 관리용 `menu item`의 attribute category와 ingredient 연결을 전체 교체합니다.
+                    
+                    - `ADMIN` 권한이 필요합니다.
+                    - 요청 배열이 최신 상태가 되며, 빈 배열이면 해당 연결을 모두 제거합니다.
+                    - 연결 대상은 활성 데이터만 허용합니다.
+                    - 추천 알고리즘 입력 데이터에 직접 영향을 줍니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "수정 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AdminMenuItemDetailApiResponse.class)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 메뉴",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notFound",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 404,
+                                                "code": "MENU_NOT_FOUND",
+                                                "message": "메뉴를 찾을 수 없습니다. menuId : 999",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "관리자 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(name = "forbidden", value = ErrorExamples.AUTH_FORBIDDEN)
+                    )
+            )
+    })
+    ApiResponse<AdminMenuItemDetailResponse> updateAdminMenuItemReferences(
+            Long menuItemId,
+            UpdateAdminMenuItemReferencesRequest request
     );
 
     @Operation(
