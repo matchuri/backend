@@ -379,6 +379,37 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public CancelGroupRecommendationResult cancelGroupRecommendation(Long groupId, Long sessionId) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = getActiveGroupRoom(groupId);
+        GroupRoomMember membership = validateActiveMembership(room.getId(), member.getId());
+
+        if (!membership.isOwner()) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_CANCEL_FORBIDDEN, room.getId());
+        }
+
+        GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, room.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
+
+        if (recommendation.getStatus() != GroupRecommendationStatus.PREPARING) {
+            throw new BusinessException(
+                    GroupErrorCode.RECOMMENDATION_CANCEL_CONFLICT,
+                    sessionId,
+                    recommendation.getStatus()
+            );
+        }
+
+        LocalDateTime canceledAt = LocalDateTime.now();
+        recommendation.cancel(canceledAt);
+
+        return new CancelGroupRecommendationResult(
+                recommendation.getId(),
+                recommendation.getStatus(),
+                canceledAt
+        );
+    }
+
+    @Override
     public ReadyGroupRecommendationResult readyGroupRecommendation(Long groupId, Long sessionId) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         GroupRoom room = getActiveGroupRoom(groupId);
@@ -870,10 +901,8 @@ public class GroupServiceImpl implements GroupService {
                 .map(membership -> toMemberSummaryResult(membership, member.getId()))
                 .toList();
         GroupRecommendationResult activeRecommendation = groupRecommendationRepository
-                .findFirstByRoomIdAndStatusInOrderByStartedAtDescIdDesc(
-                        groupId,
-                        List.of(GroupRecommendationStatus.PREPARING, GroupRecommendationStatus.OPEN)
-                )
+                .findFirstByRoomIdOrderByStartedAtDescIdDesc(groupId)
+                .filter(this::isGroupDetailVisibleRecommendation)
                 .map(this::toGroupRecommendationResult)
                 .orElse(null);
         GroupLocation location = latestGroupLocation(room.getId());
@@ -892,6 +921,14 @@ public class GroupServiceImpl implements GroupService {
         );
     }
 
+    private boolean isGroupDetailVisibleRecommendation(GroupRecommendation recommendation) {
+        return List.of(
+                GroupRecommendationStatus.PREPARING,
+                GroupRecommendationStatus.OPEN,
+                GroupRecommendationStatus.CANCELED
+        ).contains(recommendation.getStatus());
+    }
+
     private GroupRoomMember validateActiveMembership(Long groupId, Long memberId) {
         return groupRoomMemberRepository.findActiveMembershipInNotDeletedRoom(groupId, memberId)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.ACCESS_DENIED, groupId));
@@ -899,7 +936,10 @@ public class GroupServiceImpl implements GroupService {
 
     private GroupRecommendationResult toGroupRecommendationResult(GroupRecommendation recommendation) {
         boolean preparing = recommendation.getStatus() == GroupRecommendationStatus.PREPARING;
-        List<GroupRecommendationCandidateResult> candidates = preparing ? List.of() : toCandidateResults(recommendation);
+        boolean canceled = recommendation.getStatus() == GroupRecommendationStatus.CANCELED;
+        List<GroupRecommendationCandidateResult> candidates = preparing || canceled
+                ? List.of()
+                : toCandidateResults(recommendation);
         GroupRecommendationCandidateResult finalCandidate = recommendation.getSelectedCandidate() == null
                 ? null
                 : candidates.stream()
@@ -925,7 +965,7 @@ public class GroupServiceImpl implements GroupService {
                         )
                         : null,
                 candidates,
-                preparing ? null : toVoteProgress(recommendation),
+                preparing || canceled ? null : toVoteProgress(recommendation),
                 finalCandidate,
                 recommendation.getCreatedAt()
         );
