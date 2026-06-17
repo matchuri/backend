@@ -13,6 +13,7 @@ import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
+import matchuri.backend.api.group.dto.response.CancelGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
@@ -46,6 +47,7 @@ import matchuri.backend.domain.group.entity.GroupRoomStatus;
 import matchuri.backend.domain.group.exception.GroupErrorCode;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
+import matchuri.backend.domain.group.result.CancelGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.DeleteGroupResult;
 import matchuri.backend.domain.group.result.FinalizeGroupRecommendationResult;
@@ -264,6 +266,17 @@ public class GroupController implements GroupApi {
                 groupService.getGroupRecommendationReadiness(groupId, sessionId);
 
         return ApiResponse.success(groupMapper.toGroupRecommendationReadinessResponse(result));
+    }
+
+    @Override
+    @PatchMapping("/{groupId}/recommendations/{sessionId}/cancel")
+    public ApiResponse<CancelGroupRecommendationResponse> cancelRecommendation(
+            @PathVariable Long groupId,
+            @PathVariable Long sessionId
+    ) {
+        CancelGroupRecommendationResult result = groupService.cancelGroupRecommendation(groupId, sessionId);
+
+        return ApiResponse.success(groupMapper.toCancelGroupRecommendationResponse(result));
     }
 
     @Override

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import matchuri.backend.api.group.dto.docs.CancelGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateNicknameGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupRecommendationApiResponse;
@@ -37,6 +38,7 @@ import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
+import matchuri.backend.api.group.dto.response.CancelGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
@@ -565,6 +567,46 @@ public interface GroupApi {
             )
     })
     ApiResponse<GroupRecommendationReadinessResponse> getRecommendationReadiness(Long groupId, Long sessionId);
+
+    @Operation(
+            summary = "그룹 추천 준비 세션 취소",
+            description = """
+                    그룹 추천 준비 세션을 취소합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 해당 그룹의 `ACTIVE` `OWNER` 멤버만 취소할 수 있습니다.
+                    - source 그룹 추천은 해당 그룹에 속하고 `PREPARING` 상태여야 합니다.
+                    - 이미 `OPEN`, `FINALIZED`, `EXPIRED` 등 `PREPARING`이 아닌 세션은 409 상태 충돌로 처리합니다.
+                    - 취소 후 세션 상태는 `CANCELED`가 되고 `endedAt`을 기록합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "준비 세션 취소 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CancelGroupRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.CANCEL_RECOMMENDATION_SUCCESS
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "취소 가능한 PREPARING 상태가 아님",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notPreparing",
+                                    value = GroupApiExamples.RECOMMENDATION_NOT_PREPARING_ERROR
+                            )
+                    )
+            )
+    })
+    ApiResponse<CancelGroupRecommendationResponse> cancelRecommendation(Long groupId, Long sessionId);
 
     @Operation(
             summary = "그룹 추천 준비 완료",
