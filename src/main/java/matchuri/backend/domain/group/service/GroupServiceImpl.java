@@ -446,6 +446,33 @@ public class GroupServiceImpl implements GroupService {
         );
     }
 
+    @Override
+    public CancelGroupRecommendationResult cancelGroupRecommendation(Long groupId, Long sessionId) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        GroupRoom room = getActiveGroupRoom(groupId);
+        GroupRoomMember membership = validateActiveMembership(room.getId(), member.getId());
+
+        if (!membership.isOwner()) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_CANCEL_FORBIDDEN, room.getId());
+        }
+
+        GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, room.getId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
+
+        if (recommendation.getStatus() != GroupRecommendationStatus.PREPARING) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_PREPARING, sessionId);
+        }
+
+        LocalDateTime canceledAt = LocalDateTime.now();
+        recommendation.cancel(canceledAt);
+
+        return new CancelGroupRecommendationResult(
+                recommendation.getId(),
+                recommendation.getStatus(),
+                canceledAt
+        );
+    }
+
     private GroupRecommendationReadinessProgressResult readinessProgress(
             Long recommendationId,
             Long roomId,
@@ -872,7 +899,11 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendationResult activeRecommendation = groupRecommendationRepository
                 .findFirstByRoomIdAndStatusInOrderByStartedAtDescIdDesc(
                         groupId,
-                        List.of(GroupRecommendationStatus.PREPARING, GroupRecommendationStatus.OPEN)
+                        List.of(
+                                GroupRecommendationStatus.PREPARING,
+                                GroupRecommendationStatus.OPEN,
+                                GroupRecommendationStatus.CANCELED
+                        )
                 )
                 .map(this::toGroupRecommendationResult)
                 .orElse(null);
@@ -899,7 +930,10 @@ public class GroupServiceImpl implements GroupService {
 
     private GroupRecommendationResult toGroupRecommendationResult(GroupRecommendation recommendation) {
         boolean preparing = recommendation.getStatus() == GroupRecommendationStatus.PREPARING;
-        List<GroupRecommendationCandidateResult> candidates = preparing ? List.of() : toCandidateResults(recommendation);
+        boolean hasCandidatePhase = !preparing && recommendation.getStatus() != GroupRecommendationStatus.CANCELED;
+        List<GroupRecommendationCandidateResult> candidates = hasCandidatePhase
+                ? toCandidateResults(recommendation)
+                : List.of();
         GroupRecommendationCandidateResult finalCandidate = recommendation.getSelectedCandidate() == null
                 ? null
                 : candidates.stream()
@@ -925,7 +959,7 @@ public class GroupServiceImpl implements GroupService {
                         )
                         : null,
                 candidates,
-                preparing ? null : toVoteProgress(recommendation),
+                hasCandidatePhase ? toVoteProgress(recommendation) : null,
                 finalCandidate,
                 recommendation.getCreatedAt()
         );

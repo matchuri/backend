@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
+import matchuri.backend.api.group.dto.docs.CancelGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateNicknameGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.DeleteGroupApiResponse;
@@ -38,6 +39,7 @@ import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
 import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
+import matchuri.backend.api.group.dto.response.CancelGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
@@ -141,6 +143,7 @@ public interface GroupApi {
                     - 멤버 목록의 각 항목은 현재 로그인한 회원이면 `isMe=true`, 아니면 `false`를 반환합니다.
                     - 삭제된 그룹은 조회할 수 없습니다.
                     - `PREPARING` 또는 `OPEN` 추천 세션이 있으면 `activeRecommendation`을 함께 반환합니다.
+                    - 방금 취소된 `CANCELED` 추천 세션이 최신 세션이면 취소 상태 확인을 위해 함께 반환합니다.
                     - `PREPARING`이면 readiness 진행률을, `OPEN`이면 후보와 투표 진행률을 포함합니다.
                     """
     )
@@ -433,6 +436,7 @@ public interface GroupApi {
                     - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
                     - 삭제된 그룹은 조회할 수 없습니다.
                     - `PREPARING` 세션도 목록에 포함합니다.
+                    - 취소된 준비 세션은 `CANCELED`와 종료 시각으로 반환합니다.
                     - 응답은 `sessionId`, `status`, `startedAt`, `endedAt`만 포함하는 얇은 summary입니다.
                     - `finalCandidate`, `finalMenuName`, `voteProgress`, `status` 필터는 1차 범위에서 제외합니다.
                     - 최신순(`startedAt DESC`, `id DESC`)으로 정렬합니다.
@@ -476,6 +480,7 @@ public interface GroupApi {
                     - `sessionId`는 API 표현 이름이며 저장 모델은 `group_recommendations.id`로 해석합니다.
                     - `PREPARING` 세션이면 후보는 빈 배열, 투표 진행률은 null, readiness 진행률은 값으로 반환합니다.
                     - `OPEN` 세션이면 후보별 현재 투표 수와 전체 투표 진행률을 함께 반환하고 readiness는 null입니다.
+                    - 취소된 준비 세션은 `CANCELED`, 빈 후보 배열, null 진행률로 반환합니다.
                     """
     )
     @ApiResponses({
@@ -603,6 +608,45 @@ public interface GroupApi {
             )
     })
     ApiResponse<ReadyGroupRecommendationResponse> readyRecommendation(Long groupId, Long sessionId);
+
+    @Operation(
+            summary = "그룹 추천 준비 세션 취소",
+            description = """
+                    준비 중인 그룹 추천 세션을 취소합니다.
+
+                    정책:
+                    - 해당 그룹의 `ACTIVE` `OWNER` 멤버만 취소할 수 있습니다.
+                    - `PREPARING` 상태의 그룹 추천 세션만 취소할 수 있습니다.
+                    - 이미 `OPEN`, `FINALIZED`, `EXPIRED` 등 준비 상태가 아닌 세션은 상태 충돌로 거절합니다.
+                    - 취소 후 그룹 추천 상태는 `CANCELED`가 되고 종료 시각을 기록합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "취소 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CancelGroupRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.CANCEL_RECOMMENDATION_SUCCESS
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "취소 가능한 PREPARING 상태가 아님",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notPreparing",
+                                    value = GroupApiExamples.RECOMMENDATION_NOT_PREPARING_ERROR
+                            )
+                    )
+            )
+    })
+    ApiResponse<CancelGroupRecommendationResponse> cancelRecommendation(Long groupId, Long sessionId);
 
     @Operation(
             summary = "그룹 추천 재요청",
