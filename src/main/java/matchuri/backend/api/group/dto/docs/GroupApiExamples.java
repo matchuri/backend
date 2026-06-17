@@ -223,6 +223,30 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String RECOMMENDATION_NOT_PREPARING_ERROR = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "status": 409,
+                "code": "GROUP_RECOMMENDATION_NOT_PREPARING",
+                "message": "준비 중인 그룹 추천이 아닙니다. sessionId : 5001"
+              }
+            }
+            """;
+
+    public static final String RECOMMENDATION_CANCEL_FORBIDDEN_ERROR = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "status": 403,
+                "code": "GROUP_RECOMMENDATION_CANCEL_FORBIDDEN",
+                "message": "그룹 추천 취소 권한이 없습니다. groupId : 3001"
+              }
+            }
+            """;
+
     public static final String CREATE_NICKNAME_INVITE_SUCCESS = """
             {
               "success": true,
@@ -565,6 +589,18 @@ public final class GroupApiExamples {
                     "voteCount": 0
                   }
                 ]
+              },
+              "error": null
+            }
+            """;
+
+    public static final String CANCEL_RECOMMENDATION_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "sessionId": 5001,
+                "status": "CANCELED",
+                "canceledAt": "2026-05-06T12:10:00"
               },
               "error": null
             }

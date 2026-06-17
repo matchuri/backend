@@ -757,6 +757,156 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("그룹 추천 준비 세션 취소는 OWNER가 PREPARING 세션을 CANCELED로 종료한다")
+    void cancelGroupRecommendationCancelsPreparingSessionForOwner() throws Exception {
+        Member owner = saveMember("cancel-owner", "취소방장");
+        Member member = saveMember("cancel-member", "취소멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "취소 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        groupRecommendationReadinessRepository.save(new GroupRecommendationReadiness(recommendation, owner));
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.CANCELED.name()))
+                .andExpect(jsonPath("$.data.canceledAt").isNotEmpty());
+
+        GroupRecommendation canceledRecommendation =
+                groupRecommendationRepository.findById(recommendation.getId()).orElseThrow();
+        assertThat(canceledRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.CANCELED);
+        assertThat(canceledRecommendation.getEndedAt()).isNotNull();
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.activeRecommendation.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.activeRecommendation.status")
+                        .value(GroupRecommendationStatus.CANCELED.name()))
+                .andExpect(jsonPath("$.data.activeRecommendation.readiness").value(nullValue()))
+                .andExpect(jsonPath("$.data.activeRecommendation.candidates.length()").value(0))
+                .andExpect(jsonPath("$.data.activeRecommendation.voteProgress").value(nullValue()));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.CANCELED.name()))
+                .andExpect(jsonPath("$.data.readiness").value(nullValue()))
+                .andExpect(jsonPath("$.data.candidates.length()").value(0))
+                .andExpect(jsonPath("$.data.voteProgress").value(nullValue()))
+                .andExpect(jsonPath("$.data.finalCandidate").value(nullValue()));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.content[0].status").value(GroupRecommendationStatus.CANCELED.name()))
+                .andExpect(jsonPath("$.data.content[0].endedAt").isNotEmpty());
+
+        mockMvc.perform(get("/api/v1/groups")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].latestRecommendationStatus")
+                        .value(GroupRecommendationStatus.CANCELED.name()));
+    }
+
+    @Test
+    @DisplayName("그룹 추천 준비 세션 취소는 OWNER가 아닌 활성 멤버이면 거절한다")
+    void cancelGroupRecommendationFailsForNonOwnerMember() throws Exception {
+        Member owner = saveMember("cancel-forbidden-owner", "취소권한방장");
+        Member member = saveMember("cancel-forbidden-member", "취소권한멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "취소 권한 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_CANCEL_FORBIDDEN"));
+
+        assertThat(groupRecommendationRepository.findById(recommendation.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.PREPARING);
+    }
+
+    @Test
+    @DisplayName("그룹 추천 준비 세션 취소는 PREPARING 상태가 아니면 상태 충돌로 거절한다")
+    void cancelGroupRecommendationFailsForNotPreparingRecommendation() throws Exception {
+        Member owner = saveMember("cancel-status-owner", "취소상태방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "취소 상태 그룹");
+        MenuItem menuItem = saveMenu("cancel-status-menu", "취소상태메뉴");
+
+        GroupRecommendation openRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendation finalizedRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().plusMinutes(1)
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(finalizedRecommendation, menuItem, 1, 10.0, "{}")
+        );
+        finalizedRecommendation.finalizeWith(candidate, LocalDateTime.now().plusMinutes(2));
+        groupRecommendationRepository.save(finalizedRecommendation);
+        GroupRecommendation expiredRecommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().plusMinutes(3)
+        ));
+        expiredRecommendation.expire(LocalDateTime.now().plusMinutes(4));
+        groupRecommendationRepository.save(expiredRecommendation);
+
+        for (GroupRecommendation recommendation : List.of(
+                openRecommendation,
+                finalizedRecommendation,
+                expiredRecommendation
+        )) {
+            mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel",
+                            groupRoom.getId(),
+                            recommendation.getId())
+                            .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_PREPARING"));
+        }
+
+        assertThat(groupRecommendationRepository.findById(openRecommendation.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.OPEN);
+        assertThat(groupRecommendationRepository.findById(finalizedRecommendation.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.FINALIZED);
+        assertThat(groupRecommendationRepository.findById(expiredRecommendation.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.EXPIRED);
+    }
+
+    @Test
     @DisplayName("그룹 추천 재요청은 MVP 제외 API이므로 410으로 거절한다")
     void rerollGroupRecommendationReturnsGone() throws Exception {
         Member owner = saveMember("group-reroll-owner", "재요청방장");

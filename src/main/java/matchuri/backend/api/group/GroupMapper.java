@@ -7,6 +7,7 @@ import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
+import matchuri.backend.api.group.dto.response.CancelGroupRecommendationResponse;
 import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupResponse;
 import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
@@ -42,6 +43,7 @@ import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
+import matchuri.backend.domain.group.result.CancelGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
@@ -321,6 +323,16 @@ public class GroupMapper {
                 result.candidates().stream()
                         .map(this::toGroupRecommendationCandidateResponse)
                         .toList()
+        );
+    }
+
+    public CancelGroupRecommendationResponse toCancelGroupRecommendationResponse(
+            CancelGroupRecommendationResult result
+    ) {
+        return new CancelGroupRecommendationResponse(
+                result.sessionId(),
+                result.status(),
+                result.canceledAt()
         );
     }
 

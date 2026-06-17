@@ -12,6 +12,7 @@ import matchuri.backend.domain.group.command.LeaveGroupCommand;
 import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupRecommendationRerollType;
+import matchuri.backend.domain.group.result.CancelGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateGroupResult;
 import matchuri.backend.domain.group.result.CreateGroupRecommendationResult;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
@@ -54,6 +55,8 @@ public interface GroupService {
     GroupRecommendationReadinessResult getGroupRecommendationReadiness(Long groupId, Long sessionId);
 
     ReadyGroupRecommendationResult readyGroupRecommendation(Long groupId, Long sessionId);
+
+    CancelGroupRecommendationResult cancelGroupRecommendation(Long groupId, Long sessionId);
 
     GroupVoteResult voteGroupRecommendation(Long groupId, Long sessionId, Long candidateId);
 

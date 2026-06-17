@@ -513,6 +513,21 @@ class OpenApiDocumentationIntegrationTest {
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/ready'].post.responses['200'].content['application/json'].examples.opened.value.data.candidates[0].menuName")
                         .value("비빔밥"))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel'].patch.summary")
+                        .value("[GREC.020.500] 그룹 추천 준비 세션 취소"))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel'].patch['x-api-id']")
+                        .value("GREC.020.500"))
+                .andExpect(jsonPath("$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel'].patch.tags[0]")
+                        .value("06 Group Recommendation"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel'].patch.responses['200'].content['application/json'].examples.success.value.data.status")
+                        .value("CANCELED"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel'].patch.responses['403'].content['application/json'].examples.forbidden.value.error.code")
+                        .value("GROUP_RECOMMENDATION_CANCEL_FORBIDDEN"))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel'].patch.responses['409'].content['application/json'].examples.notPreparing.value.error.code")
+                        .value("GROUP_RECOMMENDATION_NOT_PREPARING"))
                 .andExpect(jsonPath(
                         "$.paths['/api/v1/groups/{groupId}/recommendations/{sessionId}/reroll'].post.deprecated")
                         .value(true))

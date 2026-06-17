@@ -14,7 +14,7 @@ public record GroupRecommendationSummaryResponse(
         @Schema(description = "추천 시작 시각입니다.", example = "2026-05-26T12:00:00")
         LocalDateTime startedAt,
 
-        @Schema(description = "추천 종료 시각입니다. OPEN이면 null입니다.", example = "2026-05-26T12:15:00")
+        @Schema(description = "추천 종료 시각입니다. 아직 종료 전이면 null입니다.", example = "2026-05-26T12:15:00")
         LocalDateTime endedAt
 ) {
 }
