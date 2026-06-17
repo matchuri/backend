@@ -570,6 +570,29 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String CANCEL_RECOMMENDATION_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "sessionId": 5001,
+                "status": "CANCELED",
+                "canceledAt": "2026-05-06T12:10:00"
+              },
+              "error": null
+            }
+            """;
+
+    public static final String RECOMMENDATION_NOT_PREPARING_ERROR = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "code": "GROUP_RECOMMENDATION_NOT_PREPARING",
+                "message": "준비 중인 그룹 추천이 아닙니다. sessionId : 5001"
+              }
+            }
+            """;
+
     public static final String VOTE_SUCCESS = """
             {
               "success": true,
