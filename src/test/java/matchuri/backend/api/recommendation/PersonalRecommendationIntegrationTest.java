@@ -48,7 +48,6 @@ import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateRepository;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
-import matchuri.backend.domain.recommendation.service.PersonalRecommendationExpirationService;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -118,9 +117,6 @@ class PersonalRecommendationIntegrationTest {
 
     @Autowired
     private MemberMenuActionRepository memberMenuActionRepository;
-
-    @Autowired
-    private PersonalRecommendationExpirationService personalRecommendationExpirationService;
 
     @BeforeEach
     void setUp() {
@@ -317,8 +313,8 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("개인 추천 생성은 만료 대상 열린 추천을 즉시 종료하고 새 추천을 생성한다")
-    void createPersonalRecommendationExpiresOldOpenRecommendationAndCreatesNewOne() throws Exception {
+    @DisplayName("개인 추천 생성은 시간상 만료된 열린 추천을 무시하고 새 추천을 생성한다")
+    void createPersonalRecommendationIgnoresExpiredOpenRecommendationAndCreatesNewOne() throws Exception {
         Member member = saveMember("expired-open-user", "만료추천");
         String accessToken = accessToken(member);
         AttributeCategory spicy = attributeCategoryRepository.save(
@@ -341,20 +337,20 @@ class PersonalRecommendationIntegrationTest {
         assertThat(secondRequestId).isNotEqualTo(firstRequestId);
         assertThat(personalRecommendationRepository.count()).isEqualTo(2);
 
-        PersonalRecommendation expiredRecommendation = personalRecommendationRepository.findById(firstRequestId)
+        PersonalRecommendation oldRecommendation = personalRecommendationRepository.findById(firstRequestId)
                 .orElseThrow();
         PersonalRecommendation newRecommendation = personalRecommendationRepository.findById(secondRequestId)
                 .orElseThrow();
-        assertThat(expiredRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.EXPIRED);
-        assertThat(expiredRecommendation.getClosedAt()).isNotNull();
+        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
+        assertThat(oldRecommendation.getClosedAt()).isNull();
         assertThat(newRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
         assertThat(newRecommendation.getClosedAt()).isNull();
     }
 
     @Test
-    @DisplayName("미선택 개인 추천 만료 서비스는 24시간 지난 열린 추천을 종료한다")
-    void expirationServiceClosesOpenRecommendationAfter24Hours() throws Exception {
-        Member member = saveMember("expiration-service-user", "만료서비스");
+    @DisplayName("개인 추천 목록은 시간상 만료된 열린 추천을 제외한다")
+    void getMyPersonalRecommendationsExcludesExpiredOpenRecommendation() throws Exception {
+        Member member = saveMember("expiration-list-user", "만료목록");
         String accessToken = accessToken(member);
         AttributeCategory spicy = attributeCategoryRepository.save(
                 new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
@@ -366,18 +362,20 @@ class PersonalRecommendationIntegrationTest {
         long requestId = recommendation.path("requestId").asLong();
         expireRequestedAt(requestId);
 
-        int expiredCount = personalRecommendationExpirationService.expireOpenPersonalRecommendations();
+        mockMvc.perform(get("/api/v1/personal/recommendations")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(0));
 
-        PersonalRecommendation expiredRecommendation = personalRecommendationRepository.findById(requestId)
+        PersonalRecommendation oldRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
-        assertThat(expiredCount).isEqualTo(1);
-        assertThat(expiredRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.EXPIRED);
-        assertThat(expiredRecommendation.getClosedAt()).isNotNull();
+        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
+        assertThat(oldRecommendation.getClosedAt()).isNull();
     }
 
     @Test
-    @DisplayName("24시간이 지났어도 scheduler가 닫기 전이면 개인 추천을 선택할 수 있다")
-    void selectPersonalRecommendationAllowsExpiredByTimeUntilSchedulerClosesIt() throws Exception {
+    @DisplayName("24시간이 지난 개인 추천은 선택할 수 없다")
+    void selectPersonalRecommendationRejectsExpiredByTimeRecommendation() throws Exception {
         Member member = saveMember("select-expired-user", "선택만료");
         String accessToken = accessToken(member);
         AttributeCategory spicy = attributeCategoryRepository.save(
@@ -399,19 +397,19 @@ class PersonalRecommendationIntegrationTest {
                                   "selectedCandidateId": %d
                                 }
                 """.formatted(candidateId)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.SELECTED.name()));
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
 
-        PersonalRecommendation selectedRecommendation = personalRecommendationRepository.findById(requestId)
+        PersonalRecommendation oldRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
-        assertThat(selectedRecommendation.getSelectedCandidate()).isNotNull();
-        assertThat(selectedRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.SELECTED);
-        assertThat(selectedRecommendation.getClosedAt()).isNotNull();
+        assertThat(oldRecommendation.getSelectedCandidate()).isNull();
+        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
+        assertThat(oldRecommendation.getClosedAt()).isNull();
     }
 
     @Test
-    @DisplayName("24시간이 지났어도 scheduler가 닫기 전이면 개인 추천을 재요청할 수 있다")
-    void rerollPersonalRecommendationAllowsExpiredByTimeUntilSchedulerClosesIt() throws Exception {
+    @DisplayName("24시간이 지난 개인 추천은 재요청할 수 없다")
+    void rerollPersonalRecommendationRejectsExpiredByTimeRecommendation() throws Exception {
         Member member = saveMember("reroll-expired-user", "재요청만료");
         String accessToken = accessToken(member);
         AttributeCategory spicy = attributeCategoryRepository.save(
@@ -433,72 +431,14 @@ class PersonalRecommendationIntegrationTest {
                                   "contextJson": {}
                                 }
                                 """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.requestId").isNumber());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
 
-        PersonalRecommendation rerolledRecommendation = personalRecommendationRepository.findById(requestId)
+        PersonalRecommendation oldRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
-        assertThat(rerolledRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.REROLLED_WITHOUT_SKIP);
-        assertThat(rerolledRecommendation.getClosedAt()).isNotNull();
-        assertThat(personalRecommendationRepository.count()).isEqualTo(2);
-    }
-
-    @Test
-    @DisplayName("scheduler가 만료 종료한 개인 추천은 선택할 수 없다")
-    void selectPersonalRecommendationRejectsSchedulerExpiredRecommendation() throws Exception {
-        Member member = saveMember("select-scheduler-expired-user", "스케줄러선택만료");
-        String accessToken = accessToken(member);
-        AttributeCategory spicy = attributeCategoryRepository.save(
-                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
-        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
-        saveMenuAttribute(bibimbap, spicy);
-        saveTasteProfile(member, spicy, null);
-
-        JsonNode recommendation = createRecommendation(accessToken);
-        long requestId = recommendation.path("requestId").asLong();
-        long candidateId = recommendation.path("candidates").get(0).path("id").asLong();
-        expireRequestedAt(requestId);
-        personalRecommendationExpirationService.expireOpenPersonalRecommendations();
-
-        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "selectedCandidateId": %d
-                                }
-                                """.formatted(candidateId)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
-    }
-
-    @Test
-    @DisplayName("scheduler가 만료 종료한 개인 추천은 재요청할 수 없다")
-    void rerollPersonalRecommendationRejectsSchedulerExpiredRecommendation() throws Exception {
-        Member member = saveMember("reroll-scheduler-expired-user", "스케줄러재요청만료");
-        String accessToken = accessToken(member);
-        AttributeCategory spicy = attributeCategoryRepository.save(
-                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
-        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
-        saveMenuAttribute(bibimbap, spicy);
-        saveTasteProfile(member, spicy, null);
-
-        JsonNode recommendation = createRecommendation(accessToken);
-        long requestId = recommendation.path("requestId").asLong();
-        expireRequestedAt(requestId);
-        personalRecommendationExpirationService.expireOpenPersonalRecommendations();
-
-        mockMvc.perform(post("/api/v1/personal/recommendations/{requestId}/reroll", requestId)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "rerollType": "INPUT_CHANGED",
-                                  "contextJson": {}
-                                }
-                                """))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
+        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
+        assertThat(oldRecommendation.getClosedAt()).isNull();
+        assertThat(personalRecommendationRepository.count()).isEqualTo(1);
     }
 
     @Test

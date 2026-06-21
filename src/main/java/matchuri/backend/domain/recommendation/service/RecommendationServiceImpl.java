@@ -110,7 +110,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         PersonalRecommendation sourceRecommendation = getOwnedPersonalRecommendation(sourcePersonalRecommendationId,
                 member.getId());
 
-        validatePersonalRecommendationOpen(sourceRecommendation);
+        validatePersonalRecommendationOpen(sourceRecommendation, LocalDateTime.now());
 
         if (rerollType == PersonalRecommendationRerollType.NOT_SATISFIED) {
             List<PersonalRecommendationCandidate> candidates =
@@ -271,9 +271,15 @@ public class RecommendationServiceImpl implements RecommendationService {
     @Transactional(readOnly = true)
     public Page<@NonNull PersonalRecommendationSummaryResult> getMyPersonalRecommendations(int page, int size) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        LocalDateTime activeThreshold = personalRecommendationExpirationService.activeThreshold(LocalDateTime.now());
 
         return personalRecommendationRepository
-                .findByMemberIdOrderByRequestedAtDescIdDesc(member.getId(), PageRequest.of(page, size))
+                .findVisibleByMemberIdOrderByRequestedAtDescIdDesc(
+                        member.getId(),
+                        PersonalRecommendationStatus.OPEN,
+                        activeThreshold,
+                        PageRequest.of(page, size)
+                )
                 .map(PersonalRecommendationSummaryResult::from);
     }
 
@@ -287,7 +293,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(personalRecommendationId,
                 member.getId());
 
-        validatePersonalRecommendationOpen(personalRecommendation);
+        validatePersonalRecommendationOpen(personalRecommendation, LocalDateTime.now());
 
         PersonalRecommendationCandidate selectedCandidate = personalRecommendationCandidateRepository
                 .findByIdAndPersonalRecommendationId(selectedCandidateId, personalRecommendationId)
@@ -321,16 +327,19 @@ public class RecommendationServiceImpl implements RecommendationService {
                 continue;
             }
 
-            if (!personalRecommendationExpirationService.isExpired(recommendation, now)) {
-                throw new BusinessException(RecommendationErrorCode.OPEN_EXISTS, recommendation.getId());
+            if (personalRecommendationExpirationService.isExpired(recommendation, now)) {
+                continue;
             }
 
-            recommendation.expire(now);
+            if (recommendation.getSelectedCandidate() == null && recommendation.getClosedAt() == null) {
+                throw new BusinessException(RecommendationErrorCode.OPEN_EXISTS, recommendation.getId());
+            }
         }
     }
 
-    private void validatePersonalRecommendationOpen(PersonalRecommendation recommendation) {
-        if (recommendation.getStatus() == PersonalRecommendationStatus.EXPIRED) {
+    private void validatePersonalRecommendationOpen(PersonalRecommendation recommendation, LocalDateTime now) {
+        if (recommendation.getStatus() == PersonalRecommendationStatus.EXPIRED
+                || personalRecommendationExpirationService.isExpired(recommendation, now)) {
             throw new BusinessException(RecommendationErrorCode.EXPIRED, recommendation.getId());
         }
 

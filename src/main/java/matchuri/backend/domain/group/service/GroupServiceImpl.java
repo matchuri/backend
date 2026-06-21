@@ -66,6 +66,10 @@ public class GroupServiceImpl implements GroupService {
     private static final int NICKNAME_INVITE_EXPIRATION_HOURS = 24;
     private static final int GROUP_RECOMMENDATION_CANDIDATE_LIMIT = 3;
     private static final long RECENT_GROUP_SKIPPED_MENU_EXCLUSION_HOURS = 24;
+    private static final List<GroupRecommendationStatus> ACTIVE_RECOMMENDATION_STATUSES = List.of(
+            GroupRecommendationStatus.PREPARING,
+            GroupRecommendationStatus.OPEN
+    );
 
     private final ActiveMemberReader activeMemberReader;
     private final MemberRepository memberRepository;
@@ -122,8 +126,6 @@ public class GroupServiceImpl implements GroupService {
             throw new BusinessException(GroupErrorCode.RECOMMENDATION_CREATE_FORBIDDEN, room.getId());
         }
 
-        groupRecommendationExpirationService.expireActiveGroupRecommendations();
-
         if (hasActiveRecommendation(room.getId())) {
             throw new BusinessException(GroupErrorCode.RECOMMENDATION_ACTIVE_EXISTS, room.getId());
         }
@@ -177,9 +179,7 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendation sourceRecommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
 
-        if (sourceRecommendation.getStatus() != GroupRecommendationStatus.OPEN) {
-            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_OPEN, sessionId);
-        }
+        validateGroupRecommendationOpen(sourceRecommendation, sessionId);
 
         LocalDateTime endedAt = LocalDateTime.now();
 
@@ -213,9 +213,10 @@ public class GroupServiceImpl implements GroupService {
     }
 
     private boolean hasActiveRecommendation(Long roomId) {
-        return groupRecommendationRepository.existsByRoomIdAndStatusIn(
+        return groupRecommendationRepository.existsByRoomIdAndStatusInAndStartedAtAfter(
                 roomId,
-                List.of(GroupRecommendationStatus.PREPARING, GroupRecommendationStatus.OPEN)
+                ACTIVE_RECOMMENDATION_STATUSES,
+                groupRecommendationExpirationService.activeThreshold(LocalDateTime.now())
         );
     }
 
@@ -319,9 +320,7 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
 
-        if (recommendation.getStatus() != GroupRecommendationStatus.OPEN) {
-            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_OPEN, sessionId);
-        }
+        validateGroupRecommendationOpen(recommendation, sessionId);
 
         return new GroupRecommendationCandidateListResult(
                 recommendation.getId(),
@@ -337,7 +336,12 @@ public class GroupServiceImpl implements GroupService {
         validateActiveMembership(room.getId(), member.getId());
 
         return groupRecommendationRepository
-                .findByRoomIdOrderByStartedAtDescIdDesc(room.getId(), PageRequest.of(page, size))
+                .findVisibleByRoomIdOrderByStartedAtDescIdDesc(
+                        room.getId(),
+                        ACTIVE_RECOMMENDATION_STATUSES,
+                        groupRecommendationExpirationService.activeThreshold(LocalDateTime.now()),
+                        PageRequest.of(page, size)
+                )
                 .map(GroupRecommendationSummaryResult::from);
     }
 
@@ -387,9 +391,7 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, room.getId())
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
 
-        if (recommendation.getStatus() != GroupRecommendationStatus.PREPARING) {
-            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_PREPARING, sessionId);
-        }
+        validateGroupRecommendationPreparing(recommendation, sessionId);
 
         groupRecommendationReadinessRepository
                 .findByGroupRecommendationIdAndMemberId(recommendation.getId(), member.getId())
@@ -486,9 +488,7 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
 
-        if (recommendation.getStatus() != GroupRecommendationStatus.OPEN) {
-            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_OPEN, sessionId);
-        }
+        validateGroupRecommendationOpen(recommendation, sessionId);
 
         GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository
                 .findByIdAndGroupRecommendationId(candidateId, recommendation.getId())
@@ -547,9 +547,7 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
 
-        if (recommendation.getStatus() != GroupRecommendationStatus.OPEN) {
-            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_OPEN, sessionId);
-        }
+        validateGroupRecommendationOpen(recommendation, sessionId);
 
         List<GroupRecommendationCandidate> candidates = groupRecommendationCandidateRepository
                 .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId());
@@ -807,6 +805,7 @@ public class GroupServiceImpl implements GroupService {
         return groupInviteRepository.findMyInvites(
                 member.getId(),
                 status,
+                LocalDateTime.now(),
                 PageRequest.of(command.page(), command.size())).map(this::toInviteSummaryResult);
     }
 
@@ -870,9 +869,10 @@ public class GroupServiceImpl implements GroupService {
                 .map(membership -> toMemberSummaryResult(membership, member.getId()))
                 .toList();
         GroupRecommendationResult activeRecommendation = groupRecommendationRepository
-                .findFirstByRoomIdAndStatusInOrderByStartedAtDescIdDesc(
+                .findFirstByRoomIdAndStatusInAndStartedAtAfterOrderByStartedAtDescIdDesc(
                         groupId,
-                        List.of(GroupRecommendationStatus.PREPARING, GroupRecommendationStatus.OPEN)
+                        ACTIVE_RECOMMENDATION_STATUSES,
+                        groupRecommendationExpirationService.activeThreshold(LocalDateTime.now())
                 )
                 .map(this::toGroupRecommendationResult)
                 .orElse(null);
@@ -895,6 +895,29 @@ public class GroupServiceImpl implements GroupService {
     private GroupRoomMember validateActiveMembership(Long groupId, Long memberId) {
         return groupRoomMemberRepository.findActiveMembershipInNotDeletedRoom(groupId, memberId)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.ACCESS_DENIED, groupId));
+    }
+
+    private void validateGroupRecommendationPreparing(GroupRecommendation recommendation, Long sessionId) {
+        validateGroupRecommendationNotExpired(recommendation, sessionId);
+
+        if (recommendation.getStatus() != GroupRecommendationStatus.PREPARING) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_PREPARING, sessionId);
+        }
+    }
+
+    private void validateGroupRecommendationOpen(GroupRecommendation recommendation, Long sessionId) {
+        validateGroupRecommendationNotExpired(recommendation, sessionId);
+
+        if (recommendation.getStatus() != GroupRecommendationStatus.OPEN) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_OPEN, sessionId);
+        }
+    }
+
+    private void validateGroupRecommendationNotExpired(GroupRecommendation recommendation, Long sessionId) {
+        if (recommendation.getStatus() == GroupRecommendationStatus.EXPIRED
+                || groupRecommendationExpirationService.isExpired(recommendation, LocalDateTime.now())) {
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_EXPIRED, sessionId);
+        }
     }
 
     private GroupRecommendationResult toGroupRecommendationResult(GroupRecommendation recommendation) {
@@ -1125,11 +1148,22 @@ public class GroupServiceImpl implements GroupService {
                 room.getName(),
                 room.getStatus(),
                 activeMemberCounts.getOrDefault(room.getId(), 0L).intValue(),
-                groupRecommendationRepository.findFirstByRoomIdOrderByStartedAtDescIdDesc(room.getId())
-                        .map(GroupRecommendation::getStatus)
-                        .orElse(null),
+                latestVisibleRecommendationStatus(room.getId()),
                 room.getCreatedAt()
         );
+    }
+
+    private GroupRecommendationStatus latestVisibleRecommendationStatus(Long roomId) {
+        return groupRecommendationRepository.findVisibleByRoomIdOrderByStartedAtDescIdDesc(
+                        roomId,
+                        ACTIVE_RECOMMENDATION_STATUSES,
+                        groupRecommendationExpirationService.activeThreshold(LocalDateTime.now()),
+                        PageRequest.of(0, 1)
+                )
+                .stream()
+                .findFirst()
+                .map(GroupRecommendation::getStatus)
+                .orElse(null);
     }
 
     private GroupInviteSummaryResult toInviteSummaryResult(GroupInvite invite) {

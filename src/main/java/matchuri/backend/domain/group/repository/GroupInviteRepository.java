@@ -1,5 +1,6 @@
 package matchuri.backend.domain.group.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import matchuri.backend.domain.group.entity.GroupInvite;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
@@ -23,6 +24,7 @@ public interface GroupInviteRepository extends JpaRepository<GroupInvite, Long> 
                     join fetch invite.requestMember requestMember
                     where invite.targetMember.id = :targetMemberId
                       and (:status is null or invite.status = :status)
+                      and invite.expiresAt > :now
                     order by invite.createdAt desc, invite.id desc
                     """,
             countQuery = """
@@ -30,11 +32,13 @@ public interface GroupInviteRepository extends JpaRepository<GroupInvite, Long> 
                     from GroupInvite invite
                     where invite.targetMember.id = :targetMemberId
                       and (:status is null or invite.status = :status)
+                      and invite.expiresAt > :now
                     """
     )
     Page<GroupInvite> findMyInvites(
             @Param("targetMemberId") Long targetMemberId,
             @Param("status") GroupInviteStatus status,
+            @Param("now") LocalDateTime now,
             Pageable pageable
     );
 }

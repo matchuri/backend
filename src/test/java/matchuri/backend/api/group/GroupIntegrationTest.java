@@ -41,7 +41,6 @@ import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
-import matchuri.backend.domain.group.service.GroupRecommendationExpirationService;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
@@ -123,9 +122,6 @@ class GroupIntegrationTest {
 
     @Autowired
     private GroupRecommendationVoteRepository groupRecommendationVoteRepository;
-
-    @Autowired
-    private GroupRecommendationExpirationService groupRecommendationExpirationService;
 
     @Autowired
     private MenuItemRepository menuItemRepository;
@@ -386,8 +382,8 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("그룹 추천 시작은 24시간 지난 진행 중 추천을 만료하고 새 준비 세션을 생성한다")
-    void createGroupRecommendationExpiresOldActiveRecommendationAndCreatesPreparingSession() throws Exception {
+    @DisplayName("그룹 추천 시작은 시간상 만료된 진행 중 추천을 무시하고 새 준비 세션을 생성한다")
+    void createGroupRecommendationIgnoresExpiredActiveRecommendationAndCreatesPreparingSession() throws Exception {
         Member owner = saveMember("expired-active-group-owner", "만료추천방장");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "만료 추천 그룹");
         GroupRecommendation oldRecommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
@@ -407,16 +403,16 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.sessionId").value(org.hamcrest.Matchers.not(oldRecommendation.getId().intValue())))
                 .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.PREPARING.name()));
 
-        GroupRecommendation expiredRecommendation = groupRecommendationRepository.findById(oldRecommendation.getId())
+        GroupRecommendation existingRecommendation = groupRecommendationRepository.findById(oldRecommendation.getId())
                 .orElseThrow();
-        assertThat(expiredRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.EXPIRED);
-        assertThat(expiredRecommendation.getEndedAt()).isNotNull();
+        assertThat(existingRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.PREPARING);
+        assertThat(existingRecommendation.getEndedAt()).isNull();
         assertThat(groupRecommendationRepository.count()).isEqualTo(2);
     }
 
     @Test
-    @DisplayName("그룹 추천 만료 서비스는 24시간 지난 PREPARING/OPEN 추천만 종료한다")
-    void expirationServiceClosesActiveGroupRecommendationsAfter24Hours() {
+    @DisplayName("그룹 추천 목록은 시간상 만료된 PREPARING/OPEN 추천을 제외한다")
+    void getGroupRecommendationsExcludesExpiredActiveRecommendations() throws Exception {
         Member owner = saveMember("group-expiration-service-owner", "그룹만료방장");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "그룹 만료 서비스");
         GroupRecommendation oldPreparing = groupRecommendationRepository.save(GroupRecommendation.preparing(
@@ -442,17 +438,17 @@ class GroupIntegrationTest {
         alreadyClosed.rerollWithoutSkip(LocalDateTime.now().minusHours(1));
         groupRecommendationRepository.save(alreadyClosed);
 
-        int expiredCount = groupRecommendationExpirationService.expireActiveGroupRecommendations();
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(2))
+                .andExpect(jsonPath("$.data.content[0].sessionId").value(recentPreparing.getId()))
+                .andExpect(jsonPath("$.data.content[1].sessionId").value(alreadyClosed.getId()));
 
-        assertThat(expiredCount).isEqualTo(2);
         assertThat(groupRecommendationRepository.findById(oldPreparing.getId()).orElseThrow().getStatus())
-                .isEqualTo(GroupRecommendationStatus.EXPIRED);
-        assertThat(groupRecommendationRepository.findById(oldOpen.getId()).orElseThrow().getStatus())
-                .isEqualTo(GroupRecommendationStatus.EXPIRED);
-        assertThat(groupRecommendationRepository.findById(recentPreparing.getId()).orElseThrow().getStatus())
                 .isEqualTo(GroupRecommendationStatus.PREPARING);
-        assertThat(groupRecommendationRepository.findById(alreadyClosed.getId()).orElseThrow().getStatus())
-                .isEqualTo(GroupRecommendationStatus.REROLLED_WITHOUT_SKIP);
+        assertThat(groupRecommendationRepository.findById(oldOpen.getId()).orElseThrow().getStatus())
+                .isEqualTo(GroupRecommendationStatus.OPEN);
     }
 
     @Test
@@ -1075,19 +1071,19 @@ class GroupIntegrationTest {
         GroupRecommendation oldRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
                 groupRoom,
                 "{}",
-                LocalDateTime.of(2026, 5, 26, 12, 0)
+                LocalDateTime.now().minusMinutes(30)
         ));
-        oldRecommendation.rerollWithoutSkip(LocalDateTime.of(2026, 5, 26, 12, 15));
+        oldRecommendation.rerollWithoutSkip(LocalDateTime.now().minusMinutes(20));
         groupRecommendationRepository.save(oldRecommendation);
         GroupRecommendation latestRecommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
                 groupRoom,
                 "{}",
-                LocalDateTime.of(2026, 5, 26, 12, 30)
+                LocalDateTime.now().minusMinutes(10)
         ));
         groupRecommendationRepository.save(new GroupRecommendation(
                 otherGroupRoom,
                 "{}",
-                LocalDateTime.of(2026, 5, 26, 13, 0)
+                LocalDateTime.now()
         ));
 
         mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
@@ -1099,7 +1095,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.content.length()").value(2))
                 .andExpect(jsonPath("$.data.content[0].sessionId").value(latestRecommendation.getId()))
                 .andExpect(jsonPath("$.data.content[0].status").value(GroupRecommendationStatus.PREPARING.name()))
-                .andExpect(jsonPath("$.data.content[0].startedAt").value("2026-05-26T12:30:00"))
+                .andExpect(jsonPath("$.data.content[0].startedAt").isNotEmpty())
                 .andExpect(jsonPath("$.data.content[0].endedAt").value(nullValue()))
                 .andExpect(jsonPath("$.data.content[0].finalCandidate").doesNotExist())
                 .andExpect(jsonPath("$.data.content[0].finalMenuName").doesNotExist())
@@ -1107,7 +1103,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.content[1].sessionId").value(oldRecommendation.getId()))
                 .andExpect(jsonPath("$.data.content[1].status")
                         .value(GroupRecommendationStatus.REROLLED_WITHOUT_SKIP.name()))
-                .andExpect(jsonPath("$.data.content[1].endedAt").value("2026-05-26T12:15:00"))
+                .andExpect(jsonPath("$.data.content[1].endedAt").isNotEmpty())
                 .andExpect(jsonPath("$.data.pageInfo.totalElements").value(2))
                 .andExpect(jsonPath("$.data.pageInfo.totalPages").value(1));
     }
@@ -1733,13 +1729,13 @@ class GroupIntegrationTest {
         GroupRecommendation oldRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
                 groupRoom,
                 "{}",
-                LocalDateTime.of(2026, 5, 26, 12, 0)
+                LocalDateTime.now().minusMinutes(30)
         ));
-        oldRecommendation.rerollWithoutSkip(LocalDateTime.of(2026, 5, 26, 12, 10));
+        oldRecommendation.rerollWithoutSkip(LocalDateTime.now().minusMinutes(20));
         groupRecommendationRepository.save(GroupRecommendation.preparing(
                 groupRoom,
                 "{}",
-                LocalDateTime.of(2026, 5, 26, 12, 30)
+                LocalDateTime.now().minusMinutes(10)
         ));
 
         mockMvc.perform(get("/api/v1/groups")

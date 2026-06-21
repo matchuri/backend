@@ -36,6 +36,7 @@ public enum GroupErrorCode implements ErrorCode {
     RECOMMENDATION_OPEN_EXISTS(HttpStatus.CONFLICT, "이미 열린 그룹 추천이 있습니다. groupId : {0}"),
     RECOMMENDATION_ACTIVE_EXISTS(HttpStatus.CONFLICT, "이미 진행 중인 그룹 추천이 있습니다. groupId : {0}"),
     RECOMMENDATION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 그룹 추천을 찾을 수 없습니다. sessionId : {0}"),
+    RECOMMENDATION_EXPIRED(HttpStatus.CONFLICT, "만료된 그룹 추천입니다. sessionId : {0}"),
     RECOMMENDATION_NOT_OPEN(HttpStatus.CONFLICT, "열린 상태의 그룹 추천이 아닙니다. sessionId : {0}"),
     RECOMMENDATION_NOT_PREPARING(HttpStatus.CONFLICT, "준비 중인 그룹 추천이 아닙니다. sessionId : {0}"),
     RECOMMENDATION_REROLL_DISABLED(HttpStatus.GONE, "그룹 추천 재요청은 현재 MVP에서 지원하지 않습니다."),
