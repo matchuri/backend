@@ -52,4 +52,5 @@ src/main/java/matchuri/backend
 - 기본: `./gradlew test`
 - 커버리지 필요 시: `./gradlew test jacocoTestReport`
 - API 계약 변경 시 OpenAPI metadata, Swagger 산출물, 관련 `docs/api/` 문서를 함께 확인합니다.
+- Swagger/OpenAPI 산출물 전용 테스트는 작성하지 않습니다. API 변경은 service/domain 테스트나 필요한 controller 통합 테스트로 검증합니다.
 - 데이터 모델 변경 시 관련 `docs/data/`와 `docs/generated/db-schema.md`를 함께 확인합니다.
