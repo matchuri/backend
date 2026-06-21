@@ -26,7 +26,8 @@ public interface EmailApi {
                     회원가입, 로그인 ID 찾기, 비밀번호 재설정을 위한 이메일 인증 코드를 발송합니다.
                     
                     - 인증 코드 원문은 응답에 포함하지 않습니다.
-                    - 계정 존재 여부와 무관하게 같은 성공 응답을 반환합니다.
+                    - `SIGNUP` 목적에서 이미 사용 중인 자체 로그인 이메일이면 중복 이메일 오류를 반환합니다.
+                    - `FIND_LOGIN_ID`, `RESET_PASSWORD` 목적에서는 계정 존재 여부와 무관하게 같은 성공 응답을 반환합니다.
                     - `RESET_PASSWORD` 목적에서는 `loginId`가 필요합니다.
                     - 같은 대상에 이미 발급된 미완료 인증 코드는 새 발송 시 만료 처리됩니다.
                     """
@@ -76,6 +77,28 @@ public interface EmailApi {
                                                     "reason": "RESET_PASSWORD 목적에서는 loginId가 필요합니다."
                                                   }
                                                 ]
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "회원가입 목적에서 이미 사용 중인 자체 로그인 이메일",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "duplicateEmail",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 409,
+                                                "code": "MEMBER_DUPLICATE_EMAIL",
+                                                "message": "이미 사용 중인 이메일입니다. email : tester@example.com",
+                                                "details": []
                                               }
                                             }
                                             """

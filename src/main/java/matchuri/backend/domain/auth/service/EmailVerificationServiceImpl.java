@@ -20,6 +20,7 @@ import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenG
 import matchuri.backend.domain.auth.support.verification.VerificationCodeGenerator;
 import matchuri.backend.domain.auth.support.verification.VerificationCodeHasher;
 import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.global.exception.AuthenticationException;
 import matchuri.backend.global.exception.BusinessException;
@@ -50,6 +51,12 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
                 command.loginId(),
                 EmailVerificationStatus.PENDING
         );
+
+        if (isDuplicateSignupEmail(command)) {
+            expirePrevious(pendingVerifications);
+            log.info("Signup email verification rejected by duplicate email: email={}", maskEmail(command.email()));
+            throw new BusinessException(MemberErrorCode.DUPLICATE_EMAIL, command.email());
+        }
 
         if (!shouldSend(command)) {
             expirePrevious(pendingVerifications);
@@ -126,7 +133,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     private boolean shouldSend(SendEmailVerificationCommand command) {
         if (command.purpose() == EmailVerificationPurpose.SIGNUP) {
-            return !memberRepository.existsByEmailAndSocialFalseAndStatus(command.email(), MemberStatus.ACTIVE);
+            return true;
         }
         if (command.purpose() == EmailVerificationPurpose.FIND_LOGIN_ID) {
             return memberRepository.existsByEmailAndSocialFalseAndStatus(command.email(), MemberStatus.ACTIVE);
@@ -139,6 +146,11 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
             );
         }
         return false;
+    }
+
+    private boolean isDuplicateSignupEmail(SendEmailVerificationCommand command) {
+        return command.purpose() == EmailVerificationPurpose.SIGNUP
+                && memberRepository.existsByEmailAndSocialFalseAndStatus(command.email(), MemberStatus.ACTIVE);
     }
 
     private Optional<EmailVerification> findLatestPending(ConfirmEmailVerificationCommand command) {

@@ -114,6 +114,9 @@ class OpenApiDocumentationIntegrationTest {
                         "$.paths['/api/v1/auth/email'].post.responses['200'].content['application/json'].schema.$ref")
                         .value("#/components/schemas/SendEmailVerificationApiResponse"))
                 .andExpect(jsonPath(
+                        "$.paths['/api/v1/auth/email'].post.responses['409'].content['application/json'].examples.duplicateEmail.value.error.code")
+                        .value("MEMBER_DUPLICATE_EMAIL"))
+                .andExpect(jsonPath(
                         "$.paths['/api/v1/auth/email'].post.responses['502'].content['application/json'].examples.sendFailed.value.error.code")
                         .value("AUTH_EMAIL_SEND_FAILED"))
                 .andExpect(jsonPath("$.paths['/api/v1/auth/email/confirm'].post.summary")

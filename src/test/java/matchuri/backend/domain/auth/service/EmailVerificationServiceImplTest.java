@@ -22,6 +22,7 @@ import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenG
 import matchuri.backend.domain.auth.support.verification.VerificationCodeGenerator;
 import matchuri.backend.domain.auth.support.verification.VerificationCodeHasher;
 import matchuri.backend.domain.member.entity.MemberStatus;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.global.exception.AuthenticationException;
 import matchuri.backend.global.exception.BusinessException;
@@ -99,6 +100,40 @@ class EmailVerificationServiceImplTest {
                 EmailVerificationPurpose.SIGNUP,
                 "123456"
         );
+    }
+
+    @Test
+    @DisplayName("회원가입 인증 발송에서 이미 가입된 자체 로그인 이메일이면 중복 이메일 예외를 반환하고 메일을 보내지 않는다")
+    void sendSignupVerificationEmailRejectsDuplicateEmail() {
+        EmailVerification pendingVerification = EmailVerification.issue(
+                "tester@example.com",
+                null,
+                EmailVerificationPurpose.SIGNUP,
+                "hashed-code",
+                LocalDateTime.now().plusMinutes(5),
+                LocalDateTime.now()
+        );
+        when(repository.findAllByTargetAndStatus(
+                "tester@example.com",
+                EmailVerificationPurpose.SIGNUP,
+                null,
+                EmailVerificationStatus.PENDING
+        )).thenReturn(List.of(pendingVerification));
+        when(memberRepository.existsByEmailAndSocialFalseAndStatus("tester@example.com", MemberStatus.ACTIVE))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> service.sendVerificationEmail(new SendEmailVerificationCommand(
+                "tester@example.com",
+                EmailVerificationPurpose.SIGNUP,
+                null
+        )))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.DUPLICATE_EMAIL);
+
+        assertThat(pendingVerification.getStatus()).isEqualTo(EmailVerificationStatus.EXPIRED);
+        verify(repository, never()).save(any());
+        verify(authMailSender, never()).sendVerificationEmail(any(), any(), any());
     }
 
     @Test
