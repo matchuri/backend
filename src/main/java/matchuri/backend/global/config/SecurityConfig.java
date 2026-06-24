@@ -1,5 +1,6 @@
 package matchuri.backend.global.config;
 
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.global.config.MatchuriProperties.Auth;
 import matchuri.backend.global.security.JwtAuthenticationFilter;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -78,6 +80,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(realtimeAsyncRequestMatcher()).permitAll()
                         .requestMatchers(authProps.getPublicApiPatterns().toArray(String[]::new)).permitAll()
                         .requestMatchers(HttpMethod.GET, authProps.getPublicGetApiPatterns().toArray(String[]::new))
                         .permitAll()
@@ -103,6 +106,13 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private RequestMatcher realtimeAsyncRequestMatcher() {
+        return request -> DispatcherType.ASYNC.equals(request.getDispatcherType())
+                && HttpMethod.GET.matches(request.getMethod())
+                && ("/api/v1/realtime/events".equals(request.getRequestURI())
+                || request.getRequestURI().matches("^/api/v1/groups/[^/]+/realtime/events$"));
     }
 
     @Bean
