@@ -12,6 +12,13 @@ public record GroupRecommendationSessionResponse(
         @Schema(description = "그룹 추천 상태입니다.", example = "OPEN")
         GroupRecommendationStatus status,
 
+        @Schema(
+                description = "추천 당시 위치 등 컨텍스트 JSON 문자열입니다. 서버는 파싱하지 않고 저장된 스냅샷을 그대로 반환합니다.",
+                example = "{\"latitude\":37.498095,\"longitude\":127.027610,\"radiusMeters\":1000,\"address\":\"서울 강남구 테헤란로 123\"}",
+                nullable = true
+        )
+        String contextJson,
+
         @Schema(description = "준비 단계 진행률입니다. PREPARING 상태가 아니면 null입니다.", nullable = true)
         GroupRecommendationReadinessProgressResponse readiness,
 
@@ -31,6 +38,7 @@ public record GroupRecommendationSessionResponse(
         return new GroupRecommendationSessionResponse(
                 5001L,
                 GroupRecommendationStatus.OPEN,
+                "{\"latitude\":37.498095,\"longitude\":127.027610,\"radiusMeters\":1000,\"address\":\"서울 강남구 테헤란로 123\"}",
                 null,
                 GroupMocks.candidates(),
                 GroupVoteProgressResponse.mockInProgress(),

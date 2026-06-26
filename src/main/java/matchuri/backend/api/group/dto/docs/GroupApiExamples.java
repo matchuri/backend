@@ -95,6 +95,7 @@ public final class GroupApiExamples {
                 "recentlyRecommendation": {
                   "sessionId": 5001,
                   "status": "PREPARING",
+                  "contextJson": null,
                   "readiness": {
                     "totalMemberCount": 4,
                     "readyMemberCount": 2,
@@ -143,6 +144,7 @@ public final class GroupApiExamples {
                 "recentlyRecommendation": {
                   "sessionId": 5001,
                   "status": "OPEN",
+                  "contextJson": "{\\\"latitude\\\":37.498095,\\\"longitude\\\":127.027610,\\\"radiusMeters\\\":1000,\\\"address\\\":\\\"서울 강남구 테헤란로 123\\\"}",
                   "readiness": null,
                   "candidates": [
                     {
@@ -407,6 +409,7 @@ public final class GroupApiExamples {
               "data": {
                 "sessionId": 5001,
                 "status": "OPEN",
+                "contextJson": "{\\\"latitude\\\":37.498095,\\\"longitude\\\":127.027610,\\\"radiusMeters\\\":1000,\\\"address\\\":\\\"서울 강남구 테헤란로 123\\\"}",
                 "readiness": null,
                 "candidates": [
                   {

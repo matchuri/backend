@@ -924,9 +924,11 @@ class GroupIntegrationTest {
         ));
         MenuItem bibimbap = saveMenu("view-bibimbap", "비빔밥");
         MenuItem gimbap = saveMenu("view-gimbap", "김밥");
+        String contextJson =
+                "{\"latitude\":37.498095,\"longitude\":127.027610,\"radiusMeters\":1000,\"address\":\"서울 강남구 테헤란로 123\"}";
         GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
                 groupRoom,
-                "{}",
+                contextJson,
                 LocalDateTime.now()
         ));
         GroupRecommendationCandidate firstCandidate = groupRecommendationCandidateRepository.save(
@@ -945,6 +947,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
                 .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.contextJson").value(contextJson))
                 .andExpect(jsonPath("$.data.readiness").value(nullValue()))
                 .andExpect(jsonPath("$.data.candidates.length()").value(2))
                 .andExpect(jsonPath("$.data.candidates[0].candidateId").value(firstCandidate.getId()))

@@ -935,6 +935,7 @@ public class GroupServiceImpl implements GroupService {
         return new GroupRecommendationResult(
                 recommendation.getId(),
                 recommendation.getStatus(),
+                responseContextJson(recommendation.getContextJson()),
                 preparing
                         ? readinessProgress(
                                 recommendation.getId(),
@@ -948,6 +949,27 @@ public class GroupServiceImpl implements GroupService {
                 finalCandidate,
                 recommendation.getCreatedAt()
         );
+    }
+
+    private String responseContextJson(String contextJson) {
+        if (contextJson == null || contextJson.isBlank()) {
+            return contextJson;
+        }
+
+        String normalized = contextJson;
+        while (normalized.startsWith("\"") && normalized.endsWith("\"")) {
+            try {
+                JsonNode contextNode = objectMapper.readTree(normalized);
+                if (!contextNode.isTextual()) {
+                    return normalized;
+                }
+                normalized = contextNode.asText();
+            } catch (JsonProcessingException exception) {
+                return contextJson;
+            }
+        }
+
+        return normalized;
     }
 
     private List<GroupRecommendationCandidateResult> toCandidateResults(GroupRecommendation recommendation) {

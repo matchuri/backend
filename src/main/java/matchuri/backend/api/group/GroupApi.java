@@ -468,12 +468,13 @@ public interface GroupApi {
     @Operation(
             summary = "그룹 추천 세션 상세 조회",
             description = """
-                    그룹 추천 상태, 준비 진행률, 후보, 투표 진행률, 최종 후보를 조회합니다.
+                    그룹 추천 상태, 추천 당시 컨텍스트 JSON, 준비 진행률, 후보, 투표 진행률, 최종 후보를 조회합니다.
 
                     구현 기준:
                     - 로그인한 활성 회원만 사용할 수 있습니다.
                     - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
                     - `sessionId`는 API 표현 이름이며 저장 모델은 `group_recommendations.id`로 해석합니다.
+                    - `contextJson`은 추천 당시 위치 등 컨텍스트 스냅샷이며, 파싱하지 않은 JSON 문자열로 반환합니다.
                     - `PREPARING` 세션이면 후보는 빈 배열, 투표 진행률은 null, readiness 진행률은 값으로 반환합니다.
                     - `OPEN` 세션이면 후보별 현재 투표 수와 전체 투표 진행률을 함께 반환하고 readiness는 null입니다.
                     """

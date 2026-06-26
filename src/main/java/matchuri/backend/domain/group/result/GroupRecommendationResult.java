@@ -7,6 +7,7 @@ import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
 public record GroupRecommendationResult(
         Long sessionId,
         GroupRecommendationStatus status,
+        String contextJson,
         GroupRecommendationReadinessProgressResult readiness,
         List<GroupRecommendationCandidateResult> candidates,
         GroupVoteProgressResult voteProgress,

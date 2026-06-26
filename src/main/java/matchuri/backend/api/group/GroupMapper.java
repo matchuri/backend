@@ -260,6 +260,7 @@ public class GroupMapper {
         return new GroupRecommendationSessionResponse(
                 result.sessionId(),
                 result.status(),
+                result.contextJson(),
                 result.readiness() == null
                         ? null
                         : toGroupRecommendationReadinessProgressResponse(result.readiness()),
