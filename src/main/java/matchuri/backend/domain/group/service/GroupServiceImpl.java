@@ -308,7 +308,7 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
 
-        return toGroupRecommendationResult(recommendation);
+        return toGroupRecommendationResult(recommendation, member.getId());
     }
 
     @Override
@@ -870,7 +870,7 @@ public class GroupServiceImpl implements GroupService {
                 .toList();
         GroupRecommendationResult recentlyRecommendation = groupRecommendationRepository
                 .findFirstByRoomIdOrderByStartedAtDescIdDesc(groupId)
-                .map(this::toGroupRecommendationResult)
+                .map(recommendation -> toGroupRecommendationResult(recommendation, member.getId()))
                 .orElse(null);
         GroupLocation location = latestGroupLocation(room.getId());
 
@@ -916,7 +916,10 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
-    private GroupRecommendationResult toGroupRecommendationResult(GroupRecommendation recommendation) {
+    private GroupRecommendationResult toGroupRecommendationResult(
+            GroupRecommendation recommendation,
+            Long currentMemberId
+    ) {
         boolean preparing = recommendation.getStatus() == GroupRecommendationStatus.PREPARING;
         List<GroupRecommendationCandidateResult> candidates = preparing ? List.of() : toCandidateResults(recommendation);
         GroupRecommendationCandidateResult finalCandidate = recommendation.getSelectedCandidate() == null
@@ -946,9 +949,38 @@ public class GroupServiceImpl implements GroupService {
                         : null,
                 candidates,
                 preparing ? null : toVoteProgress(recommendation),
+                preparing ? null : toMyVoteResult(recommendation.getId(), currentMemberId),
+                preparing ? List.of() : toMemberVoteResults(recommendation),
                 finalCandidate,
                 recommendation.getCreatedAt()
         );
+    }
+
+    private GroupMyVoteResult toMyVoteResult(Long recommendationId, Long currentMemberId) {
+        return groupRecommendationVoteRepository
+                .findByGroupRecommendationIdAndMemberId(recommendationId, currentMemberId)
+                .map(vote -> new GroupMyVoteResult(true, vote.getCandidate().getId()))
+                .orElseGet(() -> new GroupMyVoteResult(false, null));
+    }
+
+    private List<GroupMemberVoteResult> toMemberVoteResults(GroupRecommendation recommendation) {
+        Map<Long, GroupRecommendationVote> votesByMemberId = groupRecommendationVoteRepository
+                .findAllByGroupRecommendationId(recommendation.getId())
+                .stream()
+                .collect(Collectors.toMap(
+                        vote -> vote.getMember().getId(),
+                        Function.identity()
+                ));
+
+        return groupRoomMemberRepository.findActiveMembersByRoomId(recommendation.getRoom().getId())
+                .stream()
+                .map(membership -> new GroupMemberVoteResult(
+                        membership.getMember().getId(),
+                        membership.getMember().getNickname(),
+                        membership.getRole(),
+                        votesByMemberId.containsKey(membership.getMember().getId())
+                ))
+                .toList();
     }
 
     private String responseContextJson(String contextJson) {

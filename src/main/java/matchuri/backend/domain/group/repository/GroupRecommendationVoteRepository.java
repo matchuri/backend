@@ -23,5 +23,7 @@ public interface GroupRecommendationVoteRepository extends JpaRepository<GroupRe
 
     boolean existsByGroupRecommendationIdAndMemberId(Long recommendationId, Long memberId);
 
+    List<GroupRecommendationVote> findAllByGroupRecommendationId(Long recommendationId);
+
     Optional<GroupRecommendationVote> findByGroupRecommendationIdAndMemberId(Long recommendationId, Long memberId);
 }

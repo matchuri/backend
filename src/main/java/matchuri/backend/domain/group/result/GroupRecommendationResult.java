@@ -11,6 +11,8 @@ public record GroupRecommendationResult(
         GroupRecommendationReadinessProgressResult readiness,
         List<GroupRecommendationCandidateResult> candidates,
         GroupVoteProgressResult voteProgress,
+        GroupMyVoteResult myVote,
+        List<GroupMemberVoteResult> memberVotes,
         GroupRecommendationCandidateResult finalCandidate,
         LocalDateTime createdAt
 ) {
