@@ -1665,8 +1665,8 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("그룹 상세 조회는 열린 그룹 추천이 있으면 activeRecommendation을 반환한다")
-    void getGroupReturnsActiveRecommendation() throws Exception {
+    @DisplayName("그룹 상세 조회는 열린 그룹 추천이 있으면 recentlyRecommendation을 반환한다")
+    void getGroupReturnsRecentlyOpenRecommendation() throws Exception {
         Member owner = saveMember("group-active-recommendation-owner", "활성추천방장");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "활성 추천 그룹");
         MenuItem menuItem = saveMenu("active-rec-menu", "활성추천메뉴");
@@ -1682,17 +1682,17 @@ class GroupIntegrationTest {
         mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.activeRecommendation.sessionId").value(recommendation.getId()))
-                .andExpect(jsonPath("$.data.activeRecommendation.status").value(GroupRecommendationStatus.OPEN.name()))
-                .andExpect(jsonPath("$.data.activeRecommendation.readiness").value(nullValue()))
-                .andExpect(jsonPath("$.data.activeRecommendation.candidates[0].candidateId").value(candidate.getId()))
-                .andExpect(jsonPath("$.data.activeRecommendation.voteProgress.totalMemberCount").value(1))
-                .andExpect(jsonPath("$.data.activeRecommendation.voteProgress.votedMemberCount").value(0));
+                .andExpect(jsonPath("$.data.recentlyRecommendation.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.status").value(GroupRecommendationStatus.OPEN.name()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.readiness").value(nullValue()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.candidates[0].candidateId").value(candidate.getId()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.voteProgress.totalMemberCount").value(1))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.voteProgress.votedMemberCount").value(0));
     }
 
     @Test
-    @DisplayName("그룹 상세 조회는 준비 중인 그룹 추천도 activeRecommendation으로 반환한다")
-    void getGroupReturnsPreparingActiveRecommendation() throws Exception {
+    @DisplayName("그룹 상세 조회는 준비 중인 그룹 추천도 recentlyRecommendation으로 반환한다")
+    void getGroupReturnsPreparingRecentlyRecommendation() throws Exception {
         Member owner = saveMember("group-preparing-recommendation-owner", "준비추천방장");
         Member member = saveMember("group-preparing-recommendation-member", "준비추천멤버");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "준비 추천 그룹");
@@ -1712,13 +1712,63 @@ class GroupIntegrationTest {
         mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.activeRecommendation.sessionId").value(recommendation.getId()))
-                .andExpect(jsonPath("$.data.activeRecommendation.status")
+                .andExpect(jsonPath("$.data.recentlyRecommendation.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.status")
                         .value(GroupRecommendationStatus.PREPARING.name()))
-                .andExpect(jsonPath("$.data.activeRecommendation.readiness.totalMemberCount").value(2))
-                .andExpect(jsonPath("$.data.activeRecommendation.readiness.readyMemberCount").value(1))
-                .andExpect(jsonPath("$.data.activeRecommendation.candidates.length()").value(0))
-                .andExpect(jsonPath("$.data.activeRecommendation.voteProgress").value(nullValue()));
+                .andExpect(jsonPath("$.data.recentlyRecommendation.readiness.totalMemberCount").value(2))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.readiness.readyMemberCount").value(1))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.candidates.length()").value(0))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.voteProgress").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("그룹 상세 조회는 종료된 최신 그룹 추천 결과도 recentlyRecommendation으로 반환한다")
+    void getGroupReturnsFinalizedRecentlyRecommendation() throws Exception {
+        Member owner = saveMember("group-finalized-recent-owner", "확정최근방장");
+        Member member = saveMember("group-finalized-recent-member", "확정최근멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "확정 최근 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+        MenuItem chicken = saveMenu("recent-final-chicken", "치킨");
+        MenuItem gimbap = saveMenu("recent-final-gimbap", "김밥");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().minusMinutes(10)
+        ));
+        GroupRecommendationCandidate firstCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, chicken, 1, 80.0, "{}")
+        );
+        GroupRecommendationCandidate secondCandidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, gimbap, 2, 70.0, "{}")
+        );
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, firstCandidate, owner));
+        groupRecommendationVoteRepository.save(new GroupRecommendationVote(recommendation, firstCandidate, member));
+        recommendation.finalizeWith(firstCandidate, LocalDateTime.now().minusMinutes(5));
+        groupRecommendationRepository.save(recommendation);
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.recentlyRecommendation.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.status")
+                        .value(GroupRecommendationStatus.FINALIZED.name()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.readiness").value(nullValue()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.candidates.length()").value(2))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.candidates[0].candidateId")
+                        .value(firstCandidate.getId()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.candidates[0].voteCount").value(2))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.candidates[1].candidateId")
+                        .value(secondCandidate.getId()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.voteProgress.totalMemberCount").value(2))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.voteProgress.votedMemberCount").value(2))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.finalCandidate.candidateId")
+                        .value(firstCandidate.getId()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.finalCandidate.menuName").value("치킨"));
     }
 
     @Test
@@ -1844,7 +1894,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.members[1].memberId").value(activeMember.getId()))
                 .andExpect(jsonPath("$.data.members[1].nickname").value("상세멤버"))
                 .andExpect(jsonPath("$.data.members[1].isMe").value(false))
-                .andExpect(jsonPath("$.data.activeRecommendation").value(nullValue()));
+                .andExpect(jsonPath("$.data.recentlyRecommendation").value(nullValue()));
 
         mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(activeMember))))
@@ -1853,7 +1903,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.members[0].isMe").value(false))
                 .andExpect(jsonPath("$.data.members[1].memberId").value(activeMember.getId()))
                 .andExpect(jsonPath("$.data.members[1].isMe").value(true))
-                .andExpect(jsonPath("$.data.activeRecommendation").value(nullValue()));
+                .andExpect(jsonPath("$.data.recentlyRecommendation").value(nullValue()));
     }
 
     @Test

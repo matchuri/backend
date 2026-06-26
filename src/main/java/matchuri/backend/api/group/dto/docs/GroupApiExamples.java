@@ -92,7 +92,7 @@ public final class GroupApiExamples {
                     "isMe": false
                   }
                 ],
-                "activeRecommendation": {
+                "recentlyRecommendation": {
                   "sessionId": 5001,
                   "status": "PREPARING",
                   "readiness": {
@@ -140,7 +140,7 @@ public final class GroupApiExamples {
                     "isMe": false
                   }
                 ],
-                "activeRecommendation": {
+                "recentlyRecommendation": {
                   "sessionId": 5001,
                   "status": "OPEN",
                   "readiness": null,

@@ -33,8 +33,8 @@ public record GroupDetailResponse(
         @Schema(description = "현재 그룹 멤버 목록입니다.")
         List<GroupMemberSummaryResponse> members,
 
-        @Schema(description = "진행 중인 그룹 추천입니다. 없으면 null입니다.")
-        GroupRecommendationSessionResponse activeRecommendation
+        @Schema(description = "가장 최근 그룹 추천입니다. 없으면 null입니다.")
+        GroupRecommendationSessionResponse recentlyRecommendation
 ) {
     public static GroupDetailResponse mockActive() {
         return new GroupDetailResponse(

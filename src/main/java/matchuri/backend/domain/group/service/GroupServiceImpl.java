@@ -868,12 +868,8 @@ public class GroupServiceImpl implements GroupService {
                 .stream()
                 .map(membership -> toMemberSummaryResult(membership, member.getId()))
                 .toList();
-        GroupRecommendationResult activeRecommendation = groupRecommendationRepository
-                .findFirstByRoomIdAndStatusInAndStartedAtAfterOrderByStartedAtDescIdDesc(
-                        groupId,
-                        ACTIVE_RECOMMENDATION_STATUSES,
-                        groupRecommendationExpirationService.activeThreshold(LocalDateTime.now())
-                )
+        GroupRecommendationResult recentlyRecommendation = groupRecommendationRepository
+                .findFirstByRoomIdOrderByStartedAtDescIdDesc(groupId)
                 .map(this::toGroupRecommendationResult)
                 .orElse(null);
         GroupLocation location = latestGroupLocation(room.getId());
@@ -888,7 +884,7 @@ public class GroupServiceImpl implements GroupService {
                 location == null ? null : location.getAddress(),
                 room.getStatus(),
                 members,
-                activeRecommendation
+                recentlyRecommendation
         );
     }
 

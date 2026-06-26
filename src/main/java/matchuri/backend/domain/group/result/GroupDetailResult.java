@@ -14,6 +14,6 @@ public record GroupDetailResult(
         String address,
         GroupRoomStatus status,
         List<GroupMemberSummaryResult> members,
-        GroupRecommendationResult activeRecommendation
+        GroupRecommendationResult recentlyRecommendation
 ) {
 }

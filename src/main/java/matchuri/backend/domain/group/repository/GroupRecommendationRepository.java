@@ -21,11 +21,7 @@ public interface GroupRecommendationRepository extends JpaRepository<GroupRecomm
 
     Optional<GroupRecommendation> findByIdAndRoomId(Long id, Long roomId);
 
-    Optional<GroupRecommendation> findFirstByRoomIdAndStatusInAndStartedAtAfterOrderByStartedAtDescIdDesc(
-            Long roomId,
-            Collection<GroupRecommendationStatus> statuses,
-            LocalDateTime startedAt
-    );
+    Optional<GroupRecommendation> findFirstByRoomIdOrderByStartedAtDescIdDesc(Long roomId);
 
     @Query("""
             select recommendation

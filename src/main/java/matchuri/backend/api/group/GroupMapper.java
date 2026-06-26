@@ -248,9 +248,9 @@ public class GroupMapper {
                 result.members().stream()
                         .map(this::toGroupMemberSummaryResponse)
                         .toList(),
-                result.activeRecommendation() == null
+                result.recentlyRecommendation() == null
                         ? null
-                        : toGroupRecommendationSessionResponse(result.activeRecommendation())
+                        : toGroupRecommendationSessionResponse(result.recentlyRecommendation())
         );
     }
 
