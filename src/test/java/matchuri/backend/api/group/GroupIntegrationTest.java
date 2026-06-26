@@ -960,17 +960,20 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.candidates[1].voteCount").value(0))
                 .andExpect(jsonPath("$.data.voteProgress.totalMemberCount").value(2))
                 .andExpect(jsonPath("$.data.voteProgress.votedMemberCount").value(1))
-                .andExpect(jsonPath("$.data.myVote.voted").value(false))
-                .andExpect(jsonPath("$.data.myVote.candidateId").value(nullValue()))
+                .andExpect(jsonPath("$.data.myVote").doesNotExist())
                 .andExpect(jsonPath("$.data.memberVotes.length()").value(2))
                 .andExpect(jsonPath("$.data.memberVotes[0].memberId").value(owner.getId()))
                 .andExpect(jsonPath("$.data.memberVotes[0].nickname").value("조회방장"))
                 .andExpect(jsonPath("$.data.memberVotes[0].role").value(GroupMemberRole.OWNER.name()))
+                .andExpect(jsonPath("$.data.memberVotes[0].isMe").value(false))
                 .andExpect(jsonPath("$.data.memberVotes[0].voted").value(true))
+                .andExpect(jsonPath("$.data.memberVotes[0].candidateId").value(firstCandidate.getId()))
                 .andExpect(jsonPath("$.data.memberVotes[1].memberId").value(member.getId()))
                 .andExpect(jsonPath("$.data.memberVotes[1].nickname").value("조회멤버"))
                 .andExpect(jsonPath("$.data.memberVotes[1].role").value(GroupMemberRole.MEMBER.name()))
+                .andExpect(jsonPath("$.data.memberVotes[1].isMe").value(true))
                 .andExpect(jsonPath("$.data.memberVotes[1].voted").value(false))
+                .andExpect(jsonPath("$.data.memberVotes[1].candidateId").value(nullValue()))
                 .andExpect(jsonPath("$.data.finalCandidate").value(nullValue()))
                 .andExpect(jsonPath("$.data.createdAt").isNotEmpty());
 
@@ -979,8 +982,9 @@ class GroupIntegrationTest {
                         recommendation.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.myVote.voted").value(true))
-                .andExpect(jsonPath("$.data.myVote.candidateId").value(firstCandidate.getId()));
+                .andExpect(jsonPath("$.data.memberVotes[0].isMe").value(true))
+                .andExpect(jsonPath("$.data.memberVotes[0].voted").value(true))
+                .andExpect(jsonPath("$.data.memberVotes[0].candidateId").value(firstCandidate.getId()));
     }
 
     @Test
@@ -1014,7 +1018,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.readiness.allReady").value(false))
                 .andExpect(jsonPath("$.data.candidates.length()").value(0))
                 .andExpect(jsonPath("$.data.voteProgress").value(nullValue()))
-                .andExpect(jsonPath("$.data.myVote").value(nullValue()))
+                .andExpect(jsonPath("$.data.myVote").doesNotExist())
                 .andExpect(jsonPath("$.data.memberVotes.length()").value(0))
                 .andExpect(jsonPath("$.data.finalCandidate").value(nullValue()));
     }

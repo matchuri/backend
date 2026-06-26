@@ -103,7 +103,6 @@ public final class GroupApiExamples {
                   },
                   "candidates": [],
                   "voteProgress": null,
-                  "myVote": null,
                   "memberVotes": [],
                   "finalCandidate": null,
                   "createdAt": "2026-05-06T12:05:00"
@@ -178,22 +177,22 @@ public final class GroupApiExamples {
                     "totalMemberCount": 4,
                     "votedMemberCount": 3
                   },
-                  "myVote": {
-                    "voted": true,
-                    "candidateId": 8001
-                  },
                   "memberVotes": [
                     {
                       "memberId": 1,
                       "nickname": "점심탐험가",
                       "role": "OWNER",
-                      "voted": true
+                      "isMe": true,
+                      "voted": true,
+                      "candidateId": 8001
                     },
                     {
                       "memberId": 2,
                       "nickname": "든든한한끼",
                       "role": "MEMBER",
-                      "voted": false
+                      "isMe": false,
+                      "voted": false,
+                      "candidateId": null
                     }
                   ],
                   "finalCandidate": null,
@@ -461,22 +460,22 @@ public final class GroupApiExamples {
                   "totalMemberCount": 4,
                   "votedMemberCount": 3
                 },
-                "myVote": {
-                  "voted": true,
-                  "candidateId": 8001
-                },
                 "memberVotes": [
                   {
                     "memberId": 1,
                     "nickname": "점심탐험가",
                     "role": "OWNER",
-                    "voted": true
+                    "isMe": true,
+                    "voted": true,
+                    "candidateId": 8001
                   },
                   {
                     "memberId": 2,
                     "nickname": "든든한한끼",
                     "role": "MEMBER",
-                    "voted": false
+                    "isMe": false,
+                    "voted": false,
+                    "candidateId": null
                   }
                 ],
                 "finalCandidate": null,

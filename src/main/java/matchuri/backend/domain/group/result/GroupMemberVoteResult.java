@@ -6,6 +6,8 @@ public record GroupMemberVoteResult(
         Long memberId,
         String nickname,
         GroupMemberRole role,
-        boolean voted
+        boolean isMe,
+        boolean voted,
+        Long candidateId
 ) {
 }

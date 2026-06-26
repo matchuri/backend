@@ -949,21 +949,16 @@ public class GroupServiceImpl implements GroupService {
                         : null,
                 candidates,
                 preparing ? null : toVoteProgress(recommendation),
-                preparing ? null : toMyVoteResult(recommendation.getId(), currentMemberId),
-                preparing ? List.of() : toMemberVoteResults(recommendation),
+                preparing ? List.of() : toMemberVoteResults(recommendation, currentMemberId),
                 finalCandidate,
                 recommendation.getCreatedAt()
         );
     }
 
-    private GroupMyVoteResult toMyVoteResult(Long recommendationId, Long currentMemberId) {
-        return groupRecommendationVoteRepository
-                .findByGroupRecommendationIdAndMemberId(recommendationId, currentMemberId)
-                .map(vote -> new GroupMyVoteResult(true, vote.getCandidate().getId()))
-                .orElseGet(() -> new GroupMyVoteResult(false, null));
-    }
-
-    private List<GroupMemberVoteResult> toMemberVoteResults(GroupRecommendation recommendation) {
+    private List<GroupMemberVoteResult> toMemberVoteResults(
+            GroupRecommendation recommendation,
+            Long currentMemberId
+    ) {
         Map<Long, GroupRecommendationVote> votesByMemberId = groupRecommendationVoteRepository
                 .findAllByGroupRecommendationId(recommendation.getId())
                 .stream()
@@ -974,12 +969,19 @@ public class GroupServiceImpl implements GroupService {
 
         return groupRoomMemberRepository.findActiveMembersByRoomId(recommendation.getRoom().getId())
                 .stream()
-                .map(membership -> new GroupMemberVoteResult(
-                        membership.getMember().getId(),
-                        membership.getMember().getNickname(),
-                        membership.getRole(),
-                        votesByMemberId.containsKey(membership.getMember().getId())
-                ))
+                .map(membership -> {
+                    Long memberId = membership.getMember().getId();
+                    GroupRecommendationVote vote = votesByMemberId.get(memberId);
+
+                    return new GroupMemberVoteResult(
+                            memberId,
+                            membership.getMember().getNickname(),
+                            membership.getRole(),
+                            memberId.equals(currentMemberId),
+                            vote != null,
+                            vote == null ? null : vote.getCandidate().getId()
+                    );
+                })
                 .toList();
     }
 

@@ -477,8 +477,8 @@ public interface GroupApi {
                     - `contextJson`은 추천 당시 위치 등 컨텍스트 스냅샷이며, 파싱하지 않은 JSON 문자열로 반환합니다.
                     - `PREPARING` 세션이면 후보는 빈 배열, 투표 진행률은 null, readiness 진행률은 값으로 반환합니다.
                     - `OPEN` 세션이면 후보별 현재 투표 수와 전체 투표 진행률을 함께 반환하고 readiness는 null입니다.
-                    - `myVote`는 현재 로그인한 회원의 투표 여부와 선택 후보 ID를 반환합니다.
-                    - `memberVotes`는 현재 활성 그룹원별 투표 여부만 반환하며, 다른 회원이 선택한 후보 ID는 노출하지 않습니다.
+                    - `memberVotes`는 현재 활성 그룹원별 투표 여부, 본인 여부, 선택 후보 ID를 반환합니다.
+                    - `memberVotes.candidateId`는 해당 회원이 투표하지 않았으면 null입니다.
                     """
     )
     @ApiResponses({
