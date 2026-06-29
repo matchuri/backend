@@ -2,14 +2,13 @@ package matchuri.backend.domain.group.repository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import matchuri.backend.domain.group.entity.GroupRecommendation;
 import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface GroupRecommendationRepository extends JpaRepository<GroupRecommendation, Long> {
 
@@ -23,20 +22,12 @@ public interface GroupRecommendationRepository extends JpaRepository<GroupRecomm
 
     Optional<GroupRecommendation> findFirstByRoomIdOrderByStartedAtDescIdDesc(Long roomId);
 
-    @Query("""
-            select recommendation
-            from GroupRecommendation recommendation
-            where recommendation.room.id = :roomId
-              and (
-                    recommendation.status not in :activeStatuses
-                    or recommendation.startedAt > :activeThreshold
-              )
-            order by recommendation.startedAt desc, recommendation.id desc
-            """)
-    Page<GroupRecommendation> findVisibleByRoomIdOrderByStartedAtDescIdDesc(
-            @Param("roomId") Long roomId,
-            @Param("activeStatuses") Collection<GroupRecommendationStatus> activeStatuses,
-            @Param("activeThreshold") LocalDateTime activeThreshold,
-            Pageable pageable
+    Page<GroupRecommendation> findByRoomIdOrderByStartedAtDescIdDesc(Long roomId, Pageable pageable);
+
+    List<GroupRecommendation> findByRoomIdInAndStatusInAndEndedAtIsNullAndStartedAtLessThanEqual(
+            Collection<Long> roomIds,
+            Collection<GroupRecommendationStatus> statuses,
+            LocalDateTime startedAt
     );
+
 }

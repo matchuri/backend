@@ -94,13 +94,13 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         List<PersonalRecommendation> recommendations =
                 personalRecommendationRepository.findByMemberIdOrderByRequestedAtDescIdDesc(member.getId());
-        closeExpiredOrRejectOpenRecommendation(recommendations);
+        expireOrRejectOpenRecommendation(recommendations);
 
         return createPersonalRecommendation(member, contextJson, recommendations);
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = BusinessException.class)
     public PersonalRecommendationResult rerollPersonalRecommendation(
             Long sourcePersonalRecommendationId,
             PersonalRecommendationRerollType rerollType,
@@ -237,11 +237,11 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public PersonalRecommendationResult getPersonalRecommendation(Long personalRecommendationId) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
         PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(personalRecommendationId,
                 member.getId());
+        expirePersonalRecommendationIfNeeded(personalRecommendation, LocalDateTime.now());
         List<PersonalRecommendationCandidate> candidates =
                 personalRecommendationCandidateRepository.findByPersonalRecommendationIdOrderByRankNoAsc(
                         personalRecommendationId);
@@ -250,12 +250,13 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<PersonalRecommendationCandidateResult> getPersonalRecommendationCandidates(
             Long personalRecommendationId
     ) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        getOwnedPersonalRecommendation(personalRecommendationId, member.getId());
+        PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(personalRecommendationId,
+                member.getId());
+        expirePersonalRecommendationIfNeeded(personalRecommendation, LocalDateTime.now());
 
         return personalRecommendationCandidateRepository
                 .findByPersonalRecommendationIdOrderByRankNoAsc(personalRecommendationId)
@@ -268,23 +269,17 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<@NonNull PersonalRecommendationSummaryResult> getMyPersonalRecommendations(int page, int size) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        LocalDateTime activeThreshold = personalRecommendationExpirationService.activeThreshold(LocalDateTime.now());
+        expireOpenPersonalRecommendations(member.getId(), LocalDateTime.now());
 
         return personalRecommendationRepository
-                .findVisibleByMemberIdOrderByRequestedAtDescIdDesc(
-                        member.getId(),
-                        PersonalRecommendationStatus.OPEN,
-                        activeThreshold,
-                        PageRequest.of(page, size)
-                )
+                .findByMemberIdOrderByRequestedAtDescIdDesc(member.getId(), PageRequest.of(page, size))
                 .map(PersonalRecommendationSummaryResult::from);
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = BusinessException.class)
     public SelectPersonalRecommendationResult selectPersonalRecommendationCandidate(
             Long personalRecommendationId,
             Long selectedCandidateId
@@ -319,7 +314,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .orElseThrow(() -> new BusinessException(RecommendationErrorCode.NOT_FOUND, personalRecommendationId));
     }
 
-    private void closeExpiredOrRejectOpenRecommendation(List<PersonalRecommendation> recommendations) {
+    private void expireOrRejectOpenRecommendation(List<PersonalRecommendation> recommendations) {
         LocalDateTime now = LocalDateTime.now();
 
         for (PersonalRecommendation recommendation : recommendations) {
@@ -327,7 +322,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 continue;
             }
 
-            if (personalRecommendationExpirationService.isExpired(recommendation, now)) {
+            if (expirePersonalRecommendationIfNeeded(recommendation, now)) {
                 continue;
             }
 
@@ -338,14 +333,36 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private void validatePersonalRecommendationOpen(PersonalRecommendation recommendation, LocalDateTime now) {
-        if (recommendation.getStatus() == PersonalRecommendationStatus.EXPIRED
-                || personalRecommendationExpirationService.isExpired(recommendation, now)) {
+        if (expirePersonalRecommendationIfNeeded(recommendation, now)) {
             throw new BusinessException(RecommendationErrorCode.EXPIRED, recommendation.getId());
         }
 
         if (!recommendation.isOpen()) {
             throw new BusinessException(RecommendationErrorCode.ALREADY_CLOSED, recommendation.getId());
         }
+    }
+
+    private void expireOpenPersonalRecommendations(Long memberId, LocalDateTime now) {
+        personalRecommendationRepository
+                .findByMemberIdAndStatusAndSelectedCandidateIsNullAndClosedAtIsNullAndRequestedAtLessThanEqual(
+                        memberId,
+                        PersonalRecommendationStatus.OPEN,
+                        personalRecommendationExpirationService.activeThreshold(now)
+                )
+                .forEach(recommendation -> recommendation.expire(now));
+    }
+
+    private boolean expirePersonalRecommendationIfNeeded(PersonalRecommendation recommendation, LocalDateTime now) {
+        if (recommendation.getStatus() == PersonalRecommendationStatus.EXPIRED) {
+            return true;
+        }
+
+        if (!personalRecommendationExpirationService.isExpired(recommendation, now)) {
+            return false;
+        }
+
+        recommendation.expire(now);
+        return true;
     }
 
     private TasteProfileSnapshot toTasteProfileSnapshot(Member member, MemberTasteProfile tasteProfile) {

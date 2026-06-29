@@ -65,6 +65,8 @@ import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
+import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateRepository;
+import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,6 +126,12 @@ class GroupIntegrationTest {
     private GroupRecommendationVoteRepository groupRecommendationVoteRepository;
 
     @Autowired
+    private PersonalRecommendationCandidateRepository personalRecommendationCandidateRepository;
+
+    @Autowired
+    private PersonalRecommendationRepository personalRecommendationRepository;
+
+    @Autowired
     private MenuItemRepository menuItemRepository;
 
     @Autowired
@@ -171,6 +179,8 @@ class GroupIntegrationTest {
         groupLocationRepository.deleteAll();
         groupRoomMemberRepository.deleteAll();
         groupRoomRepository.deleteAll();
+        personalRecommendationCandidateRepository.deleteAll();
+        personalRecommendationRepository.deleteAll();
         memberTasteProfileDislikedMenuItemRepository.deleteAll();
         memberTasteProfileRestrictionIngredientRepository.deleteAll();
         memberTasteProfileCategoryRepository.deleteAll();
@@ -382,8 +392,8 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("그룹 추천 시작은 시간상 만료된 진행 중 추천을 무시하고 새 준비 세션을 생성한다")
-    void createGroupRecommendationIgnoresExpiredActiveRecommendationAndCreatesPreparingSession() throws Exception {
+    @DisplayName("그룹 추천 시작은 시간상 만료된 진행 중 추천을 EXPIRED로 전환하고 새 준비 세션을 생성한다")
+    void createGroupRecommendationExpiresOldActiveRecommendationAndCreatesPreparingSession() throws Exception {
         Member owner = saveMember("expired-active-group-owner", "만료추천방장");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "만료 추천 그룹");
         GroupRecommendation oldRecommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(
@@ -405,14 +415,14 @@ class GroupIntegrationTest {
 
         GroupRecommendation existingRecommendation = groupRecommendationRepository.findById(oldRecommendation.getId())
                 .orElseThrow();
-        assertThat(existingRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.PREPARING);
-        assertThat(existingRecommendation.getEndedAt()).isNull();
+        assertThat(existingRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.EXPIRED);
+        assertThat(existingRecommendation.getEndedAt()).isNotNull();
         assertThat(groupRecommendationRepository.count()).isEqualTo(2);
     }
 
     @Test
-    @DisplayName("그룹 추천 목록은 시간상 만료된 PREPARING/OPEN 추천을 제외한다")
-    void getGroupRecommendationsExcludesExpiredActiveRecommendations() throws Exception {
+    @DisplayName("그룹 추천 목록은 시간상 만료된 PREPARING/OPEN 추천을 EXPIRED로 전환해 반환한다")
+    void getGroupRecommendationsExpiresActiveRecommendations() throws Exception {
         Member owner = saveMember("group-expiration-service-owner", "그룹만료방장");
         GroupRoom groupRoom = saveGroupOwnedBy(owner, "그룹 만료 서비스");
         GroupRecommendation oldPreparing = groupRecommendationRepository.save(GroupRecommendation.preparing(
@@ -441,14 +451,16 @@ class GroupIntegrationTest {
         mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations", groupRoom.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.content.length()").value(2))
+                .andExpect(jsonPath("$.data.content.length()").value(4))
                 .andExpect(jsonPath("$.data.content[0].sessionId").value(recentPreparing.getId()))
-                .andExpect(jsonPath("$.data.content[1].sessionId").value(alreadyClosed.getId()));
+                .andExpect(jsonPath("$.data.content[1].sessionId").value(alreadyClosed.getId()))
+                .andExpect(jsonPath("$.data.content[2].status").value(GroupRecommendationStatus.EXPIRED.name()))
+                .andExpect(jsonPath("$.data.content[3].status").value(GroupRecommendationStatus.EXPIRED.name()));
 
         assertThat(groupRecommendationRepository.findById(oldPreparing.getId()).orElseThrow().getStatus())
-                .isEqualTo(GroupRecommendationStatus.PREPARING);
+                .isEqualTo(GroupRecommendationStatus.EXPIRED);
         assertThat(groupRecommendationRepository.findById(oldOpen.getId()).orElseThrow().getStatus())
-                .isEqualTo(GroupRecommendationStatus.OPEN);
+                .isEqualTo(GroupRecommendationStatus.EXPIRED);
     }
 
     @Test
@@ -1750,6 +1762,30 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("그룹 상세 조회는 시간상 만료된 최신 추천을 EXPIRED로 전환해 recentlyRecommendation으로 반환한다")
+    void getGroupExpiresLatestRecommendationAndReturnsRecentlyRecommendation() throws Exception {
+        Member owner = saveMember("group-expired-recent-owner", "만료최근방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "만료 최근 추천 그룹");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().minusHours(25)
+        ));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.recentlyRecommendation.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.recentlyRecommendation.status")
+                        .value(GroupRecommendationStatus.EXPIRED.name()));
+
+        GroupRecommendation expiredRecommendation = groupRecommendationRepository.findById(recommendation.getId())
+                .orElseThrow();
+        assertThat(expiredRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.EXPIRED);
+        assertThat(expiredRecommendation.getEndedAt()).isNotNull();
+    }
+
+    @Test
     @DisplayName("그룹 상세 조회는 종료된 최신 그룹 추천 결과도 recentlyRecommendation으로 반환한다")
     void getGroupReturnsFinalizedRecentlyRecommendation() throws Exception {
         Member owner = saveMember("group-finalized-recent-owner", "확정최근방장");
@@ -1825,6 +1861,44 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.data.content[0].id").value(groupRoom.getId()))
                 .andExpect(jsonPath("$.data.content[0].latestRecommendationStatus")
                         .value(GroupRecommendationStatus.PREPARING.name()));
+    }
+
+    @Test
+    @DisplayName("내 그룹 목록은 시간상 만료된 최신 추천을 EXPIRED로 전환해 최신 상태로 반환한다")
+    void getMyGroupsExpiresLatestRecommendationAndReturnsExpiredStatus() throws Exception {
+        Member owner = saveMember("group-list-expired-owner", "목록만료방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "목록 만료 추천 그룹");
+        MenuItem menuItem = saveMenu("list-expired-menu", "목록만료메뉴");
+        GroupRecommendation finalizedRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().minusHours(26)
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(finalizedRecommendation, menuItem, 1, 90.0, "{}")
+        );
+        finalizedRecommendation.finalizeWith(candidate, LocalDateTime.now().minusHours(25));
+        GroupRecommendation expiredOpenRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now().minusHours(25)
+        ));
+
+        mockMvc.perform(get("/api/v1/groups")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(groupRoom.getId()))
+                .andExpect(jsonPath("$.data.content[0].latestRecommendationStatus")
+                        .value(GroupRecommendationStatus.EXPIRED.name()));
+
+        GroupRecommendation reloadedRecommendation = groupRecommendationRepository
+                .findById(expiredOpenRecommendation.getId())
+                .orElseThrow();
+        assertThat(reloadedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.EXPIRED);
+        assertThat(reloadedRecommendation.getEndedAt()).isNotNull();
     }
 
     @Test

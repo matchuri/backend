@@ -9,14 +9,14 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 @NullMarked
 public interface PersonalRecommendationRepository extends JpaRepository<PersonalRecommendation, Long> {
     List<PersonalRecommendation> findByMemberId(Long memberId);
 
     List<PersonalRecommendation> findByMemberIdOrderByRequestedAtDescIdDesc(Long memberId);
+
+    Page<PersonalRecommendation> findByMemberIdOrderByRequestedAtDescIdDesc(Long memberId, Pageable pageable);
 
     Optional<PersonalRecommendation> findByIdAndMemberId(Long id, Long memberId);
 
@@ -25,20 +25,9 @@ public interface PersonalRecommendationRepository extends JpaRepository<Personal
             PersonalRecommendationStatus status
     );
 
-    @Query("""
-            select recommendation
-            from PersonalRecommendation recommendation
-            where recommendation.member.id = :memberId
-              and (
-                    recommendation.status <> :openStatus
-                    or recommendation.requestedAt > :activeThreshold
-              )
-            order by recommendation.requestedAt desc, recommendation.id desc
-            """)
-    Page<PersonalRecommendation> findVisibleByMemberIdOrderByRequestedAtDescIdDesc(
-            @Param("memberId") long memberId,
-            @Param("openStatus") PersonalRecommendationStatus openStatus,
-            @Param("activeThreshold") LocalDateTime activeThreshold,
-            Pageable pageable
+    List<PersonalRecommendation> findByMemberIdAndStatusAndSelectedCandidateIsNullAndClosedAtIsNullAndRequestedAtLessThanEqual(
+            long memberId,
+            PersonalRecommendationStatus status,
+            LocalDateTime requestedAt
     );
 }

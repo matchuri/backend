@@ -341,15 +341,15 @@ class PersonalRecommendationIntegrationTest {
                 .orElseThrow();
         PersonalRecommendation newRecommendation = personalRecommendationRepository.findById(secondRequestId)
                 .orElseThrow();
-        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
-        assertThat(oldRecommendation.getClosedAt()).isNull();
+        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.EXPIRED);
+        assertThat(oldRecommendation.getClosedAt()).isNotNull();
         assertThat(newRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
         assertThat(newRecommendation.getClosedAt()).isNull();
     }
 
     @Test
-    @DisplayName("개인 추천 목록은 시간상 만료된 열린 추천을 제외한다")
-    void getMyPersonalRecommendationsExcludesExpiredOpenRecommendation() throws Exception {
+    @DisplayName("개인 추천 목록은 시간상 만료된 열린 추천을 EXPIRED로 전환해 반환한다")
+    void getMyPersonalRecommendationsExpiresOpenRecommendation() throws Exception {
         Member member = saveMember("expiration-list-user", "만료목록");
         String accessToken = accessToken(member);
         AttributeCategory spicy = attributeCategoryRepository.save(
@@ -365,12 +365,43 @@ class PersonalRecommendationIntegrationTest {
         mockMvc.perform(get("/api/v1/personal/recommendations")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.content.length()").value(0));
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(requestId))
+                .andExpect(jsonPath("$.data.content[0].status").value(PersonalRecommendationStatus.EXPIRED.name()))
+                .andExpect(jsonPath("$.data.content[0].closedAt").isNotEmpty());
 
         PersonalRecommendation oldRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
-        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
-        assertThat(oldRecommendation.getClosedAt()).isNull();
+        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.EXPIRED);
+        assertThat(oldRecommendation.getClosedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("개인 추천 상세 조회는 시간상 만료된 열린 추천을 EXPIRED로 전환해 반환한다")
+    void getPersonalRecommendationExpiresOpenRecommendation() throws Exception {
+        Member member = saveMember("expiration-detail-user", "만료상세");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("BIBIMBAP", "비빔밥", "채소와 밥"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode recommendation = createRecommendation(accessToken);
+        long requestId = recommendation.path("requestId").asLong();
+        expireRequestedAt(requestId);
+
+        mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(requestId))
+                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.EXPIRED.name()))
+                .andExpect(jsonPath("$.data.closedAt").isNotEmpty());
+
+        PersonalRecommendation oldRecommendation = personalRecommendationRepository.findById(requestId)
+                .orElseThrow();
+        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.EXPIRED);
+        assertThat(oldRecommendation.getClosedAt()).isNotNull();
     }
 
     @Test
@@ -403,8 +434,8 @@ class PersonalRecommendationIntegrationTest {
         PersonalRecommendation oldRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
         assertThat(oldRecommendation.getSelectedCandidate()).isNull();
-        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
-        assertThat(oldRecommendation.getClosedAt()).isNull();
+        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.EXPIRED);
+        assertThat(oldRecommendation.getClosedAt()).isNotNull();
     }
 
     @Test
@@ -436,8 +467,8 @@ class PersonalRecommendationIntegrationTest {
 
         PersonalRecommendation oldRecommendation = personalRecommendationRepository.findById(requestId)
                 .orElseThrow();
-        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.OPEN);
-        assertThat(oldRecommendation.getClosedAt()).isNull();
+        assertThat(oldRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.EXPIRED);
+        assertThat(oldRecommendation.getClosedAt()).isNotNull();
         assertThat(personalRecommendationRepository.count()).isEqualTo(1);
     }
 
