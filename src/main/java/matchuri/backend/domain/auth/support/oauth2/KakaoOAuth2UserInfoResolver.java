@@ -17,18 +17,11 @@ public class KakaoOAuth2UserInfoResolver implements OAuth2UserInfoResolver {
     @Override
     public OAuth2ProviderUserInfo resolve(OAuth2User oauth2User) {
         Map<?, ?> kakaoAccount = TypeUtils.asMap(oauth2User.getAttribute("kakao_account"));
-        Map<?, ?> properties = TypeUtils.asMap(oauth2User.getAttribute("properties"));
-        Map<?, ?> profile = TypeUtils.asMap(kakaoAccount.get("profile"));
 
         return new OAuth2ProviderUserInfo(
                 SocialProviderType.KAKAO,
                 TypeUtils.stringValue(oauth2User.getAttribute("id")),
-                TypeUtils.stringValue(kakaoAccount.get("email")),
-                TypeUtils.firstPresent(
-                        TypeUtils.stringValue(properties.get("nickname")),
-                        TypeUtils.stringValue(profile.get("nickname")),
-                        TypeUtils.stringValue(kakaoAccount.get("name"))
-                )
+                TypeUtils.stringValue(kakaoAccount.get("email"))
         );
     }
 }

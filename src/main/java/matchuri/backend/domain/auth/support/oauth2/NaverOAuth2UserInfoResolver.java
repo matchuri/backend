@@ -21,8 +21,7 @@ public class NaverOAuth2UserInfoResolver implements OAuth2UserInfoResolver {
         return new OAuth2ProviderUserInfo(
                 SocialProviderType.NAVER,
                 TypeUtils.stringValue(response.get("id")),
-                TypeUtils.stringValue(response.get("email")),
-                TypeUtils.stringValue(response.get("nickname"))
+                TypeUtils.stringValue(response.get("email"))
         );
     }
 }

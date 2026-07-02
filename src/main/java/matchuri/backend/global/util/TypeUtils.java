@@ -24,13 +24,4 @@ public class TypeUtils {
         return stringValue;
     }
 
-    public static String firstPresent(String... values) {
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
-        }
-
-        return null;
-    }
 }

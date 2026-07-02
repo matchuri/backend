@@ -17,8 +17,7 @@ public class GoogleOAuth2UserInfoResolver implements OAuth2UserInfoResolver {
         return new OAuth2ProviderUserInfo(
                 SocialProviderType.GOOGLE,
                 oauth2User.getAttribute("sub"),
-                oauth2User.getAttribute("email"),
-                oauth2User.getAttribute("name")
+                oauth2User.getAttribute("email")
         );
     }
 }

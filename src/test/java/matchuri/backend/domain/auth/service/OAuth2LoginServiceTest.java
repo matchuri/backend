@@ -38,8 +38,7 @@ class OAuth2LoginServiceTest {
                 List.of(),
                 java.util.Map.of(
                         "sub", "google-user-1",
-                        "email", "google@example.com",
-                        "name", "구글사용자"
+                        "email", "google@example.com"
                 ),
                 "sub"
         );

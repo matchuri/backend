@@ -20,8 +20,7 @@ class GoogleOAuth2UserInfoResolverTest {
                 java.util.List.of(),
                 Map.of(
                         "sub", "google-user-1",
-                        "email", "google@example.com",
-                        "name", "구글사용자"
+                        "email", "google@example.com"
                 ),
                 "sub"
         );
@@ -32,6 +31,5 @@ class GoogleOAuth2UserInfoResolverTest {
         assertThat(userInfo.provider()).isEqualTo(SocialProviderType.GOOGLE);
         assertThat(userInfo.providerUserId()).isEqualTo("google-user-1");
         assertThat(userInfo.email()).isEqualTo("google@example.com");
-        assertThat(userInfo.nickname()).isEqualTo("구글사용자");
     }
 }

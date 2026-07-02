@@ -22,8 +22,7 @@ class NaverOAuth2UserInfoResolverTest {
                 Map.of(
                         "response", Map.of(
                                 "id", "naver-user-1",
-                                "email", "naver@example.com",
-                                "nickname", "네이버사용자"
+                                "email", "naver@example.com"
                         )
                 ),
                 "response"
@@ -35,11 +34,10 @@ class NaverOAuth2UserInfoResolverTest {
         assertThat(userInfo.provider()).isEqualTo(SocialProviderType.NAVER);
         assertThat(userInfo.providerUserId()).isEqualTo("naver-user-1");
         assertThat(userInfo.email()).isEqualTo("naver@example.com");
-        assertThat(userInfo.nickname()).isEqualTo("네이버사용자");
     }
 
     @Test
-    @DisplayName("Naver 계정 이메일과 닉네임이 없어도 고유 식별자를 정규화한다")
+    @DisplayName("Naver 계정 이메일이 없어도 고유 식별자를 정규화한다")
     void resolvesNaverUserInfoWithoutOptionalFields() {
         OAuth2User oauth2User = new DefaultOAuth2User(
                 List.of(),
@@ -51,6 +49,5 @@ class NaverOAuth2UserInfoResolverTest {
 
         assertThat(userInfo.providerUserId()).isEqualTo("naver-user-2");
         assertThat(userInfo.email()).isNull();
-        assertThat(userInfo.nickname()).isNull();
     }
 }

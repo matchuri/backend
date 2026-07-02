@@ -21,11 +21,7 @@ class KakaoOAuth2UserInfoResolverTest {
                 List.of(),
                 Map.of(
                         "id", 123456789L,
-                        "properties", Map.of("nickname", "카카오사용자"),
-                        "kakao_account", Map.of(
-                                "email", "kakao@example.com",
-                                "profile", Map.of("nickname", "프로필닉네임")
-                        )
+                        "kakao_account", Map.of("email", "kakao@example.com")
                 ),
                 "id"
         );
@@ -36,19 +32,16 @@ class KakaoOAuth2UserInfoResolverTest {
         assertThat(userInfo.provider()).isEqualTo(SocialProviderType.KAKAO);
         assertThat(userInfo.providerUserId()).isEqualTo("123456789");
         assertThat(userInfo.email()).isEqualTo("kakao@example.com");
-        assertThat(userInfo.nickname()).isEqualTo("카카오사용자");
     }
 
     @Test
-    @DisplayName("Kakao 계정 이메일과 properties 닉네임이 없어도 고유 식별자를 정규화한다")
+    @DisplayName("Kakao 계정 이메일이 없어도 고유 식별자를 정규화한다")
     void resolvesKakaoUserInfoWithoutOptionalFields() {
         OAuth2User oauth2User = new DefaultOAuth2User(
                 List.of(),
                 Map.of(
                         "id", 987654321L,
-                        "kakao_account", Map.of(
-                                "profile", Map.of("nickname", "프로필닉네임")
-                        )
+                        "kakao_account", Map.of()
                 ),
                 "id"
         );
@@ -57,6 +50,5 @@ class KakaoOAuth2UserInfoResolverTest {
 
         assertThat(userInfo.providerUserId()).isEqualTo("987654321");
         assertThat(userInfo.email()).isNull();
-        assertThat(userInfo.nickname()).isEqualTo("프로필닉네임");
     }
 }
