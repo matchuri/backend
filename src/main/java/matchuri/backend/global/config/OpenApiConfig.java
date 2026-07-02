@@ -268,6 +268,9 @@ public class OpenApiConfig {
         metadata.put(
                 key("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize", PathItem.HttpMethod.PATCH),
                 meta("GREC.090.000", "06 Group Recommendation"));
+        metadata.put(
+                key("/api/v1/groups/{groupId}/recommendations/{sessionId}/cancel", PathItem.HttpMethod.PATCH),
+                meta("GREC.100.000", "06 Group Recommendation"));
 
         metadata.put(key("/api/v1/realtime/events", PathItem.HttpMethod.GET), meta("RT.010.000", "07 Realtime"));
         metadata.put(
