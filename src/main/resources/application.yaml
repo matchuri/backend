@@ -116,6 +116,7 @@ matchuri:
       allowed-methods:
         - GET
         - POST
+        - PUT
         - PATCH
         - DELETE
         - OPTIONS

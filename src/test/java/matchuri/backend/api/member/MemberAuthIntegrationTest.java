@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,6 +41,7 @@ import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
+import matchuri.backend.domain.member.repository.MemberLocationRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
@@ -54,6 +56,7 @@ import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +110,9 @@ class MemberAuthIntegrationTest {
     private MemberAgreementRepository memberAgreementRepository;
 
     @Autowired
+    private MemberLocationRepository memberLocationRepository;
+
+    @Autowired
     private AttributeCategoryRepository attributeCategoryRepository;
 
     @Autowired
@@ -123,6 +129,7 @@ class MemberAuthIntegrationTest {
         emailVerificationRepository.deleteAll();
         authExchangeCodeRepository.deleteAll();
         authRefreshTokenRepository.deleteAll();
+        memberLocationRepository.deleteAll();
         memberAgreementRepository.deleteAll();
         memberTasteProfileCategoryRepository.deleteAll();
         memberTasteProfileRestrictionIngredientRepository.deleteAll();
@@ -132,6 +139,11 @@ class MemberAuthIntegrationTest {
         ingredientRepository.deleteAll();
         menuItemRepository.deleteAll();
         memberRepository.deleteAll();
+    }
+
+    @AfterEach
+    void cleanUpMemberLocations() {
+        memberLocationRepository.deleteAll();
     }
 
     @Test
@@ -193,6 +205,82 @@ class MemberAuthIntegrationTest {
                 .andExpect(jsonPath("$.data.nickname").value("점심탐험가"))
                 .andExpect(jsonPath("$.data.isSocial").value(false))
                 .andExpect(jsonPath("$.data.email").value("signup@example.com"));
+    }
+
+    @Test
+    @DisplayName("내 개인 위치 PUT은 생성과 전체 교체를 처리하고 GET은 최신 위치를 반환한다")
+    void putAndGetMyLocation() throws Exception {
+        String accessToken = createFullyOnboardedMember("location-user");
+
+        mockMvc.perform(put("/api/v1/members/me/location")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "latitude": 37.498095,
+                                  "longitude": 127.027610,
+                                  "radiusMeters": 1000,
+                                  "address": " 서울 강남구 테헤란로 123 "
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.latitude").value(37.498095))
+                .andExpect(jsonPath("$.data.address").value("서울 강남구 테헤란로 123"));
+
+        mockMvc.perform(put("/api/v1/members/me/location")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "latitude": 35.1795543,
+                                  "longitude": 129.0756416,
+                                  "radiusMeters": 2000,
+                                  "address": "부산광역시 중구"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.radiusMeters").value(2000));
+
+        mockMvc.perform(get("/api/v1/members/me/location")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.latitude").value(35.1795543))
+                .andExpect(jsonPath("$.data.longitude").value(129.0756416))
+                .andExpect(jsonPath("$.data.radiusMeters").value(2000))
+                .andExpect(jsonPath("$.data.address").value("부산광역시 중구"));
+
+        assertThat(memberLocationRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("저장된 개인 위치가 없으면 GET은 MEMBER_LOCATION_NOT_FOUND를 반환한다")
+    void getMyLocationReturnsNotFoundWhenMissing() throws Exception {
+        String accessToken = createFullyOnboardedMember("missing-location-user");
+
+        mockMvc.perform(get("/api/v1/members/me/location")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("MEMBER_LOCATION_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("개인 위치 PUT은 필수값과 값 범위를 검증한다")
+    void putMyLocationValidatesRequest() throws Exception {
+        String accessToken = createFullyOnboardedMember("invalid-location-user");
+
+        mockMvc.perform(put("/api/v1/members/me/location")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "latitude": 91,
+                                  "longitude": 127.027610,
+                                  "radiusMeters": -1,
+                                  "address": " "
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("COMMON_INVALID_BODY_FIELD"));
     }
 
     @Test
@@ -1228,6 +1316,24 @@ class MemberAuthIntegrationTest {
                                 }
                                 """.formatted(loginId, password)))
                 .andExpect(status().isOk());
+    }
+
+    private String createFullyOnboardedMember(String loginId) throws Exception {
+        createMemberThroughApi(loginId, "P@ssw0rd!");
+        AuthSession authSession = login(loginId, "P@ssw0rd!");
+        String accessToken = submitRequiredAgreements(authSession.accessToken());
+
+        mockMvc.perform(patch("/api/v1/members/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nickname": "%s"
+                                }
+                                """.formatted(loginId)))
+                .andExpect(status().isOk());
+
+        return accessToken;
     }
 
     private String issueSignupEmailVerificationToken(String email) {

@@ -9,11 +9,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenVerifier;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
+import matchuri.backend.domain.member.command.PutMemberLocationCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
 import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
@@ -21,6 +23,7 @@ import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
+import matchuri.backend.domain.member.entity.MemberLocation;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
@@ -29,12 +32,14 @@ import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
+import matchuri.backend.domain.member.repository.MemberLocationRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.MemberLocationResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.MemberTasteUpdateResult;
 import matchuri.backend.domain.member.result.OnboardingNextStep;
@@ -72,6 +77,9 @@ class MemberServiceImplTest {
 
     @Mock
     private MemberAgreementRepository memberAgreementRepository;
+
+    @Mock
+    private MemberLocationRepository memberLocationRepository;
 
     @Mock
     private MemberTasteProfileRepository memberTasteProfileRepository;
@@ -114,6 +122,66 @@ class MemberServiceImplTest {
 
     @InjectMocks
     private MemberServiceImpl memberService;
+
+    @Test
+    @DisplayName("내 개인 위치 최초 PUT은 회원당 위치를 생성한다")
+    void putMyLocationCreatesLocation() {
+        Member member = Member.builder().id(1L).memberRole(MemberRole.MEMBER).status(MemberStatus.ACTIVE).build();
+        PutMemberLocationCommand command = new PutMemberLocationCommand(
+                new BigDecimal("37.4980950"),
+                new BigDecimal("127.0276100"),
+                1000,
+                " 서울 강남구 테헤란로 123 "
+        );
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(memberLocationRepository.findByMemberId(1L)).thenReturn(Optional.empty());
+        when(memberLocationRepository.save(any(MemberLocation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        MemberLocationResult result = memberService.putMyLocation(command);
+
+        assertThat(result.latitude()).isEqualByComparingTo("37.4980950");
+        assertThat(result.longitude()).isEqualByComparingTo("127.0276100");
+        assertThat(result.radiusMeters()).isEqualTo(1000);
+        assertThat(result.address()).isEqualTo("서울 강남구 테헤란로 123");
+        verify(memberLocationRepository).save(any(MemberLocation.class));
+    }
+
+    @Test
+    @DisplayName("내 개인 위치 재 PUT은 기존 위치를 전체 교체한다")
+    void putMyLocationReplacesExistingLocation() {
+        Member member = Member.builder().id(1L).memberRole(MemberRole.MEMBER).status(MemberStatus.ACTIVE).build();
+        MemberLocation location = new MemberLocation(
+                member, new BigDecimal("37.0"), new BigDecimal("127.0"), 500, "기존 주소"
+        );
+        PutMemberLocationCommand command = new PutMemberLocationCommand(
+                new BigDecimal("35.1795543"), new BigDecimal("129.0756416"), 2000, "부산광역시 중구"
+        );
+
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(memberLocationRepository.findByMemberId(1L)).thenReturn(Optional.of(location));
+
+        MemberLocationResult result = memberService.putMyLocation(command);
+
+        assertThat(result.latitude()).isEqualByComparingTo("35.1795543");
+        assertThat(result.longitude()).isEqualByComparingTo("129.0756416");
+        assertThat(result.radiusMeters()).isEqualTo(2000);
+        assertThat(result.address()).isEqualTo("부산광역시 중구");
+    }
+
+    @Test
+    @DisplayName("저장된 개인 위치가 없으면 MEMBER_LOCATION_NOT_FOUND를 반환한다")
+    void getMyLocationRejectsMissingLocation() {
+        Member member = Member.builder().id(1L).memberRole(MemberRole.MEMBER).status(MemberStatus.ACTIVE).build();
+        when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
+        when(memberLocationRepository.findByMemberId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(memberService::getMyLocation)
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.LOCATION_NOT_FOUND);
+    }
 
     @Test
     @DisplayName("자체 회원가입 통합은 회원과 필수 약관을 함께 저장한다")

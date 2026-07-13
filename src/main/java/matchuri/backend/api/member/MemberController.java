@@ -4,11 +4,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.member.dto.request.CreateMemberRequest;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.request.PutMemberLocationRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberBasicInfoRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberPasswordRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
+import matchuri.backend.api.member.dto.response.MemberLocationResponse;
 import matchuri.backend.api.member.dto.response.MemberProfileResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileUpdateResponse;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -90,6 +93,23 @@ public class MemberController implements MemberApi {
         MemberProfileResponse response = memberMapper.toMemberProfileResponse(myProfile);
 
         return ApiResponse.success(response);
+    }
+
+    @Override
+    @GetMapping("/me/location")
+    public ApiResponse<MemberLocationResponse> getMyLocation() {
+        var result = memberService.getMyLocation();
+        return ApiResponse.success(memberMapper.toMemberLocationResponse(result));
+    }
+
+    @Override
+    @PutMapping("/me/location")
+    public ApiResponse<MemberLocationResponse> putMyLocation(
+            @Valid @RequestBody PutMemberLocationRequest request
+    ) {
+        var command = memberMapper.toPutMemberLocationCommand(request);
+        var result = memberService.putMyLocation(command);
+        return ApiResponse.success(memberMapper.toMemberLocationResponse(result));
     }
 
     @Override

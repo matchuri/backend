@@ -142,6 +142,19 @@ CREATE TABLE member_taste_profiles (
     CONSTRAINT uk_member_taste_profiles_member UNIQUE (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE member_locations (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    member_id BIGINT NOT NULL,
+    latitude DECIMAL(10,7) NOT NULL,
+    longitude DECIMAL(10,7) NOT NULL,
+    radius_meters INT NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    CONSTRAINT uk_member_locations_member UNIQUE (member_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE member_taste_profile_categories (
     id BIGINT NOT NULL AUTO_INCREMENT,
     profile_id BIGINT NOT NULL,
@@ -406,6 +419,9 @@ ALTER TABLE member_agreements
 
 ALTER TABLE member_taste_profiles
     ADD CONSTRAINT fk_member_taste_profiles_member FOREIGN KEY (member_id) REFERENCES members (id);
+
+ALTER TABLE member_locations
+    ADD CONSTRAINT fk_member_locations_member FOREIGN KEY (member_id) REFERENCES members (id);
 
 ALTER TABLE member_taste_profile_categories
     ADD CONSTRAINT fk_member_taste_profile_categories_profile FOREIGN KEY (profile_id) REFERENCES member_taste_profiles (id),

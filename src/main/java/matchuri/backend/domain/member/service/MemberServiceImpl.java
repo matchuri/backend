@@ -8,12 +8,14 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenVerifier;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
+import matchuri.backend.domain.member.command.PutMemberLocationCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
 import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
 import matchuri.backend.domain.member.command.UpdateMemberPasswordCommand;
 import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
+import matchuri.backend.domain.member.entity.MemberLocation;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
@@ -21,6 +23,7 @@ import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
+import matchuri.backend.domain.member.repository.MemberLocationRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
@@ -28,6 +31,7 @@ import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.MemberLocationResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.MemberTasteUpdateResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
@@ -58,6 +62,7 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final MemberAgreementRepository memberAgreementRepository;
+    private final MemberLocationRepository memberLocationRepository;
     private final MemberTasteProfileRepository memberTasteProfileRepository;
     private final MemberTasteProfileCategoryRepository memberTasteProfileCategoryRepository;
     private final MemberTasteProfileRestrictionIngredientRepository memberTasteProfileRestrictionIngredientRepository;
@@ -120,6 +125,36 @@ public class MemberServiceImpl implements MemberService {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
 
         return MemberProfileResult.from(member);
+    }
+
+    @Override
+    public MemberLocationResult getMyLocation() {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        MemberLocation location = memberLocationRepository.findByMemberId(member.getId())
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.LOCATION_NOT_FOUND));
+
+        return MemberLocationResult.from(location);
+    }
+
+    @Override
+    @Transactional
+    public MemberLocationResult putMyLocation(PutMemberLocationCommand command) {
+        Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
+        MemberLocation location = memberLocationRepository.findByMemberId(member.getId()).orElse(null);
+
+        if (location == null) {
+            location = memberLocationRepository.save(new MemberLocation(
+                    member,
+                    command.latitude(),
+                    command.longitude(),
+                    command.radiusMeters(),
+                    command.address()
+            ));
+        } else {
+            location.update(command.latitude(), command.longitude(), command.radiusMeters(), command.address());
+        }
+
+        return MemberLocationResult.from(location);
     }
 
     @Override

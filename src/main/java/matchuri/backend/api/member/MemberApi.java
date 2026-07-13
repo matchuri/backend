@@ -12,6 +12,7 @@ import matchuri.backend.api.common.docs.ErrorExamples;
 import matchuri.backend.api.member.dto.docs.CreateMemberApiResponse;
 import matchuri.backend.api.member.dto.docs.LoginIdExistsApiResponse;
 import matchuri.backend.api.member.dto.docs.MemberProfileApiResponse;
+import matchuri.backend.api.member.dto.docs.MemberLocationApiResponse;
 import matchuri.backend.api.member.dto.docs.MemberTasteProfileSummaryApiResponse;
 import matchuri.backend.api.member.dto.docs.MemberTasteProfileUpdateApiResponse;
 import matchuri.backend.api.member.dto.docs.NicknameExistsApiResponse;
@@ -19,12 +20,14 @@ import matchuri.backend.api.member.dto.docs.RegisterLocalMemberApiResponse;
 import matchuri.backend.api.member.dto.docs.UpdateMemberPasswordApiResponse;
 import matchuri.backend.api.member.dto.request.CreateMemberRequest;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.request.PutMemberLocationRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberBasicInfoRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberPasswordRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
 import matchuri.backend.api.member.dto.response.MemberProfileResponse;
+import matchuri.backend.api.member.dto.response.MemberLocationResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteProfileUpdateResponse;
 import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
@@ -452,6 +455,153 @@ public interface MemberApi {
             )
     })
     ApiResponse<MemberProfileResponse> getMyProfile();
+
+    @Operation(
+            summary = "내 개인 위치 조회",
+            description = """
+                    현재 로그인한 회원이 저장한 개인 위치를 조회합니다.
+
+                    - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
+                    - 저장된 위치가 없으면 `MEMBER_LOCATION_NOT_FOUND`를 반환합니다.
+                    - 이 위치를 개인 추천에 자동 적용하는 동작은 현재 범위에 포함되지 않습니다.
+                    """)
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MemberLocationApiResponse.class),
+                            examples = @ExampleObject(name = "success", value = """
+                                    {
+                                      "success": true,
+                                      "data": {
+                                        "latitude": 37.498095,
+                                        "longitude": 127.027610,
+                                        "radiusMeters": 1000,
+                                        "address": "서울 강남구 테헤란로 123"
+                                      },
+                                      "error": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(mediaType = "application/json", examples = {
+                            @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                            @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                            @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                    })
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "필수 온보딩 미완료 또는 비활성 회원",
+                    content = @Content(mediaType = "application/json", examples = {
+                            @ExampleObject(name = "requiredAgreement", value = ErrorExamples.MEMBER_AGREEMENT_REQUIRED),
+                            @ExampleObject(name = "nicknameRequired", value = ErrorExamples.MEMBER_NICKNAME_REQUIRED),
+                            @ExampleObject(name = "inactiveMember", value = ErrorExamples.MEMBER_INACTIVE)
+                    })
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "저장된 개인 위치가 없음",
+                    content = @Content(mediaType = "application/json", examples = @ExampleObject(
+                            name = "locationNotFound",
+                            value = """
+                                    {
+                                      "success": false,
+                                      "data": null,
+                                      "error": {
+                                        "status": 404,
+                                        "code": "MEMBER_LOCATION_NOT_FOUND",
+                                        "message": "저장된 개인 위치를 찾을 수 없습니다.",
+                                        "details": []
+                                      }
+                                    }
+                                    """
+                    ))
+            )
+    })
+    ApiResponse<MemberLocationResponse> getMyLocation();
+
+    @Operation(
+            summary = "내 개인 위치 전체 교체 저장",
+            description = """
+                    현재 로그인한 회원의 개인 위치를 전체 교체 방식으로 저장합니다.
+
+                    - 최초 요청은 위치를 생성하고 이후 요청은 같은 회원의 위치를 교체합니다.
+                    - `latitude`, `longitude`, `radiusMeters`, `address`는 모두 필수입니다.
+                    - `address`의 앞뒤 공백은 제거해 저장합니다.
+                    - 저장과 수정 모두 `200 OK`와 최신 위치를 반환합니다.
+                    """)
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "저장 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MemberLocationApiResponse.class),
+                            examples = @ExampleObject(name = "success", value = """
+                                    {
+                                      "success": true,
+                                      "data": {
+                                        "latitude": 37.498095,
+                                        "longitude": 127.027610,
+                                        "radiusMeters": 1000,
+                                        "address": "서울 강남구 테헤란로 123"
+                                      },
+                                      "error": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "필수값 누락 또는 위치 값 제약 위반",
+                    content = @Content(mediaType = "application/json", examples = @ExampleObject(
+                            name = "invalidBody",
+                            value = """
+                                    {
+                                      "success": false,
+                                      "data": null,
+                                      "error": {
+                                        "status": 400,
+                                        "code": "COMMON_INVALID_BODY_FIELD",
+                                        "message": "요청 본문 필드가 올바르지 않습니다",
+                                        "details": [
+                                          {
+                                            "source": "BODY",
+                                            "field": "latitude",
+                                            "reason": "latitude는 필수입니다."
+                                          }
+                                        ]
+                                      }
+                                    }
+                                    """
+                    ))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(mediaType = "application/json", examples = {
+                            @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                            @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                            @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                    })
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "필수 온보딩 미완료 또는 비활성 회원",
+                    content = @Content(mediaType = "application/json", examples = {
+                            @ExampleObject(name = "requiredAgreement", value = ErrorExamples.MEMBER_AGREEMENT_REQUIRED),
+                            @ExampleObject(name = "nicknameRequired", value = ErrorExamples.MEMBER_NICKNAME_REQUIRED),
+                            @ExampleObject(name = "inactiveMember", value = ErrorExamples.MEMBER_INACTIVE)
+                    })
+            )
+    })
+    ApiResponse<MemberLocationResponse> putMyLocation(PutMemberLocationRequest request);
 
     @Operation(
             summary = "내 취향 프로필 조회",

@@ -4,10 +4,12 @@ import matchuri.backend.api.auth.dto.response.LoginResponse;
 import matchuri.backend.api.auth.dto.response.LogoutResponse;
 import matchuri.backend.api.common.dto.OnboardingStatusResponse;
 import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.request.PutMemberLocationRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberPasswordRequest;
 import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
 import matchuri.backend.api.member.dto.response.CreateMemberResponse;
 import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
+import matchuri.backend.api.member.dto.response.MemberLocationResponse;
 import matchuri.backend.api.member.dto.response.MemberProfileResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteAttributeCategoryResponse;
 import matchuri.backend.api.member.dto.response.MemberTasteDislikedMenuItemResponse;
@@ -24,6 +26,7 @@ import matchuri.backend.domain.auth.command.OAuth2ExchangeCommand;
 import matchuri.backend.domain.auth.result.LoginPayload;
 import matchuri.backend.domain.auth.result.LogoutResult;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
+import matchuri.backend.domain.member.command.PutMemberLocationCommand;
 import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
 import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
 import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
@@ -31,6 +34,7 @@ import matchuri.backend.domain.member.command.UpdateMemberPasswordCommand;
 import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.result.CreateMemberResult;
+import matchuri.backend.domain.member.result.MemberLocationResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
 import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
 import matchuri.backend.domain.member.result.MemberTasteUpdateResult;
@@ -43,6 +47,24 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MemberMapper {
+
+    public PutMemberLocationCommand toPutMemberLocationCommand(PutMemberLocationRequest request) {
+        return new PutMemberLocationCommand(
+                request.latitude(),
+                request.longitude(),
+                request.radiusMeters(),
+                request.address().trim()
+        );
+    }
+
+    public MemberLocationResponse toMemberLocationResponse(MemberLocationResult result) {
+        return new MemberLocationResponse(
+                result.latitude(),
+                result.longitude(),
+                result.radiusMeters(),
+                result.address()
+        );
+    }
 
     public LoginIdExistsResponse toLoginIdExistsResponse(String loginId, boolean exists) {
         return new LoginIdExistsResponse(loginId, exists);
