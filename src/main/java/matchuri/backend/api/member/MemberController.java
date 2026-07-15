@@ -99,7 +99,7 @@ public class MemberController implements MemberApi {
     @GetMapping("/me/location")
     public ApiResponse<MemberLocationResponse> getMyLocation() {
         var result = memberService.getMyLocation();
-        return ApiResponse.success(memberMapper.toMemberLocationResponse(result));
+        return ApiResponse.success(result == null ? null : memberMapper.toMemberLocationResponse(result));
     }
 
     @Override

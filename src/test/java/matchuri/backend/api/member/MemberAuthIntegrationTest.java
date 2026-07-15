@@ -253,14 +253,16 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
-    @DisplayName("저장된 개인 위치가 없으면 GET은 MEMBER_LOCATION_NOT_FOUND를 반환한다")
-    void getMyLocationReturnsNotFoundWhenMissing() throws Exception {
+    @DisplayName("저장된 개인 위치가 없으면 GET은 200과 data null을 반환한다")
+    void getMyLocationReturnsNullDataWhenMissing() throws Exception {
         String accessToken = createFullyOnboardedMember("missing-location-user");
 
         mockMvc.perform(get("/api/v1/members/me/location")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error.code").value("MEMBER_LOCATION_NOT_FOUND"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").value(nullValue()))
+                .andExpect(jsonPath("$.error").value(nullValue()));
     }
 
     @Test

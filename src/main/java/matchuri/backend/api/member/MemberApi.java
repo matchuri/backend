@@ -462,7 +462,7 @@ public interface MemberApi {
                     현재 로그인한 회원이 저장한 개인 위치를 조회합니다.
 
                     - `Authorization: Bearer <accessToken>` 헤더가 필요합니다.
-                    - 저장된 위치가 없으면 `MEMBER_LOCATION_NOT_FOUND`를 반환합니다.
+                    - 저장된 위치가 없으면 `200 OK`와 `data: null`을 반환합니다.
                     - 이 위치를 개인 추천에 자동 적용하는 동작은 현재 범위에 포함되지 않습니다.
                     """)
     @ApiResponses({
@@ -472,18 +472,27 @@ public interface MemberApi {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = MemberLocationApiResponse.class),
-                            examples = @ExampleObject(name = "success", value = """
-                                    {
-                                      "success": true,
-                                      "data": {
-                                        "latitude": 37.498095,
-                                        "longitude": 127.027610,
-                                        "radiusMeters": 1000,
-                                        "address": "서울 강남구 테헤란로 123"
-                                      },
-                                      "error": null
-                                    }
-                                    """)
+                            examples = {
+                                    @ExampleObject(name = "locationExists", value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "latitude": 37.498095,
+                                                "longitude": 127.027610,
+                                                "radiusMeters": 1000,
+                                                "address": "서울 강남구 테헤란로 123"
+                                              },
+                                              "error": null
+                                            }
+                                            """),
+                                    @ExampleObject(name = "locationNotRegistered", value = """
+                                            {
+                                              "success": true,
+                                              "data": null,
+                                              "error": null
+                                            }
+                                            """)
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -503,25 +512,6 @@ public interface MemberApi {
                             @ExampleObject(name = "nicknameRequired", value = ErrorExamples.MEMBER_NICKNAME_REQUIRED),
                             @ExampleObject(name = "inactiveMember", value = ErrorExamples.MEMBER_INACTIVE)
                     })
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "404",
-                    description = "저장된 개인 위치가 없음",
-                    content = @Content(mediaType = "application/json", examples = @ExampleObject(
-                            name = "locationNotFound",
-                            value = """
-                                    {
-                                      "success": false,
-                                      "data": null,
-                                      "error": {
-                                        "status": 404,
-                                        "code": "MEMBER_LOCATION_NOT_FOUND",
-                                        "message": "저장된 개인 위치를 찾을 수 없습니다.",
-                                        "details": []
-                                      }
-                                    }
-                                    """
-                    ))
             )
     })
     ApiResponse<MemberLocationResponse> getMyLocation();

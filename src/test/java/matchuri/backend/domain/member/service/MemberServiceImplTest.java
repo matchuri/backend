@@ -171,16 +171,13 @@ class MemberServiceImplTest {
     }
 
     @Test
-    @DisplayName("저장된 개인 위치가 없으면 MEMBER_LOCATION_NOT_FOUND를 반환한다")
-    void getMyLocationRejectsMissingLocation() {
+    @DisplayName("저장된 개인 위치가 없으면 null을 반환한다")
+    void getMyLocationReturnsNullWhenMissing() {
         Member member = Member.builder().id(1L).memberRole(MemberRole.MEMBER).status(MemberStatus.ACTIVE).build();
         when(activeMemberReader.getCurrentAuthenticatedActiveMember()).thenReturn(member);
         when(memberLocationRepository.findByMemberId(1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(memberService::getMyLocation)
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(MemberErrorCode.LOCATION_NOT_FOUND);
+        assertThat(memberService.getMyLocation()).isNull();
     }
 
     @Test

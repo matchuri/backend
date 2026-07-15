@@ -27,7 +27,6 @@ public enum MemberErrorCode implements ErrorCode {
             "유효하지 않거나 비활성화된 restriction ingredient ID가 포함되어 있습니다. restrictionIngredientIds : {0}"),
     INVALID_TASTE_DISLIKED_MENU_ITEM(HttpStatus.BAD_REQUEST,
             "유효하지 않거나 비활성화된 disliked menu item ID가 포함되어 있습니다. dislikedMenuItemIds : {0}"),
-    LOCATION_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 개인 위치를 찾을 수 없습니다."),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다."),
     NICKNAME_REQUIRED(HttpStatus.FORBIDDEN, "닉네임 설정이 필요합니다."),
     INACTIVE_MEMBER(HttpStatus.FORBIDDEN, "비활성화된 회원입니다. memberId : {0}");

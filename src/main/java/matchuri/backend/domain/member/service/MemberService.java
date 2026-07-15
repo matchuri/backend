@@ -15,6 +15,7 @@ import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberPasswordResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
+import org.jspecify.annotations.Nullable;
 
 public interface MemberService {
 
@@ -28,7 +29,7 @@ public interface MemberService {
 
     MemberProfileResult getMyProfile();
 
-    MemberLocationResult getMyLocation();
+    @Nullable MemberLocationResult getMyLocation();
 
     MemberLocationResult putMyLocation(PutMemberLocationCommand command);
 

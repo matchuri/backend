@@ -50,6 +50,7 @@ import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
 import matchuri.backend.global.exception.BusinessException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -128,12 +129,11 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public MemberLocationResult getMyLocation() {
+    public @Nullable MemberLocationResult getMyLocation() {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        MemberLocation location = memberLocationRepository.findByMemberId(member.getId())
-                .orElseThrow(() -> new BusinessException(MemberErrorCode.LOCATION_NOT_FOUND));
+        MemberLocation location = memberLocationRepository.findByMemberId(member.getId()).orElse(null);
 
-        return MemberLocationResult.from(location);
+        return location == null ? null : MemberLocationResult.from(location);
     }
 
     @Override
