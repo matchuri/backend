@@ -16,7 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
-import matchuri.backend.domain.auth.service.CaptchaService;
+import matchuri.backend.domain.auth.service.CaptchaPurpose;
+import matchuri.backend.domain.auth.service.CaptchaVerifier;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
@@ -63,11 +64,11 @@ class MemberAgreementIntegrationTest {
     private AuthExchangeCodeRepository authExchangeCodeRepository;
 
     @MockitoBean
-    private CaptchaService captchaService;
+    private CaptchaVerifier captchaVerifier;
 
     @BeforeEach
     void setUp() {
-        given(captchaService.verifyToken(anyString(), eq("login"), anyString())).willReturn(true);
+        given(captchaVerifier.verify(anyString(), eq(CaptchaPurpose.LOGIN), anyString())).willReturn(true);
         authExchangeCodeRepository.deleteAll();
         authRefreshTokenRepository.deleteAll();
         memberAgreementRepository.deleteAll();
@@ -294,7 +295,7 @@ class MemberAgreementIntegrationTest {
                                 {
                                   "loginId": "%s",
                                   "password": "%s",
-                                  "recaptchaToken": "test-recaptcha-token"
+                                  "captchaToken": "test-captcha-token"
                                 }
                                 """.formatted(loginId, password)))
                 .andExpect(status().isOk())

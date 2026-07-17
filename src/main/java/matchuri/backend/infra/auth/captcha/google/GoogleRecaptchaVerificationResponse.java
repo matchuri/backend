@@ -1,9 +1,9 @@
-package matchuri.backend.infra.auth.recaptcha;
+package matchuri.backend.infra.auth.captcha.google;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-record ReCaptchaVerificationResponse(
+record GoogleRecaptchaVerificationResponse(
         boolean success,
         Double score,
         String action,

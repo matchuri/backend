@@ -1,4 +1,4 @@
-package matchuri.backend.infra.auth.recaptcha;
+package matchuri.backend.infra.auth.captcha.google;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -12,7 +12,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import java.io.IOException;
 import matchuri.backend.domain.auth.exception.AuthErrorCode;
-import matchuri.backend.global.config.ReCaptchaConfig;
+import matchuri.backend.domain.auth.service.CaptchaPurpose;
 import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,25 +22,25 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
-class GoogleCaptchaServiceTest {
+class GoogleRecaptchaVerifierTest {
 
     private static final String VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
     private MockRestServiceServer server;
-    private GoogleCaptchaService captchaService;
+    private GoogleRecaptchaVerifier captchaVerifier;
 
     @BeforeEach
     void setUp() {
-        ReCaptchaConfig config = new ReCaptchaConfig();
-        config.setSecretKey("test-secret");
-        config.setVerifyUrl(VERIFY_URL);
-        config.setScoreThreshold(0.5);
-        config.setConnectTimeoutMillis(1000);
-        config.setReadTimeoutMillis(1000);
+        GoogleRecaptchaProperties properties = new GoogleRecaptchaProperties();
+        properties.setSecretKey("test-secret");
+        properties.setVerifyUrl(VERIFY_URL);
+        properties.setScoreThreshold(0.5);
+        properties.setConnectTimeoutMillis(1000);
+        properties.setReadTimeoutMillis(1000);
 
         RestClient.Builder builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
-        captchaService = new GoogleCaptchaService(config, builder.build());
+        captchaVerifier = new GoogleRecaptchaVerifier(properties, builder.build());
     }
 
     @Test
@@ -63,7 +63,7 @@ class GoogleCaptchaServiceTest {
                         }
                         """, MediaType.APPLICATION_JSON));
 
-        boolean verified = captchaService.verifyToken("test-token", "login", "127.0.0.1");
+        boolean verified = captchaVerifier.verify("test-token", CaptchaPurpose.LOGIN, "127.0.0.1");
 
         assertThat(verified).isTrue();
         server.verify();
@@ -74,7 +74,7 @@ class GoogleCaptchaServiceTest {
     void rejectsUnexpectedAction() {
         respondWithVerification(0.9, "signup");
 
-        assertThat(captchaService.verifyToken("test-token", "login", "127.0.0.1")).isFalse();
+        assertThat(captchaVerifier.verify("test-token", CaptchaPurpose.LOGIN, "127.0.0.1")).isFalse();
     }
 
     @Test
@@ -82,7 +82,7 @@ class GoogleCaptchaServiceTest {
     void rejectsLowScore() {
         respondWithVerification(0.49, "login");
 
-        assertThat(captchaService.verifyToken("test-token", "login", "127.0.0.1")).isFalse();
+        assertThat(captchaVerifier.verify("test-token", CaptchaPurpose.LOGIN, "127.0.0.1")).isFalse();
     }
 
     @Test
@@ -96,7 +96,7 @@ class GoogleCaptchaServiceTest {
                         }
                         """, MediaType.APPLICATION_JSON));
 
-        assertThat(captchaService.verifyToken("test-token", "login", "127.0.0.1")).isFalse();
+        assertThat(captchaVerifier.verify("test-token", CaptchaPurpose.LOGIN, "127.0.0.1")).isFalse();
     }
 
     @Test
@@ -134,7 +134,7 @@ class GoogleCaptchaServiceTest {
     }
 
     private void assertServiceUnavailable() {
-        assertThatThrownBy(() -> captchaService.verifyToken("test-token", "login", "127.0.0.1"))
+        assertThatThrownBy(() -> captchaVerifier.verify("test-token", CaptchaPurpose.LOGIN, "127.0.0.1"))
                 .isInstanceOfSatisfying(BusinessException.class, exception ->
                         assertThat(exception.getErrorCode()).isEqualTo(AuthErrorCode.CAPTCHA_SERVICE_UNAVAILABLE));
     }

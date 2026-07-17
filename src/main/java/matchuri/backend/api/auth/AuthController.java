@@ -40,7 +40,7 @@ public class AuthController implements AuthApi {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse
     ) {
-        var command = memberMapper.toLoginCommand(request.loginId(), request.password(), request.recaptchaToken());
+        var command = memberMapper.toLoginCommand(request.loginId(), request.password(), request.captchaToken());
         var result = authService.login(command, resolveClientIp(httpRequest));
         LoginResponse response = memberMapper.toLoginResponse(result.payload());
 

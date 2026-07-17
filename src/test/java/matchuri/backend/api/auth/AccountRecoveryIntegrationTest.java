@@ -17,7 +17,8 @@ import matchuri.backend.domain.auth.entity.EmailVerification;
 import matchuri.backend.domain.auth.entity.EmailVerificationPurpose;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
-import matchuri.backend.domain.auth.service.CaptchaService;
+import matchuri.backend.domain.auth.service.CaptchaPurpose;
+import matchuri.backend.domain.auth.service.CaptchaVerifier;
 import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenGenerator;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberRole;
@@ -60,11 +61,11 @@ class AccountRecoveryIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @MockitoBean
-    private CaptchaService captchaService;
+    private CaptchaVerifier captchaVerifier;
 
     @BeforeEach
     void setUp() {
-        given(captchaService.verifyToken(anyString(), eq("login"), anyString())).willReturn(true);
+        given(captchaVerifier.verify(anyString(), eq(CaptchaPurpose.LOGIN), anyString())).willReturn(true);
         authRefreshTokenRepository.deleteAll();
         emailVerificationRepository.deleteAll();
         memberRepository.deleteAll();
@@ -213,7 +214,7 @@ class AccountRecoveryIntegrationTest {
                                 {
                                   "loginId": "tester01",
                                   "password": "OldP@ssw0rd!",
-                                  "recaptchaToken": "test-recaptcha-token"
+                                  "captchaToken": "test-captcha-token"
                                 }
                                 """))
                 .andExpect(status().isUnauthorized())
@@ -225,7 +226,7 @@ class AccountRecoveryIntegrationTest {
                                 {
                                   "loginId": "tester01",
                                   "password": "N3wP@ssw0rd!",
-                                  "recaptchaToken": "test-recaptcha-token"
+                                  "captchaToken": "test-captcha-token"
                                 }
                                 """))
                 .andExpect(status().isOk())

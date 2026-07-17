@@ -108,8 +108,8 @@ public class MemberMapper {
         );
     }
 
-    public LoginCommand toLoginCommand(String loginId, String password, String recaptchaToken) {
-        return new LoginCommand(loginId, password, recaptchaToken);
+    public LoginCommand toLoginCommand(String loginId, String password, String captchaToken) {
+        return new LoginCommand(loginId, password, captchaToken);
     }
 
     public OAuth2ExchangeCommand toOAuth2ExchangeCommand(SocialProviderType provider, String code) {

@@ -33,7 +33,8 @@ import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
 import matchuri.backend.domain.auth.exception.AuthErrorCode;
-import matchuri.backend.domain.auth.service.CaptchaService;
+import matchuri.backend.domain.auth.service.CaptchaPurpose;
+import matchuri.backend.domain.auth.service.CaptchaVerifier;
 import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenGenerator;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
@@ -132,11 +133,11 @@ class MemberAuthIntegrationTest {
     private MatchuriProperties matchuriProperties;
 
     @MockitoBean
-    private CaptchaService captchaService;
+    private CaptchaVerifier captchaVerifier;
 
     @BeforeEach
     void setUp() {
-        given(captchaService.verifyToken(anyString(), eq("login"), anyString())).willReturn(true);
+        given(captchaVerifier.verify(anyString(), eq(CaptchaPurpose.LOGIN), anyString())).willReturn(true);
         emailVerificationRepository.deleteAll();
         authExchangeCodeRepository.deleteAll();
         authRefreshTokenRepository.deleteAll();
@@ -153,7 +154,7 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
-    @DisplayName("로컬 로그인은 reCAPTCHA 토큰이 누락되면 요청 검증에서 거절한다")
+    @DisplayName("로컬 로그인은 CAPTCHA 토큰이 누락되면 요청 검증에서 거절한다")
     void loginRejectsMissingCaptchaToken() throws Exception {
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -165,13 +166,13 @@ class MemberAuthIntegrationTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("COMMON_INVALID_BODY_FIELD"))
-                .andExpect(jsonPath("$.error.details[0].field").value("recaptchaToken"));
+                .andExpect(jsonPath("$.error.details[0].field").value("captchaToken"));
     }
 
     @Test
-    @DisplayName("로컬 로그인은 reCAPTCHA 검증 거절을 400으로 반환한다")
+    @DisplayName("로컬 로그인은 CAPTCHA 검증 거절을 400으로 반환한다")
     void loginRejectsInvalidCaptchaToken() throws Exception {
-        given(captchaService.verifyToken("rejected-captcha-token", "login", "127.0.0.1"))
+        given(captchaVerifier.verify("rejected-captcha-token", CaptchaPurpose.LOGIN, "127.0.0.1"))
                 .willReturn(false);
 
         mockMvc.perform(post("/api/v1/auth/login")
@@ -180,7 +181,7 @@ class MemberAuthIntegrationTest {
                                 {
                                   "loginId": "captcha-user",
                                   "password": "P@ssw0rd!",
-                                  "recaptchaToken": "rejected-captcha-token"
+                                  "captchaToken": "rejected-captcha-token"
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
@@ -188,9 +189,9 @@ class MemberAuthIntegrationTest {
     }
 
     @Test
-    @DisplayName("로컬 로그인은 reCAPTCHA 서비스 장애를 503으로 반환한다")
+    @DisplayName("로컬 로그인은 CAPTCHA 서비스 장애를 503으로 반환한다")
     void loginReturnsServiceUnavailableWhenCaptchaProviderFails() throws Exception {
-        given(captchaService.verifyToken("unavailable-captcha-token", "login", "127.0.0.1"))
+        given(captchaVerifier.verify("unavailable-captcha-token", CaptchaPurpose.LOGIN, "127.0.0.1"))
                 .willThrow(new BusinessException(AuthErrorCode.CAPTCHA_SERVICE_UNAVAILABLE));
 
         mockMvc.perform(post("/api/v1/auth/login")
@@ -199,7 +200,7 @@ class MemberAuthIntegrationTest {
                                 {
                                   "loginId": "captcha-user",
                                   "password": "P@ssw0rd!",
-                                  "recaptchaToken": "unavailable-captcha-token"
+                                  "captchaToken": "unavailable-captcha-token"
                                 }
                                 """))
                 .andExpect(status().isServiceUnavailable())
@@ -551,7 +552,7 @@ class MemberAuthIntegrationTest {
                                 {
                                   "loginId": "password-user",
                                   "password": "P@ssw0rd!",
-                                  "recaptchaToken": "test-recaptcha-token"
+                                  "captchaToken": "test-captcha-token"
                                 }
                                 """))
                 .andExpect(status().isUnauthorized())
@@ -563,7 +564,7 @@ class MemberAuthIntegrationTest {
                                 {
                                   "loginId": "password-user",
                                   "password": "N3wP@ssw0rd!",
-                                  "recaptchaToken": "test-recaptcha-token"
+                                  "captchaToken": "test-captcha-token"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -595,7 +596,7 @@ class MemberAuthIntegrationTest {
                                 {
                                   "loginId": "password-fail-user",
                                   "password": "P@ssw0rd!",
-                                  "recaptchaToken": "test-recaptcha-token"
+                                  "captchaToken": "test-captcha-token"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -1358,7 +1359,7 @@ class MemberAuthIntegrationTest {
                                 {
                                   "loginId": "withdrawn-user",
                                   "password": "P@ssw0rd!",
-                                  "recaptchaToken": "test-recaptcha-token"
+                                  "captchaToken": "test-captcha-token"
                                 }
                                 """))
                 .andExpect(status().isForbidden())
@@ -1433,7 +1434,7 @@ class MemberAuthIntegrationTest {
                                 {
                                   "loginId": "%s",
                                   "password": "%s",
-                                  "recaptchaToken": "test-recaptcha-token"
+                                  "captchaToken": "test-captcha-token"
                                 }
                                 """.formatted(loginId, password)))
                 .andExpect(status().isOk())

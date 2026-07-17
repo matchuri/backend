@@ -1,12 +1,13 @@
-package matchuri.backend.infra.auth.recaptcha;
+package matchuri.backend.infra.auth.captcha.google;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import matchuri.backend.domain.auth.exception.AuthErrorCode;
-import matchuri.backend.domain.auth.service.CaptchaService;
-import matchuri.backend.global.config.ReCaptchaConfig;
+import matchuri.backend.domain.auth.service.CaptchaPurpose;
+import matchuri.backend.domain.auth.service.CaptchaVerifier;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -17,35 +18,36 @@ import org.springframework.web.client.RestClientException;
 
 @Slf4j
 @Service
-public class GoogleCaptchaService implements CaptchaService {
+@ConditionalOnProperty(prefix = "captcha", name = "provider", havingValue = "google", matchIfMissing = true)
+public class GoogleRecaptchaVerifier implements CaptchaVerifier {
 
-    private final ReCaptchaConfig config;
+    private final GoogleRecaptchaProperties properties;
     private final RestClient restClient;
 
-    public GoogleCaptchaService(
-            ReCaptchaConfig config,
-            @Qualifier("recaptchaRestClient") RestClient restClient
+    public GoogleRecaptchaVerifier(
+            GoogleRecaptchaProperties properties,
+            @Qualifier("googleCaptchaRestClient") RestClient restClient
     ) {
-        this.config = config;
+        this.properties = properties;
         this.restClient = restClient;
     }
 
     @Override
-    public boolean verifyToken(String token, String expectedAction, String clientIp) {
+    public boolean verify(String token, CaptchaPurpose purpose, String clientIp) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("secret", config.getSecretKey());
+        form.add("secret", properties.getSecretKey());
         form.add("response", token);
         if (StringUtils.hasText(clientIp)) {
             form.add("remoteip", clientIp);
         }
 
         try {
-            ReCaptchaVerificationResponse response = restClient.post()
-                    .uri(config.getVerifyUrl())
+            GoogleRecaptchaVerificationResponse response = restClient.post()
+                    .uri(properties.getVerifyUrl())
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(form)
                     .retrieve()
-                    .body(ReCaptchaVerificationResponse.class);
+                    .body(GoogleRecaptchaVerificationResponse.class);
 
             if (response == null) {
                 throw new BusinessException(AuthErrorCode.CAPTCHA_SERVICE_UNAVAILABLE);
@@ -61,12 +63,18 @@ public class GoogleCaptchaService implements CaptchaService {
                 return false;
             }
 
-            return expectedAction.equals(response.action())
+            return actionFor(purpose).equals(response.action())
                     && response.score() != null
-                    && response.score() >= config.getScoreThreshold();
+                    && response.score() >= properties.getScoreThreshold();
         } catch (RestClientException exception) {
             log.warn("auth event=captcha_provider_unavailable provider=google", exception);
             throw new BusinessException(AuthErrorCode.CAPTCHA_SERVICE_UNAVAILABLE);
         }
+    }
+
+    private String actionFor(CaptchaPurpose purpose) {
+        return switch (purpose) {
+            case LOGIN -> "login";
+        };
     }
 }

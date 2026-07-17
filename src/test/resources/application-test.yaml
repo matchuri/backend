@@ -61,12 +61,14 @@ logging:
     root: WARN
     matchuri.backend: INFO
 
-recaptcha:
-  secret-key: test-recaptcha-secret-key
-  verify-url: https://www.google.com/recaptcha/api/siteverify
-  score-threshold: 0.5
-  connect-timeout-millis: 1000
-  read-timeout-millis: 1000
+captcha:
+  provider: google
+  google:
+    secret-key: test-recaptcha-secret-key
+    verify-url: https://www.google.com/recaptcha/api/siteverify
+    score-threshold: 0.5
+    connect-timeout-millis: 1000
+    read-timeout-millis: 1000
 
 matchuri:
   auth:

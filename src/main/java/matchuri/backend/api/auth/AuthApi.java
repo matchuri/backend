@@ -25,10 +25,10 @@ public interface AuthApi {
     @Operation(
             summary = "로컬 로그인",
             description = """
-                    `loginId + password + recaptchaToken`으로 로그인합니다.
+                    `loginId + password + captchaToken`으로 로그인합니다.
                     
-                    - `recaptchaToken`은 로그인 버튼을 누른 직후 `login` action으로 발급한 reCAPTCHA v3 토큰이어야 합니다.
-                    - 서버는 자격 증명을 확인하기 전에 토큰의 유효성, action, score를 검증합니다.
+                    - `captchaToken`은 로그인 버튼을 누른 직후 현재 CAPTCHA 공급자로부터 발급한 일회성 토큰이어야 합니다.
+                    - 서버는 자격 증명을 확인하기 전에 선택된 공급자 정책으로 토큰과 로그인 목적을 검증합니다.
                     - 응답 body에는 `accessToken`과 회원 요약 정보가 포함됩니다.
                     - `refreshToken`은 응답 body가 아니라 `HttpOnly` 쿠키로 내려갑니다.
                     - 프론트는 이후 보호 API 호출 시 `Authorization: Bearer <accessToken>` 헤더를 사용합니다.
@@ -71,7 +71,7 @@ public interface AuthApi {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "reCAPTCHA 검증 실패 또는 요청 필드 오류",
+                    description = "CAPTCHA 검증 실패 또는 요청 필드 오류",
                     content = @Content(
                             mediaType = "application/json",
                             examples = {
@@ -103,8 +103,8 @@ public interface AuthApi {
                                                         "details": [
                                                           {
                                                             "source": "BODY",
-                                                            "field": "recaptchaToken",
-                                                            "reason": "recaptchaToken은 비어 있을 수 없습니다."
+                                                            "field": "captchaToken",
+                                                            "reason": "captchaToken은 비어 있을 수 없습니다."
                                                           }
                                                         ]
                                                       }
@@ -138,7 +138,7 @@ public interface AuthApi {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "503",
-                    description = "reCAPTCHA 검증 서비스 통신 장애",
+                    description = "CAPTCHA 검증 서비스 통신 장애",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(
