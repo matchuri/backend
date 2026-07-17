@@ -82,18 +82,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(realtimeAsyncRequestMatcher()).permitAll()
                         .requestMatchers(authProps.getPublicApiPatterns().toArray(String[]::new)).permitAll()
-                        .requestMatchers(HttpMethod.GET, authProps.getPublicGetApiPatterns().toArray(String[]::new))
-                        .permitAll()
-                        .requestMatchers(HttpMethod.POST, authProps.getPublicPostApiPatterns().toArray(String[]::new))
-                        .permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS,
-                                authProps.getPublicOptionsApiPatterns().toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.GET, authProps.getPublicGetApiPatterns().toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.POST, authProps.getPublicPostApiPatterns().toArray(String[]::new)).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, authProps.getPublicOptionsApiPatterns().toArray(String[]::new)).permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(authorization -> authorization
-                                .authorizationRequestRepository(authorizationRequestRepository))
+                        .authorizationEndpoint(authorization -> authorization.authorizationRequestRepository(authorizationRequestRepository))
                         .successHandler(oauth2AuthenticationSuccessHandler)
                         .failureHandler(oauth2AuthenticationFailureHandler)
                 )

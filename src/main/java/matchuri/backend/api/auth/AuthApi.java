@@ -25,8 +25,10 @@ public interface AuthApi {
     @Operation(
             summary = "로컬 로그인",
             description = """
-                    `loginId + password`로 로그인합니다.
+                    `loginId + password + recaptchaToken`으로 로그인합니다.
                     
+                    - `recaptchaToken`은 로그인 버튼을 누른 직후 `login` action으로 발급한 reCAPTCHA v3 토큰이어야 합니다.
+                    - 서버는 자격 증명을 확인하기 전에 토큰의 유효성, action, score를 검증합니다.
                     - 응답 body에는 `accessToken`과 회원 요약 정보가 포함됩니다.
                     - `refreshToken`은 응답 body가 아니라 `HttpOnly` 쿠키로 내려갑니다.
                     - 프론트는 이후 보호 API 호출 시 `Authorization: Bearer <accessToken>` 헤더를 사용합니다.
@@ -68,6 +70,51 @@ public interface AuthApi {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "reCAPTCHA 검증 실패 또는 요청 필드 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "captchaVerificationFailed",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "AUTH_CAPTCHA_VERIFICATION_FAILED",
+                                                        "message": "자동입력 방지 확인에 실패했습니다. 다시 시도해 주세요.",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidBodyField",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "COMMON_INVALID_BODY_FIELD",
+                                                        "message": "요청 바디 필드가 올바르지 않습니다.",
+                                                        "details": [
+                                                          {
+                                                            "source": "BODY",
+                                                            "field": "recaptchaToken",
+                                                            "reason": "recaptchaToken은 비어 있을 수 없습니다."
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "아이디 또는 비밀번호가 올바르지 않음",
                     content = @Content(
@@ -82,6 +129,28 @@ public interface AuthApi {
                                                 "status": 401,
                                                 "code": "AUTH_LOGIN_FAILED",
                                                 "message": "아이디 또는 비밀번호가 올바르지 않습니다.",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "503",
+                    description = "reCAPTCHA 검증 서비스 통신 장애",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "captchaServiceUnavailable",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 503,
+                                                "code": "AUTH_CAPTCHA_SERVICE_UNAVAILABLE",
+                                                "message": "자동입력 방지 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
                                                 "details": []
                                               }
                                             }

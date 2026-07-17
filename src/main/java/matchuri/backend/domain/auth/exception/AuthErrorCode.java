@@ -16,6 +16,8 @@ public enum AuthErrorCode implements ErrorCode {
     REFRESH_TOKEN_MISSING(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 필요합니다."),
     REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 리프레시 토큰입니다."),
+    CAPTCHA_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "자동입력 방지 확인에 실패했습니다. 다시 시도해 주세요."),
+    CAPTCHA_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "자동입력 방지 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."),
     LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
     LOGOUT_FAILED(HttpStatus.BAD_REQUEST, "로그아웃 처리에 실패했습니다."),

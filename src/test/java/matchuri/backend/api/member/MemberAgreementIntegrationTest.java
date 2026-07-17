@@ -3,6 +3,9 @@ package matchuri.backend.api.member;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -13,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
+import matchuri.backend.domain.auth.service.CaptchaService;
 import matchuri.backend.domain.member.entity.AgreementType;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
@@ -28,6 +32,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -57,8 +62,12 @@ class MemberAgreementIntegrationTest {
     @Autowired
     private AuthExchangeCodeRepository authExchangeCodeRepository;
 
+    @MockitoBean
+    private CaptchaService captchaService;
+
     @BeforeEach
     void setUp() {
+        given(captchaService.verifyToken(anyString(), eq("login"), anyString())).willReturn(true);
         authExchangeCodeRepository.deleteAll();
         authRefreshTokenRepository.deleteAll();
         memberAgreementRepository.deleteAll();
@@ -284,7 +293,8 @@ class MemberAgreementIntegrationTest {
                         .content("""
                                 {
                                   "loginId": "%s",
-                                  "password": "%s"
+                                  "password": "%s",
+                                  "recaptchaToken": "test-recaptcha-token"
                                 }
                                 """.formatted(loginId, password)))
                 .andExpect(status().isOk())

@@ -168,6 +168,12 @@ cloudflare:
     max-image-height: ${MATCHURI_IMAGE_MAX_HEIGHT:4096}
     cache-control: ${MATCHURI_IMAGE_CACHE_CONTROL:public, max-age=604800}
 
+recaptcha:
+  secret-key: ${MATCHURI_GOOGLE_RECAPTCHA_SECRET_KEY}
+  verify-url: "https://www.google.com/recaptcha/api/siteverify"
+  score-threshold: ${MATCHURI_GOOGLE_RECAPTCHA_SCORE_THRESHOLD:0.5}
+  connect-timeout-millis: ${MATCHURI_GOOGLE_RECAPTCHA_CONNECT_TIMEOUT_MILLIS:2000}
+  read-timeout-millis: ${MATCHURI_GOOGLE_RECAPTCHA_READ_TIMEOUT_MILLIS:3000}
 
 logging:
   level:

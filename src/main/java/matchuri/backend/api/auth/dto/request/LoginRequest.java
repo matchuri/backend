@@ -27,6 +27,19 @@ public record LoginRequest(
                 max = Member.PASSWORD_MAX_SIZE,
                 message = "password는 " + Member.PASSWORD_MIN_SIZE + "자 이상 " + Member.PASSWORD_MAX_SIZE + "자 이하여야 합니다."
         )
-        String password
+        String password,
+
+        @Schema(
+                description = "로그인 버튼을 누른 직후 `login` action으로 발급한 reCAPTCHA v3 토큰입니다.",
+                example = "03AFcWeA...",
+                maxLength = RECAPTCHA_TOKEN_MAX_SIZE
+        )
+        @NotBlank(message = "recaptchaToken은 비어 있을 수 없습니다.")
+        @Size(
+                max = RECAPTCHA_TOKEN_MAX_SIZE,
+                message = "recaptchaToken은 " + RECAPTCHA_TOKEN_MAX_SIZE + "자를 초과할 수 없습니다."
+        )
+        String recaptchaToken
 ) {
+    private static final int RECAPTCHA_TOKEN_MAX_SIZE = 4096;
 }
