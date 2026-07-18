@@ -716,10 +716,7 @@ class GroupIntegrationTest {
         GroupRecommendation openedRecommendation =
                 groupRecommendationRepository.findById(recommendation.getId()).orElseThrow();
         assertThat(openedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.OPEN);
-        assertThat(openedRecommendation.getContextJson()).contains("37.498095");
-        assertThat(openedRecommendation.getContextJson()).contains("127.027610");
-        assertThat(openedRecommendation.getContextJson()).contains("1000");
-        assertThat(openedRecommendation.getContextJson()).contains("서울 강남구 테헤란로 123");
+        assertThat(openedRecommendation.getContextJson()).isNull();
         assertThat(groupRecommendationCandidateRepository
                 .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId()))
                 .hasSize(2);
@@ -1476,6 +1473,7 @@ class GroupIntegrationTest {
         assertThat(finalizedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.FINALIZED);
         assertThat(finalizedRecommendation.getSelectedCandidate().getId()).isEqualTo(secondCandidate.getId());
         assertThat(finalizedRecommendation.getEndedAt()).isNotNull();
+        assertThat(finalizedRecommendation.getContextJson()).isNull();
     }
 
     @Test

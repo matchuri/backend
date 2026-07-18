@@ -16,7 +16,9 @@ import matchuri.backend.domain.behavior.entity.ActionType;
 import matchuri.backend.domain.behavior.entity.MemberMenuAction;
 import matchuri.backend.domain.behavior.repository.MemberMenuActionRepository;
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberLocation;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
+import matchuri.backend.domain.member.repository.MemberLocationRepository;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.Ingredient;
@@ -38,6 +40,7 @@ import matchuri.backend.domain.recommendation.algorithm.input.TasteProfileSnapsh
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationResult;
 import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
+import matchuri.backend.domain.recommendation.context.RecommendationLocationContextJsonFactory;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationRerollType;
@@ -70,6 +73,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private final ActiveMemberReader activeMemberReader;
     private final PersonalRecommendationRepository personalRecommendationRepository;
+    private final MemberLocationRepository memberLocationRepository;
     private final AttributeCategoryRepository attributeCategoryRepository;
     private final IngredientRepository ingredientRepository;
     private final MenuItemRepository menuItemRepository;
@@ -79,6 +83,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final MenuRecommendationAlgorithmResolver menuRecommendationAlgorithmResolver;
     private final PersonalRecommendationExpirationService personalRecommendationExpirationService;
     private final MenuThumbnailUrlResolver menuThumbnailUrlResolver;
+    private final RecommendationLocationContextJsonFactory recommendationLocationContextJsonFactory;
     private final ObjectMapper objectMapper;
 
     /**
@@ -168,7 +173,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         );
         MenuRecommendationResult recommendationResult = algorithm.recommend(input);
 
-        PersonalRecommendation personalRecommendation = PersonalRecommendation.of(member, contextJson);
+        PersonalRecommendation personalRecommendation = PersonalRecommendation.of(member);
         PersonalRecommendation savedPersonalRecommendation =
                 personalRecommendationRepository.save(personalRecommendation);
 
@@ -295,9 +300,11 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .orElseThrow(() -> new BusinessException(
                         RecommendationErrorCode.CANDIDATE_NOT_FOUND,
                         selectedCandidateId
-                ));
+        ));
 
         personalRecommendation.select(selectedCandidate, LocalDateTime.now());
+        MemberLocation location = memberLocationRepository.findByMemberId(member.getId()).orElse(null);
+        personalRecommendation.saveContextJson(location == null ? null : toRecommendationContextJson(location));
         memberMenuActionRepository.save(new MemberMenuAction(
                 member,
                 selectedCandidate.getMenuItem(),
@@ -307,6 +314,15 @@ public class RecommendationServiceImpl implements RecommendationService {
         personalRecommendationRepository.flush();
 
         return SelectPersonalRecommendationResult.of(personalRecommendation, selectedCandidate);
+    }
+
+    private String toRecommendationContextJson(MemberLocation location) {
+        return recommendationLocationContextJsonFactory.create(
+                location.getLatitude(),
+                location.getLongitude(),
+                location.getRadiusMeters(),
+                location.getAddress()
+        );
     }
 
     private PersonalRecommendation getOwnedPersonalRecommendation(Long personalRecommendationId, Long memberId) {

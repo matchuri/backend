@@ -65,10 +65,10 @@ public class PersonalRecommendation extends BaseEntity {
         this.status = status;
     }
 
-    public static PersonalRecommendation of(Member member, String contextJson) {
+    public static PersonalRecommendation of(Member member) {
         return new PersonalRecommendation(
                 member,
-                contextJson,
+                null,
                 LocalDateTime.now(),
                 PersonalRecommendationStatus.OPEN
         );
@@ -81,6 +81,10 @@ public class PersonalRecommendation extends BaseEntity {
     public void select(PersonalRecommendationCandidate selectedCandidate, LocalDateTime closedAt) {
         this.selectedCandidate = selectedCandidate;
         close(PersonalRecommendationStatus.SELECTED, closedAt);
+    }
+
+    public void saveContextJson(String contextJson) {
+        this.contextJson = contextJson;
     }
 
     public void closeAsRerolledWithSkip(LocalDateTime closedAt) {

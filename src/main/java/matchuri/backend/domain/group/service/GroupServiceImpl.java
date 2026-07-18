@@ -39,6 +39,7 @@ import matchuri.backend.domain.recommendation.algorithm.input.RecommendationCont
 import matchuri.backend.domain.recommendation.algorithm.input.TasteProfileSnapshot;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationResult;
+import matchuri.backend.domain.recommendation.context.RecommendationLocationContextJsonFactory;
 import matchuri.backend.domain.realtime.event.GroupDeletedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupInviteCreatedRealtimeEvent;
 import matchuri.backend.domain.realtime.event.GroupMemberJoinedRealtimeEvent;
@@ -88,6 +89,7 @@ public class GroupServiceImpl implements GroupService {
     private final MenuRecommendationAlgorithmResolver menuRecommendationAlgorithmResolver;
     private final GroupInviteCodeGenerator groupInviteCodeGenerator;
     private final GroupRecommendationExpirationService groupRecommendationExpirationService;
+    private final RecommendationLocationContextJsonFactory recommendationLocationContextJsonFactory;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -196,7 +198,6 @@ public class GroupServiceImpl implements GroupService {
 
         GroupRecommendation newRecommendation = groupRecommendationRepository.save(new GroupRecommendation(
                 room,
-                contextJson,
                 LocalDateTime.now()
         ));
         updateRoomLocationFromContextJson(room, contextJson);
@@ -255,7 +256,7 @@ public class GroupServiceImpl implements GroupService {
                 recommendationResult,
                 menuItemById
         );
-        recommendation.openWithContextJson(recommendationContextJson);
+        recommendation.open();
 
         return candidates;
     }
@@ -560,6 +561,8 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendationCandidate selectedCandidate = selectFinalCandidate(candidates, voteCountsByCandidateId);
         LocalDateTime finalizedAt = LocalDateTime.now();
         recommendation.finalizeWith(selectedCandidate, finalizedAt);
+        GroupLocation location = latestGroupLocation(groupId);
+        recommendation.saveContextJson(location == null ? null : toRecommendationContextJson(location));
         GroupRecommendationCandidateResult finalCandidate = GroupRecommendationCandidateResult.from(
                 selectedCandidate,
                 voteCountsByCandidateId.getOrDefault(selectedCandidate.getId(), 0)
@@ -1296,6 +1299,15 @@ public class GroupServiceImpl implements GroupService {
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("그룹 추천 컨텍스트 정보를 JSON으로 변환할 수 없습니다.", exception);
         }
+    }
+
+    private String toRecommendationContextJson(GroupLocation location) {
+        return recommendationLocationContextJsonFactory.create(
+                location.getLatitude(),
+                location.getLongitude(),
+                location.getRadiusMeters(),
+                location.getAddress()
+        );
     }
 
     private void updateRoomLocationFromContextJson(GroupRoom room, String contextJson) {

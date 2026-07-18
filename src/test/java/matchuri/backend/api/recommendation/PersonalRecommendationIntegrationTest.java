@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,12 +23,14 @@ import javax.crypto.SecretKey;
 import matchuri.backend.domain.behavior.entity.ActionType;
 import matchuri.backend.domain.behavior.repository.MemberMenuActionRepository;
 import matchuri.backend.domain.member.entity.Member;
+import matchuri.backend.domain.member.entity.MemberLocation;
 import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.repository.MemberLocationRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileCategoryRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileDislikedMenuItemRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
@@ -83,6 +86,9 @@ class PersonalRecommendationIntegrationTest {
     private MemberRepository memberRepository;
 
     @Autowired
+    private MemberLocationRepository memberLocationRepository;
+
+    @Autowired
     private AttributeCategoryRepository attributeCategoryRepository;
 
     @Autowired
@@ -133,6 +139,7 @@ class PersonalRecommendationIntegrationTest {
         menuItemRepository.deleteAll();
         attributeCategoryRepository.deleteAll();
         ingredientRepository.deleteAll();
+        memberLocationRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
@@ -151,6 +158,13 @@ class PersonalRecommendationIntegrationTest {
         saveMenuAttribute(peanutNoodle, spicy);
         menuIngredientRepository.save(new MenuIngredient(peanutNoodle, peanut));
         saveTasteProfile(member, spicy, peanut);
+        memberLocationRepository.save(new MemberLocation(
+                member,
+                new BigDecimal("37.498095"),
+                new BigDecimal("127.027610"),
+                1000,
+                "서울 강남구 테헤란로 123"
+        ));
 
         MvcResult createResult = mockMvc.perform(post("/api/v1/personal/recommendations")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
@@ -185,7 +199,7 @@ class PersonalRecommendationIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(requestId))
-                .andExpect(jsonPath("$.data.contextJson.mealTime").value("LUNCH"))
+                .andExpect(jsonPath("$.data.contextJson").isMap())
                 .andExpect(jsonPath("$.data.closedAt").value(nullValue()))
                 .andExpect(jsonPath("$.data.candidates.length()").value(2))
                 .andExpect(jsonPath("$.data.selectedCandidateId").value(nullValue()));
@@ -226,6 +240,10 @@ class PersonalRecommendationIntegrationTest {
                 .orElseThrow();
         assertThat(selectedRecommendation.getStatus()).isEqualTo(PersonalRecommendationStatus.SELECTED);
         assertThat(selectedRecommendation.getClosedAt()).isNotNull();
+        assertThat(selectedRecommendation.getContextJson()).contains("37.498095");
+        assertThat(selectedRecommendation.getContextJson()).contains("127.027610");
+        assertThat(selectedRecommendation.getContextJson()).contains("1000");
+        assertThat(selectedRecommendation.getContextJson()).contains("서울 강남구 테헤란로 123");
 
         mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))

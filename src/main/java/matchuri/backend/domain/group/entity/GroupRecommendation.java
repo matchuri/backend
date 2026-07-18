@@ -92,6 +92,10 @@ public class GroupRecommendation extends BaseEntity {
         this.endedAt = endedAt;
     }
 
+    public void saveContextJson(String contextJson) {
+        this.contextJson = contextJson;
+    }
+
     public void rerollWithSkip(LocalDateTime endedAt) {
         this.status = GroupRecommendationStatus.REROLLED_WITH_SKIP;
         this.endedAt = endedAt;
