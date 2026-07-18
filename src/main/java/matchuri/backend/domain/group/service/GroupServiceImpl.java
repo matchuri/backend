@@ -537,39 +537,44 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional(noRollbackFor = BusinessException.class)
-    public FinalizeGroupRecommendationResult finalizeGroupRecommendation(Long groupId, Long sessionId) {
+    public FinalizeGroupRecommendationResult finalizeGroupRecommendation(FinalizeGroupRecommendationCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        GroupRoomMember membership = validateActiveMembership(groupId, member.getId());
+        GroupRoomMember membership = validateActiveMembership(command.groupId(), member.getId());
 
         if (!membership.isOwner()) {
-            throw new BusinessException(GroupErrorCode.RECOMMENDATION_FINALIZE_FORBIDDEN, groupId);
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_FINALIZE_FORBIDDEN, command.groupId());
         }
 
-        GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
-                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
+        GroupRecommendation recommendation = groupRecommendationRepository
+                .findByIdAndRoomId(command.sessionId(), command.groupId())
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, command.sessionId()));
 
-        validateGroupRecommendationOpen(recommendation, sessionId);
+        validateGroupRecommendationOpen(recommendation, command.sessionId());
 
         List<GroupRecommendationCandidate> candidates = groupRecommendationCandidateRepository
                 .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId());
 
         if (candidates.isEmpty()) {
-            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NO_CANDIDATES, sessionId);
+            throw new BusinessException(GroupErrorCode.RECOMMENDATION_NO_CANDIDATES, command.sessionId());
         }
 
         Map<Long, Integer> voteCountsByCandidateId = countVotesByCandidateId(recommendation.getId());
         GroupRecommendationCandidate selectedCandidate = selectFinalCandidate(candidates, voteCountsByCandidateId);
         LocalDateTime finalizedAt = LocalDateTime.now();
         recommendation.finalizeWith(selectedCandidate, finalizedAt);
-        GroupLocation location = latestGroupLocation(groupId);
-        recommendation.saveContextJson(location == null ? null : toRecommendationContextJson(location));
+        recommendation.saveContextJson(recommendationLocationContextJsonFactory.create(
+                command.latitude(),
+                command.longitude(),
+                command.radiusMeters(),
+                command.address()
+        ));
         GroupRecommendationCandidateResult finalCandidate = GroupRecommendationCandidateResult.from(
                 selectedCandidate,
                 voteCountsByCandidateId.getOrDefault(selectedCandidate.getId(), 0)
         );
 
         eventPublisher.publishEvent(new GroupRecommendationFinalizedRealtimeEvent(
-                groupId,
+                command.groupId(),
                 recommendation.getId(),
                 member.getId(),
                 recommendation.getStatus(),
@@ -1299,15 +1304,6 @@ public class GroupServiceImpl implements GroupService {
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("그룹 추천 컨텍스트 정보를 JSON으로 변환할 수 없습니다.", exception);
         }
-    }
-
-    private String toRecommendationContextJson(GroupLocation location) {
-        return recommendationLocationContextJsonFactory.create(
-                location.getLatitude(),
-                location.getLongitude(),
-                location.getRadiusMeters(),
-                location.getAddress()
-        );
     }
 
     private void updateRoomLocationFromContextJson(GroupRoom room, String contextJson) {

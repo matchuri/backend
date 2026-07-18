@@ -32,6 +32,7 @@ import matchuri.backend.api.group.dto.docs.UpdateGroupApiResponse;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
+import matchuri.backend.api.group.dto.request.FinalizeGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
@@ -695,6 +696,7 @@ public interface GroupApi {
                     - 최다 득표 후보를 최종 후보로 저장합니다.
                     - 동률이면 추천 순위 `rankNo`가 가장 낮은 후보를 선택합니다.
                     - 투표가 0건이면 `rankNo=1` 후보를 선택합니다.
+                    - 클라이언트가 전달한 최종 확정 시점 위치를 추천 컨텍스트 스냅샷으로 저장합니다.
                     - 확정 후 그룹 추천 상태는 `FINALIZED`가 됩니다.
                     """
     )
@@ -712,5 +714,9 @@ public interface GroupApi {
                     )
             )
     })
-    ApiResponse<FinalizeGroupRecommendationResponse> finalizeRecommendation(Long groupId, Long sessionId);
+    ApiResponse<FinalizeGroupRecommendationResponse> finalizeRecommendation(
+            Long groupId,
+            Long sessionId,
+            @Valid FinalizeGroupRecommendationRequest request
+    );
 }

@@ -5,6 +5,7 @@ import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
+import matchuri.backend.domain.group.command.FinalizeGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
@@ -38,12 +39,7 @@ public interface GroupService {
 
     CreateGroupRecommendationResult createGroupRecommendation(CreateGroupRecommendationCommand command);
 
-    CreateGroupRecommendationResult rerollGroupRecommendation(
-            Long groupId,
-            Long sessionId,
-            GroupRecommendationRerollType rerollType,
-            String contextJson
-    );
+    CreateGroupRecommendationResult rerollGroupRecommendation(Long groupId, Long sessionId, GroupRecommendationRerollType rerollType, String contextJson);
 
     GroupRecommendationResult getGroupRecommendation(Long groupId, Long sessionId);
 
@@ -57,7 +53,7 @@ public interface GroupService {
 
     GroupVoteResult voteGroupRecommendation(Long groupId, Long sessionId, Long candidateId);
 
-    FinalizeGroupRecommendationResult finalizeGroupRecommendation(Long groupId, Long sessionId);
+    FinalizeGroupRecommendationResult finalizeGroupRecommendation(FinalizeGroupRecommendationCommand command);
 
     CreateNicknameGroupInviteResult createNicknameInvite(CreateNicknameGroupInviteCommand command);
 

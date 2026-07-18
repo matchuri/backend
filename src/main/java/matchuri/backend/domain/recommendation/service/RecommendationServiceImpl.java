@@ -2,6 +2,7 @@ package matchuri.backend.domain.recommendation.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -16,9 +17,7 @@ import matchuri.backend.domain.behavior.entity.ActionType;
 import matchuri.backend.domain.behavior.entity.MemberMenuAction;
 import matchuri.backend.domain.behavior.repository.MemberMenuActionRepository;
 import matchuri.backend.domain.member.entity.Member;
-import matchuri.backend.domain.member.entity.MemberLocation;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
-import matchuri.backend.domain.member.repository.MemberLocationRepository;
 import matchuri.backend.domain.member.support.member.ActiveMemberReader;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.Ingredient;
@@ -40,6 +39,7 @@ import matchuri.backend.domain.recommendation.algorithm.input.TasteProfileSnapsh
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.algorithm.output.MenuRecommendationResult;
 import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
+import matchuri.backend.domain.recommendation.command.SelectPersonalRecommendationCommand;
 import matchuri.backend.domain.recommendation.context.RecommendationLocationContextJsonFactory;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationCandidate;
@@ -73,7 +73,6 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private final ActiveMemberReader activeMemberReader;
     private final PersonalRecommendationRepository personalRecommendationRepository;
-    private final MemberLocationRepository memberLocationRepository;
     private final AttributeCategoryRepository attributeCategoryRepository;
     private final IngredientRepository ingredientRepository;
     private final MenuItemRepository menuItemRepository;
@@ -285,26 +284,27 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     @Transactional(noRollbackFor = BusinessException.class)
-    public SelectPersonalRecommendationResult selectPersonalRecommendationCandidate(
-            Long personalRecommendationId,
-            Long selectedCandidateId
-    ) {
+    public SelectPersonalRecommendationResult selectPersonalRecommendationCandidate(SelectPersonalRecommendationCommand command) {
         Member member = activeMemberReader.getCurrentAuthenticatedActiveMember();
-        PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(personalRecommendationId,
+        PersonalRecommendation personalRecommendation = getOwnedPersonalRecommendation(command.personalRecommendationId(),
                 member.getId());
 
         validatePersonalRecommendationOpen(personalRecommendation, LocalDateTime.now());
 
         PersonalRecommendationCandidate selectedCandidate = personalRecommendationCandidateRepository
-                .findByIdAndPersonalRecommendationId(selectedCandidateId, personalRecommendationId)
+                .findByIdAndPersonalRecommendationId(command.selectedCandidateId(), command.personalRecommendationId())
                 .orElseThrow(() -> new BusinessException(
                         RecommendationErrorCode.CANDIDATE_NOT_FOUND,
-                        selectedCandidateId
-        ));
+                        command.selectedCandidateId()
+                ));
 
         personalRecommendation.select(selectedCandidate, LocalDateTime.now());
-        MemberLocation location = memberLocationRepository.findByMemberId(member.getId()).orElse(null);
-        personalRecommendation.saveContextJson(location == null ? null : toRecommendationContextJson(location));
+        personalRecommendation.saveContextJson(recommendationLocationContextJsonFactory.create(
+                command.latitude(),
+                command.longitude(),
+                command.radiusMeters(),
+                command.address()
+        ));
         memberMenuActionRepository.save(new MemberMenuAction(
                 member,
                 selectedCandidate.getMenuItem(),
@@ -314,15 +314,6 @@ public class RecommendationServiceImpl implements RecommendationService {
         personalRecommendationRepository.flush();
 
         return SelectPersonalRecommendationResult.of(personalRecommendation, selectedCandidate);
-    }
-
-    private String toRecommendationContextJson(MemberLocation location) {
-        return recommendationLocationContextJsonFactory.create(
-                location.getLatitude(),
-                location.getLongitude(),
-                location.getRadiusMeters(),
-                location.getAddress()
-        );
     }
 
     private PersonalRecommendation getOwnedPersonalRecommendation(Long personalRecommendationId, Long memberId) {

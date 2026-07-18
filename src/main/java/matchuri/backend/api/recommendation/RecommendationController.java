@@ -16,6 +16,7 @@ import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationRe
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.SelectPersonalRecommendationResponse;
 import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
+import matchuri.backend.domain.recommendation.command.SelectPersonalRecommendationCommand;
 import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationResult;
@@ -122,10 +123,8 @@ public class RecommendationController implements RecommendationApi {
             @PathVariable Long requestId,
             @Valid @RequestBody SelectPersonalRecommendationRequest request
     ) {
-        SelectPersonalRecommendationResult result = recommendationService.selectPersonalRecommendationCandidate(
-                requestId,
-                request.selectedCandidateId()
-        );
+        SelectPersonalRecommendationCommand command = recommendationMapper.toSelectCommand(requestId, request);
+        SelectPersonalRecommendationResult result = recommendationService.selectPersonalRecommendationCandidate(command);
 
         return ApiResponse.success(recommendationMapper.toSelectResponse(result));
     }

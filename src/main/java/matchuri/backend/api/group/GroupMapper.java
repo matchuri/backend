@@ -3,6 +3,7 @@ package matchuri.backend.api.group;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
+import matchuri.backend.api.group.dto.request.FinalizeGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
@@ -35,6 +36,7 @@ import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
+import matchuri.backend.domain.group.command.FinalizeGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
@@ -96,6 +98,21 @@ public class GroupMapper {
     ) {
         return new CreateGroupRecommendationCommand(
                 groupId,
+                request.latitude(),
+                request.longitude(),
+                request.radiusMeters(),
+                request.address()
+        );
+    }
+
+    public FinalizeGroupRecommendationCommand toFinalizeGroupRecommendationCommand(
+            Long groupId,
+            Long sessionId,
+            FinalizeGroupRecommendationRequest request
+    ) {
+        return new FinalizeGroupRecommendationCommand(
+                groupId,
+                sessionId,
                 request.latitude(),
                 request.longitude(),
                 request.radiusMeters(),

@@ -2,6 +2,7 @@ package matchuri.backend.domain.recommendation.service;
 
 import java.util.List;
 import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
+import matchuri.backend.domain.recommendation.command.SelectPersonalRecommendationCommand;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationRerollType;
 import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationCandidateResult;
@@ -28,8 +29,5 @@ public interface RecommendationService {
 
     Page<@NonNull PersonalRecommendationSummaryResult> getMyPersonalRecommendations(int page, int size);
 
-    SelectPersonalRecommendationResult selectPersonalRecommendationCandidate(
-            Long personalRecommendationId,
-            Long selectedCandidateId
-    );
+    SelectPersonalRecommendationResult selectPersonalRecommendationCandidate(SelectPersonalRecommendationCommand command);
 }

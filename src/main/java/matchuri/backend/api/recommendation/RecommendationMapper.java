@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.recommendation.dto.request.CreateGuestPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.CreatePersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.request.RerollPersonalRecommendationRequest;
+import matchuri.backend.api.recommendation.dto.request.SelectPersonalRecommendationRequest;
 import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationCandidateResponse;
 import matchuri.backend.api.recommendation.dto.response.GuestPersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationCandidateListResponse;
@@ -19,6 +20,7 @@ import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationRe
 import matchuri.backend.api.recommendation.dto.response.PersonalRecommendationResponse;
 import matchuri.backend.api.recommendation.dto.response.SelectPersonalRecommendationResponse;
 import matchuri.backend.domain.recommendation.command.GuestPersonalRecommendationCommand;
+import matchuri.backend.domain.recommendation.command.SelectPersonalRecommendationCommand;
 import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationCandidateResult;
 import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationResult;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationCandidateResult;
@@ -47,6 +49,20 @@ public class RecommendationMapper {
                 request.restrictionIngredientIds(),
                 request.dislikedMenuItemIds(),
                 toContextJson(request.contextJson())
+        );
+    }
+
+    public SelectPersonalRecommendationCommand toSelectCommand(
+            Long personalRecommendationId,
+            SelectPersonalRecommendationRequest request
+    ) {
+        return new SelectPersonalRecommendationCommand(
+                personalRecommendationId,
+                request.selectedCandidateId(),
+                request.latitude(),
+                request.longitude(),
+                request.radiusMeters(),
+                request.address()
         );
     }
 

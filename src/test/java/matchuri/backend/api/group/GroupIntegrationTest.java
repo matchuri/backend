@@ -588,7 +588,9 @@ class GroupIntegrationTest {
         mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}/readiness",
                         groupRoom.getId(),
                         recommendation.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(finalizeLocationRequest()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_FOUND"));
     }
@@ -1457,7 +1459,9 @@ class GroupIntegrationTest {
         mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
                         groupRoom.getId(),
                         recommendation.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(finalizeLocationRequest()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
@@ -1473,7 +1477,10 @@ class GroupIntegrationTest {
         assertThat(finalizedRecommendation.getStatus()).isEqualTo(GroupRecommendationStatus.FINALIZED);
         assertThat(finalizedRecommendation.getSelectedCandidate().getId()).isEqualTo(secondCandidate.getId());
         assertThat(finalizedRecommendation.getEndedAt()).isNotNull();
-        assertThat(finalizedRecommendation.getContextJson()).isNull();
+        assertThat(finalizedRecommendation.getContextJson()).contains("37.498095");
+        assertThat(finalizedRecommendation.getContextJson()).contains("127.027610");
+        assertThat(finalizedRecommendation.getContextJson()).contains("1000");
+        assertThat(finalizedRecommendation.getContextJson()).contains("서울 강남구 테헤란로 123");
     }
 
     @Test
@@ -1507,7 +1514,9 @@ class GroupIntegrationTest {
         mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
                         groupRoom.getId(),
                         recommendation.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(finalizeLocationRequest()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.finalCandidate.candidateId").value(firstCandidate.getId()))
                 .andExpect(jsonPath("$.data.finalCandidate.rankNo").value(1))
@@ -1536,7 +1545,9 @@ class GroupIntegrationTest {
         mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
                         groupRoom.getId(),
                         recommendation.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(finalizeLocationRequest()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.finalCandidate.candidateId").value(firstCandidate.getId()))
                 .andExpect(jsonPath("$.data.finalCandidate.voteCount").value(0));
@@ -1567,7 +1578,9 @@ class GroupIntegrationTest {
         mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
                         groupRoom.getId(),
                         recommendation.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(finalizeLocationRequest()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_FINALIZE_FORBIDDEN"));
 
@@ -1595,7 +1608,9 @@ class GroupIntegrationTest {
         mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
                         groupRoom.getId(),
                         recommendation.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(finalizeLocationRequest()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NOT_OPEN"));
     }
@@ -1614,7 +1629,9 @@ class GroupIntegrationTest {
         mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
                         groupRoom.getId(),
                         recommendation.getId())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(finalizeLocationRequest()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("GROUP_RECOMMENDATION_NO_CANDIDATES"));
 
@@ -3065,6 +3082,17 @@ class GroupIntegrationTest {
 
     private String bearer(String accessToken) {
         return "Bearer " + accessToken;
+    }
+
+    private String finalizeLocationRequest() {
+        return """
+                {
+                  "latitude": 37.498095,
+                  "longitude": 127.027610,
+                  "radiusMeters": 1000,
+                  "address": "서울 강남구 테헤란로 123"
+                }
+                """;
     }
 
     private String accessToken(Member member) {

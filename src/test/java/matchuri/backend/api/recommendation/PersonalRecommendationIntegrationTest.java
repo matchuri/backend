@@ -222,11 +222,7 @@ class PersonalRecommendationIntegrationTest {
         mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "selectedCandidateId": %d
-                                }
-                                """.formatted(firstCandidateId)))
+                        .content(selectRequest(firstCandidateId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(requestId))
                 .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.SELECTED.name()))
@@ -441,11 +437,7 @@ class PersonalRecommendationIntegrationTest {
         mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "selectedCandidateId": %d
-                                }
-                """.formatted(candidateId)))
+                        .content(selectRequest(candidateId)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_EXPIRED"));
 
@@ -713,32 +705,20 @@ class PersonalRecommendationIntegrationTest {
         mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "selectedCandidateId": %d
-                                }
-                                """.formatted(candidateId + 10_000)))
+                        .content(selectRequest(candidateId + 10_000)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_CANDIDATE_NOT_FOUND"));
 
         mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "selectedCandidateId": %d
-                                }
-                                """.formatted(candidateId)))
+                        .content(selectRequest(candidateId)))
                 .andExpect(status().isOk());
 
         mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "selectedCandidateId": %d
-                                }
-                                """.formatted(candidateId)))
+                        .content(selectRequest(candidateId)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("PERSONAL_RECOMMENDATION_ALREADY_CLOSED"));
     }
@@ -800,6 +780,18 @@ class PersonalRecommendationIntegrationTest {
 
     private void saveMenuAttribute(MenuItem menuItem, AttributeCategory attributeCategory) {
         menuAttributeCategoryRepository.save(new MenuAttributeCategory(menuItem, attributeCategory));
+    }
+
+    private String selectRequest(long selectedCandidateId) {
+        return """
+                {
+                  "selectedCandidateId": %d,
+                  "latitude": 37.498095,
+                  "longitude": 127.027610,
+                  "radiusMeters": 1000,
+                  "address": "서울 강남구 테헤란로 123"
+                }
+                """.formatted(selectedCandidateId);
     }
 
     private String bearer(String accessToken) {

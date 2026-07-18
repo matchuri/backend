@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
+import matchuri.backend.api.group.dto.request.FinalizeGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.CreateGroupRequest;
 import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
@@ -35,6 +36,7 @@ import matchuri.backend.domain.group.command.CreateGroupCommand;
 import matchuri.backend.domain.group.command.CreateGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.DeleteGroupCommand;
+import matchuri.backend.domain.group.command.FinalizeGroupRecommendationCommand;
 import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
 import matchuri.backend.domain.group.command.GetMyGroupsCommand;
 import matchuri.backend.domain.group.command.JoinGroupCommand;
@@ -304,10 +306,11 @@ public class GroupController implements GroupApi {
     @PatchMapping("/{groupId}/recommendations/{sessionId}/finalize")
     public ApiResponse<FinalizeGroupRecommendationResponse> finalizeRecommendation(
             @PathVariable Long groupId,
-            @PathVariable Long sessionId
+            @PathVariable Long sessionId,
+            @Valid @RequestBody FinalizeGroupRecommendationRequest request
     ) {
-        FinalizeGroupRecommendationResult result = groupService.finalizeGroupRecommendation(groupId, sessionId);
-
+        FinalizeGroupRecommendationCommand command = groupMapper.toFinalizeGroupRecommendationCommand(groupId, sessionId, request);
+        FinalizeGroupRecommendationResult result = groupService.finalizeGroupRecommendation(command);
         return ApiResponse.success(groupMapper.toFinalizeGroupRecommendationResponse(result));
     }
 }
