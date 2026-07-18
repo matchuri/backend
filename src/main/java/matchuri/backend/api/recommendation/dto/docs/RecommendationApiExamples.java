@@ -211,11 +211,7 @@ public final class RecommendationApiExamples {
                 "id": 9001,
                 "status": "SELECTED",
                 "closedAt": "2026-05-06T12:15:00",
-                "contextJson": {
-                  "mealTime": "LUNCH",
-                  "budgetLevel": 2,
-                  "mood": "가볍지만 든든한 점심"
-                },
+                "contextJson": "{\\"latitude\\":37.498095,\\"longitude\\":127.027610,\\"radiusMeters\\":1000,\\"address\\":\\"서울 강남구 테헤란로 123\\"}",
                 "candidates": [
                   {
                     "id": 10001,

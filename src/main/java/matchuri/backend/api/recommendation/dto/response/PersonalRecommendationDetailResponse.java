@@ -3,7 +3,6 @@ package matchuri.backend.api.recommendation.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 
 public record PersonalRecommendationDetailResponse(
@@ -16,8 +15,12 @@ public record PersonalRecommendationDetailResponse(
         @Schema(description = "추천 종료 시각입니다. 아직 종료되지 않았다면 null입니다.", example = "2026-05-06T12:15:00")
         LocalDateTime closedAt,
 
-        @Schema(description = "요청 컨텍스트 JSON입니다.")
-        Map<String, Object> contextJson,
+        @Schema(
+                description = "추천 당시 위치 등 컨텍스트 JSON 문자열입니다. 클라이언트가 필요 시 파싱합니다.",
+                example = "{\"latitude\":37.498095,\"longitude\":127.027610,\"radiusMeters\":1000,\"address\":\"서울 강남구 테헤란로 123\"}",
+                nullable = true
+        )
+        String contextJson,
 
         @Schema(description = "추천 후보 목록입니다.")
         List<PersonalRecommendationCandidateResponse> candidates,

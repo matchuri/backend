@@ -199,7 +199,7 @@ class PersonalRecommendationIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(requestId))
-                .andExpect(jsonPath("$.data.contextJson").isMap())
+                .andExpect(jsonPath("$.data.contextJson").value(nullValue()))
                 .andExpect(jsonPath("$.data.closedAt").value(nullValue()))
                 .andExpect(jsonPath("$.data.candidates.length()").value(2))
                 .andExpect(jsonPath("$.data.selectedCandidateId").value(nullValue()));
@@ -245,6 +245,7 @@ class PersonalRecommendationIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.SELECTED.name()))
+                .andExpect(jsonPath("$.data.contextJson").isString())
                 .andExpect(jsonPath("$.data.closedAt").exists());
     }
 

@@ -1,8 +1,6 @@
 package matchuri.backend.api.recommendation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +97,7 @@ public class RecommendationMapper {
                 result.id(),
                 result.status(),
                 result.closedAt(),
-                toContextMap(result.contextJson()),
+                result.contextJson(),
                 toCandidateResponses(result.candidates()),
                 result.selectedCandidateId()
         );
@@ -165,21 +163,4 @@ public class RecommendationMapper {
         );
     }
 
-    private Map<String, Object> toContextMap(String contextJson) {
-        if (contextJson == null || contextJson.isBlank()) {
-            return Map.of();
-        }
-
-        try {
-            JsonNode contextNode = objectMapper.readTree(contextJson);
-            while (contextNode.isTextual()) {
-                contextNode = objectMapper.readTree(contextNode.asText());
-            }
-
-            return objectMapper.convertValue(contextNode, new TypeReference<>() {
-            });
-        } catch (JsonProcessingException exception) {
-            throw new IllegalStateException("저장된 contextJson을 해석할 수 없습니다.", exception);
-        }
-    }
 }

@@ -1,7 +1,6 @@
 package matchuri.backend.api.recommendation.dto.response;
 
 import java.util.List;
-import java.util.Map;
 
 final class PersonalRecommendationMocks {
 
@@ -16,11 +15,7 @@ final class PersonalRecommendationMocks {
         );
     }
 
-    static Map<String, Object> contextJson() {
-        return Map.of(
-                "mealTime", "LUNCH",
-                "budgetLevel", 2,
-                "mood", "가볍지만 든든한 점심"
-        );
+    static String contextJson() {
+        return "{\"latitude\":37.498095,\"longitude\":127.027610,\"radiusMeters\":1000,\"address\":\"서울 강남구 테헤란로 123\"}";
     }
 }
