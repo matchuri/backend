@@ -35,28 +35,34 @@ jobs:
       REMOTE_DEPLOY_SCRIPT: ${{ vars.REMOTE_DEPLOY_SCRIPT }}
       REMOTE_ENV_FILE: ${{ vars.REMOTE_ENV_FILE }}
       REMOTE_SERVICE_NAME: ${{ vars.REMOTE_SERVICE_NAME }}
+      REMOTE_HEALTH_URL: ${{ vars.REMOTE_HEALTH_URL }}
+      REMOTE_HEALTH_ATTEMPTS: ${{ vars.REMOTE_HEALTH_ATTEMPTS }}
+      REMOTE_HEALTH_INTERVAL_SECONDS: ${{ vars.REMOTE_HEALTH_INTERVAL_SECONDS }}
+      REMOTE_RELEASE_OWNER: ${{ vars.REMOTE_RELEASE_OWNER }}
+      REMOTE_RELEASE_GROUP: ${{ vars.REMOTE_RELEASE_GROUP }}
+      REMOTE_TMP_ROOT: ${{ vars.REMOTE_TMP_ROOT }}
+      SSM_POLL_ATTEMPTS: ${{ vars.SSM_POLL_ATTEMPTS }}
+      SSM_POLL_INTERVAL_SECONDS: ${{ vars.SSM_POLL_INTERVAL_SECONDS }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Validate required variables
-        run: |
-          set -euo pipefail
-          required_vars=(
-            INFISICAL_PROJECT_SLUG
-            INFISICAL_IDENTITY_ID
-            MATCHURI_SPRING_PROFILE
-            AWS_ROLE_TO_ASSUME
-            AWS_SSM_TARGET_INSTANCE_ID
-            DEPLOY_S3_BUCKET
-          )
-
-          for var_name in "${required_vars[@]}"; do
-            if [ -z "${!var_name:-}" ]; then
-              echo "Missing required workflow variable: ${var_name}" >&2
-              exit 1
-            fi
-          done
+        run: >-
+          bash scripts/deploy/validate-required-env.sh "workflow variable"
+          INFISICAL_PROJECT_SLUG
+          INFISICAL_IDENTITY_ID
+          MATCHURI_SPRING_PROFILE
+          AWS_REGION
+          AWS_ROLE_TO_ASSUME
+          AWS_SSM_TARGET_INSTANCE_ID
+          DEPLOY_S3_BUCKET
+          DEPLOY_S3_PREFIX
+          DEPLOY_RELEASE_PREFIX
+          REMOTE_RELEASES_DIR
+          REMOTE_DEPLOY_SCRIPT
+          REMOTE_ENV_FILE
+          REMOTE_SERVICE_NAME
 
       - name: Fetch secrets from Infisical via OIDC
         uses: Infisical/secrets-action@v1.0.16
@@ -68,24 +74,15 @@ jobs:
           domain: ${{ env.INFISICAL_API_URL }}
 
       - name: Validate required secret values
-        run: |
-          set -euo pipefail
-          required_secrets=(
-            MATCHURI_FRONTEND_ORIGIN
-            MATCHURI_DB_PW
-            MATCHURI_JWT_SECRET
-            MATCHURI_GOOGLE_CLIENT_ID
-            MATCHURI_GOOGLE_CLIENT_SECRET
-            MATCHURI_COOKIE_SECURE
-            MATCHURI_COOKIE_SAME_SITE
-          )
-
-          for secret_name in "${required_secrets[@]}"; do
-            if [ -z "${!secret_name:-}" ]; then
-              echo "Missing required secret from Infisical: ${secret_name}" >&2
-              exit 1
-            fi
-          done
+        run: >-
+          bash scripts/deploy/validate-required-env.sh "secret from Infisical"
+          MATCHURI_FRONTEND_ORIGIN
+          MATCHURI_DB_PW
+          MATCHURI_JWT_SECRET
+          MATCHURI_GOOGLE_CLIENT_ID
+          MATCHURI_GOOGLE_CLIENT_SECRET
+          MATCHURI_COOKIE_SECURE
+          MATCHURI_COOKIE_SAME_SITE
 
       - name: Setup JDK 21
         uses: actions/setup-java@v5
@@ -107,27 +104,10 @@ jobs:
         run: ./gradlew --no-daemon clean build
 
       - name: Resolve release metadata
-        run: |
-          set -euo pipefail
-          release_file="${DEPLOY_RELEASE_PREFIX}-${GITHUB_SHA}.jar"
-          echo "RELEASE_FILE=${release_file}" >> "$GITHUB_ENV"
-          echo "JAR_PATH=$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' | head -n 1)" >> "$GITHUB_ENV"
-
-      - name: Validate build artifact
-        run: |
-          set -euo pipefail
-          if [ -z "${JAR_PATH:-}" ] || [ ! -f "${JAR_PATH}" ]; then
-            echo "Executable boot jar not found under build/libs" >&2
-            exit 1
-          fi
+        run: bash scripts/deploy/resolve-release-metadata.sh
 
       - name: Render backend.env
-        run: |
-          set -euo pipefail
-          {
-            echo "MATCHURI_SPRING_PROFILE=${MATCHURI_SPRING_PROFILE}"
-            printenv | grep '^MATCHURI_' | grep -v '^MATCHURI_SPRING_PROFILE=' | sort
-          } > backend.env
+        run: bash scripts/deploy/render-backend-env.sh backend.env
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -143,101 +123,13 @@ jobs:
           aws s3 cp backend.env "s3://${DEPLOY_S3_BUCKET}/${DEPLOY_S3_PREFIX}/backend.env"
 
       - name: Render SSM command payload
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-          import shlex
-
-          bucket = os.environ["DEPLOY_S3_BUCKET"]
-          prefix = os.environ["DEPLOY_S3_PREFIX"].strip("/")
-          release = os.environ["RELEASE_FILE"]
-          remote_env_file = os.environ["REMOTE_ENV_FILE"]
-          remote_releases_dir = os.environ["REMOTE_RELEASES_DIR"]
-          remote_deploy_script = os.environ["REMOTE_DEPLOY_SCRIPT"]
-          remote_service_name = os.environ["REMOTE_SERVICE_NAME"]
-          tmp_root_ref = "${TMP_ROOT}"
-
-          script_lines = [
-              "set -euo pipefail",
-              'TMP_ROOT="/tmp/matchuri-deploy"',
-              f'RELEASE_FILE="{release}"',
-              'mkdir -p "${TMP_ROOT}"',
-              f'aws s3 cp "s3://{bucket}/{prefix}/{release}" "{tmp_root_ref}/{release}"',
-              f'aws s3 cp "s3://{bucket}/{prefix}/backend.env" "{tmp_root_ref}/backend.env"',
-              f'sudo install -m 600 "{tmp_root_ref}/backend.env" "{remote_env_file}"',
-              f'sudo mv "{tmp_root_ref}/{release}" "{remote_releases_dir}/{release}"',
-              f'sudo chown matchuri:matchuri "{remote_releases_dir}/{release}"',
-              f'sudo MATCHURI_RELEASE_FILE="{release}" "{remote_deploy_script}"',
-              f'sudo systemctl status "{remote_service_name}" --no-pager',
-              "success=0",
-              "for attempt in {1..12}; do",
-              '  if curl --fail --silent --show-error http://127.0.0.1:8080/api/v1/health; then',
-              '    success=1',
-              '    break',
-              '  fi',
-              '  sleep 5',
-              'done',
-              'if [ "${success}" -ne 1 ]; then',
-              '  echo "Matchuri health check failed after deployment." >&2',
-              '  exit 1',
-              'fi',
-          ]
-          script = "\n".join(script_lines)
-          commands = [f"bash -lc {shlex.quote(script)}"]
-
-          Path("ssm-parameters.json").write_text(
-              json.dumps({"commands": commands}),
-              encoding="utf-8",
-          )
-          PY
+        run: python scripts/deploy/render-ssm-parameters.py
 
       - name: Send deploy command
-        run: |
-          set -euo pipefail
-          command_id="$(
-            aws ssm send-command \
-              --instance-ids "${AWS_SSM_TARGET_INSTANCE_ID}" \
-              --document-name "AWS-RunShellScript" \
-              --comment "Matchuri backend deploy ${GITHUB_SHA}" \
-              --parameters file://ssm-parameters.json \
-              --query "Command.CommandId" \
-              --output text
-          )"
-          echo "SSM_COMMAND_ID=${command_id}" >> "$GITHUB_ENV"
+        run: bash scripts/deploy/send-ssm-command.sh
 
       - name: Poll deploy command result
-        run: |
-          set -euo pipefail
-          for attempt in {1..60}; do
-            status="$(
-              aws ssm get-command-invocation \
-                --command-id "${SSM_COMMAND_ID}" \
-                --instance-id "${AWS_SSM_TARGET_INSTANCE_ID}" \
-                --query "Status" \
-                --output text
-            )"
-            echo "Current SSM status: ${status}"
-            if [ "${status}" = "Success" ]; then
-              aws ssm get-command-invocation \
-                --command-id "${SSM_COMMAND_ID}" \
-                --instance-id "${AWS_SSM_TARGET_INSTANCE_ID}" \
-                --query "{Status:Status,StandardOutput:StandardOutputContent,StandardError:StandardErrorContent}"
-              exit 0
-            fi
-            if [ "${status}" = "Failed" ] || [ "${status}" = "Cancelled" ] || [ "${status}" = "TimedOut" ]; then
-              aws ssm get-command-invocation \
-                --command-id "${SSM_COMMAND_ID}" \
-                --instance-id "${AWS_SSM_TARGET_INSTANCE_ID}" \
-                --query "{Status:Status,StandardOutput:StandardOutputContent,StandardError:StandardErrorContent}"
-              exit 1
-            fi
-            sleep 5
-          done
-          echo "SSM command polling timed out." >&2
-          exit 1
+        run: bash scripts/deploy/wait-ssm-command.sh
 
       - name: Delete deploy assets from S3
         if: success()
