@@ -1,0 +1,44 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - prometheus:9090
+
+  - job_name: matchuri-backend
+    metrics_path: /api/v1/prometheus
+    static_configs:
+      - targets:
+          - host.docker.internal:8080
+        labels:
+          environment: local
+
+  - job_name: node-exporter
+    static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          environment: local
+
+  - job_name: matchuri-health
+    metrics_path: /probe
+    params:
+      module:
+        - http_matchuri_health
+    static_configs:
+      - targets:
+          - http://host.docker.internal:8080/api/v1/health
+        labels:
+          environment: local
+    relabel_configs:
+      - source_labels:
+          - __address__
+        target_label: __param_target
+      - source_labels:
+          - __param_target
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

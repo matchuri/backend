@@ -19,5 +19,73 @@ services:
       - mysql_data:/var/lib/mysql
       - ./init/sql:/docker-entrypoint-initdb.d
 
+  prometheus:
+    image: prom/prometheus:v3.12.0
+    container_name: matchuri-local-prometheus
+    profiles:
+      - monitoring
+    restart: "no"
+    ports:
+      - "127.0.0.1:9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - node-exporter
+      - blackbox-exporter
+
+  grafana:
+    image: grafana/grafana:13.1.0
+    container_name: matchuri-local-grafana
+    profiles:
+      - monitoring
+    restart: "no"
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${MATCHURI_GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${MATCHURI_GRAFANA_ADMIN_PASSWORD:?MATCHURI_GRAFANA_ADMIN_PASSWORD is required}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.11.1
+    container_name: matchuri-local-node-exporter
+    profiles:
+      - monitoring
+    restart: "no"
+    ports:
+      - "127.0.0.1:9100:9100"
+    pid: host
+    command:
+      - "--path.rootfs=/host"
+      - "--collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)"
+    volumes:
+      - "/:/host:ro"
+
+  blackbox-exporter:
+    image: quay.io/prometheus/blackbox-exporter:v0.28.0
+    container_name: matchuri-local-blackbox-exporter
+    profiles:
+      - monitoring
+    restart: "no"
+    ports:
+      - "127.0.0.1:9115:9115"
+    command:
+      - "--config.file=/etc/blackbox_exporter/config.yml"
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+
 volumes:
   mysql_data:
+  prometheus_data:
+  grafana_data:
