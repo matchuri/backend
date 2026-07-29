@@ -6,6 +6,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles({"test", "local"})
-class LocalMonitoringSecurityConfigTest extends MonitoringSecurityConfigTestSupport {
+@ActiveProfiles({"test", "dev"})
+class DevMonitoringSecurityConfigTest extends MonitoringSecurityConfigTestSupport {
 }
