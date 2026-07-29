@@ -195,9 +195,14 @@ management:
       default: none
     web:
       exposure:
-        include: health
+        include: health,prometheus
       base-path: /api/v1
-
   endpoint:
     health:
       access: read-only
+    prometheus:
+      access: read_only
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true

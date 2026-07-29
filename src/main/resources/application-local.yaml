@@ -9,16 +9,3 @@ spring:
 logging:
   level:
     org.hibernate.SQL: debug
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,prometheus
-  endpoint:
-    prometheus:
-      access: read-only
-  metrics:
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
