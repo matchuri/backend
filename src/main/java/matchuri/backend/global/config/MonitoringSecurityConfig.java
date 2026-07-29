@@ -8,13 +8,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Profile("local")
+@Profile({"local", "dev", "prod"})
 @Configuration
-public class LocalMonitoringSecurityConfig {
+public class MonitoringSecurityConfig {
 
     @Bean
     @Order(0)
-    SecurityFilterChain localMonitoringSecurityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain monitoringSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/v1/prometheus")
                 .csrf(AbstractHttpConfigurer::disable)
