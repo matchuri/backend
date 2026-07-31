@@ -299,12 +299,12 @@ public class RecommendationServiceImpl implements RecommendationService {
                 ));
 
         personalRecommendation.select(selectedCandidate, LocalDateTime.now());
-        personalRecommendation.saveContextJson(recommendationLocationContextJsonFactory.create(
+        recommendationLocationContextJsonFactory.createIfComplete(
                 command.latitude(),
                 command.longitude(),
                 command.radiusMeters(),
                 command.address()
-        ));
+        ).ifPresent(personalRecommendation::saveContextJson);
         memberMenuActionRepository.save(new MemberMenuAction(
                 member,
                 selectedCandidate.getMenuItem(),

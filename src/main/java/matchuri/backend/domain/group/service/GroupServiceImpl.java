@@ -562,12 +562,12 @@ public class GroupServiceImpl implements GroupService {
         GroupRecommendationCandidate selectedCandidate = selectFinalCandidate(candidates, voteCountsByCandidateId);
         LocalDateTime finalizedAt = LocalDateTime.now();
         recommendation.finalizeWith(selectedCandidate, finalizedAt);
-        recommendation.saveContextJson(recommendationLocationContextJsonFactory.create(
+        recommendationLocationContextJsonFactory.createIfComplete(
                 command.latitude(),
                 command.longitude(),
                 command.radiusMeters(),
                 command.address()
-        ));
+        ).ifPresent(recommendation::saveContextJson);
         GroupRecommendationCandidateResult finalCandidate = GroupRecommendationCandidateResult.from(
                 selectedCandidate,
                 voteCountsByCandidateId.getOrDefault(selectedCandidate.getId(), 0)

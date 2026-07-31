@@ -110,6 +110,10 @@ public class GroupMapper {
             Long sessionId,
             FinalizeGroupRecommendationRequest request
     ) {
+        if (request == null) {
+            return new FinalizeGroupRecommendationCommand(groupId, sessionId, null, null, null, null);
+        }
+
         return new FinalizeGroupRecommendationCommand(
                 groupId,
                 sessionId,

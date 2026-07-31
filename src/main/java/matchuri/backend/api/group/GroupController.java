@@ -307,7 +307,7 @@ public class GroupController implements GroupApi {
     public ApiResponse<FinalizeGroupRecommendationResponse> finalizeRecommendation(
             @PathVariable Long groupId,
             @PathVariable Long sessionId,
-            @Valid @RequestBody FinalizeGroupRecommendationRequest request
+            @Valid @RequestBody(required = false) FinalizeGroupRecommendationRequest request
     ) {
         FinalizeGroupRecommendationCommand command = groupMapper.toFinalizeGroupRecommendationCommand(groupId, sessionId, request);
         FinalizeGroupRecommendationResult result = groupService.finalizeGroupRecommendation(command);

@@ -1484,6 +1484,37 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("그룹 추천 최종 확정은 요청 body가 없어도 현재 응답 형태로 성공하고 위치 컨텍스트를 저장하지 않는다")
+    void finalizeGroupRecommendationWithoutRequestBodyDoesNotSaveContext() throws Exception {
+        Member owner = saveMember("legacy-finalize-owner", "기존확정방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "기존 확정 그룹");
+        MenuItem menuItem = saveMenu("legacy-finalize-menu", "기존확정메뉴");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(new GroupRecommendation(
+                groupRoom,
+                "{}",
+                LocalDateTime.now()
+        ));
+        GroupRecommendationCandidate candidate = groupRecommendationCandidateRepository.save(
+                new GroupRecommendationCandidate(recommendation, menuItem, 1, 70.0, "{}")
+        );
+
+        mockMvc.perform(patch("/api/v1/groups/{groupId}/recommendations/{sessionId}/finalize",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.sessionId").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.status").value(GroupRecommendationStatus.FINALIZED.name()))
+                .andExpect(jsonPath("$.data.finalCandidate.candidateId").value(candidate.getId()))
+                .andExpect(jsonPath("$.data.finalizedAt").isNotEmpty());
+
+        GroupRecommendation finalizedRecommendation =
+                groupRecommendationRepository.findById(recommendation.getId()).orElseThrow();
+        assertThat(finalizedRecommendation.getContextJson())
+                .doesNotContain("latitude", "longitude", "radiusMeters", "address");
+    }
+
+    @Test
     @DisplayName("그룹 추천 최종 확정은 동률이면 추천 순위가 높은 후보를 저장한다")
     void finalizeGroupRecommendationBreaksVoteTieByRankNo() throws Exception {
         Member owner = saveMember("recommendation-finalize-tie-owner", "동률확정방장");

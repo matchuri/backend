@@ -250,6 +250,40 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
+    @DisplayName("개인 추천 후보 선택은 위치 필드가 없어도 현재 응답 형태로 성공하고 컨텍스트를 저장하지 않는다")
+    void selectPersonalRecommendationWithoutLocationDoesNotSaveContext() throws Exception {
+        Member member = saveMember("legacy-select-user", "기존선택사용자");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "LEGACY_SPICY", "기존매운맛", 10));
+        MenuItem bibimbap = menuItemRepository.save(new MenuItem("LEGACY_BIBIMBAP", "기존비빔밥", "기존 선택 테스트"));
+        saveMenuAttribute(bibimbap, spicy);
+        saveTasteProfile(member, spicy, null);
+
+        JsonNode recommendation = createRecommendation(accessToken);
+        long requestId = recommendation.path("requestId").asLong();
+        long candidateId = recommendation.path("candidates").get(0).path("id").asLong();
+
+        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "selectedCandidateId": %d
+                                }
+                                """.formatted(candidateId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(requestId))
+                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.SELECTED.name()))
+                .andExpect(jsonPath("$.data.selectedCandidateId").value(candidateId))
+                .andExpect(jsonPath("$.data.closedAt").exists());
+
+        PersonalRecommendation selectedRecommendation = personalRecommendationRepository.findById(requestId)
+                .orElseThrow();
+        assertThat(selectedRecommendation.getContextJson()).isNull();
+    }
+
+    @Test
     @DisplayName("개인 추천 생성은 취향 프로필이 없으면 실패한다")
     void createPersonalRecommendationFailsWithoutTasteProfile() throws Exception {
         Member member = saveMember("no-profile-user", "프로필없음");

@@ -696,7 +696,8 @@ public interface GroupApi {
                     - 최다 득표 후보를 최종 후보로 저장합니다.
                     - 동률이면 추천 순위 `rankNo`가 가장 낮은 후보를 선택합니다.
                     - 투표가 0건이면 `rankNo=1` 후보를 선택합니다.
-                    - 클라이언트가 전달한 최종 확정 시점 위치를 추천 컨텍스트 스냅샷으로 저장합니다.
+                    - 클라이언트가 최종 확정 시점 위치를 모두 전달하면 추천 컨텍스트 스냅샷으로 저장합니다.
+                    - 요청 body가 없거나 위치 필드가 일부만 전달되어도 최종 확정은 정상 처리하며 컨텍스트는 저장하지 않습니다.
                     - 확정 후 그룹 추천 상태는 `FINALIZED`가 됩니다.
                     """
     )
@@ -717,6 +718,10 @@ public interface GroupApi {
     ApiResponse<FinalizeGroupRecommendationResponse> finalizeRecommendation(
             Long groupId,
             Long sessionId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = false,
+                    description = "선택적으로 전달하는 최종 확정 시점 위치입니다. 네 위치 필드가 모두 있어야 저장합니다."
+            )
             @Valid FinalizeGroupRecommendationRequest request
     );
 }
