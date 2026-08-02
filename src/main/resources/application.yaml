@@ -85,11 +85,6 @@ spring:
         jdbc.time_zone: UTC
 
 matchuri:
-  seed:
-    reference:
-      enabled: ${MATCHURI_REFERENCE_SEED_ENABLED:true}
-    sample:
-      enabled: ${MATCHURI_SAMPLE_SEED_ENABLED:true}
   auth:
     public-api-patterns:
       - /error
