@@ -17,7 +17,6 @@ services:
       org.springframework.boot.jdbc.parameters: "serverTimezone=Asia/Seoul&characterEncoding=UTF-8"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./init/sql:/docker-entrypoint-initdb.d
 
   prometheus:
     image: prom/prometheus:v3.12.0

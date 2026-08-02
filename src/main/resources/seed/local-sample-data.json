@@ -1,0 +1,132 @@
+{
+  "members": [
+    {
+      "loginId": "tester01",
+      "passwordHash": "$2a$10$VVuO/Z4eCysA.tIaAEnjkOwHhT42Kx1ci84jB5yNR8td9fkO7wNGq",
+      "nickname": "테스터일",
+      "email": "tester01@example.com",
+      "role": "MEMBER"
+    },
+    {
+      "loginId": "tester02",
+      "passwordHash": "$2a$10$VVuO/Z4eCysA.tIaAEnjkOwHhT42Kx1ci84jB5yNR8td9fkO7wNGq",
+      "nickname": "테스터이",
+      "email": "tester02@example.com",
+      "role": "MEMBER"
+    },
+    {
+      "loginId": "tester03",
+      "passwordHash": "$2a$10$VVuO/Z4eCysA.tIaAEnjkOwHhT42Kx1ci84jB5yNR8td9fkO7wNGq",
+      "nickname": "테스터삼",
+      "email": "tester03@example.com",
+      "role": "MEMBER"
+    },
+    {
+      "loginId": "tester04",
+      "passwordHash": "$2a$10$VVuO/Z4eCysA.tIaAEnjkOwHhT42Kx1ci84jB5yNR8td9fkO7wNGq",
+      "nickname": "테스터사",
+      "email": "tester04@example.com",
+      "role": "MEMBER"
+    },
+    {
+      "loginId": "admin01",
+      "passwordHash": "$2a$10$y9lgSzbq2RGzj22DWiXSq.JM.dYmo6t7MTZJABIWhblVc9OBX7V76",
+      "nickname": "matchuri-admin",
+      "email": "admin01@example.com",
+      "role": "ADMIN"
+    }
+  ],
+  "agreements": [
+    {
+      "type": "TERMS_OF_SERVICE",
+      "version": "2026-04-10"
+    },
+    {
+      "type": "PRIVACY_POLICY",
+      "version": "2026-04-10"
+    }
+  ],
+  "tasteProfiles": [
+    {
+      "loginId": "tester01",
+      "profileVersion": "v1",
+      "preferredAttributeCategories": [
+        {"categoryType": "FOOD_CATEGORY", "code": "KOREAN"},
+        {"categoryType": "COOKING_METHOD", "code": "SOUP"},
+        {"categoryType": "FLAVOR", "code": "SPICY"},
+        {"categoryType": "TEMPERATURE", "code": "HOT"}
+      ],
+      "restrictionIngredientCodes": ["CILANTRO"],
+      "dislikedMenuCodes": ["SALAD"]
+    },
+    {
+      "loginId": "tester02",
+      "profileVersion": "v1",
+      "preferredAttributeCategories": [
+        {"categoryType": "FOOD_CATEGORY", "code": "JAPANESE"},
+        {"categoryType": "COOKING_METHOD", "code": "FRIED"},
+        {"categoryType": "TEXTURE", "code": "CRISPY"},
+        {"categoryType": "FLAVOR", "code": "SALTY"}
+      ],
+      "restrictionIngredientCodes": ["SHRIMP"],
+      "dislikedMenuCodes": ["JJAMPPONG", "PAD_THAI"]
+    },
+    {
+      "loginId": "tester03",
+      "profileVersion": "v1",
+      "preferredAttributeCategories": [
+        {"categoryType": "FOOD_CATEGORY", "code": "WESTERN"},
+        {"categoryType": "COOKING_METHOD", "code": "RAW_SALAD"},
+        {"categoryType": "FLAVOR", "code": "FRESH"},
+        {"categoryType": "TEMPERATURE", "code": "COLD"}
+      ],
+      "restrictionIngredientCodes": ["PORK"],
+      "dislikedMenuCodes": ["BUDAE_JJIGAE", "SAMGYEOPSAL"]
+    },
+    {
+      "loginId": "tester04",
+      "profileVersion": "v1",
+      "preferredAttributeCategories": [
+        {"categoryType": "FOOD_CATEGORY", "code": "CHINESE"},
+        {"categoryType": "COOKING_METHOD", "code": "STIR_FRIED"},
+        {"categoryType": "FLAVOR", "code": "RICH"},
+        {"categoryType": "FLAVOR", "code": "SPICY"}
+      ],
+      "restrictionIngredientCodes": ["MILK"],
+      "dislikedMenuCodes": ["PIZZA", "PASTA"]
+    }
+  ],
+  "groups": [
+    {
+      "name": "점심 결정 A팀",
+      "inviteCode": "LUNCHA2026",
+      "hostLoginId": "tester01",
+      "location": {
+        "latitude": 37.5665000,
+        "longitude": 126.9780000,
+        "radiusMeters": 1000,
+        "address": "서울 중구 세종대로"
+      },
+      "members": [
+        {"loginId": "tester01", "role": "OWNER"},
+        {"loginId": "tester02", "role": "MEMBER"},
+        {"loginId": "tester03", "role": "MEMBER"}
+      ]
+    },
+    {
+      "name": "매운맛 탐험대",
+      "inviteCode": "SPICY2026",
+      "hostLoginId": "tester04",
+      "location": {
+        "latitude": 37.4979000,
+        "longitude": 127.0276000,
+        "radiusMeters": 1000,
+        "address": "서울 강남구 강남대로"
+      },
+      "members": [
+        {"loginId": "tester04", "role": "OWNER"},
+        {"loginId": "tester01", "role": "MEMBER"}
+      ]
+    }
+  ]
+}

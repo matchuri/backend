@@ -28,11 +28,6 @@ backend
 │  └─ workflows
 ├─ gradle
 │  └─ wrapper
-├─ init
-│  └─ sql
-│     ├─ 01-schema.sql
-│     ├─ 02-reference-seed.sql
-│     └─ 03-local-sample-seed.sql
 ├─ src
 │  ├─ main
 │  │  ├─ java
@@ -43,6 +38,9 @@ backend
 │  │  │        ├─ global
 │  │  │        └─ infra
 │  │  └─ resources
+│  │     ├─ seed
+│  │     │  ├─ reference-data.json
+│  │     │  └─ local-sample-data.json
 │  │     ├─ application.yaml
 │  │     └─ application-local.yaml
 │  └─ test
@@ -82,9 +80,14 @@ MATCHURI_DB_NAME=matchuri
 MATCHURI_DB_USER=matchuri
 MATCHURI_DB_PW=matchuri
 MATCHURI_SPRING_PROFILE=local
+MATCHURI_REFERENCE_SEED_ENABLED=true
+MATCHURI_SAMPLE_SEED_ENABLED=true
 MATCHURI_FRONTEND_ORIGIN=http://localhost:3000
 MATCHURI_GOOGLE_EMAIL_APP_PW=dummy
 ```
+
+애플리케이션 기동 시 JPA가 스키마를 갱신한 뒤 기준 데이터를 멱등하게 생성합니다.
+로컬 샘플 데이터는 `local` 프로필에서만 생성하며 메뉴 대표 이미지는 시드하지 않습니다.
 
 ## 4. 로컬 실행 방법
 
