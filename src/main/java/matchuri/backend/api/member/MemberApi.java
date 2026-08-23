@@ -429,7 +429,7 @@ public interface MemberApi {
                                                 "nickname": "점심탐험가",
                                                 "isSocial": false,
                                                 "email": "tester@example.com",
-                                                "profileImageUrl": "https://asset.matchuri.com/preset-profile/spagetti-v1.png"
+                                                "profileImageUrl": "https://asset.matchuri.com/preset-profile/v1-spaghetti.png"
                                               },
                                               "error": null
                                             }
@@ -489,7 +489,7 @@ public interface MemberApi {
                                               "data": {
                                                 "profileImageId": 15,
                                                 "presetProfileImageId": 1,
-                                                "imageUrl": "https://asset.matchuri.com/preset-profile/spagetti-v1.png",
+                                                "imageUrl": "https://asset.matchuri.com/preset-profile/v1-spaghetti.png",
                                                 "updatedAt": "2026-08-24T12:30:00"
                                               },
                                               "error": null

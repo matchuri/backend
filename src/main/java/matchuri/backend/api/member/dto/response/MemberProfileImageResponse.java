@@ -12,7 +12,7 @@ public record MemberProfileImageResponse(
 
         @Schema(
                 description = "현재 프로필 이미지 공개 URL",
-                example = "https://asset.matchuri.com/preset-profile/spagetti-v1.png"
+                example = "https://asset.matchuri.com/preset-profile/v1-spaghetti.png"
         )
         String imageUrl,
 

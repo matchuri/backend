@@ -12,14 +12,14 @@ public record PresetProfileImageResponse(
 
         @Schema(
                 description = "공개 이미지 URL",
-                example = "https://asset.matchuri.com/preset-profile/spagetti-v1.png"
+                example = "https://asset.matchuri.com/preset-profile/v1-spaghetti.png"
         )
         String imageUrl,
 
-        @Schema(description = "R2 object key", example = "preset-profile/spagetti-v1.png")
+        @Schema(description = "R2 object key", example = "preset-profile/v1-spaghetti.png")
         String objectKey,
 
-        @Schema(description = "업로드 원본 파일명", example = "spagetti-v1.png", nullable = true)
+        @Schema(description = "업로드 원본 파일명", example = "v1-spaghetti.png", nullable = true)
         String originalFilename,
 
         @Schema(description = "MIME type", example = "image/png")

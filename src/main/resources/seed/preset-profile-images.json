@@ -1,14 +1,74 @@
 {
   "presetProfileImages": [
     {
-      "objectKey": "preset-profile/spagetti-v1.png",
-      "originalFilename": "spagetti-v1.png",
+      "objectKey": "preset-profile/v1-burger.png.png",
+      "originalFilename": "v1-burger.png.png",
+      "contentType": "image/png",
+      "contentLength": 706241,
+      "checksum": "bec7285716ab90ae278489fc16c22ce1cd93581f68b8c42c0f5338e563e4b137",
+      "width": 1254,
+      "height": 1254,
+      "isDefault": false
+    },
+    {
+      "objectKey": "preset-profile/v1-dumpling.png.png",
+      "originalFilename": "v1-dumpling.png.png",
+      "contentType": "image/png",
+      "contentLength": 580993,
+      "checksum": "3fc717d3498d6d4f8ae84a0a2aabea971486af009021d337617e67655703bf1c",
+      "width": 1254,
+      "height": 1254,
+      "isDefault": false
+    },
+    {
+      "objectKey": "preset-profile/v1-fried-egg.png.png",
+      "originalFilename": "v1-fried-egg.png.png",
+      "contentType": "image/png",
+      "contentLength": 586619,
+      "checksum": "8d78c56bddda4a9d5c9be6ae9b7dd17559f90840efb4264d6310ce04f8f5651f",
+      "width": 1254,
+      "height": 1254,
+      "isDefault": false
+    },
+    {
+      "objectKey": "preset-profile/v1-pizza.png.png",
+      "originalFilename": "v1-pizza.png.png",
+      "contentType": "image/png",
+      "contentLength": 791143,
+      "checksum": "766fd82dfe9a0179ddd62fc419abfca18639662f5dc13a9a75f44610b381d33f",
+      "width": 1254,
+      "height": 1254,
+      "isDefault": false
+    },
+    {
+      "objectKey": "preset-profile/v1-salmon-nigiri.png.png",
+      "originalFilename": "v1-salmon-nigiri.png.png",
+      "contentType": "image/png",
+      "contentLength": 739096,
+      "checksum": "683838a45b0a669c3432689f96593717fd4e87caaab6e2f2204695bc056c15e4",
+      "width": 1254,
+      "height": 1254,
+      "isDefault": false
+    },
+    {
+      "objectKey": "preset-profile/v1-spaghetti.png",
+      "originalFilename": "v1-spaghetti.png",
       "contentType": "image/png",
       "contentLength": 628206,
       "checksum": "87799e52b551354ca444ce806785b9558bf53e4c4869f9f73789d650b47efbd4",
       "width": 1254,
       "height": 1254,
       "isDefault": true
+    },
+    {
+      "objectKey": "preset-profile/v1-taco.png",
+      "originalFilename": "v1-taco.png",
+      "contentType": "image/png",
+      "contentLength": 719400,
+      "checksum": "81137b51f024c1cf00db907fe25700a0540d7e83ff6ecba57cd11c698ab99ba3",
+      "width": 1254,
+      "height": 1254,
+      "isDefault": false
     }
   ]
 }

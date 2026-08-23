@@ -37,7 +37,7 @@ public record MemberProfileResponse(
 
         @Schema(
                 description = "현재 프로필 이미지 공개 URL입니다. 기존 미설정 회원은 null일 수 있습니다.",
-                example = "https://asset.matchuri.com/preset-profile/spagetti-v1.png",
+                example = "https://asset.matchuri.com/preset-profile/v1-spaghetti.png",
                 nullable = true
         )
         String profileImageUrl

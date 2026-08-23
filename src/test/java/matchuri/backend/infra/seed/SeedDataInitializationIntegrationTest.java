@@ -127,11 +127,11 @@ class SeedDataInitializationIntegrationTest {
         assertThat(menuAttributeCategoryRepository.count()).isEqualTo(234);
         assertThat(menuIngredientRepository.count()).isEqualTo(130);
         assertThat(menuItemImageRepository.count()).isZero();
-        assertThat(imageAssetRepository.count()).isEqualTo(1);
-        assertThat(presetProfileImageRepository.count()).isEqualTo(1);
+        assertThat(imageAssetRepository.count()).isEqualTo(7);
+        assertThat(presetProfileImageRepository.count()).isEqualTo(7);
         assertThat(presetProfileImageRepository.findActiveDefaults()).singleElement()
                 .satisfies(preset -> assertThat(preset.getImageAsset().getObjectKey())
-                        .isEqualTo("preset-profile/spagetti-v1.png"));
+                        .isEqualTo("preset-profile/v1-spaghetti.png"));
 
         assertThat(memberRepository.count()).isEqualTo(5);
         assertThat(memberProfileImageRepository.count()).isEqualTo(5);
