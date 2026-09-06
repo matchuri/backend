@@ -399,6 +399,7 @@ public class GroupMapper {
     public GroupInviteV2SummaryResponse toGroupInviteV2SummaryResponse(GroupInviteV2SummaryResult result) {
         return new GroupInviteV2SummaryResponse(
                 result.id(),
+                result.groupName(),
                 result.requestMemberProfileImageUrl(),
                 result.requestMemberNickname()
         );

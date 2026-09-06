@@ -2456,7 +2456,7 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("v2 내 그룹 초대 목록은 PK와 초대자 프로필 이미지 URL, 닉네임만 반환한다")
+    @DisplayName("v2 내 그룹 초대 목록은 PK와 그룹명, 초대자 프로필 이미지 URL, 닉네임만 반환한다")
     void getMyInvitesV2ReturnsCompactInviterProfile() throws Exception {
         Member owner = saveMember("my-invite-v2-owner", "v2초대방장");
         Member target = saveMember("my-invite-v2-target", "v2초대대상");
@@ -2481,6 +2481,7 @@ class GroupIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content.length()").value(1))
                 .andExpect(jsonPath("$.data.content[0].id").value(pendingInvite.getId()))
+                .andExpect(jsonPath("$.data.content[0].groupName").value(groupRoom.getName()))
                 .andExpect(jsonPath("$.data.content[0].requestMemberProfileImageUrl")
                         .value("https://asset.matchuri.com/profile/invite-owner.png"))
                 .andExpect(jsonPath("$.data.content[0].requestMemberNickname").value(owner.getNickname()))

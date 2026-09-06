@@ -208,6 +208,7 @@ public class GroupInviteServiceImpl implements GroupInviteService {
 
         return invites.map(invite -> GroupInviteV2SummaryResult.from(
                 invite,
+                invite.getRoom().getName(),
                 profileImageUrlsByMemberId.get(invite.getRequestMember().getId())
         ));
     }
