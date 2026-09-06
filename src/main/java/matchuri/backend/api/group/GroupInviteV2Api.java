@@ -26,7 +26,7 @@ public interface GroupInviteV2Api {
                     - 현재 회원이 초대 대상인 만료되지 않은 초대만 반환합니다.
                     - status를 생략하면 PENDING 초대만 조회합니다.
                     - 생성 시각 최신순으로 정렬합니다.
-                    - 각 항목은 초대 PK ID, 초대자 프로필 이미지 URL, 초대자 닉네임으로 구성됩니다.
+                    - 각 항목은 초대 PK ID, 그룹명, 초대자 프로필 이미지 URL, 초대자 닉네임으로 구성됩니다.
                     """
     )
     @ApiResponses({
@@ -45,6 +45,7 @@ public interface GroupInviteV2Api {
                                                 "content": [
                                                   {
                                                     "id": 501,
+                                                    "groupName": "맛집 탐방 모임",
                                                     "requestMemberProfileImageUrl": "https://asset.matchuri.com/preset-profile/v1-spaghetti.png",
                                                     "requestMemberNickname": "나는야 임영웅"
                                                   }
