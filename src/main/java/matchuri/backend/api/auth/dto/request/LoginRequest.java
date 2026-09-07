@@ -17,7 +17,7 @@ public record LoginRequest(
 
         @Schema(
                 description = "일반 로그인 비밀번호입니다. 평문은 요청 시에만 사용되며 서버에는 해시로 저장됩니다.",
-                example = "Admin123!",
+                example = "matchuri123!",
                 minLength = Member.PASSWORD_MIN_SIZE,
                 maxLength = Member.PASSWORD_MAX_SIZE
         )
