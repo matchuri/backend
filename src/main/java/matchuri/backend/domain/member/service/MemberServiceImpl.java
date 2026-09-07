@@ -25,6 +25,7 @@ import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
+import matchuri.backend.domain.member.repository.MemberHomeQueryResult;
 import matchuri.backend.domain.member.repository.MemberLocationRepository;
 import matchuri.backend.domain.member.repository.MemberProfileImageRepository;
 import matchuri.backend.domain.member.repository.MemberRepository;
@@ -34,6 +35,7 @@ import matchuri.backend.domain.member.repository.MemberTasteProfileRepository;
 import matchuri.backend.domain.member.repository.MemberTasteProfileRestrictionIngredientRepository;
 import matchuri.backend.domain.member.result.CreateMemberResult;
 import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.MemberHomeResult;
 import matchuri.backend.domain.member.result.MemberPresetProfileImageResult;
 import matchuri.backend.domain.member.result.MemberProfileImageResult;
 import matchuri.backend.domain.member.result.MemberLocationResult;
@@ -194,6 +196,52 @@ public class MemberServiceImpl implements MemberService {
                 .orElse(null);
 
         return MemberProfileResult.from(member, profileImageUrl);
+    }
+
+    @Override
+    public MemberHomeResult getHomeMember(Long memberId) {
+        memberReader.getActiveMember(memberId);
+        MemberHomeQueryResult queryResult = memberRepository.findHomeQueryResultByMemberId(memberId)
+                .orElseThrow(() -> new IllegalStateException("홈 회원 조회 결과가 없습니다. memberId=" + memberId));
+        String profileImageUrl = queryResult.profileImageObjectKey() == null
+                ? null
+                : imageUrlResolver.toPublicUrl(queryResult.profileImageObjectKey());
+        MemberProfileResult profile = new MemberProfileResult(
+                queryResult.memberId(),
+                queryResult.loginId(),
+                queryResult.nickname(),
+                queryResult.social(),
+                queryResult.email(),
+                profileImageUrl
+        );
+        MemberLocationResult location = queryResult.latitude() == null
+                ? null
+                : new MemberLocationResult(
+                        queryResult.latitude(),
+                        queryResult.longitude(),
+                        queryResult.radiusMeters(),
+                        queryResult.address()
+                );
+        MemberTasteProfileSummaryResult tasteProfile = queryResult.profileVersion() == null
+                ? MemberTasteProfileSummaryResult.empty(memberId)
+                : new MemberTasteProfileSummaryResult(
+                        memberId,
+                        queryResult.profileVersion(),
+                        queryResult.attributeCategories().stream()
+                                .map(row -> new MemberTasteProfileSummaryResult.AttributeCategoryItem(
+                                        row.id(),
+                                        row.categoryType(),
+                                        row.code(),
+                                        row.name(),
+                                        row.sortOrder()
+                                ))
+                                .toList(),
+                        List.of(),
+                        List.of(),
+                        queryResult.profileUpdatedAt()
+                );
+
+        return new MemberHomeResult(profile, location, tasteProfile);
     }
 
     @Override

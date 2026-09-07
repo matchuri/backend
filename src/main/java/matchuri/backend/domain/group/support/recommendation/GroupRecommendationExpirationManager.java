@@ -1,11 +1,15 @@
 package matchuri.backend.domain.group.support.recommendation;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.entity.GroupRecommendation;
 import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
 import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationStatusQueryRow;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -63,5 +67,13 @@ public class GroupRecommendationExpirationManager {
         return groupRecommendationRepository.findFirstByRoomIdOrderByCreatedAtDescIdDesc(roomId)
                 .map(GroupRecommendation::getStatus)
                 .orElse(null);
+    }
+
+    public Map<Long, GroupRecommendationStatus> latestRecommendationStatuses(Collection<Long> roomIds) {
+        return groupRecommendationRepository.findLatestStatusesByRoomIds(roomIds).stream()
+                .collect(Collectors.toMap(
+                        GroupRecommendationStatusQueryRow::roomId,
+                        GroupRecommendationStatusQueryRow::status
+                ));
     }
 }

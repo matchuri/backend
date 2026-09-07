@@ -13,6 +13,7 @@ import matchuri.backend.domain.group.command.UpdateGroupCommand;
 import matchuri.backend.domain.group.entity.GroupInviteStatus;
 import matchuri.backend.domain.group.entity.GroupLocation;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
+import matchuri.backend.domain.group.entity.GroupRecommendationStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
 import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.entity.GroupRoomStatus;
@@ -212,14 +213,21 @@ public class GroupManagementServiceImpl implements GroupManagementService {
                 PageRequest.of(command.page(), command.size())
         );
         Map<Long, Long> activeMemberCounts = countActiveMembers(memberships);
+        List<Long> roomIds = memberships.getContent().stream()
+                .map(membership -> membership.getRoom().getId())
+                .toList();
         groupRecommendationExpirationManager.expireActiveGroupRecommendations(
-                memberships.getContent().stream()
-                        .map(membership -> membership.getRoom().getId())
-                        .toList(),
+                roomIds,
                 LocalDateTime.now()
         );
+        Map<Long, GroupRecommendationStatus> latestRecommendationStatuses =
+                groupRecommendationExpirationManager.latestRecommendationStatuses(roomIds);
 
-        return memberships.map(membership -> toSummaryResult(membership, activeMemberCounts));
+        return memberships.map(membership -> toSummaryResult(
+                membership,
+                activeMemberCounts,
+                latestRecommendationStatuses
+        ));
     }
 
     @Override
@@ -228,12 +236,15 @@ public class GroupManagementServiceImpl implements GroupManagementService {
         GroupRoom room = groupRoomRepository.findByIdAndStatusNot(groupId, GroupRoomStatus.DELETED)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, groupId));
 
-        if (!groupRoomMemberRepository.existsActiveMembershipInNotDeletedRoom(groupId, member.getId())) {
+        List<GroupRoomMember> activeMemberships = groupRoomMemberRepository.findActiveMembersByRoomId(groupId);
+        if (activeMemberships.stream()
+                .map(GroupRoomMember::getMember)
+                .map(Member::getId)
+                .noneMatch(member.getId()::equals)) {
             throw new BusinessException(GroupErrorCode.ACCESS_DENIED, groupId);
         }
 
-        List<GroupMemberSummaryResult> members = groupRoomMemberRepository.findActiveMembersByRoomId(groupId)
-                .stream()
+        List<GroupMemberSummaryResult> members = activeMemberships.stream()
                 .map(membership -> toMemberSummaryResult(membership, member.getId()))
                 .toList();
         groupRecommendationExpirationManager.expireActiveGroupRecommendations(groupId, LocalDateTime.now());
@@ -241,7 +252,8 @@ public class GroupManagementServiceImpl implements GroupManagementService {
                 .findFirstByRoomIdOrderByCreatedAtDescIdDesc(groupId)
                 .map(recommendation -> groupRecommendationResultAssembler.toGroupRecommendationResult(
                         recommendation,
-                        member.getId()
+                        member.getId(),
+                        activeMemberships
                 ))
                 .orElse(null);
         GroupLocation location = groupLocationManager.latestGroupLocation(room.getId());
@@ -279,7 +291,8 @@ public class GroupManagementServiceImpl implements GroupManagementService {
 
     private GroupSummaryResult toSummaryResult(
             GroupRoomMember membership,
-            Map<Long, Long> activeMemberCounts
+            Map<Long, Long> activeMemberCounts,
+            Map<Long, GroupRecommendationStatus> latestRecommendationStatuses
     ) {
         GroupRoom room = membership.getRoom();
 
@@ -288,7 +301,7 @@ public class GroupManagementServiceImpl implements GroupManagementService {
                 room.getName(),
                 room.getStatus(),
                 activeMemberCounts.getOrDefault(room.getId(), 0L).intValue(),
-                groupRecommendationExpirationManager.latestRecommendationStatus(room.getId()),
+                latestRecommendationStatuses.get(room.getId()),
                 room.getCreatedAt()
         );
     }
