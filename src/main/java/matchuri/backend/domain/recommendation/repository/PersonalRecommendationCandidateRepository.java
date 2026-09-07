@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 @NullMarked
-public interface PersonalRecommendationCandidateRepository extends JpaRepository<PersonalRecommendationCandidate, Long> {
+public interface PersonalRecommendationCandidateRepository extends JpaRepository<PersonalRecommendationCandidate, Long>,
+        PersonalRecommendationCandidateRepositoryCustom {
 
     List<PersonalRecommendationCandidate> findByPersonalRecommendationIdOrderByRankNoAsc(Long personalRecommendationId);
 
