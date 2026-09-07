@@ -81,8 +81,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -220,8 +223,9 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("내 그룹 목록 Before 계측은 그룹 수 증가에 따른 쿼리 증가를 기록한다")
-    void measureMyGroupListQueryGrowthBeforeOptimization() throws Exception {
+    @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("내 그룹 목록은 그룹 수와 무관하게 고정 쿼리로 응답한다")
+    void measureMyGroupListQueryScaleAfterOptimization(CapturedOutput output) throws Exception {
         Member owner = saveMember("group-list-baseline-owner", "그룹목록계측");
         String accessToken = accessToken(owner);
 
@@ -239,6 +243,15 @@ class GroupIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content.length()").value(12));
+
+        List<String> queryLogs = output.getOut().lines()
+                .filter(line -> line.contains("API_QUERY_BEFORE method=GET uri=/api/v1/groups status=200"))
+                .toList();
+
+        assertThat(queryLogs)
+                .hasSize(2)
+                .allMatch(line -> line.contains(
+                        "total=5 select=5 insert=0 update=0 delete=0 other=0"));
     }
 
     @Test
