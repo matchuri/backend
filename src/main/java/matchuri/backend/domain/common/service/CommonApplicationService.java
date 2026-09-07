@@ -6,9 +6,7 @@ import matchuri.backend.api.common.dto.response.HomeResponse;
 import matchuri.backend.api.common.mapper.HomeMapper;
 import matchuri.backend.domain.group.result.GroupHomeActivityResult;
 import matchuri.backend.domain.group.service.GroupRecommendationService;
-import matchuri.backend.domain.member.result.MemberLocationResult;
-import matchuri.backend.domain.member.result.MemberProfileResult;
-import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
+import matchuri.backend.domain.member.result.MemberHomeResult;
 import matchuri.backend.domain.member.service.MemberService;
 import matchuri.backend.domain.recommendation.result.PersonalRecommendationHomeResult;
 import matchuri.backend.domain.recommendation.service.RecommendationService;
@@ -26,11 +24,15 @@ public class CommonApplicationService {
 
     @Transactional
     public HomeResponse getHome(Long memberId) {
-        MemberProfileResult user = memberService.getMyProfile(memberId);
-        MemberLocationResult location = memberService.getMyLocation(memberId);
-        MemberTasteProfileSummaryResult taste = memberService.getMyTasteProfile(memberId);
+        MemberHomeResult member = memberService.getHomeMember(memberId);
         PersonalRecommendationHomeResult recommendations = recommendationService.getHomeRecommendations(memberId);
         List<GroupHomeActivityResult> activities = groupRecommendationService.getHomeActivities(memberId);
-        return homeMapper.toResponse(user, location, taste, recommendations, activities);
+        return homeMapper.toResponse(
+                member.profile(),
+                member.location(),
+                member.tasteProfile(),
+                recommendations,
+                activities
+        );
     }
 }
