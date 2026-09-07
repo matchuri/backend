@@ -33,11 +33,11 @@ public class MenuThumbnailUrlResolver {
                 .distinct()
                 .toList();
 
-        return menuItemImageRepository.findAllByMenuIdIn(distinctMenuIds)
+        return menuItemImageRepository.findThumbnailRowsByMenuIds(distinctMenuIds)
                 .stream()
                 .collect(Collectors.toMap(
-                        menuItemImage -> menuItemImage.getMenu().getId(),
-                        menuItemImage -> imageUrlResolver.toPublicUrl(menuItemImage.getImageAsset().getObjectKey()),
+                        row -> row.menuId(),
+                        row -> imageUrlResolver.toPublicUrl(row.objectKey()),
                         (left, right) -> left
                 ));
     }

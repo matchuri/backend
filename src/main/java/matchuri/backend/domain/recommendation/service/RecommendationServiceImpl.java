@@ -29,6 +29,7 @@ import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
+import matchuri.backend.domain.menu.repository.MenuRecommendationProfileQueryResult;
 import matchuri.backend.domain.menu.result.MenuAttributeCategoryResult;
 import matchuri.backend.domain.menu.support.MenuThumbnailUrlResolver;
 import matchuri.backend.domain.recommendation.algorithm.MenuRecommendationAlgorithm;
@@ -211,19 +212,14 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         MenuRecommendationAlgorithm algorithm =
                 menuRecommendationAlgorithmResolver.resolve(RecommendationAlgorithmType.GUEST_PERSONAL);
-        List<MenuItem> menuItems = menuItemRepository.searchActiveMenuItems(
-                null,
-                List.of(),
-                true,
-                List.of(),
-                true
-        );
-        Map<Long, MenuItem> menuItemById = menuItems.stream()
-                .collect(Collectors.toMap(MenuItem::getId, Function.identity()));
+        List<MenuRecommendationProfileQueryResult> menuProfiles =
+                menuItemRepository.findActiveMenuRecommendationProfiles();
+        Map<Long, MenuRecommendationProfileQueryResult> menuProfileById = menuProfiles.stream()
+                .collect(Collectors.toMap(MenuRecommendationProfileQueryResult::menuId, Function.identity()));
         MenuRecommendationInput input = new MenuRecommendationInput(
                 RecommendationTargetType.GUEST_PERSONAL,
                 List.of(toGuestTasteProfileSnapshot(command)),
-                toMenuRecommendationProfiles(menuItems),
+                toMenuRecommendationProfilesFromQueryResults(menuProfiles),
                 RecommendationContextSnapshot.of(command.contextJson()),
                 RECOMMENDATION_CANDIDATE_LIMIT,
                 List.of(),
@@ -232,15 +228,20 @@ public class RecommendationServiceImpl implements RecommendationService {
         );
 
         MenuRecommendationResult recommendationResult = algorithm.recommend(input);
+        Map<Long, String> thumbnailUrlsByMenuId = menuThumbnailUrlResolver.resolveAll(
+                recommendationResult.candidates().stream()
+                        .map(MenuRecommendationCandidateResult::menuId)
+                        .toList()
+        );
 
         List<GuestPersonalRecommendationCandidateResult> candidates = recommendationResult.candidates().stream()
                 .map(candidate -> {
-                    MenuItem menuItem = menuItemById.get(candidate.menuId());
+                    MenuRecommendationProfileQueryResult menuProfile = menuProfileById.get(candidate.menuId());
 
                     return new GuestPersonalRecommendationCandidateResult(
                             candidate.menuId(),
-                            menuItem.getName(),
-                            menuThumbnailUrlResolver.resolve(candidate.menuId()),
+                            menuProfile.menuName(),
+                            thumbnailUrlsByMenuId.get(candidate.menuId()),
                             candidate.rankNo(),
                             candidate.score()
                     );
@@ -529,6 +530,20 @@ public class RecommendationServiceImpl implements RecommendationService {
                                 .map(AttributeCategory::getId)
                                 .toList(),
                         ingredientIdsByMenuId.getOrDefault(menuItem.getId(), List.of())
+                ))
+                .toList();
+    }
+
+    private List<MenuRecommendationProfile> toMenuRecommendationProfilesFromQueryResults(
+            List<MenuRecommendationProfileQueryResult> queryResults
+    ) {
+        return queryResults.stream()
+                .map(queryResult -> new MenuRecommendationProfile(
+                        queryResult.menuId(),
+                        queryResult.menuCode(),
+                        queryResult.menuName(),
+                        queryResult.attributeCategoryIds(),
+                        queryResult.ingredientIds()
                 ))
                 .toList();
     }
