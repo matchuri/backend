@@ -150,8 +150,13 @@ public class GroupRecommendationServiceImpl implements GroupRecommendationServic
         GroupRecommendation recommendation = groupRecommendationRepository.findByIdAndRoomId(sessionId, groupId)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.RECOMMENDATION_NOT_FOUND, sessionId));
         groupRecommendationExpirationManager.expireGroupRecommendationIfNeeded(recommendation, LocalDateTime.now());
+        List<GroupRoomMember> activeMemberships = groupRoomMemberRepository.findActiveMembersByRoomId(groupId);
 
-        return groupRecommendationResultAssembler.toGroupRecommendationResult(recommendation, member.getId());
+        return groupRecommendationResultAssembler.toGroupRecommendationResult(
+                recommendation,
+                member.getId(),
+                activeMemberships
+        );
     }
 
     @Override

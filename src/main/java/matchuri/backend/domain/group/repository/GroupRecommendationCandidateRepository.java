@@ -5,7 +5,8 @@ import java.util.Optional;
 import matchuri.backend.domain.group.entity.GroupRecommendationCandidate;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface GroupRecommendationCandidateRepository extends JpaRepository<GroupRecommendationCandidate, Long> {
+public interface GroupRecommendationCandidateRepository extends JpaRepository<GroupRecommendationCandidate, Long>,
+        GroupRecommendationCandidateRepositoryCustom {
 
     List<GroupRecommendationCandidate> findAllByGroupRecommendationIdOrderByRankNoAsc(Long recommendationId);
 

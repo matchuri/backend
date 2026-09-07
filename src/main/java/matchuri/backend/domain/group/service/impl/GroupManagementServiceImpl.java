@@ -236,12 +236,15 @@ public class GroupManagementServiceImpl implements GroupManagementService {
         GroupRoom room = groupRoomRepository.findByIdAndStatusNot(groupId, GroupRoomStatus.DELETED)
                 .orElseThrow(() -> new BusinessException(GroupErrorCode.NOT_FOUND, groupId));
 
-        if (!groupRoomMemberRepository.existsActiveMembershipInNotDeletedRoom(groupId, member.getId())) {
+        List<GroupRoomMember> activeMemberships = groupRoomMemberRepository.findActiveMembersByRoomId(groupId);
+        if (activeMemberships.stream()
+                .map(GroupRoomMember::getMember)
+                .map(Member::getId)
+                .noneMatch(member.getId()::equals)) {
             throw new BusinessException(GroupErrorCode.ACCESS_DENIED, groupId);
         }
 
-        List<GroupMemberSummaryResult> members = groupRoomMemberRepository.findActiveMembersByRoomId(groupId)
-                .stream()
+        List<GroupMemberSummaryResult> members = activeMemberships.stream()
                 .map(membership -> toMemberSummaryResult(membership, member.getId()))
                 .toList();
         groupRecommendationExpirationManager.expireActiveGroupRecommendations(groupId, LocalDateTime.now());
@@ -249,7 +252,8 @@ public class GroupManagementServiceImpl implements GroupManagementService {
                 .findFirstByRoomIdOrderByCreatedAtDescIdDesc(groupId)
                 .map(recommendation -> groupRecommendationResultAssembler.toGroupRecommendationResult(
                         recommendation,
-                        member.getId()
+                        member.getId(),
+                        activeMemberships
                 ))
                 .orElse(null);
         GroupLocation location = groupLocationManager.latestGroupLocation(room.getId());
