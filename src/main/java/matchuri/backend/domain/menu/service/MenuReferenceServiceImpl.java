@@ -2,6 +2,7 @@ package matchuri.backend.domain.menu.service;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.domain.image.support.ImageUrlResolver;
 import matchuri.backend.domain.menu.MenuErrorCode;
 import matchuri.backend.domain.menu.command.GetAttributeCategoriesCommand;
 import matchuri.backend.domain.menu.command.GetRestrictionIngredientsCommand;
@@ -9,14 +10,12 @@ import matchuri.backend.domain.menu.command.SearchMenuItemsCommand;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.repository.AttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.IngredientRepository;
-import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
-import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
+import matchuri.backend.domain.menu.repository.MenuItemDetailQueryResult;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
 import matchuri.backend.domain.menu.result.AttributeCategoryResult;
 import matchuri.backend.domain.menu.result.MenuItemDetailResult;
 import matchuri.backend.domain.menu.result.MenuItemSummaryResult;
 import matchuri.backend.domain.menu.result.RestrictionIngredientResult;
-import matchuri.backend.domain.menu.support.MenuThumbnailUrlResolver;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,9 +28,7 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
     private final AttributeCategoryRepository attributeCategoryRepository;
     private final IngredientRepository ingredientRepository;
     private final MenuItemRepository menuItemRepository;
-    private final MenuAttributeCategoryRepository menuAttributeCategoryRepository;
-    private final MenuIngredientRepository menuIngredientRepository;
-    private final MenuThumbnailUrlResolver menuThumbnailUrlResolver;
+    private final ImageUrlResolver imageUrlResolver;
 
     @Override
     public List<AttributeCategoryResult> getActiveAttributeCategories(GetAttributeCategoriesCommand command) {
@@ -84,24 +81,34 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
 
     @Override
     public MenuItemDetailResult getMenuItem(Long menuItemId) {
-        var menuItem = menuItemRepository.findByIdAndActiveTrue(menuItemId)
+        MenuItemDetailQueryResult menuItem = menuItemRepository.findActiveMenuItemDetailById(menuItemId)
                 .orElseThrow(() -> new BusinessException(MenuErrorCode.NOT_FOUND, menuItemId));
 
-        var attributeCategories = menuAttributeCategoryRepository
-                .findAllByMenuIdAndAttributeCategoryActiveTrueOrderByAttributeCategoryCategoryTypeAscAttributeCategorySortOrderAscAttributeCategoryIdAsc(
-                        menuItemId)
-                .stream()
-                .map(menuAttributeCategory -> AttributeCategoryResult.from(menuAttributeCategory.getAttributeCategory()))
-                .toList();
-
-        var ingredients = menuIngredientRepository
-                .findAllByMenuIdAndIngredientActiveTrueOrderByIngredientSortOrderAscIngredientIdAsc(menuItemId)
-                .stream()
-                .map(menuIngredient -> RestrictionIngredientResult.from(menuIngredient.getIngredient()))
-                .toList();
-
-        return MenuItemDetailResult.of(menuItem, menuThumbnailUrlResolver.resolve(menuItemId), attributeCategories,
-                ingredients);
+        return new MenuItemDetailResult(
+                menuItem.id(),
+                menuItem.code(),
+                menuItem.name(),
+                menuItem.description(),
+                imageUrlResolver.toPublicUrl(menuItem.thumbnailObjectKey()),
+                menuItem.attributeCategories().stream()
+                        .map(category -> new AttributeCategoryResult(
+                                category.id(),
+                                category.categoryType(),
+                                category.code(),
+                                category.name(),
+                                category.sortOrder()
+                        ))
+                        .toList(),
+                menuItem.ingredients().stream()
+                        .map(ingredient -> new RestrictionIngredientResult(
+                                ingredient.id(),
+                                ingredient.code(),
+                                ingredient.name(),
+                                ingredient.allergen(),
+                                ingredient.sortOrder()
+                        ))
+                        .toList()
+        );
     }
 
     private List<Long> distinctIds(List<Long> ids) {

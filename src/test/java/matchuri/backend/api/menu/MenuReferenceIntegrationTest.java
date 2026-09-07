@@ -6,9 +6,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import matchuri.backend.domain.image.entity.ImageAsset;
+import matchuri.backend.domain.image.entity.ImageStorageProvider;
+import matchuri.backend.domain.image.repository.ImageAssetRepository;
 import matchuri.backend.domain.menu.entity.MenuAttributeCategory;
 import matchuri.backend.domain.menu.entity.MenuIngredient;
 import matchuri.backend.domain.menu.entity.MenuItem;
+import matchuri.backend.domain.menu.entity.MenuItemImage;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
@@ -17,11 +22,15 @@ import matchuri.backend.domain.menu.repository.IngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuAttributeCategoryRepository;
 import matchuri.backend.domain.menu.repository.MenuIngredientRepository;
 import matchuri.backend.domain.menu.repository.MenuItemRepository;
+import matchuri.backend.domain.menu.repository.MenuItemImageRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -45,6 +54,12 @@ class MenuReferenceIntegrationTest {
     private MenuItemRepository menuItemRepository;
 
     @Autowired
+    private MenuItemImageRepository menuItemImageRepository;
+
+    @Autowired
+    private ImageAssetRepository imageAssetRepository;
+
+    @Autowired
     private MenuAttributeCategoryRepository menuAttributeCategoryRepository;
 
     @Autowired
@@ -54,23 +69,40 @@ class MenuReferenceIntegrationTest {
     void setUp() {
         menuAttributeCategoryRepository.deleteAll();
         menuIngredientRepository.deleteAll();
+        menuItemImageRepository.deleteAll();
         menuItemRepository.deleteAll();
+        imageAssetRepository.deleteAll();
         attributeCategoryRepository.deleteAll();
         ingredientRepository.deleteAll();
     }
 
     @Test
-    @DisplayName("메뉴 상세 Before 계측은 연관 항목 수가 증가해도 고정 쿼리를 기록한다")
-    void measureMenuDetailQueryScaleBeforeOptimization() throws Exception {
+    @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("메뉴 상세 조회는 연관 항목 수와 무관하게 고정 쿼리로 응답한다")
+    void measureMenuDetailQueryScaleAfterOptimization(CapturedOutput output) throws Exception {
         MenuItem menuItem = menuItemRepository.save(
                 new MenuItem("DETAIL_BASELINE", "상세 계측 메뉴", "계측 설명"));
+        ImageAsset imageAsset = imageAssetRepository.save(new ImageAsset(
+                ImageStorageProvider.CLOUDFLARE_R2,
+                "test",
+                "menu-detail/baseline.png",
+                "baseline.png",
+                "image/png",
+                1024L,
+                "menu-detail-baseline-checksum",
+                640,
+                480
+        ));
+        menuItemImageRepository.save(new MenuItemImage(menuItem, imageAsset));
         saveMeasuredReferences(menuItem, 1, 1);
 
         mockMvc.perform(get("/api/v1/menu-items/{menuItemId}", menuItem.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.attributeCategories.length()").value(1))
-                .andExpect(jsonPath("$.data.ingredients.length()").value(1));
+                .andExpect(jsonPath("$.data.ingredients.length()").value(1))
+                .andExpect(jsonPath("$.data.thumbnailUrl")
+                        .value("https://asset.matchuri.com/menu-detail/baseline.png"));
 
         saveMeasuredReferences(menuItem, 2, 12);
         mockMvc.perform(get("/api/v1/menu-items/{menuItemId}", menuItem.getId())
@@ -78,6 +110,15 @@ class MenuReferenceIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.attributeCategories.length()").value(12))
                 .andExpect(jsonPath("$.data.ingredients.length()").value(12));
+
+        List<String> queryLogs = output.getOut().lines()
+                .filter(line -> line.contains("API_QUERY_BEFORE method=GET uri=/api/v1/menu-items/"))
+                .toList();
+
+        assertThat(queryLogs)
+                .hasSize(2)
+                .allMatch(line -> line.contains(
+                        "total=3 select=3 insert=0 update=0 delete=0 other=0"));
     }
 
     @Test
