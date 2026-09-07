@@ -12,7 +12,7 @@ jobs:
       issues: write
 
     steps:
-      - name: Auto Labeling based on Branch Name
+      - name: Sync labels from branch name and PR checkboxes
         uses: actions/github-script@v9
         with:
           script: |
@@ -28,6 +28,7 @@ jobs:
               '⚡ performance',
               '✅ test',
               '♻️ refactor',
+              '🎨 style',
               '📝 docs',
               '🚚 chore',
               '🔒 security',
@@ -49,16 +50,17 @@ jobs:
             if (branchName.startsWith('chore/')) desiredLabels.add('🚚 chore');
             if (branchName.startsWith('security/')) desiredLabels.add('🔒 security');
 
-            // PR 체크박스 기반 라벨링 (문구 변화/대소문자/공백 변화에 강건하도록 정규식 사용)
-            const hasCheckedApiChange = /-\s*\[[xX]\]\s*API(?:의)?\s*(?:요구사항|스펙).*변경/i.test(prBody);
-            const hasCheckedDbChange = /-\s*\[[xX]\]\s*DB\s*구조.*변경/i.test(prBody);
+            // PR 템플릿의 변경 유형 체크박스와 setup_labels.sh의 라벨명을 동기화한다.
+            const checkedItems = prBody
+              .split(String.fromCharCode(10))
+              .map(line => line.trim())
+              .filter(line => line.startsWith('- [x] ') || line.startsWith('- [X] '))
+              .map(line => line.slice(6).trim());
 
-            if (hasCheckedApiChange) {
-              desiredLabels.add('🧩 api');
-            }
-
-            if (hasCheckedDbChange) {
-              desiredLabels.add('🗄️ db');
+            for (const label of managedLabels) {
+              if (checkedItems.includes(label)) {
+                desiredLabels.add(label);
+              }
             }
 
             const { data: currentLabelsData } = await github.rest.issues.listLabelsOnIssue({
