@@ -61,8 +61,11 @@ import matchuri.backend.global.config.MatchuriProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -158,8 +161,9 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("개인 추천 후보 조회 Before 계측은 후보 수 증가에 따른 쿼리 증가를 기록한다")
-    void measurePersonalRecommendationCandidateQueryGrowthBeforeOptimization() throws Exception {
+    @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("개인 추천 후보 조회는 후보 수와 무관하게 고정 쿼리로 응답한다")
+    void measurePersonalRecommendationCandidateQueryScaleAfterOptimization(CapturedOutput output) throws Exception {
         Member member = saveMember("candidate-baseline-user", "후보계측");
         String accessToken = accessToken(member);
 
@@ -172,12 +176,27 @@ class PersonalRecommendationIntegrationTest {
         mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}/candidates", small.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.candidates.length()").value(1));
+                .andExpect(jsonPath("$.data.candidates.length()").value(1))
+                .andExpect(jsonPath("$.data.candidates[0].thumbnailUrl")
+                        .value("https://asset.matchuri.com/candidate-baseline/1.png"));
 
         mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}/candidates", large.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.candidates.length()").value(12));
+                .andExpect(jsonPath("$.data.candidates.length()").value(12))
+                .andExpect(jsonPath("$.data.candidates[11].thumbnailUrl")
+                        .value("https://asset.matchuri.com/candidate-baseline/13.png"));
+
+        List<String> queryLogs = output.getOut().lines()
+                .filter(line -> line.contains(
+                        "API_QUERY_BEFORE method=GET uri=/api/v1/personal/recommendations/"))
+                .filter(line -> line.contains("/candidates"))
+                .toList();
+
+        assertThat(queryLogs)
+                .hasSize(2)
+                .allMatch(line -> line.contains(
+                        "total=3 select=3 insert=0 update=0 delete=0 other=0"));
     }
 
     @Test
@@ -900,6 +919,18 @@ class PersonalRecommendationIntegrationTest {
         for (int number = startInclusive; number <= endInclusive; number++) {
             MenuItem menuItem = menuItemRepository.save(
                     new MenuItem("CANDIDATE_BASELINE_" + number, "후보 계측 " + number, "계측 설명"));
+            ImageAsset imageAsset = imageAssetRepository.save(new ImageAsset(
+                    ImageStorageProvider.CLOUDFLARE_R2,
+                    "test",
+                    "candidate-baseline/" + number + ".png",
+                    "candidate-" + number + ".png",
+                    "image/png",
+                    1024L,
+                    "candidate-checksum-" + number,
+                    640,
+                    480
+            ));
+            menuItemImageRepository.save(new MenuItemImage(menuItem, imageAsset));
             personalRecommendationCandidateRepository.save(
                     PersonalRecommendationCandidate.of(recommendation, menuItem, number - startInclusive + 1, 50.0)
             );

@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.behavior.entity.ActionType;
 import matchuri.backend.domain.behavior.entity.MemberMenuAction;
 import matchuri.backend.domain.behavior.repository.MemberMenuActionRepository;
+import matchuri.backend.domain.image.support.ImageUrlResolver;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.support.member.MemberReader;
@@ -49,6 +50,7 @@ import matchuri.backend.domain.recommendation.entity.PersonalRecommendationRerol
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatus;
 import matchuri.backend.domain.recommendation.exception.GuestRecommendationErrorCode;
 import matchuri.backend.domain.recommendation.exception.RecommendationErrorCode;
+import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateQueryRow;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationCandidateRepository;
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
 import matchuri.backend.domain.recommendation.result.GuestPersonalRecommendationCandidateResult;
@@ -88,6 +90,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final MenuRecommendationAlgorithmResolver menuRecommendationAlgorithmResolver;
     private final PersonalRecommendationExpirationService personalRecommendationExpirationService;
     private final MenuThumbnailUrlResolver menuThumbnailUrlResolver;
+    private final ImageUrlResolver imageUrlResolver;
     private final RecommendationLocationContextJsonFactory recommendationLocationContextJsonFactory;
     private final ObjectMapper objectMapper;
 
@@ -271,13 +274,21 @@ public class RecommendationServiceImpl implements RecommendationService {
         expirePersonalRecommendationIfNeeded(personalRecommendation, LocalDateTime.now());
 
         return personalRecommendationCandidateRepository
-                .findByPersonalRecommendationIdOrderByRankNoAsc(personalRecommendationId)
+                .findCandidateRowsByPersonalRecommendationId(personalRecommendationId)
                 .stream()
-                .map(candidate -> PersonalRecommendationCandidateResult.from(
-                        candidate,
-                        menuThumbnailUrlResolver.resolve(candidate.getMenuItem().getId())
-                ))
+                .map(this::toPersonalRecommendationCandidateResult)
                 .toList();
+    }
+
+    private PersonalRecommendationCandidateResult toPersonalRecommendationCandidateResult(PersonalRecommendationCandidateQueryRow candidate) {
+        return new PersonalRecommendationCandidateResult(
+                candidate.id(),
+                candidate.menuId(),
+                candidate.menuName(),
+                imageUrlResolver.toPublicUrl(candidate.thumbnailObjectKey()),
+                candidate.rankNo(),
+                candidate.score()
+        );
     }
 
     @Override
