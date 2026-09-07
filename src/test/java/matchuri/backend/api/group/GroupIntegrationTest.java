@@ -81,8 +81,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -220,8 +223,9 @@ class GroupIntegrationTest {
     }
 
     @Test
-    @DisplayName("내 그룹 목록 Before 계측은 그룹 수 증가에 따른 쿼리 증가를 기록한다")
-    void measureMyGroupListQueryGrowthBeforeOptimization() throws Exception {
+    @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("내 그룹 목록은 그룹 수와 무관하게 고정 쿼리로 응답한다")
+    void measureMyGroupListQueryScaleAfterOptimization(CapturedOutput output) throws Exception {
         Member owner = saveMember("group-list-baseline-owner", "그룹목록계측");
         String accessToken = accessToken(owner);
 
@@ -239,6 +243,117 @@ class GroupIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content.length()").value(12));
+
+        List<String> queryLogs = output.getOut().lines()
+                .filter(line -> line.contains("API_QUERY_BEFORE method=GET uri=/api/v1/groups status=200"))
+                .toList();
+
+        assertThat(queryLogs)
+                .hasSize(2)
+                .allMatch(line -> line.contains(
+                        "total=5 select=5 insert=0 update=0 delete=0 other=0"));
+    }
+
+    @Test
+    @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("그룹 상세는 후보 수와 무관하게 고정 쿼리로 응답한다")
+    void measureGroupDetailQueryScaleAfterOptimization(CapturedOutput output) throws Exception {
+        Member owner = saveMember("group-detail-query-owner", "그룹상세계측");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "그룹 상세 계측");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(
+                new GroupRecommendation(groupRoom, "{}", LocalDateTime.now()));
+        groupRecommendationCandidateRepository.save(new GroupRecommendationCandidate(
+                recommendation,
+                saveMenu("GROUP_DETAIL_QUERY_1", "그룹 상세 계측 메뉴 1"),
+                1,
+                100.0,
+                "{}"
+        ));
+        String accessToken = accessToken(owner);
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.recentlyRecommendation.candidates.length()").value(1));
+
+        for (int number = 2; number <= 12; number++) {
+            groupRecommendationCandidateRepository.save(new GroupRecommendationCandidate(
+                    recommendation,
+                    saveMenu("GROUP_DETAIL_QUERY_" + number, "그룹 상세 계측 메뉴 " + number),
+                    number,
+                    100.0 - number,
+                    "{}"
+            ));
+        }
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.recentlyRecommendation.candidates.length()").value(12));
+
+        List<String> queryLogs = output.getOut().lines()
+                .filter(line -> line.contains(
+                        "API_QUERY_BEFORE method=GET uri=/api/v1/groups/" + groupRoom.getId() + " status=200"))
+                .toList();
+
+        assertThat(queryLogs)
+                .hasSize(2)
+                .allMatch(line -> line.contains(
+                        "total=8 select=8 insert=0 update=0 delete=0 other=0"));
+    }
+
+    @Test
+    @ExtendWith(OutputCaptureExtension.class)
+    @DisplayName("OPEN 그룹 추천 상세는 후보 수와 무관하게 고정 쿼리로 응답한다")
+    void measureOpenGroupRecommendationDetailQueryScaleAfterOptimization(CapturedOutput output) throws Exception {
+        Member owner = saveMember("recommendation-detail-query-owner", "추천상세계측");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "추천 상세 계측");
+        GroupRecommendation recommendation = groupRecommendationRepository.save(
+                new GroupRecommendation(groupRoom, "{}", LocalDateTime.now()));
+        groupRecommendationCandidateRepository.save(new GroupRecommendationCandidate(
+                recommendation,
+                saveMenu("RECOMMENDATION_DETAIL_QUERY_1", "추천 상세 계측 메뉴 1"),
+                1,
+                100.0,
+                "{}"
+        ));
+        String accessToken = accessToken(owner);
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.candidates.length()").value(1));
+
+        for (int number = 2; number <= 12; number++) {
+            groupRecommendationCandidateRepository.save(new GroupRecommendationCandidate(
+                    recommendation,
+                    saveMenu("RECOMMENDATION_DETAIL_QUERY_" + number, "추천 상세 계측 메뉴 " + number),
+                    number,
+                    100.0 - number,
+                    "{}"
+            ));
+        }
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(),
+                        recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.candidates.length()").value(12));
+
+        String measuredUri = "/api/v1/groups/" + groupRoom.getId()
+                + "/recommendations/" + recommendation.getId();
+        List<String> queryLogs = output.getOut().lines()
+                .filter(line -> line.contains(
+                        "API_QUERY_BEFORE method=GET uri=" + measuredUri + " status=200"))
+                .toList();
+
+        assertThat(queryLogs)
+                .hasSize(2)
+                .allMatch(line -> line.contains(
+                        "total=6 select=6 insert=0 update=0 delete=0 other=0"));
     }
 
     @Test

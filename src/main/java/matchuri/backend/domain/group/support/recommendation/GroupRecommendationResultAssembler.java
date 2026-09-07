@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.domain.image.support.ImageUrlResolver;
 import matchuri.backend.domain.group.entity.GroupRecommendation;
 import matchuri.backend.domain.group.entity.GroupRecommendationCandidate;
 import matchuri.backend.domain.group.entity.GroupRecommendationReadiness;
@@ -19,6 +20,7 @@ import matchuri.backend.domain.group.repository.GroupCandidateVoteCountProjectio
 import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationReadinessRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationVoteQueryRow;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.result.GroupMemberVoteResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
@@ -40,6 +42,7 @@ public class GroupRecommendationResultAssembler {
     private final GroupRecommendationVoteRepository groupRecommendationVoteRepository;
     private final GroupRoomMemberRepository groupRoomMemberRepository;
     private final MenuThumbnailUrlResolver menuThumbnailUrlResolver;
+    private final ImageUrlResolver imageUrlResolver;
     private final ObjectMapper objectMapper;
 
     public GroupRecommendationReadinessProgressResult readinessProgress(
@@ -111,6 +114,97 @@ public class GroupRecommendationResultAssembler {
                 finalCandidate,
                 recommendation.getCreatedAt()
         );
+    }
+
+    public GroupRecommendationResult toGroupRecommendationResult(
+            GroupRecommendation recommendation,
+            Long currentMemberId,
+            List<GroupRoomMember> activeMemberships
+    ) {
+        boolean preparing = recommendation.getStatus() == GroupRecommendationStatus.PREPARING;
+        List<GroupRecommendationCandidateResult> candidates =
+                preparing ? List.of() : toProjectedCandidateResults(recommendation.getId());
+        List<GroupRecommendationVoteQueryRow> voteRows = preparing
+                ? List.of()
+                : groupRecommendationVoteRepository.findVoteRowsByRecommendationId(recommendation.getId());
+        GroupRecommendationCandidateResult finalCandidate = recommendation.getSelectedCandidate() == null
+                ? null
+                : candidates.stream()
+                        .filter(candidate -> candidate.candidateId().equals(
+                                recommendation.getSelectedCandidate().getId()))
+                        .findFirst()
+                        .orElseGet(() -> GroupRecommendationCandidateResult.from(
+                                recommendation.getSelectedCandidate(),
+                                0,
+                                menuThumbnailUrlResolver.resolve(
+                                        recommendation.getSelectedCandidate().getMenuItem().getId())
+                        ));
+
+        return new GroupRecommendationResult(
+                recommendation.getId(),
+                recommendation.getStatus(),
+                responseContextJson(recommendation.getContextJson()),
+                preparing
+                        ? readinessProgress(
+                                recommendation.getId(),
+                                recommendation.getRoom().getId(),
+                                activeMemberships.size()
+                        )
+                        : null,
+                candidates,
+                preparing ? null : new GroupVoteProgressResult(activeMemberships.size(), voteRows.size()),
+                preparing ? List.of() : toProjectedMemberVoteResults(
+                        activeMemberships,
+                        voteRows,
+                        currentMemberId
+                ),
+                finalCandidate,
+                recommendation.getCreatedAt()
+        );
+    }
+
+    private List<GroupRecommendationCandidateResult> toProjectedCandidateResults(Long recommendationId) {
+        return groupRecommendationCandidateRepository.findCandidateRowsWithVoteCounts(recommendationId).stream()
+                .map(row -> new GroupRecommendationCandidateResult(
+                        row.candidateId(),
+                        row.menuId(),
+                        row.menuName(),
+                        row.thumbnailObjectKey() == null
+                                ? null
+                                : imageUrlResolver.toPublicUrl(row.thumbnailObjectKey()),
+                        row.rankNo(),
+                        row.score(),
+                        row.voteCount().intValue()
+                ))
+                .toList();
+    }
+
+    private List<GroupMemberVoteResult> toProjectedMemberVoteResults(
+            List<GroupRoomMember> activeMemberships,
+            List<GroupRecommendationVoteQueryRow> voteRows,
+            Long currentMemberId
+    ) {
+        Map<Long, Long> candidateIdByMemberId = voteRows.stream()
+                .collect(Collectors.toMap(
+                        GroupRecommendationVoteQueryRow::memberId,
+                        GroupRecommendationVoteQueryRow::candidateId
+                ));
+
+        return activeMemberships.stream()
+                .map(membership -> {
+                    Member member = membership.getMember();
+                    Long candidateId = candidateIdByMemberId.get(member.getId());
+
+                    return new GroupMemberVoteResult(
+                            member.getId(),
+                            member.getNickname(),
+                            membership.getRole(),
+                            member.getId().equals(currentMemberId),
+                            candidateId != null,
+                            candidateId
+                    );
+                })
+                .toList();
     }
 
     private List<GroupMemberVoteResult> toMemberVoteResults(

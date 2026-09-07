@@ -7,7 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface GroupRecommendationVoteRepository extends JpaRepository<GroupRecommendationVote, Long> {
+public interface GroupRecommendationVoteRepository extends JpaRepository<GroupRecommendationVote, Long>,
+        GroupRecommendationVoteRepositoryCustom {
 
     @Query("""
             select vote.candidate.id as candidateId, count(vote.id) as voteCount

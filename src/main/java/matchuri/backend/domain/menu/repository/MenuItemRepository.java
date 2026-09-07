@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 @NullMarked
-public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
+public interface MenuItemRepository extends JpaRepository<MenuItem, Long>, MenuItemRepositoryCustom {
 
     boolean existsByCode(String code);
 
@@ -19,8 +19,6 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     List<MenuItem> findAllByOrderByIdAsc();
 
     List<MenuItem> findAllByIdInAndActiveTrue(Collection<Long> ids);
-
-    Optional<MenuItem> findByIdAndActiveTrue(Long id);
 
     @Query("""
             select distinct menu
@@ -56,6 +54,4 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
             @Param("ingredientIds") Collection<Long> ingredientIds,
             @Param("ingredientIdsEmpty") boolean ingredientIdsEmpty
     );
-
-    List<MenuItem> findAllByIdNotIn(Collection<Long> ids);
 }

@@ -47,8 +47,11 @@ import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatu
 import matchuri.backend.global.config.MatchuriProperties;
 import matchuri.backend.testsupport.JpaAuditTimeFixture;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -68,6 +71,57 @@ class HomeIntegrationTest {
     @Autowired private EntityManager entityManager;
     @Autowired private MatchuriProperties matchuriProperties;
     @Autowired private JpaAuditTimeFixture jpaAuditTimeFixture;
+
+    @Test
+    @ExtendWith(OutputCaptureExtension.class)
+    void measureHomeQueryAfterOptimization(CapturedOutput output) throws Exception {
+        Member member = member(true, MemberStatus.ACTIVE);
+        ImageAsset image = persist(new ImageAsset(
+                ImageStorageProvider.CLOUDFLARE_R2,
+                "test",
+                "home/query-profile.png",
+                "query-profile.png",
+                "image/png",
+                100L,
+                "b".repeat(64),
+                300,
+                300
+        ));
+        persist(new MemberProfileImage(member, image));
+        persist(new MemberLocation(
+                member,
+                new BigDecimal("37.49"),
+                new BigDecimal("127.02"),
+                1000,
+                "서울 서초구"
+        ));
+        AttributeCategory category = persist(
+                new AttributeCategory(CategoryType.FLAVOR, key(), "매콤", 10));
+        MemberTasteProfile profile = persist(new MemberTasteProfile(member, "v1"));
+        persist(new MemberTasteProfileCategory(profile, category));
+        MenuItem menu = persist(new MenuItem(key(), "김치찌개", null));
+        persist(new MenuAttributeCategory(menu, category));
+        personal(member, menu, LocalDateTime.now().minusDays(1));
+        personal(member, null, LocalDateTime.now().minusMinutes(1));
+        group(room(member), LocalDateTime.now(), null);
+
+        JsonNode data = home(member);
+
+        assertThat(data.path("user").path("profileImageUrl").asText()).endsWith("home/query-profile.png");
+        assertThat(data.path("tasteProfile").path("attributeCategories")).hasSize(1);
+        assertThat(data.path("personalRecommendationHistory").path("items")).hasSize(1);
+        assertThat(data.path("recentGroupActivities").path("items")).hasSize(1);
+
+        List<String> queryLogs = output.getOut().lines()
+                .filter(line -> line.contains(
+                        "API_QUERY_BEFORE method=GET uri=/api/v1/home status=200"))
+                .toList();
+
+        assertThat(queryLogs)
+                .singleElement()
+                .satisfies(line -> assertThat(line).contains(
+                        "total=7 select=7 insert=0 update=0 delete=0 other=0"));
+    }
 
     @Test
     void homeReturnsComponentDataWithThreeLatestSelectedRecommendationsAndCurrentMenuMetadata() throws Exception {
