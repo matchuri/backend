@@ -63,6 +63,17 @@ jobs:
               }
             }
 
+            const majorChangeLabels = new Map([
+              ['API의 요구사항이 변경됐어요', '🧩 api'],
+              ['DB 구조가 변경됐어요', '🗄️ db'],
+            ]);
+
+            for (const [item, label] of majorChangeLabels) {
+              if (checkedItems.includes(item)) {
+                desiredLabels.add(label);
+              }
+            }
+
             const { data: currentLabelsData } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
               repo: context.repo.repo,
