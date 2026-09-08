@@ -45,4 +45,6 @@ public interface PersonalRecommendationRepository extends JpaRepository<Personal
             PersonalRecommendationStatus status,
             LocalDateTime requestedAt
     );
+
+    Page<PersonalRecommendation> findByMemberIdAndStatusOrderByRequestedAtDescIdDesc(Long memberId, PersonalRecommendationStatus status, Pageable pageable);
 }

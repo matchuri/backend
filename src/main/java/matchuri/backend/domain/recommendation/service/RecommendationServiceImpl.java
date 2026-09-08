@@ -342,7 +342,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         expireOpenPersonalRecommendations(member.getId(), LocalDateTime.now());
 
         Page<PersonalRecommendation> recommendations = personalRecommendationRepository
-                .findByMemberIdOrderByRequestedAtDescIdDesc(member.getId(), PageRequest.of(page, size));
+                .findByMemberIdAndStatusOrderByRequestedAtDescIdDesc(member.getId(), PersonalRecommendationStatus.SELECTED, PageRequest.of(page, size));
         List<Long> recommendationIds = recommendations.stream()
                 .map(PersonalRecommendation::getId)
                 .toList();

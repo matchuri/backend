@@ -453,7 +453,7 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("v2 개인 추천 목록은 대표 메뉴의 점수, 이름, 태그, 이미지를 반환한다")
+    @DisplayName("v2 개인 추천 목록은 SELECTED 추천만 대표 메뉴 정보와 함께 반환한다")
     void getMyPersonalRecommendationHistoriesV2() throws Exception {
         Member member = saveMember("history-v2-user", "추천이력");
         String accessToken = accessToken(member);
@@ -477,17 +477,29 @@ class PersonalRecommendationIntegrationTest {
 
         JsonNode recommendation = createRecommendation(accessToken);
         long requestId = recommendation.path("requestId").asLong();
+        long candidateId = recommendation.path("candidates").get(0).path("id").asLong();
+
+        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(selectRequest(candidateId)))
+                .andExpect(status().isOk());
+
+        createRecommendation(accessToken); // OPEN recommendation must not be included in history
 
         mockMvc.perform(get("/api/v2/personal/recommendations")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content.length()").value(1))
                 .andExpect(jsonPath("$.data.content[0].id").value(requestId))
+                .andExpect(jsonPath("$.data.content[0].status")
+                        .value(PersonalRecommendationStatus.SELECTED.name()))
                 .andExpect(jsonPath("$.data.content[0].score").isNumber())
                 .andExpect(jsonPath("$.data.content[0].menuName").value("비빔밥"))
                 .andExpect(jsonPath("$.data.content[0].tags[0]").value("매운맛"))
                 .andExpect(jsonPath("$.data.content[0].thumbnailUrl")
-                        .value("https://asset.matchuri.com/history/bibimbap.png"));
+                        .value("https://asset.matchuri.com/history/bibimbap.png"))
+                .andExpect(jsonPath("$.data.pageInfo.totalElements").value(1));
     }
 
     @Test
