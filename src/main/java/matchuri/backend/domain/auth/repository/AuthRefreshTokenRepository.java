@@ -12,4 +12,6 @@ public interface AuthRefreshTokenRepository extends JpaRepository<AuthRefreshTok
     List<AuthRefreshToken> findByMemberId(Long memberId);
 
     void deleteByToken(String token);
+
+    void deleteByMemberId(Long memberId);
 }

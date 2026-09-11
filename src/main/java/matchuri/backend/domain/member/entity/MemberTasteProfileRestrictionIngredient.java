@@ -15,6 +15,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
 import matchuri.backend.domain.menu.entity.Ingredient;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -38,6 +40,7 @@ public class MemberTasteProfileRestrictionIngredient extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "profile_id", nullable = false, comment = "회원 취향 프로필 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private MemberTasteProfile profile;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

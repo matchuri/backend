@@ -17,6 +17,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
 import matchuri.backend.domain.member.entity.Member;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -34,14 +36,17 @@ public class GroupInvite extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "room_id", nullable = false, comment = "그룹 방 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private GroupRoom room;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "request_member_id", nullable = false, comment = "초대 생성 회원 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member requestMember;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "target_member_id", nullable = false, comment = "초대 대상 회원 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member targetMember;
 
     @Enumerated(EnumType.STRING)

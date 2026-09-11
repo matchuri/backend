@@ -47,11 +47,11 @@ public class AuthServiceImpl implements AuthService {
         Member member = memberRepository.findByLoginId(command.loginId())
                 .orElseThrow(() -> new AuthenticationException(AuthErrorCode.LOGIN_FAILED));
 
-        ensureActive(member);
-
         if (!passwordEncoder.matches(command.password(), member.getPasswordHash())) {
             throw new AuthenticationException(AuthErrorCode.LOGIN_FAILED);
         }
+
+        ensureActive(member);
 
         TokenPair tokenPair = sessionTokenService.issueLoginTokenPair(member);
         log.info("auth event=login_success provider=local memberId={} ip={}", member.getId(), clientIp);

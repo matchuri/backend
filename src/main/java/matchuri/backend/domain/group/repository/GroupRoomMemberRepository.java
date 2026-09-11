@@ -43,8 +43,10 @@ public interface GroupRoomMemberRepository extends JpaRepository<GroupRoomMember
     @Query("""
             select groupMember.room.id as roomId, count(groupMember) as memberCount
             from GroupRoomMember groupMember
+            join groupMember.member member
             where groupMember.room.id in :roomIds
               and groupMember.status = :memberStatus
+              and member.status = matchuri.backend.domain.member.entity.MemberStatus.ACTIVE
             group by groupMember.room.id
             """)
     List<GroupRoomMemberCountProjection> countMembersByRoomIdsAndStatus(
@@ -88,6 +90,7 @@ public interface GroupRoomMemberRepository extends JpaRepository<GroupRoomMember
             join fetch groupMember.member member
             where groupMember.room.id = :roomId
               and groupMember.status = matchuri.backend.domain.group.entity.GroupMemberStatus.ACTIVE
+              and member.status = matchuri.backend.domain.member.entity.MemberStatus.ACTIVE
             order by
               case
                 when groupMember.role = matchuri.backend.domain.group.entity.GroupMemberRole.OWNER then 0

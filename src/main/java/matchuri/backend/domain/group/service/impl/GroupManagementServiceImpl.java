@@ -149,7 +149,7 @@ public class GroupManagementServiceImpl implements GroupManagementService {
                 .map(Member::getId)
                 .toList();
 
-        room.delete();
+        room.delete(deletedAt);
         revokeActiveInvites(room);
         groupInviteLinkManager.expireAllActive(room, deletedAt);
         leaveActiveMembers(room, deletedAt);

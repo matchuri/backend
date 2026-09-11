@@ -1,5 +1,6 @@
 package matchuri.backend.domain.group.repository;
 
+import java.util.List;
 import java.util.Optional;
 import jakarta.persistence.LockModeType;
 import matchuri.backend.domain.group.entity.GroupRoom;
@@ -23,4 +24,12 @@ public interface GroupRoomRepository extends JpaRepository<GroupRoom, Long> {
     boolean existsByInviteCode(String inviteCode);
 
     Optional<GroupRoom> findByInviteCode(String inviteCode);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select room from GroupRoom room
+            where room.hostMember.id = :memberId
+              and room.status <> matchuri.backend.domain.group.entity.GroupRoomStatus.DELETED
+            """)
+    List<GroupRoom> findOwnedNotDeletedForUpdate(@Param("memberId") Long memberId);
 }

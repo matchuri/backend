@@ -21,7 +21,6 @@ import matchuri.backend.domain.auth.support.verification.EmailVerificationPolicy
 import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenGenerator;
 import matchuri.backend.domain.auth.support.verification.VerificationCodeGenerator;
 import matchuri.backend.domain.auth.support.verification.VerificationCodeHasher;
-import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.global.exception.AuthenticationException;
@@ -72,7 +71,7 @@ class EmailVerificationServiceImplTest {
                 null,
                 EmailVerificationStatus.PENDING
         )).thenReturn(List.of());
-        when(memberRepository.existsByEmailAndSocialFalseAndStatus("tester@example.com", MemberStatus.ACTIVE))
+        when(memberRepository.existsByEmailAndSocialFalse("tester@example.com"))
                 .thenReturn(false);
         when(codeGenerator.generateCode()).thenReturn("123456");
         when(codeHasher.hash("123456")).thenReturn("hashed-code");
@@ -119,7 +118,7 @@ class EmailVerificationServiceImplTest {
                 null,
                 EmailVerificationStatus.PENDING
         )).thenReturn(List.of(pendingVerification));
-        when(memberRepository.existsByEmailAndSocialFalseAndStatus("tester@example.com", MemberStatus.ACTIVE))
+        when(memberRepository.existsByEmailAndSocialFalse("tester@example.com"))
                 .thenReturn(true);
 
         assertThatThrownBy(() -> service.sendVerificationEmail(new SendEmailVerificationCommand(
@@ -145,8 +144,6 @@ class EmailVerificationServiceImplTest {
                 null,
                 EmailVerificationStatus.PENDING
         )).thenReturn(List.of());
-        when(memberRepository.existsByEmailAndSocialFalseAndStatus("missing@example.com", MemberStatus.ACTIVE))
-                .thenReturn(false);
         when(policy.resendCooldownSeconds()).thenReturn(60L);
 
         var result = service.sendVerificationEmail(new SendEmailVerificationCommand(
@@ -171,7 +168,7 @@ class EmailVerificationServiceImplTest {
                 null,
                 EmailVerificationStatus.PENDING
         )).thenReturn(List.of());
-        when(memberRepository.existsByEmailAndSocialFalseAndStatus("tester@example.com", MemberStatus.ACTIVE))
+        when(memberRepository.existsByEmailAndSocialFalse("tester@example.com"))
                 .thenReturn(false);
         when(codeGenerator.generateCode()).thenReturn("123456");
         when(codeHasher.hash("123456")).thenReturn("hashed-code");

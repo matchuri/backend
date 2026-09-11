@@ -1,6 +1,7 @@
 package matchuri.backend.domain.auth.support.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,7 +12,9 @@ import matchuri.backend.domain.member.entity.MemberRole;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberRepository;
+import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.support.profile.MemberProfileImageManager;
+import matchuri.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -138,5 +141,31 @@ class OAuth2MemberServiceTest {
         verify(memberRepository).saveAndFlush(memberCaptor.capture());
         assertThat(memberCaptor.getValue().getNickname()).isEqualTo("user_kakao");
         assertThat(createdMember.getNickname()).isEqualTo("user_kakao");
+    }
+
+    @Test
+    @DisplayName("삭제 대기 소셜 회원은 로그인을 거절한다")
+    void rejectsDeletedMember() {
+        Member deletedMember = Member.builder()
+                .id(1L)
+                .social(true)
+                .socialProviderType(SocialProviderType.GOOGLE)
+                .socialProviderUserId("deleted-google-user")
+                .memberRole(MemberRole.MEMBER)
+                .status(MemberStatus.DELETED)
+                .build();
+        when(memberRepository.findBySocialProviderTypeAndSocialProviderUserId(
+                SocialProviderType.GOOGLE,
+                "deleted-google-user"
+        )).thenReturn(Optional.of(deletedMember));
+
+        assertThatThrownBy(() -> oAuth2MemberService.findOrCreateMember(
+                SocialProviderType.GOOGLE,
+                "deleted-google-user",
+                "deleted@example.com"
+        ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.INACTIVE_MEMBER);
     }
 }

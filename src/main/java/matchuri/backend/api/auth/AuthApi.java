@@ -33,6 +33,7 @@ public interface AuthApi {
                     - 응답 body에는 `accessToken`과 회원 요약 정보가 포함됩니다.
                     - `refreshToken`은 응답 body가 아니라 `HttpOnly` 쿠키로 내려갑니다.
                     - 프론트는 이후 보호 API 호출 시 `Authorization: Bearer <accessToken>` 헤더를 사용합니다.
+                    - `DELETED`를 포함한 비활성 계정은 로그인할 수 없습니다.
                     """
     )
     @SecurityRequirements
@@ -134,6 +135,17 @@ public interface AuthApi {
                                               }
                                             }
                                             """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "비활성 또는 삭제 대기 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "inactiveMember",
+                                    value = ErrorExamples.MEMBER_INACTIVE
                             )
                     )
             ),
@@ -316,6 +328,7 @@ public interface AuthApi {
                     - 브라우저 이동 또는 팝업/리다이렉트 흐름에서 사용합니다.
                     - 현재 지원 provider는 `google`, `kakao`, `naver`입니다.
                     - 로그인 성공 후 프론트는 최종적으로 `code`를 전달받고, 별도 교환 API를 호출해 `accessToken`을 받습니다.
+                    - `DELETED`를 포함한 비활성 계정은 OAuth2 인증 후 로그인 처리 단계에서 거절됩니다.
                     """
     )
     @SecurityRequirements
@@ -325,7 +338,10 @@ public interface AuthApi {
                     description = "소셜 provider 인증 페이지로 리다이렉트"
             )
     })
-    void startOAuth2Login(String provider, HttpServletResponse response) throws IOException;
+    void startOAuth2Login(
+            String provider,
+            HttpServletResponse response
+    ) throws IOException;
 
     @Operation(
             summary = "소셜 OAuth2 교환 코드 -> Access Token 교환",

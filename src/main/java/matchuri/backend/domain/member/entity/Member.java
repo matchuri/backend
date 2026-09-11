@@ -7,9 +7,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +31,9 @@ import matchuri.backend.domain.common.BaseEntity;
                         name = "uk_members_social_provider_user",
                         columnNames = {"social_provider_type", "social_provider_user_id"}
                 )
+        },
+        indexes = {
+                @Index(name = "idx_members_status_purge_at", columnList = "status, purge_at")
         }
 )
 @Builder
@@ -82,6 +87,12 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20, comment = "회원 상태")
     private MemberStatus status;
+
+    @Column(name = "deleted_at", comment = "탈퇴 요청 시각")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "purge_at", comment = "회원 및 연관 데이터 물리 삭제 가능 시각")
+    private LocalDateTime purgeAt;
 
     @OneToOne(mappedBy = "member")
     private MemberTasteProfile tasteProfile;
@@ -151,7 +162,10 @@ public class Member extends BaseEntity {
         this.nicknameCompleted = true;
     }
 
-    public void withdraw() {
-        this.status = MemberStatus.INACTIVE;
+    public void withdraw(LocalDateTime deletedAt, LocalDateTime purgeAt) {
+        this.status = MemberStatus.DELETED;
+        this.deletedAt = deletedAt;
+        this.purgeAt = purgeAt;
     }
+
 }

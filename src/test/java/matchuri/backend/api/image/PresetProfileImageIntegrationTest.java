@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import javax.imageio.ImageIO;
@@ -151,10 +152,10 @@ class PresetProfileImageIntegrationTest {
     }
 
     @Test
-    @DisplayName("비활성 회원은 프리셋 목록을 조회할 수 없다")
-    void inactiveMemberCannotGetPresetImages() throws Exception {
+    @DisplayName("탈퇴 대기 회원은 프리셋 목록을 조회할 수 없다")
+    void deletedMemberCannotGetPresetImages() throws Exception {
         Member member = createMember("inactive-preset-list-member", MemberRole.MEMBER);
-        member.withdraw();
+        member.withdraw(LocalDateTime.now(), LocalDateTime.now().plusDays(3));
         memberRepository.save(member);
 
         mockMvc.perform(get("/api/v1/members/profile/preset-image")

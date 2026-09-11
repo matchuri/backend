@@ -19,6 +19,7 @@ import matchuri.backend.domain.auth.support.verification.EmailVerificationPolicy
 import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenGenerator;
 import matchuri.backend.domain.auth.support.verification.VerificationCodeGenerator;
 import matchuri.backend.domain.auth.support.verification.VerificationCodeHasher;
+import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberRepository;
@@ -61,7 +62,8 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
             throw new BusinessException(MemberErrorCode.DUPLICATE_EMAIL, command.email());
         }
 
-        if (!shouldSend(command)) {
+        Optional<Member> targetMember = findTargetMember(command);
+        if (command.purpose() != EmailVerificationPurpose.SIGNUP && targetMember.isEmpty()) {
             expirePrevious(pendingVerifications);
             return SendEmailVerificationResult.accepted(policy.resendCooldownSeconds());
         }
@@ -82,6 +84,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
                 policy.codeExpiresAt(now),
                 now
         );
+        targetMember.ifPresent(emailVerification::assignMember);
         repository.save(emailVerification);
 
         try {
@@ -156,26 +159,23 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
                 .orElse(0L);
     }
 
-    private boolean shouldSend(SendEmailVerificationCommand command) {
-        if (command.purpose() == EmailVerificationPurpose.SIGNUP) {
-            return true;
-        }
+    private Optional<Member> findTargetMember(SendEmailVerificationCommand command) {
         if (command.purpose() == EmailVerificationPurpose.FIND_LOGIN_ID) {
-            return memberRepository.existsByEmailAndSocialFalseAndStatus(command.email(), MemberStatus.ACTIVE);
+            return memberRepository.findByEmailAndSocialFalseAndStatus(command.email(), MemberStatus.ACTIVE);
         }
         if (command.purpose() == EmailVerificationPurpose.RESET_PASSWORD) {
-            return memberRepository.existsByLoginIdAndEmailAndSocialFalseAndStatus(
+            return memberRepository.findByLoginIdAndEmailAndSocialFalseAndStatus(
                     command.loginId(),
                     command.email(),
                     MemberStatus.ACTIVE
             );
         }
-        return false;
+        return Optional.empty();
     }
 
     private boolean isDuplicateSignupEmail(SendEmailVerificationCommand command) {
         return command.purpose() == EmailVerificationPurpose.SIGNUP
-                && memberRepository.existsByEmailAndSocialFalseAndStatus(command.email(), MemberStatus.ACTIVE);
+                && memberRepository.existsByEmailAndSocialFalse(command.email());
     }
 
     private Optional<EmailVerification> findLatestPending(ConfirmEmailVerificationCommand command) {

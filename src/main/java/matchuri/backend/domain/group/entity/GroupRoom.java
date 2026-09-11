@@ -24,6 +24,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
 import matchuri.backend.domain.member.entity.Member;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -52,11 +54,15 @@ public class GroupRoom extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "host_member_id", nullable = false, comment = "방장 회원 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member hostMember;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20, comment = "그룹 방 상태")
     private GroupRoomStatus status;
+
+    @Column(name = "deleted_at", comment = "그룹 삭제 처리 시각")
+    private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<GroupRoomMember> groupRoomMembers = new ArrayList<>();
@@ -96,7 +102,12 @@ public class GroupRoom extends BaseEntity {
     }
 
     public void delete() {
+        delete(LocalDateTime.now());
+    }
+
+    public void delete(LocalDateTime deletedAt) {
         this.status = GroupRoomStatus.DELETED;
+        this.deletedAt = deletedAt;
     }
 
     public boolean isActive() {

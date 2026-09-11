@@ -14,6 +14,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -33,6 +35,7 @@ public class GroupLocation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "group_room_id", nullable = false, comment = "그룹 방 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private GroupRoom room;
 
     @Column(precision = 10, scale = 7, comment = "위도")
