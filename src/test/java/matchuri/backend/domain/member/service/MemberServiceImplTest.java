@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import matchuri.backend.domain.auth.entity.EmailVerification;
 import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenVerifier;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
 import matchuri.backend.domain.member.command.PutMemberLocationCommand;
@@ -221,8 +222,11 @@ class MemberServiceImplTest {
                 .build();
 
         when(memberRepository.existsByNickname("점심탐험가")).thenReturn(false);
-        when(memberRepository.existsByEmailAndSocialFalseAndStatus("tester@example.com", MemberStatus.ACTIVE))
+        when(memberRepository.existsByEmailAndSocialFalse("tester@example.com"))
                 .thenReturn(false);
+        EmailVerification signupVerification = mock(EmailVerification.class);
+        when(emailVerificationTokenVerifier.verifySignupToken("tester@example.com", "ev_signup-token"))
+                .thenReturn(signupVerification);
         when(passwordEncoder.encode("P@ssw0rd!")).thenReturn("encoded-password");
         when(memberRepository.saveAndFlush(any(Member.class))).thenReturn(savedMember);
         when(requiredAgreementRequestValidator.validateAndIndex(any())).thenReturn(Map.of(
@@ -237,6 +241,7 @@ class MemberServiceImplTest {
         assertThat(result.email()).isEqualTo("tester@example.com");
         assertThat(result.nickname()).isEqualTo("점심탐험가");
         verify(emailVerificationTokenVerifier).verifySignupToken("tester@example.com", "ev_signup-token");
+        verify(signupVerification).assignMember(savedMember);
         verify(memberRepository).saveAndFlush(any(Member.class));
         verify(memberProfileImageManager).initializeDefault(savedMember);
         verify(requiredAgreementRequestValidator).validateAndIndex(command.agreements());
@@ -277,8 +282,11 @@ class MemberServiceImplTest {
         MenuItem menuItem = new MenuItem("PORK_CUTLET", "돈까스", "바삭한 돼지고기 튀김");
 
         when(memberRepository.existsByNickname("취향탐험가")).thenReturn(false);
-        when(memberRepository.existsByEmailAndSocialFalseAndStatus("taste@example.com", MemberStatus.ACTIVE))
+        when(memberRepository.existsByEmailAndSocialFalse("taste@example.com"))
                 .thenReturn(false);
+        EmailVerification signupVerification = mock(EmailVerification.class);
+        when(emailVerificationTokenVerifier.verifySignupToken("taste@example.com", "ev_signup-token"))
+                .thenReturn(signupVerification);
         when(passwordEncoder.encode("P@ssw0rd!")).thenReturn("encoded-password");
         when(memberRepository.saveAndFlush(any(Member.class))).thenReturn(savedMember);
         when(requiredAgreementRequestValidator.validateAndIndex(any())).thenReturn(Map.of(

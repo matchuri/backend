@@ -10,12 +10,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
 import matchuri.backend.domain.menu.entity.MenuItem;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -39,6 +40,7 @@ public class PersonalRecommendationCandidate extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "personal_recommendation_id", nullable = false, comment = "개인 추천 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private PersonalRecommendation personalRecommendation;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

@@ -15,6 +15,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -37,6 +39,7 @@ public class GroupInviteLink extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "room_id", nullable = false, comment = "그룹 방 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private GroupRoom room;
 
     @Column(name = "token", nullable = false, length = TOKEN_LENGTH, comment = "URL 끝에 붙는 UUID 기반 난수")

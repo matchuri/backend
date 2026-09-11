@@ -90,6 +90,8 @@ spring:
         highlight_sql: true
 
 matchuri:
+  member-deletion:
+    purge-cron: ${MATCHURI_MEMBER_DELETION_PURGE_CRON:0 0 * * * *}
   auth:
     public-api-patterns:
       - /error

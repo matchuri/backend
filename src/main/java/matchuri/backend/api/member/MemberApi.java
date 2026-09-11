@@ -1129,11 +1129,12 @@ public interface MemberApi {
     @Operation(
             summary = "회원 탈퇴",
             description = """
-                    현재 로그인한 회원을 비활성화 처리합니다.
+                    현재 로그인한 회원을 삭제 대기 상태로 전환합니다.
                     
-                    - 물리 삭제가 아니라 `status=INACTIVE`로 전환됩니다.
-                    - 탈퇴 후 같은 계정으로 다시 로그인할 수 없습니다.
-                    - 이미 발급된 access token이 남아 있어도 이후 보호 API에서는 비활성 회원으로 거절됩니다.
+                    - 즉시 물리 삭제하지 않고 `status=DELETED`와 `deletedAt`, `purgeAt`을 기록합니다.
+                    - 삭제 대기 기간은 3일이며, 현재 탈퇴 철회 기능은 제공하지 않습니다.
+                    - 회원이 방장인 그룹도 `DELETED`로 전환합니다.
+                    - 탈퇴 시 기존 refresh token과 OAuth2 교환 코드를 모두 폐기합니다.
                     """)
     ApiResponse<WithdrawMemberResponse> withdraw(@AuthenticatedMemberId Long memberId);
 }

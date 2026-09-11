@@ -15,6 +15,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
 import matchuri.backend.domain.member.entity.Member;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -38,14 +40,17 @@ public class GroupRecommendationVote extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "group_recommendation_id", nullable = false, comment = "그룹 추천 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private GroupRecommendation groupRecommendation;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "candidate_id", nullable = false, comment = "그룹 추천 후보 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private GroupRecommendationCandidate candidate;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false, comment = "투표 회원 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
 
     public GroupRecommendationVote(

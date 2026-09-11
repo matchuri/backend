@@ -16,6 +16,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.jspecify.annotations.Nullable;
 
 @Getter
@@ -34,6 +36,7 @@ public class GroupRecommendation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "room_id", nullable = false, comment = "그룹 방 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private GroupRoom room;
 
     @Enumerated(EnumType.STRING)
@@ -48,6 +51,7 @@ public class GroupRecommendation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "selected_candidate_id", comment = "최종 선택 후보 ID")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private GroupRecommendationCandidate selectedCandidate;
 
     @Column(name = "context_json", columnDefinition = "json", comment = "그룹 추천 컨텍스트 JSON")

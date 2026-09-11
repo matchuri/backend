@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.CreatedAtEntity;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.menu.entity.MenuItem;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -41,14 +43,17 @@ public class GroupMenuAction extends CreatedAtEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "group_room_id", nullable = false, comment = "그룹 방 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private GroupRoom groupRoom;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "group_recommendation_id", nullable = false, comment = "그룹 추천 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private GroupRecommendation groupRecommendation;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "actor_member_id", nullable = false, comment = "행동 발생 회원 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member actorMember;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

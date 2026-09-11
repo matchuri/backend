@@ -4,9 +4,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
@@ -15,6 +18,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import matchuri.backend.domain.common.BaseEntity;
+import matchuri.backend.domain.member.entity.Member;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -34,6 +40,11 @@ public class EmailVerification extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Member member;
 
     @Column(name = "email", nullable = false, length = 150)
     private String email;
@@ -83,6 +94,7 @@ public class EmailVerification extends BaseEntity {
     ) {
         return new EmailVerification(
                 null,
+                null,
                 email,
                 loginId,
                 purpose,
@@ -96,6 +108,10 @@ public class EmailVerification extends BaseEntity {
                 0,
                 lastSentAt
         );
+    }
+
+    public void assignMember(Member member) {
+        this.member = member;
     }
 
     public void expire() {

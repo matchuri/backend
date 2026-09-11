@@ -18,6 +18,8 @@ import matchuri.backend.domain.common.CreatedAtEntity;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.menu.entity.MenuItem;
 import matchuri.backend.domain.recommendation.entity.PersonalRecommendation;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Entity
@@ -35,6 +37,7 @@ public class MemberMenuAction extends CreatedAtEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false, comment = "회원 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -43,6 +46,7 @@ public class MemberMenuAction extends CreatedAtEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "personal_recommendation_id", comment = "개인 추천 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private PersonalRecommendation personalRecommendation;
 
     @Enumerated(EnumType.STRING)

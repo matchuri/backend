@@ -3,9 +3,12 @@ package matchuri.backend.domain.member.service;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import matchuri.backend.domain.auth.entity.EmailVerification;
 import matchuri.backend.domain.auth.support.verification.EmailVerificationTokenVerifier;
 import matchuri.backend.domain.member.command.CreateMemberCommand;
 import matchuri.backend.domain.member.command.PutMemberLocationCommand;
@@ -18,7 +21,6 @@ import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberAgreement;
 import matchuri.backend.domain.member.entity.MemberLocation;
-import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
 import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
@@ -46,6 +48,7 @@ import matchuri.backend.domain.member.result.UpdateMemberPasswordResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.result.WithdrawMemberResult;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
+import matchuri.backend.domain.member.support.deletion.MemberWithdrawalManager;
 import matchuri.backend.domain.member.support.member.MemberReader;
 import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolver;
 import matchuri.backend.domain.member.support.profile.MemberProfileImageManager;
@@ -93,6 +96,7 @@ public class MemberServiceImpl implements MemberService {
     private final PersonalRecommendationRepository personalRecommendationRepository;
     private final MemberProfileImageManager memberProfileImageManager;
     private final ImageUrlResolver imageUrlResolver;
+    private final MemberWithdrawalManager memberWithdrawalManager;
 
     @Override
     public boolean existsByLoginId(String loginId) {
@@ -159,11 +163,16 @@ public class MemberServiceImpl implements MemberService {
     private Member saveMember(RegisterLocalMemberCommand command) {
         String loginId = command.loginId();
 
-        emailVerificationTokenVerifier.verifySignupToken(command.email(), command.emailVerificationToken());
+        EmailVerification signupVerification = emailVerificationTokenVerifier.verifySignupToken(
+                command.email(),
+                command.emailVerificationToken()
+        );
         validateEmailDuplication(command.email());
 
         String passwordHash = passwordEncoder.encode(command.password());
-        return createLocalMember(loginId, passwordHash, command.nickname(), command.email());
+        Member member = createLocalMember(loginId, passwordHash, command.nickname(), command.email());
+        signupVerification.assignMember(member);
+        return member;
     }
 
     private void saveRequiredAgreement(Member member, List<SubmitRequiredAgreementsCommand.AgreementConsentCommand> agreements) {
@@ -384,8 +393,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public WithdrawMemberResult withdraw(Long memberId) {
-        Member member = memberReader.getActiveMember(memberId);
-        member.withdraw();
+        Member member = memberWithdrawalManager.withdraw(memberId, LocalDateTime.now(ZoneOffset.UTC));
 
         return WithdrawMemberResult.from(member);
     }
@@ -410,7 +418,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     private void validateEmailDuplication(String email) {
-        if (memberRepository.existsByEmailAndSocialFalseAndStatus(email, MemberStatus.ACTIVE)) {
+        if (memberRepository.existsByEmailAndSocialFalse(email)) {
             throw new BusinessException(MemberErrorCode.DUPLICATE_EMAIL, email);
         }
     }
