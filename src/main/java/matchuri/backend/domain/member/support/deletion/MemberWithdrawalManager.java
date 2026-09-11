@@ -10,13 +10,15 @@ import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.global.exception.BusinessException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class MemberWithdrawalManager {
 
-    public static final int DELETION_GRACE_PERIOD_DAYS = 3;
+    @Value("${matchuri.member-deletion.grace-period-day}")
+    public int DELETION_GRACE_PERIOD_DAYS;
 
     private final MemberRepository memberRepository;
     private final GroupRoomRepository groupRoomRepository;

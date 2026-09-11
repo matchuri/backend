@@ -92,6 +92,7 @@ spring:
 matchuri:
   member-deletion:
     purge-cron: ${MATCHURI_MEMBER_DELETION_PURGE_CRON:0 0 * * * *}
+    grace-period-day: 3
   auth:
     public-api-patterns:
       - /error
