@@ -1,7 +1,11 @@
 server:
-  address: 127.0.0.1
+#  address: 127.0.0.1
   port: 8080
   forward-headers-strategy: framework
+
+  tomcat:
+    mbeanregistry:
+      enabled: true
 
 spring:
   application:
@@ -107,6 +111,7 @@ matchuri:
       - /login/oauth2/code/**
       - /docs/**
       - /api/v1/health
+      - /api/v1/prometheus
       - /favicon.ico
     public-post-api-patterns:
       - /api/v2/members/signup
