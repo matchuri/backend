@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class GroupOpenApiCustomizer implements OpenApiCustomizer {
     @Override
     public void customise(OpenAPI openApi) {
+        allowNull(openApi, "CurrentGroupInviteLinkApiResponse", "data");
         allowNull(openApi, "GroupMemberSummaryV2Response", "memberProfileImageUrl");
         allowNull(openApi, "GroupRecommendationSummaryResponse", "startedAt");
         allowNull(openApi, "GroupRecommendationSummaryResponse", "endedAt");

@@ -3,6 +3,7 @@ package matchuri.backend.domain.group.service.impl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
@@ -145,11 +146,10 @@ public class GroupInviteServiceImpl implements GroupInviteService {
 
     @Override
     @Transactional(readOnly = true)
-    public GroupInviteLinkResult getCurrentInviteLink(Long memberId, Long groupId) {
+    public Optional<GroupInviteLinkResult> getCurrentInviteLink(Long memberId, Long groupId) {
         Member member = memberReader.getActiveMember(memberId);
-        return GroupInviteLinkResult.from(
-                groupInviteLinkManager.getCurrent(groupId, member.getId(), LocalDateTime.now())
-        );
+        return groupInviteLinkManager.getCurrent(groupId, member.getId(), LocalDateTime.now())
+                .map(GroupInviteLinkResult::from);
     }
 
     @Override

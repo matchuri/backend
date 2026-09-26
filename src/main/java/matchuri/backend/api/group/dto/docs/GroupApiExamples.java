@@ -310,6 +310,14 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String GROUP_INVITE_LINK_EMPTY = """
+            {
+              "success": true,
+              "data": null,
+              "error": null
+            }
+            """;
+
     public static final String GROUP_INVITE_LINK_ALREADY_EXISTS = """
             {
               "success": false,

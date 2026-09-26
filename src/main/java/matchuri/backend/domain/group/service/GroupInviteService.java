@@ -1,5 +1,6 @@
 package matchuri.backend.domain.group.service;
 
+import java.util.Optional;
 import lombok.NonNull;
 import matchuri.backend.domain.group.command.CreateNicknameGroupInviteCommand;
 import matchuri.backend.domain.group.command.GetMyGroupInvitesCommand;
@@ -21,7 +22,7 @@ public interface GroupInviteService {
 
     GroupInviteLinkResult reissueInviteLink(Long memberId, Long groupId);
 
-    GroupInviteLinkResult getCurrentInviteLink(Long memberId, Long groupId);
+    Optional<GroupInviteLinkResult> getCurrentInviteLink(Long memberId, Long groupId);
 
     JoinGroupResult joinGroupByInviteLink(Long memberId, String token);
 
