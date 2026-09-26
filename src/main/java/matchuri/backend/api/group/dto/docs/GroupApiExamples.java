@@ -318,6 +318,37 @@ public final class GroupApiExamples {
             }
             """;
 
+    public static final String GROUP_INVITE_LINK_PREVIEW_SUCCESS = """
+            {
+              "success": true,
+              "data": {
+                "groupName": "오늘 점심 메뉴 회의",
+                "ownerNickname": "점심탐험가",
+                "memberCount": 3
+              },
+              "error": null
+            }
+            """;
+
+    public static final String GROUP_INVITE_LINK_INVALID_TOKEN = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "status": 400,
+                "code": "COMMON_INVALID_BODY_FIELD",
+                "message": "요청 바디 필드가 올바르지 않습니다.",
+                "details": [
+                  {
+                    "source": "BODY",
+                    "field": "token",
+                    "reason": "UUID 토큰 형식이 올바르지 않습니다."
+                  }
+                ]
+              }
+            }
+            """;
+
     public static final String GROUP_INVITE_LINK_ALREADY_EXISTS = """
             {
               "success": false,
@@ -337,7 +368,8 @@ public final class GroupApiExamples {
               "error": {
                 "status": 404,
                 "code": "GROUP_INVITE_LINK_NOT_FOUND",
-                "message": "유효한 그룹 초대 링크를 찾을 수 없습니다."
+                "message": "유효한 그룹 초대 링크를 찾을 수 없습니다.",
+                "details": []
               }
             }
             """;
@@ -349,7 +381,21 @@ public final class GroupApiExamples {
               "error": {
                 "status": 409,
                 "code": "GROUP_INVITE_LINK_EXPIRED",
-                "message": "만료된 그룹 초대 링크입니다."
+                "message": "만료된 그룹 초대 링크입니다.",
+                "details": []
+              }
+            }
+            """;
+
+    public static final String GROUP_NOT_ACTIVE = """
+            {
+              "success": false,
+              "data": null,
+              "error": {
+                "status": 409,
+                "code": "GROUP_NOT_ACTIVE",
+                "message": "활성 상태의 그룹이 아닙니다. groupId : 3,001",
+                "details": []
               }
             }
             """;

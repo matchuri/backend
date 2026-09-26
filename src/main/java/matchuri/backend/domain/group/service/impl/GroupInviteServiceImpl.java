@@ -20,9 +20,11 @@ import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.exception.GroupErrorCode;
 import matchuri.backend.domain.group.repository.GroupInviteRepository;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
+import matchuri.backend.domain.group.repository.GroupRoomMemberCountRow;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.GroupInviteLinkResult;
+import matchuri.backend.domain.group.result.GroupInviteLinkPreviewResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupInviteV2SummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
@@ -150,6 +152,20 @@ public class GroupInviteServiceImpl implements GroupInviteService {
         Member member = memberReader.getActiveMember(memberId);
         return groupInviteLinkManager.getCurrent(groupId, member.getId(), LocalDateTime.now())
                 .map(GroupInviteLinkResult::from);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GroupInviteLinkPreviewResult previewInviteLink(String token) {
+        GroupRoom room = groupInviteLinkManager.getJoinable(token, LocalDateTime.now()).getRoom();
+        int memberCount = groupRoomMemberRepository
+                .countMembersByRoomIdsAndStatus(List.of(room.getId()), GroupMemberStatus.ACTIVE)
+                .stream()
+                .findFirst()
+                .map(GroupRoomMemberCountRow::memberCount)
+                .map(Math::toIntExact)
+                .orElse(0);
+        return new GroupInviteLinkPreviewResult(room.getName(), room.getHostMember().getNickname(), memberCount);
     }
 
     @Override
