@@ -18,12 +18,14 @@ import matchuri.backend.domain.group.entity.GroupRecommendationVote;
 import matchuri.backend.domain.group.entity.GroupRoomMember;
 import matchuri.backend.domain.group.repository.GroupCandidateVoteCountRow;
 import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationCategoryRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationReadinessRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationVoteQueryRow;
 import matchuri.backend.domain.group.repository.GroupRoomMemberRepository;
 import matchuri.backend.domain.group.result.GroupMemberVoteResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
+import matchuri.backend.domain.group.result.GroupRecommendationCategoryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessMemberResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessProgressResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
@@ -38,12 +40,21 @@ import org.springframework.stereotype.Component;
 public class GroupRecommendationResultAssembler {
 
     private final GroupRecommendationCandidateRepository groupRecommendationCandidateRepository;
+    private final GroupRecommendationCategoryRepository groupRecommendationCategoryRepository;
     private final GroupRecommendationReadinessRepository groupRecommendationReadinessRepository;
     private final GroupRecommendationVoteRepository groupRecommendationVoteRepository;
     private final GroupRoomMemberRepository groupRoomMemberRepository;
     private final MenuThumbnailUrlResolver menuThumbnailUrlResolver;
     private final ImageUrlResolver imageUrlResolver;
     private final ObjectMapper objectMapper;
+
+    public List<GroupRecommendationCategoryResult> toCategoryResults(Long recommendationId) {
+        return groupRecommendationCategoryRepository
+                .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendationId)
+                .stream()
+                .map(GroupRecommendationCategoryResult::from)
+                .toList();
+    }
 
     public GroupRecommendationReadinessProgressResult readinessProgress(
             Long recommendationId,

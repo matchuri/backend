@@ -28,6 +28,8 @@ import matchuri.backend.domain.group.result.FinalizeGroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupHomeActivityResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
+import matchuri.backend.domain.group.result.GroupRecommendationCategoryResult;
+import matchuri.backend.domain.group.result.GroupRecommendationDetailResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessMemberResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessProgressResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessResult;
@@ -144,7 +146,7 @@ public class GroupRecommendationServiceImpl implements GroupRecommendationServic
     }
 
     @Override
-    public GroupRecommendationResult getGroupRecommendation(Long memberId, Long groupId, Long sessionId) {
+    public GroupRecommendationDetailResult getGroupRecommendation(Long memberId, Long groupId, Long sessionId) {
         Member member = memberReader.getActiveMember(memberId);
         groupRoomReader.getActiveMembership(groupId, member.getId());
 
@@ -153,11 +155,9 @@ public class GroupRecommendationServiceImpl implements GroupRecommendationServic
         groupRecommendationExpirationManager.expireGroupRecommendationIfNeeded(recommendation, LocalDateTime.now());
         List<GroupRoomMember> activeMemberships = groupRoomMemberRepository.findActiveMembersByRoomId(groupId);
 
-        return groupRecommendationResultAssembler.toGroupRecommendationResult(
-                recommendation,
-                member.getId(),
-                activeMemberships
-        );
+        GroupRecommendationResult recommendationResult = groupRecommendationResultAssembler.toGroupRecommendationResult(recommendation, member.getId(), activeMemberships);
+        List<GroupRecommendationCategoryResult> categoryResults = recommendation.getStartedAt() == null ? null : groupRecommendationResultAssembler.toCategoryResults(recommendation.getId());
+        return new GroupRecommendationDetailResult(recommendationResult, categoryResults);
     }
 
     @Override

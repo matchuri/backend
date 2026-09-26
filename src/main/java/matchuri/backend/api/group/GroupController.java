@@ -25,7 +25,7 @@ import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteLinkResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessResponse;
-import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
@@ -57,8 +57,8 @@ import matchuri.backend.domain.group.result.GroupDetailResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupInviteLinkResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
+import matchuri.backend.domain.group.result.GroupRecommendationDetailResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessResult;
-import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupRecommendationSummaryResult;
 import matchuri.backend.domain.group.result.GroupSummaryResult;
 import matchuri.backend.domain.group.result.GroupVoteResult;
@@ -305,14 +305,14 @@ public class GroupController implements GroupApi {
 
     @Override
     @GetMapping("/{groupId}/recommendations/{sessionId}")
-    public ApiResponse<GroupRecommendationSessionResponse> getRecommendation(
+    public ApiResponse<GroupRecommendationDetailResponse> getRecommendation(
             @AuthenticatedMemberId Long memberId,
             @PathVariable Long groupId,
             @PathVariable Long sessionId
     ) {
-        GroupRecommendationResult result = groupRecommendationService.getGroupRecommendation(memberId, groupId, sessionId);
+        GroupRecommendationDetailResult result = groupRecommendationService.getGroupRecommendation(memberId, groupId, sessionId);
 
-        return ApiResponse.success(groupMapper.toGroupRecommendationSessionResponse(result));
+        return ApiResponse.success(groupMapper.toGroupRecommendationDetailResponse(result));
     }
 
     @Override

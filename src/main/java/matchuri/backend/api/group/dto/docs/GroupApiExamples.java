@@ -581,6 +581,10 @@ public final class GroupApiExamples {
                     "voteCount": 0
                   }
                 ],
+                "recommendationCategories": [
+                  {"id": 101, "categoryType": "FOOD_CATEGORY", "code": "KOREAN", "name": "한식", "rankNo": 1, "source": "COMMON"},
+                  {"id": 102, "categoryType": "FLAVOR", "code": "SPICY", "name": "매운맛", "rankNo": 2, "source": "MENU"}
+                ],
                 "voteProgress": {
                   "totalMemberCount": 4,
                   "votedMemberCount": 3
