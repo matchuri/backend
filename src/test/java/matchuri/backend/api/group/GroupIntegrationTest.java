@@ -3104,6 +3104,41 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("현재 그룹 초대 링크가 없으면 OWNER에게 빈 성공 응답을 반환한다")
+    void getCurrentInviteLinkReturnsNullDataWhenNoActiveLink() throws Exception {
+        Member owner = saveMember("link-get-empty-owner", "링크미발급방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "링크 미발급 그룹");
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/invite-link", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").value(nullValue()))
+                .andExpect(jsonPath("$.error").value(nullValue()));
+
+        assertThat(groupInviteLinkRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("현재 그룹 초대 링크 조회는 OWNER가 아니면 빈 링크도 반환하지 않는다")
+    void getCurrentInviteLinkRejectsNonOwner() throws Exception {
+        Member owner = saveMember("link-get-forbidden-owner", "링크조회권한방장");
+        Member member = saveMember("link-get-forbidden-member", "링크조회권한멤버");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "링크 조회 권한 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom,
+                member,
+                GroupMemberRole.MEMBER,
+                LocalDateTime.now()
+        ));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/invite-link", groupRoom.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(member))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_FORBIDDEN"));
+    }
+
+    @Test
     @DisplayName("초대 링크 입장은 유효한 토큰으로 신규 멤버를 ACTIVE 상태로 저장한다")
     void joinGroupByInviteLinkCreatesActiveMember() throws Exception {
         Member owner = saveMember("link-join-owner", "링크입장방장");

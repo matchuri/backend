@@ -89,8 +89,8 @@ class GroupInviteLinkManagerTest {
     }
 
     @Test
-    @DisplayName("현재 링크 조회는 활성 링크가 없으면 찾을 수 없음으로 처리한다")
-    void getCurrentRejectsMissingActiveLink() {
+    @DisplayName("현재 링크 조회는 활성 링크가 없으면 빈 값을 반환한다")
+    void getCurrentReturnsEmptyWhenNoActiveLink() {
         GroupRoom room = activeRoom();
         GroupRoomMember membership = ownerMembership();
         when(groupRoomRepository.findByIdAndStatusNot(GROUP_ID, GroupRoomStatus.DELETED))
@@ -100,10 +100,7 @@ class GroupInviteLinkManagerTest {
         when(groupInviteLinkRepository.findFirstByRoomIdAndExpiresAtAfterOrderByCreatedAtDescIdDesc(GROUP_ID, NOW))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> manager.getCurrent(GROUP_ID, MEMBER_ID, NOW))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(GroupErrorCode.INVITE_LINK_NOT_FOUND);
+        assertThat(manager.getCurrent(GROUP_ID, MEMBER_ID, NOW)).isEmpty();
     }
 
     @Test

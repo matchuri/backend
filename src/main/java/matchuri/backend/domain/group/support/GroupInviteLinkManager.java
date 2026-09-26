@@ -1,6 +1,7 @@
 package matchuri.backend.domain.group.support;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.group.entity.GroupInviteLink;
 import matchuri.backend.domain.group.entity.GroupRoom;
@@ -27,7 +28,7 @@ public class GroupInviteLinkManager {
 
     public GroupInviteLink create(Long groupId, Long memberId, LocalDateTime issuedAt) {
         GroupRoom room = getActiveGroupRoomForUpdate(groupId, memberId);
-        if (findCurrent(room.getId(), issuedAt) != null) {
+        if (findCurrent(room.getId(), issuedAt).isPresent()) {
             throw new BusinessException(GroupErrorCode.INVITE_LINK_ALREADY_EXISTS, room.getId());
         }
         return createUnique(room, issuedAt);
@@ -35,22 +36,16 @@ public class GroupInviteLinkManager {
 
     public GroupInviteLink reissue(Long groupId, Long memberId, LocalDateTime issuedAt) {
         GroupRoom room = getActiveGroupRoomForUpdate(groupId, memberId);
-        GroupInviteLink current = findCurrent(room.getId(), issuedAt);
-        if (current == null) {
-            throw new BusinessException(GroupErrorCode.INVITE_LINK_NOT_FOUND);
-        }
+        GroupInviteLink current = findCurrent(room.getId(), issuedAt)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.INVITE_LINK_NOT_FOUND));
         current.expire(issuedAt);
         return createUnique(room, issuedAt);
     }
 
-    public GroupInviteLink getCurrent(Long groupId, Long memberId, LocalDateTime now) {
+    public Optional<GroupInviteLink> getCurrent(Long groupId, Long memberId, LocalDateTime now) {
         GroupRoom room = getActiveGroupRoom(groupId);
         validateOwner(room.getId(), memberId);
-        GroupInviteLink current = findCurrent(room.getId(), now);
-        if (current == null) {
-            throw new BusinessException(GroupErrorCode.INVITE_LINK_NOT_FOUND);
-        }
-        return current;
+        return findCurrent(room.getId(), now);
     }
 
     public GroupInviteLink getJoinable(String token, LocalDateTime now) {
@@ -100,10 +95,9 @@ public class GroupInviteLinkManager {
         }
     }
 
-    private GroupInviteLink findCurrent(Long groupId, LocalDateTime now) {
+    private Optional<GroupInviteLink> findCurrent(Long groupId, LocalDateTime now) {
         return groupInviteLinkRepository
-                .findFirstByRoomIdAndExpiresAtAfterOrderByCreatedAtDescIdDesc(groupId, now)
-                .orElse(null);
+                .findFirstByRoomIdAndExpiresAtAfterOrderByCreatedAtDescIdDesc(groupId, now);
     }
 
     private GroupInviteLink createUnique(GroupRoom room, LocalDateTime issuedAt) {

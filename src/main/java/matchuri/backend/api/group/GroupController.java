@@ -3,6 +3,7 @@ package matchuri.backend.api.group;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.util.Optional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
@@ -163,8 +164,8 @@ public class GroupController implements GroupApi {
             @AuthenticatedMemberId Long memberId,
             @PathVariable Long groupId
     ) {
-        GroupInviteLinkResult result = groupInviteService.getCurrentInviteLink(memberId, groupId);
-        return ApiResponse.success(groupMapper.toGroupInviteLinkResponse(result));
+        Optional<GroupInviteLinkResult> result = groupInviteService.getCurrentInviteLink(memberId, groupId);
+        return ApiResponse.success(result.map(groupMapper::toGroupInviteLinkResponse).orElse(null));
     }
 
     @Override

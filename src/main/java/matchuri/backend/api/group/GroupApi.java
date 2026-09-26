@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Min;
 import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateNicknameGroupInviteApiResponse;
 import matchuri.backend.api.group.dto.docs.CreateGroupRecommendationApiResponse;
+import matchuri.backend.api.group.dto.docs.CurrentGroupInviteLinkApiResponse;
 import matchuri.backend.api.group.dto.docs.DeleteGroupApiResponse;
 import matchuri.backend.api.group.dto.docs.FinalizeGroupRecommendationApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupApiExamples;
@@ -248,7 +249,7 @@ public interface GroupApi {
                     아직 만료되지 않은 현재 초대 링크 1개를 조회합니다.
 
                     - 로그인한 활성 회원 중 해당 그룹의 `ACTIVE` OWNER만 사용할 수 있습니다.
-                    - 만료된 링크는 반환하지 않으며 활성 링크가 없으면 404로 응답합니다.
+                    - 만료된 링크는 반환하지 않으며 활성 링크가 없으면 `200`과 `data: null`로 응답합니다.
                     """
     )
     @ApiResponses({
@@ -257,17 +258,11 @@ public interface GroupApi {
                     description = "현재 초대 링크 조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = GroupInviteLinkApiResponse.class),
-                            examples = @ExampleObject(name = "success", value = GroupApiExamples.GROUP_INVITE_LINK_SUCCESS)
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "404",
-                    description = "활성 초대 링크가 없음",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = GroupInviteLinkApiResponse.class),
-                            examples = @ExampleObject(name = "notFound", value = GroupApiExamples.GROUP_INVITE_LINK_NOT_FOUND)
+                            schema = @Schema(implementation = CurrentGroupInviteLinkApiResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "activeLink", value = GroupApiExamples.GROUP_INVITE_LINK_SUCCESS),
+                                    @ExampleObject(name = "noActiveLink", value = GroupApiExamples.GROUP_INVITE_LINK_EMPTY)
+                            }
                     )
             )
     })
