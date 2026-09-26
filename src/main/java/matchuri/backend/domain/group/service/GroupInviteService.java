@@ -8,6 +8,7 @@ import matchuri.backend.domain.group.command.JoinGroupCommand;
 import matchuri.backend.domain.group.command.RespondGroupInviteCommand;
 import matchuri.backend.domain.group.result.CreateNicknameGroupInviteResult;
 import matchuri.backend.domain.group.result.GroupInviteLinkResult;
+import matchuri.backend.domain.group.result.GroupInviteLinkPreviewResult;
 import matchuri.backend.domain.group.result.GroupInviteSummaryResult;
 import matchuri.backend.domain.group.result.GroupInviteV2SummaryResult;
 import matchuri.backend.domain.group.result.JoinGroupResult;
@@ -23,6 +24,8 @@ public interface GroupInviteService {
     GroupInviteLinkResult reissueInviteLink(Long memberId, Long groupId);
 
     Optional<GroupInviteLinkResult> getCurrentInviteLink(Long memberId, Long groupId);
+
+    GroupInviteLinkPreviewResult previewInviteLink(String token);
 
     JoinGroupResult joinGroupByInviteLink(Long memberId, String token);
 

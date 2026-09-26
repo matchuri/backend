@@ -1,6 +1,7 @@
 package matchuri.backend.api.group;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -20,6 +21,7 @@ import matchuri.backend.api.group.dto.docs.GroupApiExamples;
 import matchuri.backend.api.group.dto.docs.GroupDetailApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupInviteSummaryPageApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupInviteLinkApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupInviteLinkPreviewApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationCandidateListApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationReadinessApiResponse;
 import matchuri.backend.api.group.dto.docs.GroupRecommendationSessionApiResponse;
@@ -37,6 +39,7 @@ import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.FinalizeGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupRequest;
 import matchuri.backend.api.group.dto.request.JoinGroupByInviteLinkRequest;
+import matchuri.backend.api.group.dto.request.PreviewGroupInviteLinkRequest;
 import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
 import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
 import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
@@ -49,6 +52,7 @@ import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationRespon
 import matchuri.backend.api.group.dto.response.GroupDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteLinkResponse;
+import matchuri.backend.api.group.dto.response.GroupInviteLinkPreviewResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationDetailResponse;
@@ -440,6 +444,51 @@ public interface GroupApi {
             @AuthenticatedMemberId Long memberId,
             @Valid JoinGroupRequest request
     );
+
+    @Operation(
+            summary = "초대 링크 그룹 정보 미리보기",
+            description = """
+                    로그인 전에도 UUID 초대 토큰으로 그룹명, 방장의 현재 닉네임, 활성 그룹원 수를 조회합니다.
+                    그룹원 수에는 방장이 포함됩니다. 이 요청은 그룹에 참여시키거나 링크 상태를 변경하지 않습니다.
+                    토큰은 URL/서버 access log에 남지 않도록 request body로 전달합니다.
+                    존재하지 않는 토큰은 404, 만료된 토큰은 409, 비활성 그룹은 409를 반환합니다.
+                    """
+    )
+    @SecurityRequirements
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 정보 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkPreviewApiResponse.class),
+                            examples = @ExampleObject(name = "success", value = GroupApiExamples.GROUP_INVITE_LINK_PREVIEW_SUCCESS))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "UUID 토큰 형식이 올바르지 않음",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkPreviewApiResponse.class),
+                            examples = @ExampleObject(name = "invalidToken", value = GroupApiExamples.GROUP_INVITE_LINK_INVALID_TOKEN))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "초대 링크 토큰을 찾을 수 없음",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkPreviewApiResponse.class),
+                            examples = @ExampleObject(name = "notFound", value = GroupApiExamples.GROUP_INVITE_LINK_NOT_FOUND))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "초대 링크 만료 또는 그룹 비활성",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkPreviewApiResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "expired", value = GroupApiExamples.GROUP_INVITE_LINK_EXPIRED),
+                                    @ExampleObject(name = "inactiveGroup", value = GroupApiExamples.GROUP_NOT_ACTIVE)
+                            })
+            )
+    })
+    ApiResponse<GroupInviteLinkPreviewResponse> previewInviteLink(@Valid PreviewGroupInviteLinkRequest request);
 
     @Operation(
             summary = "초대 링크로 그룹 참여",

@@ -3139,6 +3139,100 @@ class GroupIntegrationTest {
     }
 
     @Test
+    @DisplayName("초대 링크 미리보기는 로그인 없이 그룹명, 방장 닉네임, 활성 그룹원 수만 반환한다")
+    void previewInviteLinkReturnsPublicGroupSummaryWithoutJoining() throws Exception {
+        Member owner = saveMember("link-preview-owner", "미리보기방장");
+        Member activeMember = saveMember("link-preview-active", "활성그룹원");
+        Member leftMember = saveMember("link-preview-left", "탈퇴그룹원");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "미리보기 그룹");
+        groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom, activeMember, GroupMemberRole.MEMBER, LocalDateTime.now()));
+        GroupRoomMember leftMembership = groupRoomMemberRepository.save(new GroupRoomMember(
+                groupRoom, leftMember, GroupMemberRole.MEMBER, LocalDateTime.now()));
+        leftMembership.leave(LocalDateTime.now());
+        groupRoomMemberRepository.save(leftMembership);
+        String token = "88888888-8888-4888-8888-888888888888";
+        saveInviteLink(groupRoom, token, LocalDateTime.now().plusHours(1));
+
+        mockMvc.perform(post("/api/v1/groups/invite-links/preview")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"token":"%s"}
+                                """.formatted(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.groupName").value("미리보기 그룹"))
+                .andExpect(jsonPath("$.data.ownerNickname").value("미리보기방장"))
+                .andExpect(jsonPath("$.data.memberCount").value(2))
+                .andExpect(jsonPath("$.data.groupId").doesNotExist())
+                .andExpect(jsonPath("$.data.token").doesNotExist())
+                .andExpect(jsonPath("$.data.inviteCode").doesNotExist());
+
+        assertThat(groupRoomMemberRepository.count()).isEqualTo(3);
+        assertThat(groupInviteLinkRepository.findByToken(token)).isPresent();
+    }
+
+    @Test
+    @DisplayName("초대 링크 미리보기는 존재하지 않는 토큰을 404로 반환한다")
+    void previewInviteLinkRejectsMissingToken() throws Exception {
+        mockMvc.perform(post("/api/v1/groups/invite-links/preview")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"token":"99999999-9999-4999-8999-999999999999"}
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_LINK_NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("초대 링크 미리보기는 UUID 형식이 아닌 토큰을 400으로 거절한다")
+    void previewInviteLinkRejectsMalformedToken() throws Exception {
+        mockMvc.perform(post("/api/v1/groups/invite-links/preview")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"token":"not-a-uuid"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("COMMON_INVALID_BODY_FIELD"));
+    }
+
+    @Test
+    @DisplayName("초대 링크 미리보기는 만료된 토큰을 409로 반환한다")
+    void previewInviteLinkRejectsExpiredToken() throws Exception {
+        Member owner = saveMember("link-preview-expired-owner", "만료방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "만료 그룹");
+        String token = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+        saveInviteLink(groupRoom, token, LocalDateTime.now().minusMinutes(1));
+
+        mockMvc.perform(post("/api/v1/groups/invite-links/preview")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"token":"%s"}
+                                """.formatted(token)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_INVITE_LINK_EXPIRED"));
+    }
+
+    @Test
+    @DisplayName("초대 링크 미리보기는 비활성 그룹을 반환하지 않는다")
+    void previewInviteLinkRejectsInactiveGroup() throws Exception {
+        Member owner = saveMember("link-preview-closed-owner", "종료방장");
+        GroupRoom groupRoom = saveGroupOwnedBy(owner, "종료 그룹");
+        String token = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+        saveInviteLink(groupRoom, token, LocalDateTime.now().plusHours(1));
+        groupRoom.close();
+        groupRoomRepository.save(groupRoom);
+
+        mockMvc.perform(post("/api/v1/groups/invite-links/preview")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"token":"%s"}
+                                """.formatted(token)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_NOT_ACTIVE"));
+    }
+
+    @Test
     @DisplayName("초대 링크 입장은 유효한 토큰으로 신규 멤버를 ACTIVE 상태로 저장한다")
     void joinGroupByInviteLinkCreatesActiveMember() throws Exception {
         Member owner = saveMember("link-join-owner", "링크입장방장");
