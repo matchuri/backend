@@ -10,6 +10,7 @@ import matchuri.backend.domain.group.result.FinalizeGroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupHomeActivityResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessResult;
+import matchuri.backend.domain.group.result.GroupRecommendationDetailResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
 import matchuri.backend.domain.group.result.GroupRecommendationSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationV2SummaryResult;
@@ -25,7 +26,7 @@ public interface GroupRecommendationService {
 
     CreateGroupRecommendationResult rerollGroupRecommendation(Long memberId, Long groupId, Long sessionId, GroupRecommendationRerollType rerollType, String contextJson);
 
-    GroupRecommendationResult getGroupRecommendation(Long memberId, Long groupId, Long sessionId);
+    GroupRecommendationDetailResult getGroupRecommendation(Long memberId, Long groupId, Long sessionId);
 
     GroupRecommendationCandidateListResult getGroupRecommendationCandidates(Long memberId, Long groupId, Long sessionId);
 

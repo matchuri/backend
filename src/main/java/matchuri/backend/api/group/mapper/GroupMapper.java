@@ -23,6 +23,8 @@ import matchuri.backend.api.group.dto.response.GroupMemberSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupMemberSummaryV2Response;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationCategoryResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessMemberResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
@@ -63,6 +65,7 @@ import matchuri.backend.domain.group.result.GroupMemberVoteResult;
 import matchuri.backend.domain.group.result.GroupMemberSummaryResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateListResult;
 import matchuri.backend.domain.group.result.GroupRecommendationCandidateResult;
+import matchuri.backend.domain.group.result.GroupRecommendationDetailResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessMemberResult;
 import matchuri.backend.domain.group.result.GroupRecommendationReadinessResult;
 import matchuri.backend.domain.group.result.GroupRecommendationResult;
@@ -335,6 +338,33 @@ public class GroupMapper {
                         ? null
                         : toGroupRecommendationCandidateResponse(result.finalCandidate()),
                 result.createdAt()
+        );
+    }
+
+    public GroupRecommendationDetailResponse toGroupRecommendationDetailResponse(GroupRecommendationDetailResult result) {
+        GroupRecommendationSessionResponse session = toGroupRecommendationSessionResponse(result.session());
+        return new GroupRecommendationDetailResponse(
+                session.sessionId(),
+                session.status(),
+                session.contextJson(),
+                session.readiness(),
+                session.candidates(),
+                result.recommendationCategories() == null
+                        ? null
+                        : result.recommendationCategories().stream()
+                                .map(category -> new GroupRecommendationCategoryResponse(
+                                        category.id(),
+                                        category.categoryType(),
+                                        category.code(),
+                                        category.name(),
+                                        category.rankNo(),
+                                        category.source()
+                                ))
+                                .toList(),
+                session.voteProgress(),
+                session.memberVotes(),
+                session.finalCandidate(),
+                session.createdAt()
         );
     }
 

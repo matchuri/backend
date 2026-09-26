@@ -42,6 +42,7 @@ import matchuri.backend.domain.group.repository.GroupInviteLinkRepository;
 import matchuri.backend.domain.group.repository.GroupLocationRepository;
 import matchuri.backend.domain.group.repository.GroupMenuActionRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationCandidateRepository;
+import matchuri.backend.domain.group.repository.GroupRecommendationCategoryRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationReadinessRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
 import matchuri.backend.domain.group.repository.GroupRecommendationVoteRepository;
@@ -146,6 +147,9 @@ class GroupIntegrationTest {
     private GroupRecommendationCandidateRepository groupRecommendationCandidateRepository;
 
     @Autowired
+    private GroupRecommendationCategoryRepository groupRecommendationCategoryRepository;
+
+    @Autowired
     private GroupRecommendationReadinessRepository groupRecommendationReadinessRepository;
 
     @Autowired
@@ -199,6 +203,7 @@ class GroupIntegrationTest {
         groupMenuActionRepository.deleteAll();
         groupRecommendationVoteRepository.deleteAll();
         groupRecommendationReadinessRepository.deleteAll();
+        groupRecommendationCategoryRepository.deleteAll();
         groupRecommendationCandidateRepository.deleteAll();
         groupRecommendationRepository.deleteAll();
         groupInviteLinkRepository.deleteAll();
@@ -353,7 +358,7 @@ class GroupIntegrationTest {
         assertThat(queryLogs)
                 .hasSize(2)
                 .allMatch(line -> line.contains(
-                        "total=6 select=6 insert=0 update=0 delete=0 other=0"));
+                        "total=7 select=7 insert=0 update=0 delete=0 other=0"));
     }
 
     @Test
@@ -887,6 +892,82 @@ class GroupIntegrationTest {
         assertThat(groupRecommendationCandidateRepository
                 .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId()))
                 .hasSize(2);
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        groupRoom.getId(), recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.recommendationCategories.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("추천 카테고리는 OPEN 시점에 저장되고 취향 수정과 탈퇴 후에도 유지되며 이름은 현재 값을 반환한다")
+    void recommendationCategoriesAreSessionSnapshotWithCurrentCategoryName() throws Exception {
+        Member owner = saveMember("category-owner", "카테고리방장");
+        Member member = saveMember("category-member", "카테고리멤버");
+        GroupRoom room = saveGroupOwnedBy(owner, "카테고리 그룹");
+        GroupRoomMember membership = groupRoomMemberRepository.save(new GroupRoomMember(
+                room, member, GroupMemberRole.MEMBER, LocalDateTime.now()
+        ));
+        AttributeCategory commonOne = saveCategory("COMMON_ONE", "공통 하나", 1);
+        AttributeCategory commonTwo = saveCategory("COMMON_TWO", "공통 둘", 2);
+        AttributeCategory menuOne = saveCategory("MENU_ONE", "메뉴 하나", 3);
+        AttributeCategory menuTwo = saveCategory("MENU_TWO", "메뉴 둘", 4);
+        AttributeCategory menuThree = saveCategory("MENU_THREE", "메뉴 셋", 5);
+        saveTasteProfile(owner, new AttributeCategory[]{commonOne, commonTwo}, new Ingredient[]{}, new MenuItem[]{});
+        saveTasteProfile(member, new AttributeCategory[]{commonOne, commonTwo}, new Ingredient[]{}, new MenuItem[]{});
+        saveMenu("category-first", "첫 메뉴", commonOne, menuOne);
+        saveMenu("category-second", "둘째 메뉴", commonTwo, menuTwo, menuThree);
+        GroupRecommendation recommendation = groupRecommendationRepository.save(GroupRecommendation.preparing(room));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        room.getId(), recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.recommendationCategories").value(nullValue()));
+
+        for (Member readyMember : List.of(member, owner)) {
+            mockMvc.perform(post("/api/v1/groups/{groupId}/recommendations/{sessionId}/ready",
+                            room.getId(), recommendation.getId())
+                            .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(readyMember))))
+                    .andExpect(status().isOk());
+        }
+
+        assertThat(groupRecommendationCategoryRepository
+                .findAllByGroupRecommendationIdOrderByRankNoAsc(recommendation.getId()))
+                .hasSize(5);
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        room.getId(), recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.recommendationCategories.length()").value(5))
+                .andExpect(jsonPath("$.data.recommendationCategories[0].id").value(commonOne.getId()))
+                .andExpect(jsonPath("$.data.recommendationCategories[0].source").value("COMMON"))
+                .andExpect(jsonPath("$.data.recommendationCategories[1].id").value(commonTwo.getId()))
+                .andExpect(jsonPath("$.data.recommendationCategories[1].source").value("COMMON"))
+                .andExpect(jsonPath("$.data.recommendationCategories[2].id").value(menuOne.getId()))
+                .andExpect(jsonPath("$.data.recommendationCategories[2].source").value("MENU"))
+                .andExpect(jsonPath("$.data.recommendationCategories[3].id").value(menuTwo.getId()))
+                .andExpect(jsonPath("$.data.recommendationCategories[4].id").value(menuThree.getId()))
+                .andExpect(jsonPath("$.data.recommendationCategories[4].rankNo").value(5));
+
+        memberTasteProfileCategoryRepository.deleteAll();
+        membership.leave(LocalDateTime.now());
+        groupRoomMemberRepository.save(membership);
+        commonOne.updateName("공통 하나 변경");
+        attributeCategoryRepository.save(commonOne);
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}/recommendations/{sessionId}",
+                        room.getId(), recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.recommendationCategories.length()").value(5))
+                .andExpect(jsonPath("$.data.recommendationCategories[0].source").value("COMMON"))
+                .andExpect(jsonPath("$.data.recommendationCategories[0].name").value("공통 하나 변경"));
+
+        mockMvc.perform(get("/api/v1/groups/{groupId}", room.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.recentlyRecommendation.recommendationCategories").doesNotExist());
     }
 
     @Test

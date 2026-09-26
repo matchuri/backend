@@ -50,7 +50,7 @@ import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupInviteLinkResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessResponse;
-import matchuri.backend.api.group.dto.response.GroupRecommendationSessionResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationDetailResponse;
 import matchuri.backend.api.group.dto.response.GroupRecommendationSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
 import matchuri.backend.api.group.dto.response.GroupVoteResponse;
@@ -630,7 +630,7 @@ public interface GroupApi {
     @Operation(
             summary = "그룹 추천 세션 상세 조회",
             description = """
-                    그룹 추천 상태, 추천 당시 컨텍스트 JSON, 준비 진행률, 후보, 투표 진행률, 투표 상태, 최종 후보를 조회합니다.
+                    그룹 추천 상태, 추천 당시 컨텍스트 JSON, 준비 진행률, 후보, 추천 카테고리, 투표 진행률, 투표 상태, 최종 후보를 조회합니다.
 
                     구현 기준:
                     - 로그인한 활성 회원만 사용할 수 있습니다.
@@ -639,6 +639,8 @@ public interface GroupApi {
                     - `contextJson`은 추천 당시 위치 등 컨텍스트 스냅샷이며, 파싱하지 않은 JSON 문자열로 반환합니다.
                     - `PREPARING` 세션이면 후보는 빈 배열, 투표 진행률은 null, readiness 진행률은 값으로 반환합니다.
                     - `OPEN` 세션이면 후보별 현재 투표 수와 전체 투표 진행률을 함께 반환하고 readiness는 null입니다.
+                    - `recommendationCategories`는 후보 생성 전에는 null, 생성 후에는 최대 5개 배열입니다. COMMON은 후보에 연결된 당시 모든 그룹원의 공통 취향이고 MENU는 후보 카테고리로 보충한 항목입니다.
+                    - 카테고리 ID, 출처, 순위는 추천 시점의 값이며 카테고리 이름은 조회 시점의 현재 값을 반환합니다.
                     - `memberVotes`는 현재 활성 그룹원별 투표 여부, 본인 여부, 선택 후보 ID를 반환합니다.
                     - `memberVotes.candidateId`는 해당 회원이 투표하지 않았으면 null입니다.
                     """
@@ -657,7 +659,7 @@ public interface GroupApi {
                     )
             )
     })
-    ApiResponse<GroupRecommendationSessionResponse> getRecommendation(
+    ApiResponse<GroupRecommendationDetailResponse> getRecommendation(
             @AuthenticatedMemberId Long memberId,
             Long groupId,
             Long sessionId
