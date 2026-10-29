@@ -70,15 +70,15 @@ class RecommendationExclusivePreferenceTest {
     }
 
     @ParameterizedTest
-    @MethodSource("algorithms")
-    @DisplayName("맛과 조리법과 식감의 복수 선호는 계속 개별 항목으로 계산한다")
+    @MethodSource("guestAndGroupAlgorithms")
+    @DisplayName("비회원과 그룹은 맛과 조리법과 식감의 복수 선호를 계속 개별 항목으로 계산한다")
     void nonExclusiveTypesRemainIndividualPreferences(MenuRecommendationAlgorithm algorithm) {
         assertScore(algorithm, List.of(30L, 31L, 40L, 41L, 50L, 51L), List.of(30L, 40L, 50L), 50.0);
     }
 
     @ParameterizedTest
-    @MethodSource("algorithms")
-    @DisplayName("혼합 입력에서도 맛과 조리법과 식감은 각 선택 항목의 가중치를 유지한다")
+    @MethodSource("guestAndGroupAlgorithms")
+    @DisplayName("비회원과 그룹의 혼합 입력에서도 맛과 조리법과 식감은 각 선택 항목의 가중치를 유지한다")
     void mixedNonExclusivePreferencesRetainIndividualWeight(MenuRecommendationAlgorithm algorithm) {
         assertScore(algorithm, List.of(10L, 11L, 20L, 21L, 30L, 31L, 40L, 41L, 50L, 51L),
                 List.of(10L, 20L, 30L, 40L, 50L), 62.5);
@@ -141,6 +141,13 @@ class RecommendationExclusivePreferenceTest {
     private static Stream<MenuRecommendationAlgorithm> algorithms() {
         return Stream.of(
                 new PersonalMenuRecommendationAlgorithmV1(),
+                new GuestPersonalMenuRecommendationAlgorithmV1(),
+                new GroupMenuRecommendationAlgorithmV1()
+        );
+    }
+
+    private static Stream<MenuRecommendationAlgorithm> guestAndGroupAlgorithms() {
+        return Stream.of(
                 new GuestPersonalMenuRecommendationAlgorithmV1(),
                 new GroupMenuRecommendationAlgorithmV1()
         );

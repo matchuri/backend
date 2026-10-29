@@ -901,30 +901,114 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("회원 추천은 저장된 음식 분류와 온도감 대안을 유형별로 계산한다")
-    void personalRecommendationUsesExclusivePreferenceTypes() throws Exception {
-        Member member = saveMember("exclusive-personal", "배타적선호회원");
+    @DisplayName("회원 추천 생성과 재요청은 저장된 맛과 조리법 대안을 유형별로 계산하고 v1.2 메타를 저장한다")
+    void personalRecommendationCreateAndRerollUseAlternativesPerType() throws Exception {
+        Member member = saveMember("alternatives-personal", "유형별선호회원");
+        String accessToken = accessToken(member);
         AttributeCategory korean = attributeCategoryRepository.save(
                 new AttributeCategory(CategoryType.FOOD_CATEGORY, "KOREAN", "한식", 10));
-        AttributeCategory chinese = attributeCategoryRepository.save(
-                new AttributeCategory(CategoryType.FOOD_CATEGORY, "CHINESE", "중식", 20));
-        AttributeCategory hot = attributeCategoryRepository.save(
-                new AttributeCategory(CategoryType.TEMPERATURE, "HOT", "뜨거움", 10));
-        AttributeCategory cold = attributeCategoryRepository.save(
-                new AttributeCategory(CategoryType.TEMPERATURE, "COLD", "차가움", 20));
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        AttributeCategory rich = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "RICH", "진한 맛", 20));
+        AttributeCategory soup = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.COOKING_METHOD, "SOUP", "국물", 10));
+        AttributeCategory grilled = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.COOKING_METHOD, "GRILLED", "구이", 20));
         MemberTasteProfile profile = memberTasteProfileRepository.save(new MemberTasteProfile(member, "v1"));
-        for (AttributeCategory category : List.of(korean, chinese, hot, cold)) {
+        for (AttributeCategory category : List.of(korean, spicy, rich, soup, grilled)) {
             memberTasteProfileCategoryRepository.save(new MemberTasteProfileCategory(profile, category));
         }
-        MenuItem menu = menuItemRepository.save(new MenuItem("KOREAN_HOT", "한식 국물", "추천 점수 검증"));
+        MenuItem menu = menuItemRepository.save(new MenuItem("KOREAN_SPICY_SOUP", "매운 한식 국물", "추천 점수 검증"));
         saveMenuAttribute(menu, korean);
-        saveMenuAttribute(menu, hot);
+        saveMenuAttribute(menu, spicy);
+        saveMenuAttribute(menu, soup);
 
-        JsonNode recommendation = createRecommendation(accessToken(member));
+        JsonNode recommendation = createRecommendation(accessToken);
+        long requestId = recommendation.path("requestId").asLong();
 
         assertThat(recommendation.path("candidates").get(0).path("menuId").asLong()).isEqualTo(menu.getId());
         assertThat(recommendation.path("candidates").get(0).path("score").asDouble()).isEqualTo(100.0);
-        assertThat(personalRecommendationCandidateRepository.findAll().getFirst().getScore()).isEqualTo(100.0);
+        assertPersonalCandidatePolicy(requestId, 100.0, "v1.2");
+
+        MvcResult rerollResult = mockMvc.perform(post(
+                                "/api/v1/personal/recommendations/{requestId}/reroll", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"rerollType":"INPUT_CHANGED","contextJson":{}}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.candidates[0].menuId").value(menu.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].score").value(100.0))
+                .andReturn();
+
+        long rerolledRequestId = objectMapper.readTree(rerollResult.getResponse().getContentAsString())
+                .path("data").path("requestId").asLong();
+        assertThat(rerolledRequestId).isNotEqualTo(requestId);
+        assertPersonalCandidatePolicy(rerolledRequestId, 100.0, "v1.2");
+        assertThat(memberMenuActionRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("기존 v1.1 후보의 상세와 후보 목록 및 선택 이력 조회는 저장된 점수와 메타를 재계산하지 않는다")
+    void personalRecommendationReadsPreserveLegacyCandidateScoreAndMetadata() throws Exception {
+        Member member = saveMember("legacy-score-personal", "기존점수회원");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        MenuItem menu = menuItemRepository.save(new MenuItem("LEGACY_SPICY_SOUP", "기존 매운 국물", "기존 점수 보존"));
+        saveMenuAttribute(menu, spicy);
+        saveTasteProfile(member, spicy, null);
+        PersonalRecommendation recommendation = personalRecommendationRepository.save(PersonalRecommendation.of(member));
+        PersonalRecommendationCandidate candidate = personalRecommendationCandidateRepository.save(
+                PersonalRecommendationCandidate.of(recommendation, menu, 1, 60.0, """
+                        {"algorithmType":"PERSONAL","algorithmVersion":"v1.1","scoreBreakdown":{"normalizedScore":60.0}}
+                        """));
+        String savedMetadata = candidate.getCandidateMetaJson();
+        recommendation.select(candidate, LocalDateTime.now());
+        personalRecommendationRepository.save(recommendation);
+
+        mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}", recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.candidates[0].id").value(candidate.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].score").value(60.0));
+
+        mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}/candidates", recommendation.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.candidates[0].id").value(candidate.getId()))
+                .andExpect(jsonPath("$.data.candidates[0].score").value(60.0));
+
+        mockMvc.perform(get("/api/v2/personal/recommendations")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].id").value(recommendation.getId()))
+                .andExpect(jsonPath("$.data.content[0].score").value(60.0));
+
+        PersonalRecommendationCandidate stored = personalRecommendationCandidateRepository.findById(candidate.getId())
+                .orElseThrow();
+        assertThat(stored.getScore()).isEqualTo(60.0);
+        assertThat(readCandidateMetadata(stored.getCandidateMetaJson())).isEqualTo(readCandidateMetadata(savedMetadata));
+    }
+
+    private void assertPersonalCandidatePolicy(long requestId, double score, String algorithmVersion) throws Exception {
+        List<PersonalRecommendationCandidate> candidates = personalRecommendationCandidateRepository
+                .findByPersonalRecommendationIdOrderByRankNoAsc(requestId);
+        assertThat(candidates).hasSize(1);
+        PersonalRecommendationCandidate candidate = candidates.getFirst();
+        assertThat(candidate.getScore()).isEqualTo(score);
+        JsonNode metadata = readCandidateMetadata(candidate.getCandidateMetaJson());
+        assertThat(metadata.path("algorithmType").asText()).isEqualTo("PERSONAL");
+        assertThat(metadata.path("algorithmVersion").asText()).isEqualTo(algorithmVersion);
+        assertThat(metadata.path("scoreBreakdown").path("normalizedScore").asDouble()).isEqualTo(score);
+        assertThat(metadata.path("scoreBreakdown").path("categoryMatchingCount").asLong()).isEqualTo(3L);
+    }
+
+    private JsonNode readCandidateMetadata(String metadataJson) throws Exception {
+        JsonNode metadata = objectMapper.readTree(metadataJson);
+        return metadata.isTextual() ? objectMapper.readTree(metadata.asText()) : metadata;
     }
 
     private JsonNode createRecommendation(String accessToken) throws Exception {

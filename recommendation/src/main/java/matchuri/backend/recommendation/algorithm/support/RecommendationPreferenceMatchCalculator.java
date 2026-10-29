@@ -1,5 +1,6 @@
 package matchuri.backend.recommendation.algorithm.support;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,30 +17,50 @@ public final class RecommendationPreferenceMatchCalculator {
             List<Long> preferredAttributeIds,
             Map<Long, CategoryType> categoryTypes
     ) {
+        return calculate(menuAttributeIds, preferredAttributeIds, categoryTypes,
+                EnumSet.of(CategoryType.FOOD_CATEGORY, CategoryType.TEMPERATURE));
+    }
+
+    public static PreferenceMatch calculateByCategoryType(
+            List<Long> menuAttributeIds,
+            List<Long> preferredAttributeIds,
+            Map<Long, CategoryType> categoryTypes
+    ) {
+        return calculate(menuAttributeIds, preferredAttributeIds, categoryTypes, EnumSet.allOf(CategoryType.class));
+    }
+
+    private static PreferenceMatch calculate(
+            List<Long> menuAttributeIds,
+            List<Long> preferredAttributeIds,
+            Map<Long, CategoryType> categoryTypes,
+            Set<CategoryType> groupedTypes
+    ) {
         Set<Long> preferredIds = new HashSet<>(preferredAttributeIds);
         Set<Long> matchingIds = new HashSet<>(menuAttributeIds);
         matchingIds.retainAll(preferredIds);
 
-        return new PreferenceMatch(countUnits(matchingIds, categoryTypes), countUnits(preferredIds, categoryTypes));
+        return new PreferenceMatch(countUnits(matchingIds, categoryTypes, groupedTypes),
+                countUnits(preferredIds, categoryTypes, groupedTypes));
     }
 
-    private static int countUnits(Set<Long> categoryIds, Map<Long, CategoryType> categoryTypes) {
-        boolean foodCategoryPresent = false;
-        boolean temperaturePresent = false;
+    private static int countUnits(
+            Set<Long> categoryIds,
+            Map<Long, CategoryType> categoryTypes,
+            Set<CategoryType> groupedTypes
+    ) {
+        Set<CategoryType> presentTypes = EnumSet.noneOf(CategoryType.class);
         int individualCount = 0;
 
         for (Long categoryId : categoryIds) {
             CategoryType type = categoryTypes.get(categoryId);
-            if (type == CategoryType.FOOD_CATEGORY) {
-                foodCategoryPresent = true;
-            } else if (type == CategoryType.TEMPERATURE) {
-                temperaturePresent = true;
+            if (groupedTypes.contains(type)) {
+                presentTypes.add(type);
             } else {
                 individualCount++;
             }
         }
 
-        return individualCount + (foodCategoryPresent ? 1 : 0) + (temperaturePresent ? 1 : 0);
+        return individualCount + presentTypes.size();
     }
 
     public record PreferenceMatch(long matchingCount, int preferredUnitCount) {

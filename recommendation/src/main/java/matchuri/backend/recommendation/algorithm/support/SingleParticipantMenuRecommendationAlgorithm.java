@@ -50,7 +50,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
             Map<Long, Long> selectedAttributeCategoryFrequency,
             Map<Long, CategoryType> categoryTypes
     ) {
-        var preferenceMatch = RecommendationPreferenceMatchCalculator.calculate(
+        var preferenceMatch = calculatePreferenceMatch(
                 menu.attributeCategoryIds(),
                 participant.preferredAttributeCategoryIds(),
                 categoryTypes
@@ -83,6 +83,14 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
                 ),
                 categoryMatchingScore + historyWeightScore
         );
+    }
+
+    protected RecommendationPreferenceMatchCalculator.PreferenceMatch calculatePreferenceMatch(
+            List<Long> menuAttributeIds,
+            List<Long> preferredAttributeIds,
+            Map<Long, CategoryType> categoryTypes
+    ) {
+        return RecommendationPreferenceMatchCalculator.calculate(menuAttributeIds, preferredAttributeIds, categoryTypes);
     }
 
     private List<MenuRecommendationCandidateResult> toCandidates(List<ScoredMenu> scoredMenus) {
