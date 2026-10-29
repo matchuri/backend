@@ -18,7 +18,7 @@ public record PersonalRecommendationCandidateResponse(
         @Schema(description = "추천 순위입니다.", example = "1")
         Integer rankNo,
 
-        @Schema(description = "취향과 선택 이력을 반영한 0~100 정규화 추천 점수입니다. FOOD_CATEGORY와 TEMPERATURE는 유형별로 선택 항목 중 하나만 일치해도 충족됩니다. 만족 확률을 의미하지 않습니다.", example = "93.5")
+        @Schema(description = "취향과 선택 이력을 반영한 0~100 정규화 추천 점수입니다. 회원 개인 추천 v1.2는 모든 카테고리 유형에서 선택한 속성 ID 중 하나 이상이 메뉴와 일치하면 해당 유형을 충족합니다. 선호가 있고 선택 이력이 없으면 모든 선택 유형 충족 시 100점이며, 이력이 있으면 최종 100점을 보장하지 않습니다. 기존 저장 점수는 재계산하지 않으며 만족 확률을 의미하지 않습니다.", example = "93.5")
         Double score
 ) {
     public static PersonalRecommendationCandidateResponse mockBibimbap() {
