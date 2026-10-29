@@ -64,6 +64,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -901,7 +902,7 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("회원 추천 생성과 재요청은 저장된 맛과 조리법 대안을 유형별로 계산하고 v1.2 메타를 저장한다")
+    @DisplayName("회원 추천 생성과 재요청은 저장된 맛과 조리법 대안을 유형별로 계산하고 v1.3 메타를 저장한다")
     void personalRecommendationCreateAndRerollUseAlternativesPerType() throws Exception {
         Member member = saveMember("alternatives-personal", "유형별선호회원");
         String accessToken = accessToken(member);
@@ -929,7 +930,7 @@ class PersonalRecommendationIntegrationTest {
 
         assertThat(recommendation.path("candidates").get(0).path("menuId").asLong()).isEqualTo(menu.getId());
         assertThat(recommendation.path("candidates").get(0).path("score").asDouble()).isEqualTo(100.0);
-        assertPersonalCandidatePolicy(requestId, 100.0, "v1.2");
+        assertPersonalCandidatePolicy(requestId, 100.0, "v1.3");
 
         MvcResult rerollResult = mockMvc.perform(post(
                                 "/api/v1/personal/recommendations/{requestId}/reroll", requestId)
@@ -946,13 +947,83 @@ class PersonalRecommendationIntegrationTest {
         long rerolledRequestId = objectMapper.readTree(rerollResult.getResponse().getContentAsString())
                 .path("data").path("requestId").asLong();
         assertThat(rerolledRequestId).isNotEqualTo(requestId);
-        assertPersonalCandidatePolicy(rerolledRequestId, 100.0, "v1.2");
+        assertPersonalCandidatePolicy(rerolledRequestId, 100.0, "v1.3");
         assertThat(memberMenuActionRepository.count()).isZero();
     }
 
     @Test
-    @DisplayName("기존 v1.1 후보의 상세와 후보 목록 및 선택 이력 조회는 저장된 점수와 메타를 재계산하지 않는다")
-    void personalRecommendationReadsPreserveLegacyCandidateScoreAndMetadata() throws Exception {
+    @DisplayName("선택 이력이 있어도 완전 일치는 100점이며 생성과 재요청의 순위와 저장 및 조회 점수는 일치한다")
+    void personalRecommendationFinalScoresStayConsistentWithSelectionHistory() throws Exception {
+        Member member = saveMember("history-score-personal", "이력점수회원");
+        String accessToken = accessToken(member);
+        AttributeCategory spicy = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "SPICY", "매운맛", 10));
+        AttributeCategory rich = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.FLAVOR, "RICH", "진한 맛", 20));
+        AttributeCategory soup = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.COOKING_METHOD, "SOUP", "국물", 10));
+        AttributeCategory grilled = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.COOKING_METHOD, "GRILLED", "구이", 20));
+        MemberTasteProfile profile = memberTasteProfileRepository.save(new MemberTasteProfile(member, "v1"));
+        memberTasteProfileCategoryRepository.save(new MemberTasteProfileCategory(profile, spicy));
+        memberTasteProfileCategoryRepository.save(new MemberTasteProfileCategory(profile, soup));
+        MenuItem historyMenu = menuItemRepository.save(new MenuItem("RICH_GRILLED", "진한 구이", "선택 이력"));
+        saveMenuAttribute(historyMenu, rich);
+        saveMenuAttribute(historyMenu, grilled);
+
+        JsonNode historyRecommendation = createRecommendation(accessToken);
+        mockMvc.perform(patch("/api/v1/personal/recommendations/{requestId}",
+                        historyRecommendation.path("requestId").asLong())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(selectRequest(historyRecommendation.path("candidates").get(0).path("id").asLong())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value(PersonalRecommendationStatus.SELECTED.name()));
+        assertThat(memberMenuActionRepository.findAll())
+                .extracting(action -> action.getActionType())
+                .containsExactly(ActionType.CHOOSE);
+
+        MenuItem firstFullMatch = menuItemRepository.save(new MenuItem("SPICY_SOUP_1", "매운 국물 1", "완전 일치"));
+        MenuItem secondFullMatch = menuItemRepository.save(new MenuItem("SPICY_SOUP_2", "매운 국물 2", "완전 일치"));
+        MenuItem partialMatch = menuItemRepository.save(new MenuItem("SPICY_GRILLED", "매운 구이", "일부 취향과 이력 일치"));
+        for (MenuItem menu : List.of(firstFullMatch, secondFullMatch, partialMatch)) {
+            saveMenuAttribute(menu, spicy);
+        }
+        saveMenuAttribute(firstFullMatch, soup);
+        saveMenuAttribute(secondFullMatch, soup);
+        saveMenuAttribute(partialMatch, grilled);
+        List<Long> expectedMenuIds = List.of(firstFullMatch.getId(), secondFullMatch.getId(), partialMatch.getId());
+
+        JsonNode created = createRecommendation(accessToken);
+        long requestId = created.path("requestId").asLong();
+        assertHistoryAwareCandidateScores(created, expectedMenuIds);
+        assertHistoryAwareStoredAndReadScores(requestId, accessToken, expectedMenuIds);
+
+        MvcResult rerollResult = mockMvc.perform(post(
+                                "/api/v1/personal/recommendations/{requestId}/reroll", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"rerollType":"INPUT_CHANGED","contextJson":{}}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode rerolled = objectMapper.readTree(rerollResult.getResponse().getContentAsString()).path("data");
+        long rerolledRequestId = rerolled.path("requestId").asLong();
+        assertThat(rerolledRequestId).isNotEqualTo(requestId);
+        assertHistoryAwareCandidateScores(rerolled, expectedMenuIds);
+        assertHistoryAwareStoredAndReadScores(rerolledRequestId, accessToken, expectedMenuIds);
+        assertThat(memberMenuActionRepository.findAll())
+                .extracting(action -> action.getActionType())
+                .containsExactly(ActionType.CHOOSE);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"v1.1, 60.0", "v1.2, 83.3"})
+    @DisplayName("기존 v1.1과 v1.2 후보의 상세와 후보 목록 및 선택 이력 조회는 저장된 점수와 메타를 재계산하지 않는다")
+    void personalRecommendationReadsPreserveLegacyCandidateScoreAndMetadata(
+            String algorithmVersion, double savedScore
+    ) throws Exception {
         Member member = saveMember("legacy-score-personal", "기존점수회원");
         String accessToken = accessToken(member);
         AttributeCategory spicy = attributeCategoryRepository.save(
@@ -962,9 +1033,9 @@ class PersonalRecommendationIntegrationTest {
         saveTasteProfile(member, spicy, null);
         PersonalRecommendation recommendation = personalRecommendationRepository.save(PersonalRecommendation.of(member));
         PersonalRecommendationCandidate candidate = personalRecommendationCandidateRepository.save(
-                PersonalRecommendationCandidate.of(recommendation, menu, 1, 60.0, """
-                        {"algorithmType":"PERSONAL","algorithmVersion":"v1.1","scoreBreakdown":{"normalizedScore":60.0}}
-                        """));
+                PersonalRecommendationCandidate.of(recommendation, menu, 1, savedScore, """
+                        {"algorithmType":"PERSONAL","algorithmVersion":"%s","scoreBreakdown":{"normalizedScore":%s}}
+                        """.formatted(algorithmVersion, savedScore)));
         String savedMetadata = candidate.getCandidateMetaJson();
         recommendation.select(candidate, LocalDateTime.now());
         personalRecommendationRepository.save(recommendation);
@@ -973,24 +1044,70 @@ class PersonalRecommendationIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.candidates[0].id").value(candidate.getId()))
-                .andExpect(jsonPath("$.data.candidates[0].score").value(60.0));
+                .andExpect(jsonPath("$.data.candidates[0].score").value(savedScore));
 
         mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}/candidates", recommendation.getId())
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.candidates[0].id").value(candidate.getId()))
-                .andExpect(jsonPath("$.data.candidates[0].score").value(60.0));
+                .andExpect(jsonPath("$.data.candidates[0].score").value(savedScore));
 
         mockMvc.perform(get("/api/v2/personal/recommendations")
                         .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[0].id").value(recommendation.getId()))
-                .andExpect(jsonPath("$.data.content[0].score").value(60.0));
+                .andExpect(jsonPath("$.data.content[0].score").value(savedScore));
 
         PersonalRecommendationCandidate stored = personalRecommendationCandidateRepository.findById(candidate.getId())
                 .orElseThrow();
-        assertThat(stored.getScore()).isEqualTo(60.0);
+        assertThat(stored.getScore()).isEqualTo(savedScore);
         assertThat(readCandidateMetadata(stored.getCandidateMetaJson())).isEqualTo(readCandidateMetadata(savedMetadata));
+    }
+
+    private void assertHistoryAwareCandidateScores(JsonNode recommendation, List<Long> expectedMenuIds) {
+        List<JsonNode> candidates = new ArrayList<>();
+        recommendation.path("candidates").forEach(candidates::add);
+        assertThat(candidates).extracting(candidate -> candidate.path("menuId").asLong())
+                .containsExactlyElementsOf(expectedMenuIds);
+        assertThat(candidates).extracting(candidate -> candidate.path("score").asDouble())
+                .containsExactly(100.0, 100.0, 62.5);
+        assertThat(candidates).extracting(candidate -> candidate.path("rankNo").asInt())
+                .containsExactly(1, 2, 3);
+    }
+
+    private void assertHistoryAwareStoredAndReadScores(
+            long requestId, String accessToken, List<Long> expectedMenuIds
+    ) throws Exception {
+        List<PersonalRecommendationCandidate> candidates = personalRecommendationCandidateRepository
+                .findByPersonalRecommendationIdOrderByRankNoAsc(requestId);
+        assertThat(candidates).extracting(candidate -> candidate.getMenuItem().getId())
+                .containsExactlyElementsOf(expectedMenuIds);
+        assertThat(candidates).extracting(candidate -> candidate.getScore()).containsExactly(100.0, 100.0, 62.5);
+        assertThat(candidates).extracting(candidate -> candidate.getRankNo()).containsExactly(1, 2, 3);
+        for (int index = 0; index < candidates.size(); index++) {
+            PersonalRecommendationCandidate candidate = candidates.get(index);
+            JsonNode metadata = readCandidateMetadata(candidate.getCandidateMetaJson());
+            assertThat(metadata.path("algorithmType").asText()).isEqualTo("PERSONAL");
+            assertThat(metadata.path("algorithmVersion").asText()).isEqualTo("v1.3");
+            assertThat(metadata.path("scoreBreakdown").path("normalizedScore").asDouble())
+                    .isEqualTo(candidate.getScore());
+            assertThat(metadata.path("scoreBreakdown").path("rawScore").asDouble()).isEqualTo(candidate.getScore());
+            assertThat(metadata.path("scoreBreakdown").path("historyWeightMatchingCount").asLong())
+                    .isEqualTo(index == 2 ? 1L : 0L);
+        }
+
+        MvcResult detail = mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertHistoryAwareCandidateScores(objectMapper.readTree(detail.getResponse().getContentAsString()).path("data"),
+                expectedMenuIds);
+        MvcResult candidateList = mockMvc.perform(get("/api/v1/personal/recommendations/{requestId}/candidates", requestId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertHistoryAwareCandidateScores(
+                objectMapper.readTree(candidateList.getResponse().getContentAsString()).path("data"), expectedMenuIds);
     }
 
     private void assertPersonalCandidatePolicy(long requestId, double score, String algorithmVersion) throws Exception {
@@ -1003,6 +1120,7 @@ class PersonalRecommendationIntegrationTest {
         assertThat(metadata.path("algorithmType").asText()).isEqualTo("PERSONAL");
         assertThat(metadata.path("algorithmVersion").asText()).isEqualTo(algorithmVersion);
         assertThat(metadata.path("scoreBreakdown").path("normalizedScore").asDouble()).isEqualTo(score);
+        assertThat(metadata.path("scoreBreakdown").path("rawScore").asDouble()).isEqualTo(score);
         assertThat(metadata.path("scoreBreakdown").path("categoryMatchingCount").asLong()).isEqualTo(3L);
     }
 

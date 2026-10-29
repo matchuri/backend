@@ -44,7 +44,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
         return new MenuRecommendationResult(type(), version(), toCandidates(scoredMenus));
     }
 
-    private ScoredMenu score(
+    protected ScoredMenu score(
             MenuRecommendationProfile menu,
             TasteProfileSnapshot participant,
             Map<Long, Long> selectedAttributeCategoryFrequency,
@@ -192,7 +192,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
                 .anyMatch(targetIdSet::contains);
     }
 
-    private record ScoredMenu(
+    protected record ScoredMenu(
             MenuRecommendationProfile menu,
             long categoryMatchingCount,
             long historyWeightMatchingCount,
@@ -201,5 +201,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
             double normalizedScore,
             double totalScore
     ) {
+        public ScoredMenu {
+        }
     }
 }
