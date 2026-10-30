@@ -445,6 +445,12 @@
       "name": "향신채/향신료 계열",
       "allergen": false,
       "sortOrder": 540
+    },
+    {
+      "code": "OCTOPUS",
+      "name": "낙지",
+      "allergen": false,
+      "sortOrder": 315
     }
   ],
   "menuItems": [
@@ -704,24 +710,19 @@
       "description": "소고기 육수에 떡과 돼지고기·두부 만두를 함께 끓여 밥 없이도 든든한 한 끼가 되는 짭짤한 국입니다. 만두소는 부드럽고 떡과 만두피는 쫄깃합니다."
     },
     {
-      "code": "PERILLA_SOFT_TOFU_SOUP",
-      "name": "들깨순두부탕",
-      "description": "곱게 간 들깨와 부드러운 순두부를 채소 육수에 끓여 고소하고 진한 맛을 낸 탕에 밥을 곁들입니다."
+      "code": "MUSHROOM_HOTPOT",
+      "name": "버섯전골",
+      "description": "여러 버섯과 두부, 얇게 썬 소고기를 진한 육수에 끓여 밥과 함께 먹는 전골입니다. 간장으로 짭짤하게 간하고 재료를 부드럽게 익힙니다."
     },
     {
-      "code": "PERILLA_MUSHROOM_SOUP",
-      "name": "들깨버섯탕",
-      "description": "여러 버섯을 부드럽게 익혀 들깨가루로 고소하고 걸쭉하게 끓인 탕에 밥을 곁들이는 한 끼입니다."
+      "code": "POTATO_ONGSIMI",
+      "name": "감자옹심이",
+      "description": "간 감자로 빚은 옹심이를 멸치와 버섯 육수에 끓여 먹는 한 그릇 식사입니다. 국간장으로 간한 국물에 부드러우면서 쫄깃한 감자 반죽을 담습니다."
     },
     {
-      "code": "PERILLA_POTATO_ONGSIMI",
-      "name": "들깨감자옹심이",
-      "description": "감자로 빚은 옹심이를 들깨 국물에 익힌 한 그릇 식사입니다. 고소한 국물과 부드러우면서 쫄깃한 감자 반죽이 어우러집니다."
-    },
-    {
-      "code": "PERILLA_SUJEBI",
-      "name": "들깨수제비",
-      "description": "얇게 뜯은 밀 반죽을 들깨와 버섯 국물에 끓여 고소하고 진하게 먹는 수제비입니다. 익힌 반죽은 부드러우면서 쫄깃합니다."
+      "code": "SUJEBI",
+      "name": "수제비",
+      "description": "밀 반죽을 얇게 뜯어 멸치와 채소 육수에 끓이는 한 그릇 식사입니다. 국간장으로 간한 국물과 부드러우면서 쫄깃한 반죽을 함께 먹습니다."
     },
     {
       "code": "SAMGYETANG",
@@ -744,33 +745,8 @@
       "description": "황태를 참기름에 볶아 국물을 내고 달걀을 풀어 부드럽게 끓이는 고소하고 짭짤한 국이며 밥을 곁들입니다."
     },
     {
-      "code": "PUMPKIN_CREAM_SOUP_MEAL",
-      "name": "단호박수프와 빵",
-      "description": "단호박과 양파를 우유와 함께 곱게 갈아 끓인 부드러운 수프에 밀빵을 곁들입니다. 단호박 본연의 단맛과 우유의 진한 맛이 납니다."
-    },
-    {
-      "code": "CORN_CHOWDER_MEAL",
-      "name": "옥수수차우더와 빵",
-      "description": "옥수수와 감자, 양파를 우유에 끓여 걸쭉하게 만든 부드러운 차우더에 밀빵을 곁들입니다. 옥수수의 자연스러운 단맛이 중심인 식사입니다."
-    },
-    {
-      "code": "SWEET_POTATO_SOUP_MEAL",
-      "name": "고구마수프와 빵",
-      "description": "익힌 고구마를 우유와 함께 곱게 갈아 끓인 수프에 밀빵을 곁들입니다. 고구마의 자연스러운 단맛이 진하고 부드럽게 납니다."
-    },
-    {
-      "code": "CARROT_CREAM_SOUP_MEAL",
-      "name": "당근수프와 빵",
-      "description": "볶아 단맛을 낸 당근과 양파를 우유에 끓여 곱게 간 부드러운 수프에 밀빵을 곁들이는 식사입니다."
-    },
-    {
-      "code": "FRENCH_ONION_SOUP_MEAL",
-      "name": "프렌치어니언수프",
-      "description": "양파를 오래 볶아 자연스러운 단맛을 낸 소고기 육수 수프에 치즈를 녹인 밀빵을 곁들입니다. 부드러운 양파와 진하고 짭짤한 치즈가 어우러지는 한 끼입니다."
-    },
-    {
       "code": "SUKIYAKI_SET",
-      "name": "스키야키 정식",
+      "name": "스키야키",
       "description": "소고기와 두부, 버섯을 설탕과 간장으로 달콤짭짤하게 간한 국물에 익혀 부드럽게 먹는 전골에 밥과 달걀을 곁들인 식사입니다."
     },
     {
@@ -814,49 +790,14 @@
       "description": "쫄깃한 우동면과 김치, 어묵을 멸치 육수에 끓여 매콤하고 짭짤하게 먹는 뜨거운 분식 국수입니다."
     },
     {
-      "code": "SPICY_SUJEBI",
-      "name": "얼큰수제비",
-      "description": "고춧가루로 매콤하게 간한 멸치 국물에 밀 반죽을 얇게 뜯어 넣고 끓인 식사입니다. 부드러우면서 쫄깃한 수제비를 뜨겁게 먹습니다."
-    },
-    {
-      "code": "JJAMPPONG_RAMYEON",
-      "name": "짬뽕라면",
-      "description": "새우와 오징어, 조개를 넣은 매콤하고 짭짤한 짬뽕 국물에 쫄깃한 라면을 끓여 먹는 뜨거운 분식 식사입니다."
-    },
-    {
       "code": "RABOKKI",
       "name": "라볶이",
       "description": "고추장 양념에 떡과 라면, 어묵을 넣고 자작하게 볶아 매콤달콤하게 먹는 분식 식사입니다. 떡과 라면의 쫄깃한 식감을 뜨겁게 즐깁니다."
     },
     {
-      "code": "JJOLBOKKI",
-      "name": "쫄볶이",
-      "description": "고추장 양념에 떡과 쫄면, 어묵을 넣어 자작하게 볶은 매콤달콤한 분식입니다. 라면 대신 탄력 있는 쫄면을 넣어 한 끼로 먹습니다."
-    },
-    {
-      "code": "PINE_NUT_NOODLES",
-      "name": "잣국수",
-      "description": "잣을 곱게 갈아 만든 고소하고 부드러운 찬 국물에 쫄깃한 소면과 오이 고명을 담아 먹는 한식 국수입니다."
-    },
-    {
-      "code": "SESAME_BIBIM_NOODLES",
-      "name": "참깨비빔국수",
-      "description": "곱게 간 참깨와 간장으로 만든 고소하고 달콤짭짤한 소스에 식힌 소면을 비빕니다. 부드러운 삶은 달걀과 오이 고명을 곁들인 한 그릇입니다."
-    },
-    {
       "code": "CHOGYE_NOODLES",
       "name": "초계국수",
       "description": "곱게 간 참깨를 푼 차가운 닭육수에 식초와 겨자로 새콤함을 더한 국수입니다. 쫄깃한 소면과 부드러운 닭고기, 달걀 고명을 담아 고소하게 먹습니다."
-    },
-    {
-      "code": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "name": "두부면냉콩국",
-      "description": "밀면 대신 부드러운 두부면을 곱게 간 차가운 콩물에 담아 고소하게 먹는 식사입니다. 오이와 참깨 고명을 곁들입니다."
-    },
-    {
-      "code": "SOY_SAUCE_BIBIM_NOODLES",
-      "name": "간장비빔국수",
-      "description": "식힌 소면에 간장과 조청의 달콤짭짤한 양념, 참기름을 넣어 고소하게 비빕니다. 부드러운 달걀 고명을 곁들여 한 끼로 먹습니다."
     },
     {
       "code": "PERILLA_OIL_MAKGUKSU",
@@ -894,214 +835,74 @@
       "description": "멸치 국물에 소면을 담고 부드러운 달걀지단과 채소, 참기름 고명을 올린 뜨거운 국수입니다. 진한 육수와 짭짤한 간, 고소한 참기름 맛이 어우러집니다."
     },
     {
-      "code": "CHEESEBURGER",
-      "name": "치즈버거",
-      "description": "구운 소고기 패티에 체더치즈를 녹이고 양파와 토마토를 부드러운 참깨 번에 담은 고소한 햄버거."
-    },
-    {
-      "code": "BACON_CHEESEBURGER",
-      "name": "베이컨치즈버거",
-      "description": "구운 소고기 패티에 짭짤한 베이컨과 체더치즈를 더해 부드러운 번에 담은 진한 맛의 햄버거."
-    },
-    {
-      "code": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "name": "그릴드치킨 치즈샌드위치",
-      "description": "구운 닭가슴살과 고소한 치즈, 토마토를 부드러운 식빵 사이에 넣고 따뜻하게 구운 샌드위치."
-    },
-    {
-      "code": "STEAK_CHEESE_SANDWICH",
-      "name": "스테이크 치즈샌드위치",
-      "description": "간장으로 간한 얇은 소고기를 구워 양파와 피망, 녹인 치즈와 함께 부드러운 빵에 담은 샌드위치."
-    },
-    {
-      "code": "GRILLED_CHEESE_SANDWICH",
-      "name": "그릴드치즈 샌드위치",
-      "description": "버터를 바른 식빵에 체더와 모차렐라 치즈를 넣어 속은 부드럽고 치즈 풍미는 진하게 구운 따뜻한 샌드위치."
-    },
-    {
-      "code": "CHEESE_HAMBURG_STEAK",
-      "name": "치즈 함박스테이크 정식",
-      "description": "부드러운 소고기와 돼지고기 함박에 치즈를 녹이고, 설탕과 토마토를 넣은 달콤짭짤한 데미글라스 소스를 곁들인 밥 정식."
-    },
-    {
-      "code": "CHICKEN_SATAY_RICE",
-      "name": "치킨사테 덮밥",
-      "description": "향신료에 재운 닭꼬치를 구워 달콤한 간장과 고추, 땅콩소스를 바르고 라임즙으로 산미를 더한 동남아식 덮밥."
-    },
-    {
-      "code": "TANDOORI_CHICKEN_MEAL",
-      "name": "탄두리치킨 정식",
-      "description": "요거트와 레몬즙, 붉은 고추와 향신료에 재운 닭고기를 구워 부드럽고 매콤상큼하게 즐기는 밥 정식."
+      "code": "HAMBURG_STEAK",
+      "name": "함박스테이크",
+      "description": "소고기와 돼지고기에 양파, 달걀, 우유에 적신 빵가루를 섞어 부드럽게 구운 패티입니다. 버터와 토마토, 간장, 설탕을 넣은 달콤짭짤한 데미글라스 소스와 밥을 곁들입니다."
     },
     {
       "code": "GOCHUJANG_PORK_GRILL_MEAL",
-      "name": "고추장돼지구이 정식",
+      "name": "고추장돼지구이",
       "description": "고추장과 간장, 설탕을 넣은 달콤매콤한 양념에 돼지목살을 재워 구워 낸 든든한 밥 정식."
     },
     {
-      "code": "PERI_PERI_CHICKEN_MEAL",
-      "name": "페리페리치킨 정식",
-      "description": "붉은 고추와 레몬즙, 마늘로 만든 페리페리 소스를 닭고기에 발라 구워 매콤한 맛과 분명한 산미를 낸 밥 정식."
-    },
-    {
-      "code": "GRILLED_FISH_TACOS",
-      "name": "그릴드 피시타코",
-      "description": "고추와 향신료로 간해 구운 흰살생선을 따뜻한 밀 토르티야에 담고 토마토 살사와 라임즙을 더한 매콤상큼한 타코."
-    },
-    {
       "code": "CHARCOAL_DAK_GALBI",
-      "name": "숯불닭갈비 정식",
+      "name": "숯불닭갈비",
       "description": "닭고기에 고추장과 간장, 설탕을 넣은 달콤매콤한 양념을 발라 숯불에 구운 닭갈비 밥 정식."
     },
     {
-      "code": "LEMON_BROWN_BUTTER_SALMON",
-      "name": "레몬 버터 연어스테이크",
-      "description": "연어를 구운 뒤 갈색으로 익혀 고소한 향을 낸 버터와 레몬즙을 끼얹어 진한 풍미와 산미를 함께 낸 밥 정식."
+      "code": "SALMON_STEAK",
+      "name": "연어스테이크",
+      "description": "연어를 소금과 후추로 간해 올리브유를 두른 팬에 구운 식사입니다. 부드러운 생선살과 연어의 진한 풍미를 구운 채소, 밥과 함께 즐깁니다."
     },
     {
-      "code": "BALSAMIC_CHICKEN_STEAK",
-      "name": "발사믹 치킨스테이크",
-      "description": "부드럽게 구운 닭고기에 발사믹식초와 꿀로 졸인 달콤상큼한 소스를 더해 밥과 함께 내는 치킨스테이크."
+      "code": "CHICKEN_STEAK",
+      "name": "치킨스테이크",
+      "description": "닭다리살을 소금과 후추, 마늘로 간해 올리브유를 두른 팬에 구운 식사입니다. 부드럽고 진한 닭고기 맛을 구운 양파, 밥과 함께 즐깁니다."
     },
     {
-      "code": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "name": "스위트칠리 그릴드치킨버거",
-      "description": "구운 닭다리살에 고추와 설탕, 라임즙으로 만든 달콤매콤상큼한 칠리소스를 바르고 부드러운 번에 담은 버거."
-    },
-    {
-      "code": "CHEESE_KATSU_MEAL",
-      "name": "치즈카츠 정식",
-      "description": "돼지고기에 치즈를 채워 바삭하게 튀기고 볶은 참깨와 돈카츠소스를 곁들여 밥과 함께 내는 고소한 정식."
-    },
-    {
-      "code": "SHRIMP_TEMPURA_MEAL",
-      "name": "새우텐푸라 정식",
-      "description": "참기름을 섞은 기름에 새우를 바삭하게 튀겨 고소한 향을 내고 간장과 생선 육수로 만든 텐쓰유, 밥을 곁들인 정식."
+      "code": "TENDON",
+      "name": "텐동",
+      "description": "새우와 가지, 버섯에 밀가루와 달걀 튀김옷을 입혀 바삭하게 튀긴 뒤 밥 위에 올린 덮밥입니다. 간장과 생선 육수, 설탕으로 만든 달콤짭짤한 소스를 곁들입니다."
     },
     {
       "code": "CHICKEN_KATSU_MEAL",
-      "name": "치킨카츠 정식",
+      "name": "치킨까스",
       "description": "닭고기에 빵가루를 입혀 바삭하게 튀기고 갓 빻은 볶은 참깨와 돈카츠소스를 곁들여 밥과 함께 내는 정식."
     },
     {
-      "code": "MENCHI_KATSU_MEAL",
-      "name": "멘치카츠 정식",
-      "description": "소고기와 돼지고기, 양파로 만든 다짐육 커틀릿을 바삭하게 튀겨 고소한 볶은 참깨소스와 밥을 곁들인 정식."
-    },
-    {
       "code": "YURINGI_MEAL",
-      "name": "유린기 정식",
+      "name": "유린기",
       "description": "바삭한 닭튀김에 청양고추와 식초간장, 약간의 설탕을 넣은 매콤새콤한 소스를 끼얹어 밥과 함께 내는 정식."
     },
     {
-      "code": "WALNUT_CREAM_SHRIMP_RICE",
-      "name": "호두크림새우 덮밥",
-      "description": "바삭하게 튀긴 새우에 연유와 달걀 마요네즈, 레몬즙으로 만든 달콤상큼한 크림소스를 버무리고 호두를 올린 고소한 덮밥."
-    },
-    {
       "code": "KKANPUNGGI_MEAL",
-      "name": "깐풍기 정식",
+      "name": "깐풍기",
       "description": "튀긴 닭고기를 마른 고추와 마늘, 설탕, 식초간장 소스에 빠르게 볶아 매콤하고 새콤달콤하게 낸 밥 정식."
     },
     {
       "code": "CHILI_SHRIMP_RICE",
-      "name": "칠리새우 덮밥",
+      "name": "칠리새우",
       "description": "튀긴 새우를 고추와 설탕, 토마토, 식초를 넣은 칠리소스에 볶아 달콤매콤하고 산뜻한 산미를 낸 덮밥."
     },
     {
-      "code": "YANGNYEOM_CHICKEN_RICE",
-      "name": "양념치킨 덮밥",
-      "description": "닭튀김에 고추장과 간장, 설탕으로 만든 달콤매콤한 양념을 입히고 볶은 참깨를 뿌려 밥 위에 올린 덮밥."
-    },
-    {
-      "code": "LAZIJI_RICE",
-      "name": "라즈지 덮밥",
-      "description": "한입 크기로 튀긴 닭고기를 마른 고추와 화자오, 마늘, 간장에 볶아 얼얼하고 진한 매운맛을 낸 중식 덮밥."
-    },
-    {
-      "code": "BUFFALO_WINGS_MEAL",
-      "name": "버팔로윙 플레이트",
-      "description": "닭날개를 튀긴 뒤 고추와 식초, 버터로 만든 매콤새콤한 소스를 입혀 감자튀김과 빵을 곁들인 한 끼."
-    },
-    {
-      "code": "LEMON_CHICKEN_MEAL",
-      "name": "레몬치킨 정식",
-      "description": "닭고기를 바삭하게 튀겨 설탕과 레몬즙으로 만든 달콤상큼한 소스를 끼얹어 밥과 함께 내는 중식 치킨 정식."
-    },
-    {
-      "code": "FISH_AND_CHIPS",
-      "name": "피시앤칩스",
-      "description": "흰살생선과 감자를 바삭하게 튀겨 달걀 타르타르소스와 레몬즙, 식초를 곁들여 짭짤하고 상큼하게 먹는 한 끼."
-    },
-    {
-      "code": "GUOBAOROU_MEAL",
-      "name": "꿔바로우 정식",
-      "description": "돼지고기에 전분 튀김옷을 입혀 튀긴 뒤 설탕과 식초, 간장으로 만든 새콤달콤한 소스에 짧게 볶아 밥과 함께 내는 정식."
-    },
-    {
-      "code": "GONGBAO_CHICKEN_RICE",
-      "name": "궁보계정 덮밥",
-      "description": "부드러운 닭고기를 마른 고추와 간장, 설탕, 식초로 볶고 볶은 땅콩을 듬뿍 더해 매콤새콤달콤하고 고소한 맛을 낸 덮밥."
-    },
-    {
-      "code": "CASHEW_SHRIMP_RICE",
-      "name": "캐슈새우볶음 덮밥",
-      "description": "탱글하게 익힌 새우를 마늘에 볶고 고소한 캐슈넛을 더해 진한 견과 풍미를 낸 중식 덮밥."
-    },
-    {
-      "code": "HUI_GUO_ROU_RICE",
-      "name": "회과육 덮밥",
-      "description": "한번 삶아 부드러운 돼지고기를 두반장과 단면장, 마늘, 파에 다시 볶아 진한 매운맛을 낸 덮밥."
-    },
-    {
       "code": "YUXIANG_EGGPLANT_RICE",
-      "name": "어향가지 덮밥",
+      "name": "어향가지",
       "description": "부드러운 가지를 마늘과 고추, 설탕, 식초간장 소스에 볶아 진한 양념과 새콤달콤한 맛을 낸 중식 덮밥."
     },
     {
-      "code": "BLACK_BEAN_BEEF_RICE",
-      "name": "블랙빈 소고기볶음 덮밥",
-      "description": "부드러운 소고기와 피망을 발효 검은콩으로 만든 진한 블랙빈소스와 간장에 볶아 밥 위에 올린 중식 덮밥."
-    },
-    {
-      "code": "KIMCHI_CHEESE_FRIED_RICE",
-      "name": "김치치즈볶음밥",
-      "description": "새콤하게 익은 김치를 참기름과 고추장에 볶은 밥 위에 치즈를 녹여 매콤하고 고소한 풍미를 더한 볶음밥."
-    },
-    {
-      "code": "GARLIC_BUTTER_SHRIMP_RICE",
-      "name": "갈릭버터 새우볶음밥",
-      "description": "버터를 갈색으로 익혀 고소한 향을 낸 뒤 새우와 마늘, 달걀, 밥을 간장에 볶아 진하고 부드럽게 낸 볶음밥."
-    },
-    {
-      "code": "ANCHOVY_SESAME_FRIED_RICE",
-      "name": "멸치참깨볶음밥",
-      "description": "잔멸치를 간장과 설탕에 볶아 볶은 참깨와 달걀, 밥을 더한 달콤짭짤하고 고소한 볶음밥."
+      "code": "KIMCHI_FRIED_RICE",
+      "name": "김치볶음밥",
+      "description": "새우젓과 멸치액젓으로 맛낸 김치를 밥과 참기름에 볶고 달걀프라이를 올린 식사입니다. 고추장과 간장으로 매콤하고 짭짤하게 간합니다."
     },
     {
       "code": "BEEF_BEANSPROUT_STIR_FRY_MEAL",
-      "name": "차돌숙주볶음 정식",
+      "name": "차돌숙주볶음",
       "description": "차돌박이와 숙주를 간장과 마늘에 빠르게 볶고 참기름과 볶은 참깨를 더해 고소하고 진하게 낸 밥 정식."
     },
     {
       "code": "CRAB_EGG_FRIED_RICE",
-      "name": "게살달걀볶음밥",
+      "name": "게살볶음밥",
       "description": "게살과 부드러운 달걀을 밥과 볶아 간장으로 간하고 참기름을 더해 고소하고 진한 풍미를 낸 중식 볶음밥."
-    },
-    {
-      "code": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "name": "두부김치 정식",
-      "description": "식초를 조금 넣어 산미를 살린 묵은지를 고추장과 참기름에 볶아 데운 두부와 밥을 곁들인 매콤상큼한 정식."
-    },
-    {
-      "code": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "name": "치즈감자 고로케 정식",
-      "description": "으깬 감자와 치즈를 채운 고로케를 바삭하게 튀겨 고소하고 진한 치즈 맛을 내고 밥을 곁들인 정식."
-    },
-    {
-      "code": "FALAFEL_PITA_SANDWICH",
-      "name": "팔라펠 피타샌드위치",
-      "description": "병아리콩과 향신료로 만든 팔라펠을 튀겨 따뜻한 피타에 넣고 레몬즙과 참깨 타히니소스를 듬뿍 더한 고소하고 상큼한 샌드위치."
     },
     {
       "code": "GOCHU_JAPCHAE_RICE",
@@ -1109,189 +910,44 @@
       "description": "부드러운 돼지고기와 피망, 양파를 굴소스와 간장에 센 불로 볶아 짭짤하고 진한 맛을 낸 중식 덮밥."
     },
     {
-      "code": "SPICY_CALAMARI_PLATE",
-      "name": "스파이시 깔라마리 플레이트",
-      "description": "오징어를 바삭하게 튀겨 고추와 토마토로 만든 매콤한 소스, 레몬즙, 따뜻한 빵을 곁들인 상큼한 한 끼."
-    },
-    {
       "code": "JJIMDAK",
-      "name": "찜닭 정식",
+      "name": "찜닭",
       "description": "닭고기와 감자, 양파를 달고 짭짤한 간장 양념에 조리고 고추로 매콤하게 맛낸 찜닭에 밥을 곁들인 정식입니다."
     },
     {
       "code": "SPICY_PORK_RIB_STEAMED",
-      "name": "매운 등갈비찜 정식",
+      "name": "매운 등갈비찜",
       "description": "돼지 등갈비를 고추장과 간장, 배를 넣은 매콤달콤한 양념으로 부드럽게 익히고 밥을 함께 내는 정식입니다."
     },
     {
       "code": "BEEF_SHORT_RIB_STEAMED",
-      "name": "소갈비찜 정식",
+      "name": "소갈비찜",
       "description": "소갈비를 배와 간장의 달고 짭짤한 양념에 푹 익혀 진한 고기 맛을 살리고 밥을 곁들인 정식입니다."
     },
     {
       "code": "KIMCHI_PORK_STEAMED",
-      "name": "돼지고기 김치찜 정식",
+      "name": "돼지고기 김치찜",
       "description": "새우젓과 멸치액젓으로 맛낸 김치와 돼지고기를 고추장, 간장에 푹 익혀 매콤하고 진한 양념 맛으로 밥과 먹는 정식입니다."
     },
     {
       "code": "AGWI_STEAMED",
-      "name": "아귀찜 정식",
+      "name": "아귀찜",
       "description": "아귀와 콩나물, 미나리를 고추장과 간장의 걸쭉하고 매콤한 양념으로 익혀 밥과 함께 먹는 아귀찜 정식입니다."
     },
     {
-      "code": "SOY_TOFU_STEAMED",
-      "name": "간장 두부찜 정식",
-      "description": "두부를 간장 양념에 쪄내고 볶은 참깨와 참기름으로 고소한 맛을 더해 밥과 함께 내는 정식입니다."
-    },
-    {
-      "code": "STEAMED_EGG_RICE",
-      "name": "계란찜 백반",
-      "description": "소금으로 간한 계란을 부드럽게 찌고 참기름과 볶은 참깨를 넉넉히 곁들여 밥, 채소 반찬과 함께 먹는 백반입니다."
-    },
-    {
-      "code": "KIMCHI_DUMPLING_RICE",
-      "name": "김치만두와 밥",
-      "description": "새우젓과 멸치액젓으로 맛낸 김치, 돼지고기, 두부를 밀가루 피에 넣어 찐 만두입니다. 식초간장과 고소한 참깨를 곁들여 밥과 함께 먹습니다."
-    },
-    {
-      "code": "PORK_DUMPLING_RICE",
-      "name": "고기만두와 밥",
-      "description": "돼지고기와 두부, 부추를 밀가루 피에 넣어 찐 만두에 밥을 곁들입니다. 식초간장과 볶은 참깨를 함께 내어 짭짤하고 고소하며 산뜻한 맛을 냅니다."
-    },
-    {
-      "code": "SHRIMP_DUMPLING_RICE",
-      "name": "새우만두와 밥",
-      "description": "새우와 두부를 밀가루 피에 넣어 찐 만두를 밥과 함께 내는 한 끼입니다. 식초간장과 볶은 참깨를 곁들여 상큼하고 고소한 맛을 더합니다."
-    },
-    {
-      "code": "PORK_CABBAGE_STEAMED",
-      "name": "돼지고기 배추찜과 밥",
-      "description": "얇은 돼지고기와 배추를 겹쳐 쪄낸 뒤 밥과 함께 먹습니다. 식초간장과 참깨 소스로 짭짤함, 고소함, 상큼함을 살립니다."
-    },
-    {
-      "code": "BEEF_CABBAGE_STEAMED",
-      "name": "소고기 배추찜과 밥",
-      "description": "얇은 소고기와 배추, 버섯을 부드럽게 쪄서 밥과 곁들입니다. 식초간장과 볶은 참깨를 넣은 소스를 함께 내어 상큼하고 고소하게 즐기는 한 끼입니다."
-    },
-    {
-      "code": "LEMON_FISH_STEAMED",
-      "name": "레몬 생선찜과 밥",
-      "description": "흰살생선을 파와 마늘을 얹어 찌고 레몬즙과 간장으로 만든 소스를 곁들여 밥과 먹는 아시안 생선찜입니다."
-    },
-    {
-      "code": "SWEET_PUMPKIN_NUT_RICE",
-      "name": "단호박 영양밥",
-      "description": "단호박 속에 찹쌀밥, 호두와 잣을 채워 쪄낸 식사 메뉴입니다. 단호박의 자연스러운 단맛과 견과의 고소한 맛을 함께 즐깁니다."
-    },
-    {
-      "code": "HONEY_MUSTARD_CHICKEN_STEAMED",
-      "name": "허니머스터드 닭가슴살찜과 밥",
-      "description": "닭가슴살과 브로콜리를 쪄서 밥과 함께 내는 한 끼입니다. 꿀과 머스터드, 계란 마요네즈를 섞은 달콤하고 진한 소스를 곁들입니다."
+      "code": "DUMPLINGS",
+      "name": "만두",
+      "description": "돼지고기와 두부, 부추에 달걀을 섞은 속을 밀가루 피에 넣어 쪄낸 고기만두입니다. 부드러운 속과 쫄깃한 피를 간장, 참기름을 곁들여 먹습니다."
     },
     {
       "code": "SOY_PORK_RIB_STEAMED",
-      "name": "간장 돼지갈비찜 정식",
+      "name": "간장 돼지갈비찜",
       "description": "돼지갈비를 배와 간장을 넣은 달고 짭짤한 양념에 푹 익혀 밥과 함께 내는 정식입니다. 고추 양념을 쓰지 않아 고기의 진한 맛이 중심입니다."
     },
     {
       "code": "SEAFOOD_STEAMED",
-      "name": "해물찜 정식",
+      "name": "해물찜",
       "description": "새우, 오징어, 조개와 콩나물을 고추장과 간장의 걸쭉하고 진한 양념으로 매콤하게 익히고 밥과 함께 내는 정식입니다."
-    },
-    {
-      "code": "THAI_LIME_CHILI_STEAMED_FISH",
-      "name": "태국식 라임고추 생선찜과 밥",
-      "description": "생선을 쪄낸 뒤 라임즙, 마늘, 고추, 생선 액젓으로 만든 새콤하고 매콤한 양념을 넉넉히 입히는 태국식 생선찜입니다. 고수와 레몬그라스로 향을 내고 밥을 함께 먹습니다."
-    },
-    {
-      "code": "LEMON_HERB_STEAMED_CHICKEN",
-      "name": "레몬허브 닭찜과 밥",
-      "description": "닭고기를 소금과 레몬즙으로 간하고 로즈마리, 화이트와인, 소량의 물을 넣어 뚜껑을 덮고 익힙니다. 상큼한 레몬 향과 산미가 밴 부드러운 닭찜에 밥을 곁들입니다."
-    },
-    {
-      "code": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "name": "토마토 홍합찜과 바게트",
-      "description": "홍합을 토마토, 마늘, 바질, 화이트와인, 고추와 함께 뚜껑을 덮어 증기로 익힙니다. 토마토와 와인의 산미가 중심인 짭짤하고 매콤한 찜에 바게트를 곁들여 한 끼로 먹습니다."
-    },
-    {
-      "code": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "name": "레몬 바지락술찜과 밥",
-      "description": "바지락을 마늘, 참기름, 간장과 쌀로 빚은 조리용 청주를 넣고 뚜껑을 덮어 찝니다. 레몬즙을 넣어 상큼한 산미를 살린 짭짤한 찜에 밥을 곁들이는 일식 식사입니다."
-    },
-    {
-      "code": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "name": "레몬딜 연어 파피요트와 밥",
-      "description": "레몬즙과 딜로 간한 연어를 양파, 파프리카, 버터, 화이트와인과 함께 종이로 밀봉해 안에서 생긴 증기로 익힙니다. 밥을 곁들입니다."
-    },
-    {
-      "code": "SPICY_CHICKEN_GRAIN_SALAD",
-      "name": "매콤 닭가슴살 곡물샐러드",
-      "description": "닭가슴살, 곡물밥, 아삭한 잎채소와 오이를 담고 고추와 간장, 레몬즙으로 만든 짭짤하고 상큼한 드레싱을 곁들이는 차가운 한 끼 샐러드입니다."
-    },
-    {
-      "code": "SPICY_TUNA_GRAIN_SALAD",
-      "name": "스파이시 참치 곡물샐러드",
-      "description": "참치와 곡물밥, 아삭한 잎채소를 담고 고추와 계란 마요네즈를 섞은 진하고 짭짤한 소스로 먹는 차가운 식사 샐러드입니다."
-    },
-    {
-      "code": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "name": "케이준 새우 곡물샐러드",
-      "description": "매콤하고 짭짤한 케이준 향신료로 익힌 새우에 곡물밥, 잎채소와 파프리카를 더하고 레몬 드레싱을 곁들여 차갑게 먹는 샐러드입니다."
-    },
-    {
-      "code": "CHILI_TOFU_GRAIN_SALAD",
-      "name": "칠리 두부 곡물샐러드",
-      "description": "두부와 곡물밥, 아삭한 채소에 고추와 볶은 참깨를 넣은 매콤하고 고소한 드레싱을 곁들이는 차가운 샐러드입니다."
-    },
-    {
-      "code": "SPICY_BEEF_GRAIN_SALAD",
-      "name": "매콤 소고기 곡물샐러드",
-      "description": "익힌 소고기와 곡물밥, 아삭한 잎채소에 고추와 계란 마요네즈로 만든 짭짤하고 진한 드레싱을 곁들이는 차가운 샐러드입니다."
-    },
-    {
-      "code": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "name": "매콤 병아리콩 곡물샐러드",
-      "description": "병아리콩과 곡물밥, 잎채소, 오이를 담고 고추와 레몬즙, 볶은 참깨를 넣어 매콤하고 고소하며 상큼하게 먹는 차가운 샐러드입니다."
-    },
-    {
-      "code": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "name": "고구마 계란 곡물샐러드",
-      "description": "찐 고구마의 자연스러운 단맛에 삶은 계란, 곡물밥, 아삭한 채소를 더하고 레몬 요거트와 참깨 드레싱을 곁들여 차갑게 먹는 샐러드입니다."
-    },
-    {
-      "code": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "name": "단호박 치킨 곡물샐러드",
-      "description": "단호박의 달콤함과 호두의 고소함에 닭가슴살, 곡물밥, 잎채소를 더하고 레몬 드레싱으로 상큼하게 먹는 차가운 샐러드입니다."
-    },
-    {
-      "code": "APPLE_WALNUT_GRAIN_SALAD",
-      "name": "사과 호두 곡물샐러드",
-      "description": "달콤하고 아삭한 사과와 셀러리에 호두, 곡물밥을 담고 레몬 요거트 드레싱을 곁들이는 차가운 식사 샐러드입니다."
-    },
-    {
-      "code": "CORN_CHICKPEA_GRAIN_SALAD",
-      "name": "옥수수 병아리콩 곡물샐러드",
-      "description": "자연스럽게 단 옥수수와 고소한 병아리콩, 곡물밥, 아삭한 채소를 담고 레몬 드레싱으로 차갑게 먹는 식사 샐러드입니다."
-    },
-    {
-      "code": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "name": "허니머스터드 치킨 곡물샐러드",
-      "description": "소금 간한 닭가슴살과 곡물밥, 아삭한 채소에 꿀, 머스터드, 계란 마요네즈를 섞은 달콤하고 진한 소스를 곁들이는 차가운 샐러드입니다."
-    },
-    {
-      "code": "PEACH_CHEESE_GRAIN_SALAD",
-      "name": "복숭아 치즈 곡물샐러드",
-      "description": "달콤한 복숭아와 짭짤하고 크리미한 치즈, 곡물밥, 아삭한 잎채소를 담고 레몬 드레싱을 곁들이는 차가운 샐러드입니다."
-    },
-    {
-      "code": "CAESAR_GRAIN_SALAD",
-      "name": "시저 곡물샐러드",
-      "description": "곡물밥과 로메인, 밀 크루통, 파르메산 치즈에 멸치류 생선과 계란 마요네즈, 레몬즙을 넣은 짭짤하고 진한 시저 드레싱을 곁들이는 차가운 식사 샐러드입니다."
-    },
-    {
-      "code": "COBB_GRAIN_SALAD",
-      "name": "콥 곡물샐러드",
-      "description": "곡물밥과 아삭한 잎채소에 계란, 돼지고기 베이컨, 치즈, 토마토를 담고 레몬즙과 우유, 계란 마요네즈로 만든 진한 드레싱을 곁들이는 차가운 샐러드입니다."
     },
     {
       "code": "UNAGI_DON",
@@ -1299,29 +955,54 @@
       "description": "부드러운 장어에 간장과 설탕으로 만든 달콤짭짤한 양념을 발라 구워 밥 위에 올린 진한 풍미의 덮밥."
     },
     {
-      "code": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "name": "삼치데리야키 정식",
-      "description": "삼치에 간장과 설탕, 마늘로 만든 달콤짭짤한 데리야키 양념을 발라 부드럽게 구워 밥과 함께 낸 정식."
-    },
-    {
-      "code": "CHICKEN_TERIYAKI_DON",
-      "name": "치킨데리야키덮밥",
-      "description": "닭다리살을 간장과 설탕, 마늘로 만든 달콤짭짤한 데리야키 소스에 구워 대파와 함께 밥 위에 올린 덮밥."
-    },
-    {
-      "code": "MISO_EGGPLANT_DENGAKU_DON",
-      "name": "미소가지덴가쿠덮밥",
-      "description": "부드러운 가지에 미소와 간장, 설탕으로 만든 진한 달콤짭짤한 양념을 바르고 구워 밥과 함께 낸 가지 덴가쿠 덮밥."
-    },
-    {
-      "code": "VEGETABLE_KAKIAGE_DON",
-      "name": "채소가키아게덮밥",
-      "description": "달걀과 우유를 쓰지 않은 밀가루와 물 반죽으로 양파와 당근을 바삭하게 튀겨, 생선 육수와 간장으로 만든 짭짤한 텐쓰유를 곁들인 덮밥."
-    },
-    {
       "code": "PORK_BACKBONE_HAEJANGGUK",
       "name": "뼈해장국",
       "description": "돼지등뼈와 시래기를 된장과 국간장, 고춧가루에 푹 끓여 부드러운 살코기와 깻잎을 밥과 함께 먹는 얼큰하고 진한 해장국."
+    },
+    {
+      "code": "SANDWICH",
+      "name": "샌드위치",
+      "description": "부드러운 식빵에 돼지고기 햄과 치즈, 아삭한 채소를 넣은 차가운 샌드위치입니다. 달걀 마요네즈를 발라 짭짤하고 부드럽게 먹는 식사입니다."
+    },
+    {
+      "code": "CHICKEN_MAYO_RICE",
+      "name": "치킨마요 덮밥",
+      "description": "밀가루와 달걀 튀김옷을 입힌 닭고기를 튀겨 밥 위에 올리고 스크램블드에그와 양파를 곁들입니다. 설탕을 넣은 간장 소스와 달걀 마요네즈가 달콤짭짤하고 진한 맛을 냅니다."
+    },
+    {
+      "code": "GAMBAS",
+      "name": "감바스",
+      "description": "새우와 마늘을 올리브유에 익혀 짭짤하게 간한 스페인식 요리입니다. 탱글한 새우와 마늘 향의 오일을 바게트에 곁들여 한 끼로 먹습니다."
+    },
+    {
+      "code": "SHABU_SHABU",
+      "name": "샤브샤브",
+      "description": "얇은 소고기와 버섯, 채소를 뜨거운 가쓰오 육수에 짧게 익혀 부드럽게 먹는 식사입니다. 간장 폰즈와 참깨 소스를 곁들이며 밥을 함께 먹습니다."
+    },
+    {
+      "code": "SUNDAE_GUK",
+      "name": "순대국",
+      "description": "돼지고기 육수에 당면과 돼지 창자로 만든 순대, 삶은 내장을 넣고 밥을 곁들이는 진한 국밥입니다. 새우젓으로 짭짤하게 간하고 대파와 부추를 더합니다."
+    },
+    {
+      "code": "SQUID_STIR_FRY",
+      "name": "오징어볶음",
+      "description": "오징어와 양파, 대파를 고추장과 간장, 설탕 양념에 빠르게 볶은 식사입니다. 쫄깃한 오징어를 매콤달콤하게 즐기며 참기름과 밥을 곁들입니다."
+    },
+    {
+      "code": "SANNAKJI",
+      "name": "산낙지",
+      "description": "낙지를 손질해 잘게 썰어 익히지 않고 참기름과 소금에 버무려 먹는 한식 메뉴입니다. 가열하지 않은 낙지의 쫄깃한 식감과 참기름의 고소함이 중심입니다."
+    },
+    {
+      "code": "AGLIO_OLIO",
+      "name": "알리오올리오",
+      "description": "올리브유에 마늘과 페페론치노를 익혀 삶은 스파게티를 함께 볶아 마무리하는 파스타입니다. 소금으로 짭짤하게 간하고 고추의 은은한 매운맛을 더합니다."
+    },
+    {
+      "code": "VONGOLE_PASTA",
+      "name": "봉골레 파스타",
+      "description": "올리브유에 마늘과 바지락을 익혀 낸 국물에 스파게티를 넣고 함께 볶아 마무리하는 파스타입니다. 조개 육수의 짭짤한 감칠맛과 쫄깃한 면을 즐깁니다."
     }
   ],
   "menuAttributeCategories": [
@@ -2731,137 +2412,107 @@
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
       "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
+      "categoryCode": "SALTY"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
       "categoryType": "FLAVOR",
       "categoryCode": "RICH"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
       "categoryType": "COOKING_METHOD",
       "categoryCode": "SOUP"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
       "categoryType": "FOOD_CATEGORY",
       "categoryCode": "KOREAN"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
       "categoryType": "TEXTURE",
       "categoryCode": "SOFT"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
+      "menuCode": "POTATO_ONGSIMI",
       "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
+      "categoryCode": "SALTY"
     },
     {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
+      "menuCode": "POTATO_ONGSIMI",
       "categoryType": "FLAVOR",
       "categoryCode": "RICH"
     },
     {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
+      "menuCode": "POTATO_ONGSIMI",
       "categoryType": "COOKING_METHOD",
       "categoryCode": "SOUP"
     },
     {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
+      "menuCode": "POTATO_ONGSIMI",
       "categoryType": "FOOD_CATEGORY",
       "categoryCode": "KOREAN"
     },
     {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
+      "menuCode": "POTATO_ONGSIMI",
       "categoryType": "TEXTURE",
       "categoryCode": "SOFT"
     },
     {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
+      "menuCode": "POTATO_ONGSIMI",
       "categoryType": "TEXTURE",
       "categoryCode": "CHEWY"
     },
     {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
+      "menuCode": "POTATO_ONGSIMI",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
+      "categoryCode": "SALTY"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "categoryType": "FLAVOR",
       "categoryCode": "RICH"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "categoryType": "COOKING_METHOD",
       "categoryCode": "SOUP"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "categoryType": "COOKING_METHOD",
       "categoryCode": "NOODLE_MIXED"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "categoryType": "FOOD_CATEGORY",
       "categoryCode": "KOREAN"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "categoryType": "TEXTURE",
       "categoryCode": "SOFT"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "categoryType": "TEXTURE",
       "categoryCode": "CHEWY"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
@@ -2992,161 +2643,6 @@
     },
     {
       "menuCode": "DRIED_POLLACK_SOUP",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "PUMPKIN_CREAM_SOUP_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "PUMPKIN_CREAM_SOUP_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "PUMPKIN_CREAM_SOUP_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "PUMPKIN_CREAM_SOUP_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "PUMPKIN_CREAM_SOUP_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "PUMPKIN_CREAM_SOUP_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "SWEET_POTATO_SOUP_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "SWEET_POTATO_SOUP_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "SWEET_POTATO_SOUP_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "SWEET_POTATO_SOUP_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "SWEET_POTATO_SOUP_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SWEET_POTATO_SOUP_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "CARROT_CREAM_SOUP_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "CARROT_CREAM_SOUP_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "CARROT_CREAM_SOUP_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "CARROT_CREAM_SOUP_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "CARROT_CREAM_SOUP_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CARROT_CREAM_SOUP_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
@@ -3541,91 +3037,6 @@
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "SPICY_SUJEBI",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "NOODLE_MIXED"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "BUNSIK"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "NOODLE_MIXED"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "BUNSIK"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
       "menuCode": "RABOKKI",
       "categoryType": "FLAVOR",
       "categoryCode": "SPICY"
@@ -3659,116 +3070,6 @@
       "menuCode": "RABOKKI",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "NOODLE_MIXED"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "BUNSIK"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "NOODLE_MIXED"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "NOODLE_MIXED"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
     },
     {
       "menuCode": "CHOGYE_NOODLES",
@@ -3807,76 +3108,6 @@
     },
     {
       "menuCode": "CHOGYE_NOODLES",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "NOODLE_MIXED"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "SOUP"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "NOODLE_MIXED"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
       "categoryType": "TEMPERATURE",
       "categoryCode": "COLD"
     },
@@ -4171,292 +3402,37 @@
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "CHEESEBURGER",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "FAST_FOOD"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "FAST_FOOD"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "FAST_FOOD"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "FAST_FOOD"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "FAST_FOOD"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
+      "menuCode": "HAMBURG_STEAK",
       "categoryType": "FLAVOR",
       "categoryCode": "SWEET"
     },
     {
-      "menuCode": "CHICKEN_SATAY_RICE",
+      "menuCode": "HAMBURG_STEAK",
       "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
+      "categoryCode": "SALTY"
     },
     {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "ASIAN"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
+      "menuCode": "HAMBURG_STEAK",
       "categoryType": "FLAVOR",
       "categoryCode": "RICH"
     },
     {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
+      "menuCode": "HAMBURG_STEAK",
       "categoryType": "COOKING_METHOD",
       "categoryCode": "GRILLED"
     },
     {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
+      "menuCode": "HAMBURG_STEAK",
       "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "ASIAN"
+      "categoryCode": "WESTERN"
     },
     {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
+      "menuCode": "HAMBURG_STEAK",
       "categoryType": "TEXTURE",
       "categoryCode": "SOFT"
     },
     {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
+      "menuCode": "HAMBURG_STEAK",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
@@ -4496,71 +3472,6 @@
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
       "menuCode": "CHARCOAL_DAK_GALBI",
       "categoryType": "FLAVOR",
       "categoryCode": "SPICY"
@@ -4596,172 +3507,92 @@
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "FAST_FOOD"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
+      "menuCode": "SALMON_STEAK",
       "categoryType": "FLAVOR",
       "categoryCode": "SALTY"
     },
     {
-      "menuCode": "CHEESE_KATSU_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
+      "menuCode": "SALMON_STEAK",
       "categoryType": "FLAVOR",
       "categoryCode": "RICH"
     },
     {
-      "menuCode": "CHEESE_KATSU_MEAL",
+      "menuCode": "SALMON_STEAK",
       "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
+      "categoryCode": "GRILLED"
     },
     {
-      "menuCode": "CHEESE_KATSU_MEAL",
+      "menuCode": "SALMON_STEAK",
       "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "JAPANESE"
+      "categoryCode": "WESTERN"
     },
     {
-      "menuCode": "CHEESE_KATSU_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
+      "menuCode": "SALMON_STEAK",
       "categoryType": "TEXTURE",
       "categoryCode": "SOFT"
     },
     {
-      "menuCode": "CHEESE_KATSU_MEAL",
+      "menuCode": "SALMON_STEAK",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "CHICKEN_STEAK",
       "categoryType": "FLAVOR",
       "categoryCode": "SALTY"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "CHICKEN_STEAK",
       "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
+      "categoryCode": "RICH"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "CHICKEN_STEAK",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "GRILLED"
+    },
+    {
+      "menuCode": "CHICKEN_STEAK",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "WESTERN"
+    },
+    {
+      "menuCode": "CHICKEN_STEAK",
+      "categoryType": "TEXTURE",
+      "categoryCode": "SOFT"
+    },
+    {
+      "menuCode": "CHICKEN_STEAK",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "TENDON",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SWEET"
+    },
+    {
+      "menuCode": "TENDON",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SALTY"
+    },
+    {
+      "menuCode": "TENDON",
       "categoryType": "COOKING_METHOD",
       "categoryCode": "FRIED"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "TENDON",
       "categoryType": "FOOD_CATEGORY",
       "categoryCode": "JAPANESE"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "TENDON",
       "categoryType": "TEXTURE",
       "categoryCode": "CRISPY"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "TENDON",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
@@ -4796,687 +3627,182 @@
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "MENCHI_KATSU_MEAL",
+      "menuCode": "YURINGI_MEAL",
       "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
+      "categoryCode": "SPICY"
     },
     {
-      "menuCode": "MENCHI_KATSU_MEAL",
+      "menuCode": "YURINGI_MEAL",
       "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
+      "categoryCode": "FRESH"
     },
     {
-      "menuCode": "MENCHI_KATSU_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "MENCHI_KATSU_MEAL",
+      "menuCode": "YURINGI_MEAL",
       "categoryType": "COOKING_METHOD",
       "categoryCode": "FRIED"
     },
     {
-      "menuCode": "MENCHI_KATSU_MEAL",
+      "menuCode": "YURINGI_MEAL",
       "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "JAPANESE"
+      "categoryCode": "CHINESE"
     },
     {
-      "menuCode": "MENCHI_KATSU_MEAL",
+      "menuCode": "YURINGI_MEAL",
       "categoryType": "TEXTURE",
       "categoryCode": "CRISPY"
     },
     {
-      "menuCode": "MENCHI_KATSU_MEAL",
+      "menuCode": "YURINGI_MEAL",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "KKANPUNGGI_MEAL",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SPICY"
+    },
+    {
+      "menuCode": "KKANPUNGGI_MEAL",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SWEET"
+    },
+    {
+      "menuCode": "KKANPUNGGI_MEAL",
+      "categoryType": "FLAVOR",
+      "categoryCode": "FRESH"
+    },
+    {
+      "menuCode": "KKANPUNGGI_MEAL",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "FRIED"
+    },
+    {
+      "menuCode": "KKANPUNGGI_MEAL",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "STIR_FRIED"
+    },
+    {
+      "menuCode": "KKANPUNGGI_MEAL",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "CHINESE"
+    },
+    {
+      "menuCode": "KKANPUNGGI_MEAL",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CRISPY"
+    },
+    {
+      "menuCode": "KKANPUNGGI_MEAL",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "CHILI_SHRIMP_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SPICY"
+    },
+    {
+      "menuCode": "CHILI_SHRIMP_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SWEET"
+    },
+    {
+      "menuCode": "CHILI_SHRIMP_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "FRESH"
+    },
+    {
+      "menuCode": "CHILI_SHRIMP_RICE",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "FRIED"
+    },
+    {
+      "menuCode": "CHILI_SHRIMP_RICE",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "STIR_FRIED"
+    },
+    {
+      "menuCode": "CHILI_SHRIMP_RICE",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "CHINESE"
+    },
+    {
+      "menuCode": "CHILI_SHRIMP_RICE",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CRISPY"
+    },
+    {
+      "menuCode": "CHILI_SHRIMP_RICE",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "YUXIANG_EGGPLANT_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SPICY"
+    },
+    {
+      "menuCode": "YUXIANG_EGGPLANT_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SWEET"
+    },
+    {
+      "menuCode": "YUXIANG_EGGPLANT_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "FRESH"
+    },
+    {
+      "menuCode": "YUXIANG_EGGPLANT_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "RICH"
+    },
+    {
+      "menuCode": "YUXIANG_EGGPLANT_RICE",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "STIR_FRIED"
+    },
+    {
+      "menuCode": "YUXIANG_EGGPLANT_RICE",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "CHINESE"
+    },
+    {
+      "menuCode": "YUXIANG_EGGPLANT_RICE",
       "categoryType": "TEXTURE",
       "categoryCode": "SOFT"
     },
     {
-      "menuCode": "MENCHI_KATSU_MEAL",
+      "menuCode": "YUXIANG_EGGPLANT_RICE",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "YURINGI_MEAL",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "categoryType": "FLAVOR",
       "categoryCode": "SPICY"
     },
     {
-      "menuCode": "YURINGI_MEAL",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
+      "categoryCode": "SALTY"
     },
     {
-      "menuCode": "YURINGI_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "YURINGI_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "YURINGI_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "YURINGI_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "KKANPUNGGI_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "KKANPUNGGI_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "KKANPUNGGI_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "KKANPUNGGI_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "KKANPUNGGI_MEAL",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "categoryType": "COOKING_METHOD",
       "categoryCode": "STIR_FRIED"
     },
     {
-      "menuCode": "KKANPUNGGI_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "KKANPUNGGI_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "KKANPUNGGI_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "CHILI_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "CHILI_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "CHILI_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "CHILI_SHRIMP_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "CHILI_SHRIMP_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "CHILI_SHRIMP_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "CHILI_SHRIMP_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "CHILI_SHRIMP_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "categoryType": "FOOD_CATEGORY",
       "categoryCode": "KOREAN"
     },
     {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "categoryType": "TEXTURE",
       "categoryCode": "SOFT"
     },
     {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "YUXIANG_EGGPLANT_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "YUXIANG_EGGPLANT_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "YUXIANG_EGGPLANT_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "YUXIANG_EGGPLANT_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "YUXIANG_EGGPLANT_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "YUXIANG_EGGPLANT_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "YUXIANG_EGGPLANT_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "YUXIANG_EGGPLANT_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "CHINESE"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
@@ -5546,116 +3872,6 @@
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STIR_FRIED"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "JAPANESE"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
       "menuCode": "GOCHU_JAPCHAE_RICE",
       "categoryType": "FLAVOR",
       "categoryCode": "SALTY"
@@ -5691,41 +3907,6 @@
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
       "menuCode": "JJIMDAK",
       "categoryType": "FLAVOR",
       "categoryCode": "SPICY"
@@ -5926,322 +4107,32 @@
       "categoryCode": "HOT"
     },
     {
-      "menuCode": "SOY_TOFU_STEAMED",
+      "menuCode": "DUMPLINGS",
       "categoryType": "FLAVOR",
       "categoryCode": "SALTY"
     },
     {
-      "menuCode": "SOY_TOFU_STEAMED",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "SOY_TOFU_STEAMED",
+      "menuCode": "DUMPLINGS",
       "categoryType": "COOKING_METHOD",
       "categoryCode": "STEAMED"
     },
     {
-      "menuCode": "SOY_TOFU_STEAMED",
+      "menuCode": "DUMPLINGS",
       "categoryType": "FOOD_CATEGORY",
       "categoryCode": "KOREAN"
     },
     {
-      "menuCode": "SOY_TOFU_STEAMED",
+      "menuCode": "DUMPLINGS",
       "categoryType": "TEXTURE",
       "categoryCode": "SOFT"
     },
     {
-      "menuCode": "SOY_TOFU_STEAMED",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "STEAMED_EGG_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "STEAMED_EGG_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "STEAMED_EGG_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "STEAMED_EGG_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "STEAMED_EGG_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "STEAMED_EGG_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
+      "menuCode": "DUMPLINGS",
       "categoryType": "TEXTURE",
       "categoryCode": "CHEWY"
     },
     {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "ASIAN"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "SWEET_PUMPKIN_NUT_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "SWEET_PUMPKIN_NUT_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "SWEET_PUMPKIN_NUT_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "SWEET_PUMPKIN_NUT_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "KOREAN"
-    },
-    {
-      "menuCode": "SWEET_PUMPKIN_NUT_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SWEET_PUMPKIN_NUT_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_STEAMED",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_STEAMED",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_STEAMED",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_STEAMED",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_STEAMED",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_STEAMED",
+      "menuCode": "DUMPLINGS",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
@@ -6324,731 +4215,6 @@
       "menuCode": "SEAFOOD_STEAMED",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "ASIAN"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "LEMON_HERB_STEAMED_CHICKEN",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "LEMON_HERB_STEAMED_CHICKEN",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "LEMON_HERB_STEAMED_CHICKEN",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "LEMON_HERB_STEAMED_CHICKEN",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "LEMON_HERB_STEAMED_CHICKEN",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "LEMON_HERB_STEAMED_CHICKEN",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "JAPANESE"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CHEWY"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "STEAMED"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SPICY"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "NUTTY"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "categoryType": "FLAVOR",
-      "categoryCode": "FRESH"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "RAW_SALAD"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "WESTERN"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRUNCHY"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "COLD"
     },
     {
       "menuCode": "UNAGI_DON",
@@ -7082,126 +4248,6 @@
     },
     {
       "menuCode": "UNAGI_DON",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "JAPANESE"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "JAPANESE"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SWEET"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "RICH"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "GRILLED"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "JAPANESE"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "categoryType": "TEXTURE",
-      "categoryCode": "SOFT"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "categoryType": "TEMPERATURE",
-      "categoryCode": "HOT"
-    },
-    {
-      "menuCode": "VEGETABLE_KAKIAGE_DON",
-      "categoryType": "FLAVOR",
-      "categoryCode": "SALTY"
-    },
-    {
-      "menuCode": "VEGETABLE_KAKIAGE_DON",
-      "categoryType": "COOKING_METHOD",
-      "categoryCode": "FRIED"
-    },
-    {
-      "menuCode": "VEGETABLE_KAKIAGE_DON",
-      "categoryType": "FOOD_CATEGORY",
-      "categoryCode": "JAPANESE"
-    },
-    {
-      "menuCode": "VEGETABLE_KAKIAGE_DON",
-      "categoryType": "TEXTURE",
-      "categoryCode": "CRISPY"
-    },
-    {
-      "menuCode": "VEGETABLE_KAKIAGE_DON",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     },
@@ -7232,6 +4278,291 @@
     },
     {
       "menuCode": "PORK_BACKBONE_HAEJANGGUK",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "SANDWICH",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SALTY"
+    },
+    {
+      "menuCode": "SANDWICH",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "RAW_SALAD"
+    },
+    {
+      "menuCode": "SANDWICH",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "WESTERN"
+    },
+    {
+      "menuCode": "SANDWICH",
+      "categoryType": "TEXTURE",
+      "categoryCode": "SOFT"
+    },
+    {
+      "menuCode": "SANDWICH",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CRUNCHY"
+    },
+    {
+      "menuCode": "SANDWICH",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "COLD"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SWEET"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SALTY"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "categoryType": "FLAVOR",
+      "categoryCode": "RICH"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "FRIED"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "BUNSIK"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CRISPY"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "categoryType": "TEXTURE",
+      "categoryCode": "SOFT"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "GAMBAS",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SALTY"
+    },
+    {
+      "menuCode": "GAMBAS",
+      "categoryType": "FLAVOR",
+      "categoryCode": "RICH"
+    },
+    {
+      "menuCode": "GAMBAS",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "STIR_FRIED"
+    },
+    {
+      "menuCode": "GAMBAS",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "WESTERN"
+    },
+    {
+      "menuCode": "GAMBAS",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CHEWY"
+    },
+    {
+      "menuCode": "GAMBAS",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SALTY"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "SOUP"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "JAPANESE"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "categoryType": "TEXTURE",
+      "categoryCode": "SOFT"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "categoryType": "FLAVOR",
+      "categoryCode": "RICH"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SALTY"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "SOUP"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "KOREAN"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "categoryType": "TEXTURE",
+      "categoryCode": "SOFT"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CHEWY"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SPICY"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SWEET"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "STIR_FRIED"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "KOREAN"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CHEWY"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "SANNAKJI",
+      "categoryType": "FLAVOR",
+      "categoryCode": "NUTTY"
+    },
+    {
+      "menuCode": "SANNAKJI",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SALTY"
+    },
+    {
+      "menuCode": "SANNAKJI",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "RAW_SALAD"
+    },
+    {
+      "menuCode": "SANNAKJI",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "KOREAN"
+    },
+    {
+      "menuCode": "SANNAKJI",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CHEWY"
+    },
+    {
+      "menuCode": "SANNAKJI",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "COLD"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SALTY"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SPICY"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "NOODLE_MIXED"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "STIR_FRIED"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "WESTERN"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CHEWY"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "categoryType": "TEMPERATURE",
+      "categoryCode": "HOT"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
+      "categoryType": "FLAVOR",
+      "categoryCode": "SALTY"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "NOODLE_MIXED"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
+      "categoryType": "COOKING_METHOD",
+      "categoryCode": "STIR_FRIED"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
+      "categoryType": "FOOD_CATEGORY",
+      "categoryCode": "WESTERN"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
+      "categoryType": "TEXTURE",
+      "categoryCode": "CHEWY"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
       "categoryType": "TEMPERATURE",
       "categoryCode": "HOT"
     }
@@ -7758,6 +5089,42 @@
       "ingredientCode": "MILK"
     },
     {
+      "menuCode": "BUDAE_JJIGAE",
+      "ingredientCode": "MILK"
+    },
+    {
+      "menuCode": "BUDAE_JJIGAE",
+      "ingredientCode": "FISH"
+    },
+    {
+      "menuCode": "BUDAE_JJIGAE",
+      "ingredientCode": "SHRIMP"
+    },
+    {
+      "menuCode": "CHICKEN_SALAD",
+      "ingredientCode": "MILK"
+    },
+    {
+      "menuCode": "HAMBURGER",
+      "ingredientCode": "MILK"
+    },
+    {
+      "menuCode": "KIMCHI_STEW",
+      "ingredientCode": "FISH"
+    },
+    {
+      "menuCode": "KIMCHI_STEW",
+      "ingredientCode": "SHRIMP"
+    },
+    {
+      "menuCode": "KIMCHI_STEW",
+      "ingredientCode": "SOYBEAN"
+    },
+    {
+      "menuCode": "SALAD",
+      "ingredientCode": "MILK"
+    },
+    {
       "menuCode": "YUKGAEJANG",
       "ingredientCode": "BEEF"
     },
@@ -7918,87 +5285,75 @@
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
+      "ingredientCode": "MUSHROOM"
+    },
+    {
+      "menuCode": "MUSHROOM_HOTPOT",
       "ingredientCode": "TOFU"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
       "ingredientCode": "SOYBEAN"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
-      "ingredientCode": "MUSHROOM"
+      "menuCode": "MUSHROOM_HOTPOT",
+      "ingredientCode": "WHEAT"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
+      "ingredientCode": "BEEF"
+    },
+    {
+      "menuCode": "MUSHROOM_HOTPOT",
       "ingredientCode": "GARLIC"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
+      "menuCode": "MUSHROOM_HOTPOT",
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "PERILLA_SOFT_TOFU_SOUP",
-      "ingredientCode": "WHEAT"
+      "menuCode": "POTATO_ONGSIMI",
+      "ingredientCode": "FISH"
     },
     {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
+      "menuCode": "POTATO_ONGSIMI",
       "ingredientCode": "MUSHROOM"
     },
     {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
+      "menuCode": "POTATO_ONGSIMI",
       "ingredientCode": "SOYBEAN"
     },
     {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
+      "menuCode": "POTATO_ONGSIMI",
       "ingredientCode": "WHEAT"
     },
     {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
+      "menuCode": "POTATO_ONGSIMI",
       "ingredientCode": "GARLIC"
     },
     {
-      "menuCode": "PERILLA_MUSHROOM_SOUP",
+      "menuCode": "POTATO_ONGSIMI",
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
-      "ingredientCode": "MUSHROOM"
-    },
-    {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
+      "menuCode": "SUJEBI",
       "ingredientCode": "WHEAT"
     },
     {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
-      "ingredientCode": "GARLIC"
+      "menuCode": "SUJEBI",
+      "ingredientCode": "FISH"
     },
     {
-      "menuCode": "PERILLA_POTATO_ONGSIMI",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "PERILLA_SUJEBI",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "PERILLA_SUJEBI",
-      "ingredientCode": "MUSHROOM"
-    },
-    {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "ingredientCode": "SOYBEAN"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "ingredientCode": "GARLIC"
     },
     {
-      "menuCode": "PERILLA_SUJEBI",
+      "menuCode": "SUJEBI",
       "ingredientCode": "GREEN_ONION"
     },
     {
@@ -8040,6 +5395,10 @@
     {
       "menuCode": "SOY_PULP_STEW",
       "ingredientCode": "SHRIMP"
+    },
+    {
+      "menuCode": "SOY_PULP_STEW",
+      "ingredientCode": "FISH"
     },
     {
       "menuCode": "BEEF_SEAWEED_SOUP",
@@ -8088,78 +5447,6 @@
     {
       "menuCode": "DRIED_POLLACK_SOUP",
       "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "PUMPKIN_CREAM_SOUP_MEAL",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "PUMPKIN_CREAM_SOUP_MEAL",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "PUMPKIN_CREAM_SOUP_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "CORN_CHOWDER_MEAL",
-      "ingredientCode": "CELERY"
-    },
-    {
-      "menuCode": "SWEET_POTATO_SOUP_MEAL",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "SWEET_POTATO_SOUP_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SWEET_POTATO_SOUP_MEAL",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "CARROT_CREAM_SOUP_MEAL",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "CARROT_CREAM_SOUP_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CARROT_CREAM_SOUP_MEAL",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "ingredientCode": "BEEF"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "FRENCH_ONION_SOUP_MEAL",
-      "ingredientCode": "MILK"
     },
     {
       "menuCode": "SUKIYAKI_SET",
@@ -8454,66 +5741,10 @@
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "SPICY_SUJEBI",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "SPICY_SUJEBI",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
+      "menuCode": "KIMCHI_UDON",
       "ingredientCode": "SHRIMP"
     },
     {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "ingredientCode": "SQUID"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "ingredientCode": "SHELLFISH"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "JJAMPPONG_RAMYEON",
-      "ingredientCode": "STRONG_SEAFOOD_AROMA"
-    },
-    {
       "menuCode": "RABOKKI",
       "ingredientCode": "WHEAT"
     },
@@ -8540,66 +5771,6 @@
     {
       "menuCode": "RABOKKI",
       "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "JJOLBOKKI",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "ingredientCode": "PINE_NUT"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "PINE_NUT_NOODLES",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "SESAME_BIBIM_NOODLES",
-      "ingredientCode": "CUCUMBER"
     },
     {
       "menuCode": "CHOGYE_NOODLES",
@@ -8636,46 +5807,6 @@
     {
       "menuCode": "CHOGYE_NOODLES",
       "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "ingredientCode": "TOFU"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "TOFU_NOODLES_COLD_SOY_SOUP",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "SOY_SAUCE_BIBIM_NOODLES",
-      "ingredientCode": "GARLIC"
     },
     {
       "menuCode": "PERILLA_OIL_MAKGUKSU",
@@ -8862,224 +5993,40 @@
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "CHEESEBURGER",
+      "menuCode": "HAMBURG_STEAK",
       "ingredientCode": "BEEF"
     },
     {
-      "menuCode": "CHEESEBURGER",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "CHEESEBURGER",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "ingredientCode": "BEEF"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
+      "menuCode": "HAMBURG_STEAK",
       "ingredientCode": "PORK"
     },
     {
-      "menuCode": "BACON_CHEESEBURGER",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
+      "menuCode": "HAMBURG_STEAK",
       "ingredientCode": "EGG"
     },
     {
-      "menuCode": "BACON_CHEESEBURGER",
+      "menuCode": "HAMBURG_STEAK",
       "ingredientCode": "MILK"
     },
     {
-      "menuCode": "BACON_CHEESEBURGER",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "BACON_CHEESEBURGER",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
+      "menuCode": "HAMBURG_STEAK",
       "ingredientCode": "WHEAT"
     },
     {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "GRILLED_CHICKEN_CHEESE_SANDWICH",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "ingredientCode": "BEEF"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
+      "menuCode": "HAMBURG_STEAK",
       "ingredientCode": "SOYBEAN"
     },
     {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "STEAK_CHEESE_SANDWICH",
-      "ingredientCode": "GREEN_PEPPER"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "GRILLED_CHEESE_SANDWICH",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "ingredientCode": "BEEF"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "ingredientCode": "PORK"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
+      "menuCode": "HAMBURG_STEAK",
       "ingredientCode": "TOMATO"
     },
     {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
+      "menuCode": "HAMBURG_STEAK",
       "ingredientCode": "ONION"
     },
     {
-      "menuCode": "CHEESE_HAMBURG_STEAK",
+      "menuCode": "HAMBURG_STEAK",
       "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "ingredientCode": "PEANUT"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "CHICKEN_SATAY_RICE",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "TANDOORI_CHICKEN_MEAL",
-      "ingredientCode": "AROMATIC_SPICES"
     },
     {
       "menuCode": "GOCHUJANG_PORK_GRILL_MEAL",
@@ -9106,50 +6053,6 @@
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "ingredientCode": "PAPRIKA"
-    },
-    {
-      "menuCode": "PERI_PERI_CHICKEN_MEAL",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "ingredientCode": "CILANTRO"
-    },
-    {
-      "menuCode": "GRILLED_FISH_TACOS",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
       "menuCode": "CHARCOAL_DAK_GALBI",
       "ingredientCode": "CHICKEN"
     },
@@ -9174,115 +6077,59 @@
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
+      "menuCode": "SALMON_STEAK",
       "ingredientCode": "FISH"
     },
     {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
-      "ingredientCode": "MILK"
+      "menuCode": "SALMON_STEAK",
+      "ingredientCode": "OLIVE"
     },
     {
-      "menuCode": "LEMON_BROWN_BUTTER_SALMON",
+      "menuCode": "SALMON_STEAK",
       "ingredientCode": "GARLIC"
     },
     {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
+      "menuCode": "CHICKEN_STEAK",
       "ingredientCode": "CHICKEN"
     },
     {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
-      "ingredientCode": "SULFITES"
+      "menuCode": "CHICKEN_STEAK",
+      "ingredientCode": "OLIVE"
     },
     {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
+      "menuCode": "CHICKEN_STEAK",
       "ingredientCode": "GARLIC"
     },
     {
-      "menuCode": "BALSAMIC_CHICKEN_STEAK",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
+      "menuCode": "CHICKEN_STEAK",
       "ingredientCode": "ONION"
     },
     {
-      "menuCode": "SWEET_CHILI_GRILLED_CHICKEN_BURGER",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
-      "ingredientCode": "PORK"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "CHEESE_KATSU_MEAL",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "TENDON",
       "ingredientCode": "SHRIMP"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
-      "ingredientCode": "SESAME"
+      "menuCode": "TENDON",
+      "ingredientCode": "EGGPLANT"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "TENDON",
+      "ingredientCode": "MUSHROOM"
+    },
+    {
+      "menuCode": "TENDON",
       "ingredientCode": "WHEAT"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "TENDON",
       "ingredientCode": "EGG"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "TENDON",
       "ingredientCode": "SOYBEAN"
     },
     {
-      "menuCode": "SHRIMP_TEMPURA_MEAL",
+      "menuCode": "TENDON",
       "ingredientCode": "FISH"
     },
     {
@@ -9303,38 +6150,6 @@
     },
     {
       "menuCode": "CHICKEN_KATSU_MEAL",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "MENCHI_KATSU_MEAL",
-      "ingredientCode": "BEEF"
-    },
-    {
-      "menuCode": "MENCHI_KATSU_MEAL",
-      "ingredientCode": "PORK"
-    },
-    {
-      "menuCode": "MENCHI_KATSU_MEAL",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "MENCHI_KATSU_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "MENCHI_KATSU_MEAL",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "MENCHI_KATSU_MEAL",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "MENCHI_KATSU_MEAL",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "MENCHI_KATSU_MEAL",
       "ingredientCode": "SOYBEAN"
     },
     {
@@ -9360,30 +6175,6 @@
     {
       "menuCode": "YURINGI_MEAL",
       "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "ingredientCode": "SHRIMP"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "ingredientCode": "WALNUT"
-    },
-    {
-      "menuCode": "WALNUT_CREAM_SHRIMP_RICE",
-      "ingredientCode": "SOYBEAN"
     },
     {
       "menuCode": "KKANPUNGGI_MEAL",
@@ -9440,210 +6231,6 @@
     {
       "menuCode": "CHILI_SHRIMP_RICE",
       "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "YANGNYEOM_CHICKEN_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "LAZIJI_RICE",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "BUFFALO_WINGS_MEAL",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "LEMON_CHICKEN_MEAL",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "FISH_AND_CHIPS",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "ingredientCode": "PORK"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "GUOBAOROU_MEAL",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "ingredientCode": "PEANUT"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "GONGBAO_CHICKEN_RICE",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "ingredientCode": "SHRIMP"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "ingredientCode": "CASHEW_NUT"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "CASHEW_SHRIMP_RICE",
-      "ingredientCode": "GREEN_PEPPER"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "ingredientCode": "PORK"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "HUI_GUO_ROU_RICE",
-      "ingredientCode": "GREEN_PEPPER"
     },
     {
       "menuCode": "YUXIANG_EGGPLANT_RICE",
@@ -9666,123 +6253,39 @@
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "ingredientCode": "BEEF"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "ingredientCode": "GREEN_PEPPER"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "BLACK_BEAN_BEEF_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "ingredientCode": "KIMCHI"
     },
     {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "ingredientCode": "FISH"
     },
     {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "ingredientCode": "SHRIMP"
     },
     {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "KIMCHI_CHEESE_FRIED_RICE",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "ingredientCode": "SHRIMP"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "ingredientCode": "SOYBEAN"
     },
     {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "ingredientCode": "WHEAT"
     },
     {
-      "menuCode": "GARLIC_BUTTER_SHRIMP_RICE",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "ingredientCode": "STRONG_FISHY_FISH"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "ingredientCode": "SESAME"
     },
     {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "ingredientCode": "EGG"
     },
     {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "ingredientCode": "SOYBEAN"
+      "menuCode": "KIMCHI_FRIED_RICE",
+      "ingredientCode": "GARLIC"
     },
     {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "ANCHOVY_SESAME_FRIED_RICE",
+      "menuCode": "KIMCHI_FRIED_RICE",
       "ingredientCode": "GREEN_ONION"
     },
     {
@@ -9838,90 +6341,6 @@
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "ingredientCode": "TOFU"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "ingredientCode": "KIMCHI"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "ingredientCode": "SHRIMP"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "TOFU_STIR_FRIED_KIMCHI_MEAL",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "CHEESE_POTATO_CROQUETTE_MEAL",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "ingredientCode": "CILANTRO"
-    },
-    {
-      "menuCode": "FALAFEL_PITA_SANDWICH",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
       "menuCode": "GOCHU_JAPCHAE_RICE",
       "ingredientCode": "PORK"
     },
@@ -9954,30 +6373,6 @@
       "ingredientCode": "SESAME"
     },
     {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "ingredientCode": "SQUID"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "SPICY_CALAMARI_PLATE",
-      "ingredientCode": "TOMATO"
-    },
-    {
       "menuCode": "JJIMDAK",
       "ingredientCode": "CHICKEN"
     },
@@ -10110,240 +6505,40 @@
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "SOY_TOFU_STEAMED",
+      "menuCode": "DUMPLINGS",
+      "ingredientCode": "PORK"
+    },
+    {
+      "menuCode": "DUMPLINGS",
       "ingredientCode": "TOFU"
     },
     {
-      "menuCode": "SOY_TOFU_STEAMED",
+      "menuCode": "DUMPLINGS",
       "ingredientCode": "SOYBEAN"
     },
     {
-      "menuCode": "SOY_TOFU_STEAMED",
+      "menuCode": "DUMPLINGS",
       "ingredientCode": "WHEAT"
     },
     {
-      "menuCode": "SOY_TOFU_STEAMED",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "SOY_TOFU_STEAMED",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "SOY_TOFU_STEAMED",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "STEAMED_EGG_RICE",
+      "menuCode": "DUMPLINGS",
       "ingredientCode": "EGG"
     },
     {
-      "menuCode": "STEAMED_EGG_RICE",
-      "ingredientCode": "SESAME"
+      "menuCode": "DUMPLINGS",
+      "ingredientCode": "GARLIC"
     },
     {
-      "menuCode": "STEAMED_EGG_RICE",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "ingredientCode": "KIMCHI"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "ingredientCode": "PORK"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "ingredientCode": "TOFU"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "ingredientCode": "SHRIMP"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
+      "menuCode": "DUMPLINGS",
       "ingredientCode": "GARLIC_CHIVE"
     },
     {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "KIMCHI_DUMPLING_RICE",
+      "menuCode": "DUMPLINGS",
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "ingredientCode": "PORK"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "ingredientCode": "TOFU"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
+      "menuCode": "DUMPLINGS",
       "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "ingredientCode": "GARLIC_CHIVE"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "PORK_DUMPLING_RICE",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "ingredientCode": "SHRIMP"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "ingredientCode": "TOFU"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "ingredientCode": "GARLIC_CHIVE"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "SHRIMP_DUMPLING_RICE",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "ingredientCode": "PORK"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "PORK_CABBAGE_STEAMED",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "ingredientCode": "BEEF"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "ingredientCode": "MUSHROOM"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "BEEF_CABBAGE_STEAMED",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "LEMON_FISH_STEAMED",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "SWEET_PUMPKIN_NUT_RICE",
-      "ingredientCode": "WALNUT"
-    },
-    {
-      "menuCode": "SWEET_PUMPKIN_NUT_RICE",
-      "ingredientCode": "PINE_NUT"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_STEAMED",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_STEAMED",
-      "ingredientCode": "BROCCOLI"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_STEAMED",
-      "ingredientCode": "EGG"
     },
     {
       "menuCode": "SOY_PORK_RIB_STEAMED",
@@ -10402,394 +6597,6 @@
       "ingredientCode": "GREEN_ONION"
     },
     {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "ingredientCode": "CILANTRO"
-    },
-    {
-      "menuCode": "THAI_LIME_CHILI_STEAMED_FISH",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "LEMON_HERB_STEAMED_CHICKEN",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "LEMON_HERB_STEAMED_CHICKEN",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "LEMON_HERB_STEAMED_CHICKEN",
-      "ingredientCode": "SULFITES"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "ingredientCode": "SHELLFISH"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "ingredientCode": "SULFITES"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "TOMATO_MUSSEL_STEAMED_BREAD",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "ingredientCode": "SHELLFISH"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "LEMON_CLAM_SAKE_STEAMED_RICE",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "ingredientCode": "SULFITES"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "LEMON_DILL_SALMON_PAPILLOTE_RICE",
-      "ingredientCode": "PAPRIKA"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "SPICY_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "SPICY_TUNA_GRAIN_SALAD",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "ingredientCode": "SHRIMP"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "ingredientCode": "AROMATIC_SPICES"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "ingredientCode": "PAPRIKA"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "CAJUN_SHRIMP_GRAIN_SALAD",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "ingredientCode": "TOFU"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "ingredientCode": "PAPRIKA"
-    },
-    {
-      "menuCode": "CHILI_TOFU_GRAIN_SALAD",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "ingredientCode": "BEEF"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "SPICY_BEEF_GRAIN_SALAD",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "ingredientCode": "PAPRIKA"
-    },
-    {
-      "menuCode": "SPICY_CHICKPEA_GRAIN_SALAD",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "ingredientCode": "SESAME"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "SWEET_POTATO_EGG_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "WALNUT"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "PAPRIKA"
-    },
-    {
-      "menuCode": "PUMPKIN_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "ingredientCode": "WALNUT"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "ingredientCode": "CELERY"
-    },
-    {
-      "menuCode": "APPLE_WALNUT_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "ingredientCode": "PAPRIKA"
-    },
-    {
-      "menuCode": "CORN_CHICKPEA_GRAIN_SALAD",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "HONEY_MUSTARD_CHICKEN_GRAIN_SALAD",
-      "ingredientCode": "PAPRIKA"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "ingredientCode": "PEACH"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "PEACH_CHEESE_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "CAESAR_GRAIN_SALAD",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "ingredientCode": "EGG"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "ingredientCode": "PORK"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "ingredientCode": "CHEESE"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "ingredientCode": "MILK"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "ingredientCode": "TOMATO"
-    },
-    {
-      "menuCode": "COBB_GRAIN_SALAD",
-      "ingredientCode": "CUCUMBER"
-    },
-    {
       "menuCode": "UNAGI_DON",
       "ingredientCode": "FISH"
     },
@@ -10800,70 +6607,6 @@
     {
       "menuCode": "UNAGI_DON",
       "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "ingredientCode": "FISH"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "SPANISH_MACKEREL_TERIYAKI_MEAL",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "ingredientCode": "CHICKEN"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "ingredientCode": "GARLIC"
-    },
-    {
-      "menuCode": "CHICKEN_TERIYAKI_DON",
-      "ingredientCode": "GREEN_ONION"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "ingredientCode": "EGGPLANT"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "MISO_EGGPLANT_DENGAKU_DON",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "VEGETABLE_KAKIAGE_DON",
-      "ingredientCode": "WHEAT"
-    },
-    {
-      "menuCode": "VEGETABLE_KAKIAGE_DON",
-      "ingredientCode": "ONION"
-    },
-    {
-      "menuCode": "VEGETABLE_KAKIAGE_DON",
-      "ingredientCode": "SOYBEAN"
-    },
-    {
-      "menuCode": "VEGETABLE_KAKIAGE_DON",
-      "ingredientCode": "FISH"
     },
     {
       "menuCode": "PORK_BACKBONE_HAEJANGGUK",
@@ -10890,48 +6633,196 @@
       "ingredientCode": "PERILLA_LEAF"
     },
     {
-      "menuCode": "BUDAE_JJIGAE",
+      "menuCode": "SANDWICH",
+      "ingredientCode": "WHEAT"
+    },
+    {
+      "menuCode": "SANDWICH",
+      "ingredientCode": "PORK"
+    },
+    {
+      "menuCode": "SANDWICH",
       "ingredientCode": "MILK"
     },
     {
-      "menuCode": "BUDAE_JJIGAE",
-      "ingredientCode": "FISH"
+      "menuCode": "SANDWICH",
+      "ingredientCode": "CHEESE"
     },
     {
-      "menuCode": "BUDAE_JJIGAE",
-      "ingredientCode": "SHRIMP"
+      "menuCode": "SANDWICH",
+      "ingredientCode": "EGG"
     },
     {
-      "menuCode": "CHICKEN_SALAD",
-      "ingredientCode": "MILK"
+      "menuCode": "SANDWICH",
+      "ingredientCode": "CUCUMBER"
     },
     {
-      "menuCode": "HAMBURGER",
-      "ingredientCode": "MILK"
+      "menuCode": "SANDWICH",
+      "ingredientCode": "TOMATO"
     },
     {
-      "menuCode": "KIMCHI_STEW",
-      "ingredientCode": "FISH"
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "ingredientCode": "CHICKEN"
     },
     {
-      "menuCode": "KIMCHI_STEW",
-      "ingredientCode": "SHRIMP"
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "ingredientCode": "WHEAT"
     },
     {
-      "menuCode": "KIMCHI_STEW",
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "ingredientCode": "EGG"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
       "ingredientCode": "SOYBEAN"
     },
     {
-      "menuCode": "KIMCHI_UDON",
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "ingredientCode": "ONION"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "ingredientCode": "GARLIC"
+    },
+    {
+      "menuCode": "CHICKEN_MAYO_RICE",
+      "ingredientCode": "GREEN_ONION"
+    },
+    {
+      "menuCode": "GAMBAS",
       "ingredientCode": "SHRIMP"
     },
     {
-      "menuCode": "SALAD",
-      "ingredientCode": "MILK"
+      "menuCode": "GAMBAS",
+      "ingredientCode": "OLIVE"
     },
     {
-      "menuCode": "SOY_PULP_STEW",
+      "menuCode": "GAMBAS",
+      "ingredientCode": "GARLIC"
+    },
+    {
+      "menuCode": "GAMBAS",
+      "ingredientCode": "WHEAT"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "ingredientCode": "BEEF"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
       "ingredientCode": "FISH"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "ingredientCode": "MUSHROOM"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "ingredientCode": "SOYBEAN"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "ingredientCode": "WHEAT"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "ingredientCode": "SESAME"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "ingredientCode": "GARLIC"
+    },
+    {
+      "menuCode": "SHABU_SHABU",
+      "ingredientCode": "GREEN_ONION"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "ingredientCode": "PORK"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "ingredientCode": "OFFAL"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "ingredientCode": "SHRIMP"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "ingredientCode": "GARLIC"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "ingredientCode": "GREEN_ONION"
+    },
+    {
+      "menuCode": "SUNDAE_GUK",
+      "ingredientCode": "GARLIC_CHIVE"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "ingredientCode": "SQUID"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "ingredientCode": "SOYBEAN"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "ingredientCode": "WHEAT"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "ingredientCode": "ONION"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "ingredientCode": "GARLIC"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "ingredientCode": "GREEN_ONION"
+    },
+    {
+      "menuCode": "SQUID_STIR_FRY",
+      "ingredientCode": "SESAME"
+    },
+    {
+      "menuCode": "SANNAKJI",
+      "ingredientCode": "OCTOPUS"
+    },
+    {
+      "menuCode": "SANNAKJI",
+      "ingredientCode": "SESAME"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "ingredientCode": "WHEAT"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "ingredientCode": "OLIVE"
+    },
+    {
+      "menuCode": "AGLIO_OLIO",
+      "ingredientCode": "GARLIC"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
+      "ingredientCode": "WHEAT"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
+      "ingredientCode": "SHELLFISH"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
+      "ingredientCode": "OLIVE"
+    },
+    {
+      "menuCode": "VONGOLE_PASTA",
+      "ingredientCode": "GARLIC"
     }
   ]
 }

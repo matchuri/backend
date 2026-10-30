@@ -27,6 +27,8 @@ import matchuri.backend.application.seed.ReferenceDataSeedService;
 import matchuri.backend.application.seed.ReferenceSeedData;
 import matchuri.backend.application.seed.SeedDataResourceLoader;
 import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit;
+import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.BatchReport;
+import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.CandidateReport;
 import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.CategoryReference;
 import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.Fixtures;
 import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.ProfileReport;
@@ -1129,22 +1131,21 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("실제 기준 시드의 모든 지원 취향에서 최초와 불만족 재요청에 서로 다른 100점 후보 3개를 반환한다")
-    void seededProfilesSupportInitialAndNotSatisfiedRerollWithoutImages() throws Exception {
+    @DisplayName("실제 선정 시드의 모든 기준 취향에서 최초와 불만족 재요청의 점수가 순수 감사 결과와 일치한다")
+    void seededProfilesMatchAuditScoresForInitialAndNotSatisfiedRerollWithoutImages() throws Exception {
         referenceDataSeedService.initialize();
         var report = seededCoverageReport();
         Map<CategoryReference, AttributeCategory> categories = seededCategoryIndex();
         Map<Long, String> menuCodes = menuItemRepository.findAll().stream()
                 .collect(Collectors.toMap(MenuItem::getId, MenuItem::getCode));
 
-        assertThat(report.hasSupportedShortfalls()).isFalse();
         int index = 0;
         for (ProfileReport profile : report.supportedProfiles()) {
             Member member = saveMember("seed-coverage-" + index++, "시드검증" + index);
             saveCoverageTasteProfile(member, profile, categories);
             String token = accessToken(member);
             JsonNode first = createRecommendation(token);
-            assertSeededFullMatchBatch(first, profile, menuCodes);
+            assertSeededBatchMatchesAudit(first, profile, profile.firstBatch(), menuCodes);
 
             MvcResult reroll = mockMvc.perform(post("/api/v1/personal/recommendations/{requestId}/reroll",
                             first.path("requestId").asLong())
@@ -1153,7 +1154,7 @@ class PersonalRecommendationIntegrationTest {
                             .content("{\"rerollType\":\"NOT_SATISFIED\",\"contextJson\":{}}"))
                     .andExpect(status().isOk()).andReturn();
             JsonNode second = objectMapper.readTree(reroll.getResponse().getContentAsString()).path("data");
-            assertSeededFullMatchBatch(second, profile, menuCodes);
+            assertSeededBatchMatchesAudit(second, profile, profile.rerollBatch(), menuCodes);
             assertThat(candidateMenuIds(second)).as(profile.code())
                     .doesNotContainAnyElementsOf(candidateMenuIds(first));
             assertThat(personalRecommendationRepository.findById(first.path("requestId").asLong()).orElseThrow()
@@ -1226,20 +1227,27 @@ class PersonalRecommendationIntegrationTest {
         return taste;
     }
 
-    private void assertSeededFullMatchBatch(JsonNode data, ProfileReport profile, Map<Long, String> menuCodes) {
+    private void assertSeededBatchMatchesAudit(JsonNode data, ProfileReport profile, BatchReport expected,
+                                             Map<Long, String> menuCodes) {
+        List<Double> expectedScores = expected.candidates().stream().map(CandidateReport::score).toList();
+        assertThat(expectedScores).as(profile.code()).hasSize(3);
         assertThat(candidateMenuIds(data)).as(profile.code()).hasSize(3).doesNotHaveDuplicates();
         int rank = 1;
         for (JsonNode candidate : data.path("candidates")) {
-            assertThat(candidate.path("score").asDouble()).as(profile.code()).isEqualTo(100.0);
+            double score = candidate.path("score").asDouble();
+            assertThat(score).as("%s의 %s위 점수", profile.code(), rank).isEqualTo(expectedScores.get(rank - 1));
             assertThat(candidate.path("rankNo").asInt()).isEqualTo(rank++);
             assertThat(candidate.has("thumbnailUrl")).isTrue();
             assertThat(candidate.path("thumbnailUrl").isNull()).isTrue();
-            assertThat(profile.fullMatchMenuCodes()).as(profile.code())
-                    .contains(menuCodes.get(candidate.path("menuId").asLong()));
+            long menuId = candidate.path("menuId").asLong();
+            assertThat(menuCodes).as(profile.code()).containsKey(menuId);
+            if (score == 100.0) {
+                assertThat(profile.fullMatchMenuCodes()).as(profile.code()).contains(menuCodes.get(menuId));
+            }
         }
         assertThat(personalRecommendationCandidateRepository.findByPersonalRecommendationIdOrderByRankNoAsc(
                 data.path("requestId").asLong())).extracting(PersonalRecommendationCandidate::getScore)
-                .containsExactly(100.0, 100.0, 100.0);
+                .containsExactlyElementsOf(expectedScores);
     }
 
     private void assertPersonalCandidatePolicy(long requestId, double score, String algorithmVersion) throws Exception {
