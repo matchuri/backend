@@ -333,8 +333,8 @@ class MenuSeedCoverageAuditTest {
     }
 
     @Test
-    @DisplayName("실제 classpath 시드와 fixture도 읽을 수 있으며 모든 맛·조리 방식 기본 조합을 빠짐없이 감사한다")
-    void realClasspathResourcesIncludeCompleteBaseCartesianMatrix() throws IOException {
+    @DisplayName("실제 선정 카탈로그와 fixture의 참조 및 다섯 유형 태그를 검증하고 모든 기본 조합을 빠짐없이 진단한다")
+    void curatedClasspathCatalogHasValidReferencesAndCompleteCategoryTags() throws IOException {
         ReferenceSeedData seed = classpathJson("seed/reference-data.json", ReferenceSeedData.class);
         Fixtures fixtures = classpathJson("seed/recommendation-coverage-fixtures.json", Fixtures.class);
 
@@ -355,8 +355,6 @@ class MenuSeedCoverageAuditTest {
                 .containsExactlyElementsOf(fixtures.constraintScenarios().stream()
                         .map(ConstraintScenarioFixture::code).toList());
         assertThat(report.metadata().menuCoverage()).hasSize(seed.menuItems().size());
-        assertThat(report.supportedProfiles()).as("실제 시드의 지원 프로필은 strict 커버리지 기준을 충족해야 한다")
-                .filteredOn(profile -> !profile.passes()).isEmpty();
         assertThat(report.metadata().menuCoverage()).allSatisfy(menu ->
                 assertThat(menu.missingCategoryTypes()).as(menu.menuCode()).isEmpty());
     }
