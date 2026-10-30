@@ -12,6 +12,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import matchuri.backend.application.seed.ReferenceSeedData;
 import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.CategoryReference;
 import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.ConstraintScenarioFixture;
@@ -352,6 +355,28 @@ class MenuSeedCoverageAuditTest {
                 .containsExactlyElementsOf(fixtures.constraintScenarios().stream()
                         .map(ConstraintScenarioFixture::code).toList());
         assertThat(report.metadata().menuCoverage()).hasSize(seed.menuItems().size());
+        assertThat(report.supportedProfiles()).as("실제 시드의 지원 프로필은 strict 커버리지 기준을 충족해야 한다")
+                .filteredOn(profile -> !profile.passes()).isEmpty();
+        assertThat(report.metadata().menuCoverage()).allSatisfy(menu ->
+                assertThat(menu.missingCategoryTypes()).as(menu.menuCode()).isEmpty());
+    }
+
+    @Test
+    @DisplayName("기준 조리 구성의 가공 재료는 추적 대상 원료를 함께 매핑한다")
+    void referenceRecipesIncludeIngredientSources() throws IOException {
+        ReferenceSeedData seed = classpathJson("seed/reference-data.json", ReferenceSeedData.class);
+        Map<String, Set<String>> ingredientsByMenu = seed.menuIngredients().stream().collect(Collectors.groupingBy(
+                ReferenceSeedData.MenuIngredientSeed::menuCode,
+                Collectors.mapping(ReferenceSeedData.MenuIngredientSeed::ingredientCode, Collectors.toSet())));
+        Map<String, Set<String>> sources = Map.of(
+                "TOFU", Set.of("SOYBEAN"), "CHEESE", Set.of("MILK"), "BLUE_CHEESE", Set.of("MILK"),
+                "KIMCHI", Set.of("FISH", "SHRIMP"));
+
+        ingredientsByMenu.forEach((menu, ingredients) -> sources.forEach((ingredient, requiredSources) -> {
+            if (ingredients.contains(ingredient)) {
+                assertThat(ingredients).as("%s의 %s 원료", menu, ingredient).containsAll(requiredSources);
+            }
+        }));
     }
 
     private ReferenceSeedData seed(int fullMatches, int partialMatches) {
