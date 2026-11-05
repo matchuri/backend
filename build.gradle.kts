@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 
 plugins {
@@ -63,6 +64,18 @@ val fastTest by tasks.registering(Test::class) {
     exclude("**/*IntegrationTest*.class", "**/*RepositoryTest*.class",
         "**/*SecurityConfigTest*.class", "**/GlobalExceptionHandlerTest*.class")
 }
+tasks.register<JavaExec>("auditMenuSeedCoverage") {
+    description = "Reports reference menu seed coverage using the personal recommendation algorithm."
+    group = "verification"
+    dependsOn(tasks.named("testClasses"))
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit")
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
+    workingDir = projectDir
+}
+
 tasks.jar { enabled = false }
 tasks.named("build") { dependsOn(subprojects.map { "${it.path}:build" }) }
 tasks.named("clean") { dependsOn(subprojects.map { "${it.path}:clean" }) }

@@ -1,0 +1,220 @@
+{
+  "minimumCandidates": 6,
+  "batchSize": 3,
+  "profiles": [
+    {
+      "code": "KOREAN_SPICY_SOUP_HOT",
+      "name": "매콤하고 뜨거운 한식 국물 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "SPICY" },
+        { "categoryType": "COOKING_METHOD", "code": "SOUP" },
+        { "categoryType": "FOOD_CATEGORY", "code": "KOREAN" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    },
+    {
+      "code": "KOREAN_NUTTY_NOODLES_COLD_SOFT",
+      "name": "고소하고 부드러운 차가운 한식 면 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "NUTTY" },
+        { "categoryType": "COOKING_METHOD", "code": "NOODLE_MIXED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "KOREAN" },
+        { "categoryType": "TEXTURE", "code": "SOFT" },
+        { "categoryType": "TEMPERATURE", "code": "COLD" }
+      ]
+    },
+    {
+      "code": "JAPANESE_SALTY_FRIED_CRISPY_HOT",
+      "name": "짭짤하고 바삭한 뜨거운 일식 튀김 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "SALTY" },
+        { "categoryType": "COOKING_METHOD", "code": "FRIED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "JAPANESE" },
+        { "categoryType": "TEXTURE", "code": "CRISPY" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    },
+    {
+      "code": "CHINESE_RICH_STIR_FRIED_SOFT_HOT",
+      "name": "맛이 진하고 부드러운 뜨거운 중식 볶음 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "RICH" },
+        { "categoryType": "COOKING_METHOD", "code": "STIR_FRIED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "CHINESE" },
+        { "categoryType": "TEXTURE", "code": "SOFT" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    },
+    {
+      "code": "WESTERN_FRESH_RAW_CRUNCHY_COLD",
+      "name": "상큼하고 아삭한 차가운 양식 샐러드 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "FRESH" },
+        { "categoryType": "COOKING_METHOD", "code": "RAW_SALAD" },
+        { "categoryType": "FOOD_CATEGORY", "code": "WESTERN" },
+        { "categoryType": "TEXTURE", "code": "CRUNCHY" },
+        { "categoryType": "TEMPERATURE", "code": "COLD" }
+      ]
+    },
+    {
+      "code": "ASIAN_FRESH_SOUP_CHEWY_HOT",
+      "name": "상큼하고 쫄깃한 뜨거운 아시안 국물 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "FRESH" },
+        { "categoryType": "COOKING_METHOD", "code": "SOUP" },
+        { "categoryType": "FOOD_CATEGORY", "code": "ASIAN" },
+        { "categoryType": "TEXTURE", "code": "CHEWY" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    },
+    {
+      "code": "BUNSIK_SPICY_NOODLES_CHEWY_HOT",
+      "name": "매콤하고 쫄깃한 뜨거운 분식 면 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "SPICY" },
+        { "categoryType": "COOKING_METHOD", "code": "NOODLE_MIXED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "BUNSIK" },
+        { "categoryType": "TEXTURE", "code": "CHEWY" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    },
+    {
+      "code": "FAST_FOOD_SALTY_GRILLED_SOFT_HOT",
+      "name": "짭짤하고 부드러운 뜨거운 패스트푸드 구이 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "SALTY" },
+        { "categoryType": "COOKING_METHOD", "code": "GRILLED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "FAST_FOOD" },
+        { "categoryType": "TEXTURE", "code": "SOFT" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    },
+    {
+      "code": "KOREAN_SALTY_STEAMED_SOFT_HOT",
+      "name": "짭짤하고 부드러운 뜨거운 한식 찜 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "SALTY" },
+        { "categoryType": "COOKING_METHOD", "code": "STEAMED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "KOREAN" },
+        { "categoryType": "TEXTURE", "code": "SOFT" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    },
+    {
+      "code": "KOREAN_NUTTY_SOUP_SOFT_HOT",
+      "name": "고소하고 부드러운 뜨거운 한식 국물 메뉴",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "NUTTY" },
+        { "categoryType": "COOKING_METHOD", "code": "SOUP" },
+        { "categoryType": "FOOD_CATEGORY", "code": "KOREAN" },
+        { "categoryType": "TEXTURE", "code": "SOFT" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    },
+    {
+      "code": "MULTI_KOREAN_CHINESE_HOT_SAVORY",
+      "name": "한식과 중식의 뜨거운 국물 또는 볶음 메뉴를 폭넓게 선호",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "SPICY" },
+        { "categoryType": "FLAVOR", "code": "RICH" },
+        { "categoryType": "FLAVOR", "code": "SALTY" },
+        { "categoryType": "COOKING_METHOD", "code": "SOUP" },
+        { "categoryType": "COOKING_METHOD", "code": "STIR_FRIED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "KOREAN" },
+        { "categoryType": "FOOD_CATEGORY", "code": "CHINESE" },
+        { "categoryType": "TEXTURE", "code": "SOFT" },
+        { "categoryType": "TEXTURE", "code": "CHEWY" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    },
+    {
+      "code": "MULTI_NOODLES_HOT_OR_COLD",
+      "name": "한식과 일식과 아시안의 상큼하거나 고소한 면 메뉴를 온도와 무관하게 선호",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "FRESH" },
+        { "categoryType": "FLAVOR", "code": "NUTTY" },
+        { "categoryType": "COOKING_METHOD", "code": "NOODLE_MIXED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "KOREAN" },
+        { "categoryType": "FOOD_CATEGORY", "code": "JAPANESE" },
+        { "categoryType": "FOOD_CATEGORY", "code": "ASIAN" },
+        { "categoryType": "TEXTURE", "code": "CHEWY" },
+        { "categoryType": "TEXTURE", "code": "SOFT" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" },
+        { "categoryType": "TEMPERATURE", "code": "COLD" }
+      ]
+    },
+    {
+      "code": "MULTI_WESTERN_JAPANESE_FAST_FOOD_HOT",
+      "name": "양식과 일식과 패스트푸드의 짭짤하거나 진한 구이 또는 튀김 메뉴를 선호",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "SALTY" },
+        { "categoryType": "FLAVOR", "code": "RICH" },
+        { "categoryType": "COOKING_METHOD", "code": "GRILLED" },
+        { "categoryType": "COOKING_METHOD", "code": "FRIED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "WESTERN" },
+        { "categoryType": "FOOD_CATEGORY", "code": "JAPANESE" },
+        { "categoryType": "FOOD_CATEGORY", "code": "FAST_FOOD" },
+        { "categoryType": "TEXTURE", "code": "CRISPY" },
+        { "categoryType": "TEXTURE", "code": "SOFT" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" }
+      ]
+    }
+  ],
+  "constraintScenarios": [
+    {
+      "code": "ASIAN_SOUP_WITHOUT_WHEAT",
+      "name": "뜨거운 아시안 국물 메뉴에서 밀 제한 적용",
+      "profileCode": "ASIAN_FRESH_SOUP_CHEWY_HOT",
+      "restrictionIngredientCodes": ["WHEAT"],
+      "dislikedMenuCodes": [],
+      "recentSelectedMenuCodes": [],
+      "recentlySkippedMenuCodes": []
+    },
+    {
+      "code": "GRILLED_OR_FRIED_WITHOUT_EGG_AND_DAIRY",
+      "name": "구이 또는 튀김 메뉴에서 계란과 우유와 치즈 제한 적용",
+      "profileCode": "MULTI_WESTERN_JAPANESE_FAST_FOOD_HOT",
+      "restrictionIngredientCodes": ["EGG", "MILK", "CHEESE"],
+      "dislikedMenuCodes": [],
+      "recentSelectedMenuCodes": [],
+      "recentlySkippedMenuCodes": []
+    },
+    {
+      "code": "JAPANESE_FRIED_WITH_DISLIKED_MENUS",
+      "name": "일식 튀김 메뉴에서 돈까스와 가라아게 비선호 적용",
+      "profileCode": "JAPANESE_SALTY_FRIED_CRISPY_HOT",
+      "restrictionIngredientCodes": [],
+      "dislikedMenuCodes": ["PORK_CUTLET", "KARAAGE"],
+      "recentSelectedMenuCodes": [],
+      "recentlySkippedMenuCodes": []
+    },
+    {
+      "code": "KOREAN_SOUP_AFTER_RECENT_SELECTIONS",
+      "name": "매콤한 한식 국물 메뉴에서 최근 선택한 김치찌개와 부대찌개 제외",
+      "profileCode": "KOREAN_SPICY_SOUP_HOT",
+      "restrictionIngredientCodes": [],
+      "dislikedMenuCodes": [],
+      "recentSelectedMenuCodes": ["KIMCHI_STEW", "BUDAE_JJIGAE"],
+      "recentlySkippedMenuCodes": []
+    },
+    {
+      "code": "KOREAN_CHINESE_AFTER_SKIPS",
+      "name": "한식과 중식의 복수 선호에서 이전에 건너뛴 세 메뉴 제외",
+      "profileCode": "MULTI_KOREAN_CHINESE_HOT_SAVORY",
+      "restrictionIngredientCodes": [],
+      "dislikedMenuCodes": [],
+      "recentSelectedMenuCodes": [],
+      "recentlySkippedMenuCodes": ["KIMCHI_STEW", "MAPO_TOFU", "FRIED_RICE"]
+    },
+    {
+      "code": "KOREAN_CHINESE_COMBINED_EXCLUSIONS",
+      "name": "한식과 중식의 복수 선호에 제한 재료와 비선호와 최근 선택과 SKIP 동시 적용",
+      "profileCode": "MULTI_KOREAN_CHINESE_HOT_SAVORY",
+      "restrictionIngredientCodes": ["SHRIMP", "SHELLFISH"],
+      "dislikedMenuCodes": ["MALA_XIANG_GUO"],
+      "recentSelectedMenuCodes": ["KIMCHI_STEW"],
+      "recentlySkippedMenuCodes": ["MAPO_TOFU"]
+    }
+  ],
+  "unsupportedProfiles": []
+}

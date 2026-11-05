@@ -44,13 +44,13 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
         return new MenuRecommendationResult(type(), version(), toCandidates(scoredMenus));
     }
 
-    private ScoredMenu score(
+    protected ScoredMenu score(
             MenuRecommendationProfile menu,
             TasteProfileSnapshot participant,
             Map<Long, Long> selectedAttributeCategoryFrequency,
             Map<Long, CategoryType> categoryTypes
     ) {
-        var preferenceMatch = RecommendationPreferenceMatchCalculator.calculate(
+        var preferenceMatch = calculatePreferenceMatch(
                 menu.attributeCategoryIds(),
                 participant.preferredAttributeCategoryIds(),
                 categoryTypes
@@ -83,6 +83,14 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
                 ),
                 categoryMatchingScore + historyWeightScore
         );
+    }
+
+    protected RecommendationPreferenceMatchCalculator.PreferenceMatch calculatePreferenceMatch(
+            List<Long> menuAttributeIds,
+            List<Long> preferredAttributeIds,
+            Map<Long, CategoryType> categoryTypes
+    ) {
+        return RecommendationPreferenceMatchCalculator.calculate(menuAttributeIds, preferredAttributeIds, categoryTypes);
     }
 
     private List<MenuRecommendationCandidateResult> toCandidates(List<ScoredMenu> scoredMenus) {
@@ -184,7 +192,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
                 .anyMatch(targetIdSet::contains);
     }
 
-    private record ScoredMenu(
+    protected record ScoredMenu(
             MenuRecommendationProfile menu,
             long categoryMatchingCount,
             long historyWeightMatchingCount,
@@ -193,5 +201,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
             double normalizedScore,
             double totalScore
     ) {
+        public ScoredMenu {
+        }
     }
 }
