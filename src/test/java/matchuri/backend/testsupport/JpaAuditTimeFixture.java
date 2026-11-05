@@ -1,8 +1,8 @@
 package matchuri.backend.testsupport;
 
 import java.time.LocalDateTime;
-import matchuri.backend.groupdecision.entity.GroupRecommendation;
-import matchuri.backend.groupdecision.repository.GroupRecommendationRepository;
+import matchuri.backend.domain.group.entity.GroupRecommendation;
+import matchuri.backend.domain.group.repository.GroupRecommendationRepository;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;

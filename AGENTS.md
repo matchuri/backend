@@ -12,27 +12,23 @@
 ## Package Shape
 
 ```text
-backend-app/src/main/java/matchuri/backend/application
-identity/src/main/java/matchuri/backend/identity
-catalog/src/main/java/matchuri/backend/catalog
-recommendation/src/main/java/matchuri/backend/recommendation
-group-decision/src/main/java/matchuri/backend/groupdecision
-media/src/main/java/matchuri/backend/media
-realtime/src/main/java/matchuri/backend/realtime
-shared-kernel/src/main/java/matchuri/backend/shared
+src/main/java/matchuri/backend
+├─ api
+├─ domain
+├─ global
+└─ infra
 ```
 
-- `backend-app/application/api/<domain>`: Controller, DTO, Mapper, Swagger/OpenAPI metadata. `BackendApplication`은 `matchuri.backend`에서 전체 모듈을 스캔합니다.
-- 도메인 모듈의 `api`/공개 named interface: 다른 모듈에 제공하는 서비스·조회 계약. 내부 `service`, `repository`, adapter는 직접 참조하지 않습니다.
-- `shared-kernel`: 공통 응답, 예외, 엔티티 기반 클래스, 트랜잭션 지원. 도메인 모듈에 의존하지 않습니다.
-- 초기 데이터 구성인 `backend-app/application/seed`만 공개 bootstrap repository를 사용할 수 있습니다. 업무 경로는 소유 모듈의 공개 조회·저장 인터페이스 또는 이벤트를 사용합니다.
-- 모듈 ID, named interface, 허용 의존성은 각 `package-info.java`와 Gradle project 의존성으로 선언합니다. `ModuleStructureTest`에서 순환·내부 접근·foreign repository 참조를 검사합니다.
+- `api/<domain>`: Controller, DTO, Mapper, Swagger/OpenAPI metadata.
+- `domain/<domain>`: service, command, result, support, exception, entity, repository.
+- `global`: 공통 응답, 예외 처리, 보안/설정과 트랜잭션 지원.
+- `infra`: 외부 연동과 기술 세부 구현, 초기 데이터 구성(`infra/seed`).
 
 ## DTO Rules
 
-- 실제 request: `backend-app/.../application/api/<domain>/dto/request`
-- 실제 response payload: `backend-app/.../application/api/<domain>/dto/response`
-- Swagger 문서 전용 wrapper/example: `backend-app/.../application/api/<domain>/dto/docs`
+- 실제 request: `api/<domain>/dto/request`
+- 실제 response payload: `api/<domain>/dto/response`
+- Swagger 문서 전용 wrapper/example: `api/<domain>/dto/docs`
 - 공통 응답 구조는 `success/data/error` 형태를 유지합니다.
 - `dto/docs`를 런타임 payload DTO로 사용하지 않습니다.
 
@@ -59,8 +55,7 @@ shared-kernel/src/main/java/matchuri/backend/shared
 - 정책 분기와 상태 계산은 Spring context 없이 service/support/entity 테스트로 검증하고 같은 분기를 통합 테스트에 반복하지 않습니다.
 - Spring context·WebMvc 테스트는 `*IntegrationTest`, JPA slice는 `*RepositoryTest`로 이름을 끝내 `fastTest` 제외 규칙을 유지합니다.
 - 전체 suite: 마지막 동작 변경 후 `./gradlew test --quiet`를 1회 이상 성공시킵니다. 실패를 고친 뒤에는 다시 실행합니다.
-- 모듈 구조: `./gradlew fastTest --tests "matchuri.backend.architecture.ModuleStructureTest" --quiet`. 전체 suite에도 포함됩니다.
-- 패키징: `./gradlew bootJar`로 `build/libs/backend-<version>.jar` 하나를 생성합니다. `./gradlew bootRun`은 실행 모듈로 위임하고, 인자를 전달할 때는 `./gradlew :backend-app:bootRun --args='...'`를 사용합니다.
+- 패키징: `./gradlew bootJar`로 `build/libs/backend-<version>.jar` 하나를 생성합니다. 로컬 실행은 `./gradlew bootRun --args='...'`을 사용합니다.
 - 실패 원인 분석에 상세 로그가 필요할 때만 해당 테스트를 `--quiet` 없이 다시 실행합니다.
 - API registry drift: `python scripts/audit_api_contract.py --root . --strict`
 - JPA mapping drift: `python scripts/audit_jpa_schema.py --root . --strict`

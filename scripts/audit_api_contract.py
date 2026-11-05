@@ -53,11 +53,11 @@ def line_number(text: str, offset: int) -> int:
 
 
 def openapi_config_path(root: Path) -> Path:
-    return root / "backend-app" / "src" / "main" / "java" / "matchuri" / "backend" / "application" / "config" / "OpenApiConfig.java"
+    return root / "src" / "main" / "java" / "matchuri" / "backend" / "global" / "config" / "OpenApiConfig.java"
 
 
 def parse_backend_endpoints(root: Path) -> list[Endpoint]:
-    api_root = root / "backend-app" / "src" / "main" / "java" / "matchuri" / "backend" / "application" / "api"
+    api_root = root / "src" / "main" / "java" / "matchuri" / "backend" / "api"
     if not api_root.is_dir():
         raise FileNotFoundError(f"API source root를 찾을 수 없습니다: {api_root}")
     endpoints: list[Endpoint] = []
