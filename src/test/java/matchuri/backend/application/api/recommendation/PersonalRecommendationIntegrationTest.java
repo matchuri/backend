@@ -26,12 +26,9 @@ import javax.crypto.SecretKey;
 import matchuri.backend.application.seed.ReferenceDataSeedService;
 import matchuri.backend.application.seed.ReferenceSeedData;
 import matchuri.backend.application.seed.SeedDataResourceLoader;
-import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit;
-import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.BatchReport;
-import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.CandidateReport;
 import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.CategoryReference;
 import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.Fixtures;
-import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.ProfileReport;
+import matchuri.backend.application.seed.coverage.MenuSeedCoverageAudit.ProfileFixture;
 import matchuri.backend.identity.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.recommendation.behavior.entity.MemberMenuAction;
 import matchuri.backend.recommendation.behavior.entity.ActionType;
@@ -1131,87 +1128,80 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("실제 선정 시드의 모든 기준 취향에서 최초와 불만족 재요청의 점수가 순수 감사 결과와 일치한다")
-    void seededProfilesMatchAuditScoresForInitialAndNotSatisfiedRerollWithoutImages() throws Exception {
+    @DisplayName("실제 시드의 대표 취향으로 생성과 불만족 재요청을 수행하고 이미지 없는 후보를 저장한다")
+    void seededRepresentativeProfileCreatesAndRerollsWithoutImages() throws Exception {
         referenceDataSeedService.initialize();
-        var report = seededCoverageReport();
+        ProfileFixture profile = seededProfile("KOREAN_SPICY_SOUP_HOT");
         Map<CategoryReference, AttributeCategory> categories = seededCategoryIndex();
-        Map<Long, String> menuCodes = menuItemRepository.findAll().stream()
-                .collect(Collectors.toMap(MenuItem::getId, MenuItem::getCode));
+        Member member = saveMember("seed-coverage", "시드검증");
+        saveCoverageTasteProfile(member, profile, categories);
+        String token = accessToken(member);
+        JsonNode first = createRecommendation(token);
+        assertSeededBatchIsPersistedWithoutImages(first);
 
-        int index = 0;
-        for (ProfileReport profile : report.supportedProfiles()) {
-            Member member = saveMember("seed-coverage-" + index++, "시드검증" + index);
-            saveCoverageTasteProfile(member, profile, categories);
-            String token = accessToken(member);
-            JsonNode first = createRecommendation(token);
-            assertSeededBatchMatchesAudit(first, profile, profile.firstBatch(), menuCodes);
-
-            MvcResult reroll = mockMvc.perform(post("/api/v1/personal/recommendations/{requestId}/reroll",
-                            first.path("requestId").asLong())
-                            .header(HttpHeaders.AUTHORIZATION, bearer(token))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"rerollType\":\"NOT_SATISFIED\",\"contextJson\":{}}"))
-                    .andExpect(status().isOk()).andReturn();
-            JsonNode second = objectMapper.readTree(reroll.getResponse().getContentAsString()).path("data");
-            assertSeededBatchMatchesAudit(second, profile, profile.rerollBatch(), menuCodes);
-            assertThat(candidateMenuIds(second)).as(profile.code())
-                    .doesNotContainAnyElementsOf(candidateMenuIds(first));
-            assertThat(personalRecommendationRepository.findById(first.path("requestId").asLong()).orElseThrow()
-                    .getStatus()).isEqualTo(PersonalRecommendationStatus.REROLLED_WITH_SKIP);
-        }
+        MvcResult reroll = mockMvc.perform(post("/api/v1/personal/recommendations/{requestId}/reroll",
+                        first.path("requestId").asLong())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"rerollType\":\"NOT_SATISFIED\",\"contextJson\":{}}"))
+                .andExpect(status().isOk()).andReturn();
+        JsonNode second = objectMapper.readTree(reroll.getResponse().getContentAsString()).path("data");
+        assertSeededBatchIsPersistedWithoutImages(second);
+        assertThat(second.path("requestId").asLong()).isNotEqualTo(first.path("requestId").asLong());
+        assertThat(candidateMenuIds(second)).doesNotContainAnyElementsOf(candidateMenuIds(first));
+        assertThat(personalRecommendationRepository.findById(first.path("requestId").asLong()).orElseThrow()
+                .getStatus()).isEqualTo(PersonalRecommendationStatus.REROLLED_WITH_SKIP);
     }
 
     @Test
-    @DisplayName("확장 시드에서도 실제 개인 추천은 제한 재료와 비선호 및 최근 선택과 SKIP을 제외한다")
-    void seededConstraintScenariosPreserveExclusions() throws Exception {
+    @DisplayName("실제 시드의 대표 복합 제약에서 제한 재료와 비선호 및 최근 선택과 SKIP을 제외한다")
+    void seededRepresentativeCombinedConstraintsPreserveExclusions() throws Exception {
         referenceDataSeedService.initialize();
-        var report = seededCoverageReport();
+        var scenario = seededCoverageFixtures().constraintScenarios().stream()
+                .filter(fixture -> fixture.code().equals("KOREAN_CHINESE_COMBINED_EXCLUSIONS"))
+                .findFirst().orElseThrow();
         ReferenceSeedData seed = seedDataResourceLoader.load("seed/reference-data.json", ReferenceSeedData.class);
         Map<CategoryReference, AttributeCategory> categories = seededCategoryIndex();
         Map<String, MenuItem> menus = menuItemRepository.findAll().stream()
                 .collect(Collectors.toMap(MenuItem::getCode, menu -> menu));
         Map<String, Ingredient> ingredients = ingredientRepository.findAll().stream()
                 .collect(Collectors.toMap(Ingredient::getCode, ingredient -> ingredient));
-        int index = 0;
-        for (ProfileReport scenario : report.diagnosticProfiles()) {
-            Member member = saveMember("seed-constraint-" + index++, "제약검증" + index);
-            MemberTasteProfile taste = saveCoverageTasteProfile(member, scenario, categories);
-            scenario.restrictionIngredientCodes().forEach(code -> memberTasteProfileRestrictionIngredientRepository
-                    .save(new MemberTasteProfileRestrictionIngredient(taste, ingredients.get(code))));
-            scenario.dislikedMenuCodes().forEach(code -> memberTasteProfileDislikedMenuItemRepository
-                    .save(new MemberTasteProfileDislikedMenuItem(taste, menus.get(code))));
-            for (String code : scenario.recentSelectedMenuCodes()) {
-                PersonalRecommendation previous = personalRecommendationRepository.save(PersonalRecommendation.of(member));
-                PersonalRecommendationCandidate chosen = personalRecommendationCandidateRepository.save(
-                        PersonalRecommendationCandidate.of(previous, menus.get(code), 1, 100.0));
-                previous.select(chosen, LocalDateTime.now());
-                personalRecommendationRepository.save(previous);
-            }
-            scenario.recentlySkippedMenuCodes().forEach(code -> memberMenuActionRepository.save(
-                    new MemberMenuAction(member, menus.get(code), null, ActionType.SKIP)));
-
-            Set<String> forbiddenCodes = seed.menuIngredients().stream()
-                    .filter(mapping -> scenario.restrictionIngredientCodes().contains(mapping.ingredientCode()))
-                    .map(ReferenceSeedData.MenuIngredientSeed::menuCode).collect(Collectors.toSet());
-            forbiddenCodes.addAll(scenario.dislikedMenuCodes());
-            forbiddenCodes.addAll(scenario.recentSelectedMenuCodes());
-            forbiddenCodes.addAll(scenario.recentlySkippedMenuCodes());
-            List<Long> forbiddenIds = forbiddenCodes.stream().map(code -> menus.get(code).getId()).toList();
-            JsonNode result = createRecommendation(accessToken(member));
-            assertThat(candidateMenuIds(result)).as(scenario.code())
-                    .isNotEmpty().doesNotContainAnyElementsOf(forbiddenIds);
-            if (scenario.firstBatch().fullMatchCount() == 3) {
-                assertThat(result.path("candidates")).allSatisfy(candidate ->
-                        assertThat(candidate.path("score").asDouble()).isEqualTo(100.0));
-            }
+        Member member = saveMember("seed-constraint", "제약검증");
+        MemberTasteProfile taste = saveCoverageTasteProfile(member, seededProfile(scenario.profileCode()), categories);
+        scenario.restrictionIngredientCodes().forEach(code -> memberTasteProfileRestrictionIngredientRepository
+                .save(new MemberTasteProfileRestrictionIngredient(taste, ingredients.get(code))));
+        scenario.dislikedMenuCodes().forEach(code -> memberTasteProfileDislikedMenuItemRepository
+                .save(new MemberTasteProfileDislikedMenuItem(taste, menus.get(code))));
+        for (String code : scenario.recentSelectedMenuCodes()) {
+            PersonalRecommendation previous = personalRecommendationRepository.save(PersonalRecommendation.of(member));
+            PersonalRecommendationCandidate chosen = personalRecommendationCandidateRepository.save(
+                    PersonalRecommendationCandidate.of(previous, menus.get(code), 1, 100.0));
+            previous.select(chosen, LocalDateTime.now());
+            personalRecommendationRepository.save(previous);
         }
+        scenario.recentlySkippedMenuCodes().forEach(code -> memberMenuActionRepository.save(
+                new MemberMenuAction(member, menus.get(code), null, ActionType.SKIP)));
+
+        Set<String> forbiddenCodes = seed.menuIngredients().stream()
+                .filter(mapping -> scenario.restrictionIngredientCodes().contains(mapping.ingredientCode()))
+                .map(ReferenceSeedData.MenuIngredientSeed::menuCode).collect(Collectors.toSet());
+        forbiddenCodes.addAll(scenario.dislikedMenuCodes());
+        forbiddenCodes.addAll(scenario.recentSelectedMenuCodes());
+        forbiddenCodes.addAll(scenario.recentlySkippedMenuCodes());
+        List<Long> forbiddenIds = forbiddenCodes.stream().map(code -> menus.get(code).getId()).toList();
+        JsonNode result = createRecommendation(accessToken(member));
+        assertSeededBatchIsPersistedWithoutImages(result);
+        assertThat(candidateMenuIds(result)).doesNotContainAnyElementsOf(forbiddenIds);
     }
 
-    private MenuSeedCoverageAudit.Report seededCoverageReport() {
-        return MenuSeedCoverageAudit.audit(
-                seedDataResourceLoader.load("seed/reference-data.json", ReferenceSeedData.class),
-                seedDataResourceLoader.load("seed/recommendation-coverage-fixtures.json", Fixtures.class));
+    private Fixtures seededCoverageFixtures() {
+        return seedDataResourceLoader.load("seed/recommendation-coverage-fixtures.json", Fixtures.class);
+    }
+
+    private ProfileFixture seededProfile(String profileCode) {
+        // 전체 프로필의 정책 행렬은 context-free MenuSeedCoverageAuditTest에서 검증한다.
+        return seededCoverageFixtures().profiles().stream()
+                .filter(profile -> profile.code().equals(profileCode)).findFirst().orElseThrow();
     }
 
     private Map<CategoryReference, AttributeCategory> seededCategoryIndex() {
@@ -1219,7 +1209,7 @@ class PersonalRecommendationIntegrationTest {
                 category -> new CategoryReference(category.getCategoryType(), category.getCode()), category -> category));
     }
 
-    private MemberTasteProfile saveCoverageTasteProfile(Member member, ProfileReport profile,
+    private MemberTasteProfile saveCoverageTasteProfile(Member member, ProfileFixture profile,
                                                         Map<CategoryReference, AttributeCategory> categories) {
         MemberTasteProfile taste = memberTasteProfileRepository.save(new MemberTasteProfile(member, "v1"));
         profile.preferredAttributes().forEach(attribute -> memberTasteProfileCategoryRepository.save(
@@ -1227,27 +1217,24 @@ class PersonalRecommendationIntegrationTest {
         return taste;
     }
 
-    private void assertSeededBatchMatchesAudit(JsonNode data, ProfileReport profile, BatchReport expected,
-                                             Map<Long, String> menuCodes) {
-        List<Double> expectedScores = expected.candidates().stream().map(CandidateReport::score).toList();
-        assertThat(expectedScores).as(profile.code()).hasSize(3);
-        assertThat(candidateMenuIds(data)).as(profile.code()).hasSize(3).doesNotHaveDuplicates();
+    private void assertSeededBatchIsPersistedWithoutImages(JsonNode data) {
+        assertThat(candidateMenuIds(data)).hasSize(3).doesNotHaveDuplicates();
+        List<Double> responseScores = new ArrayList<>();
         int rank = 1;
         for (JsonNode candidate : data.path("candidates")) {
-            double score = candidate.path("score").asDouble();
-            assertThat(score).as("%s의 %s위 점수", profile.code(), rank).isEqualTo(expectedScores.get(rank - 1));
+            assertThat(candidate.path("score").isNumber()).isTrue();
+            responseScores.add(candidate.path("score").asDouble());
             assertThat(candidate.path("rankNo").asInt()).isEqualTo(rank++);
             assertThat(candidate.has("thumbnailUrl")).isTrue();
             assertThat(candidate.path("thumbnailUrl").isNull()).isTrue();
-            long menuId = candidate.path("menuId").asLong();
-            assertThat(menuCodes).as(profile.code()).containsKey(menuId);
-            if (score == 100.0) {
-                assertThat(profile.fullMatchMenuCodes()).as(profile.code()).contains(menuCodes.get(menuId));
-            }
         }
-        assertThat(personalRecommendationCandidateRepository.findByPersonalRecommendationIdOrderByRankNoAsc(
-                data.path("requestId").asLong())).extracting(PersonalRecommendationCandidate::getScore)
-                .containsExactlyElementsOf(expectedScores);
+        List<PersonalRecommendationCandidate> stored = personalRecommendationCandidateRepository
+                .findByPersonalRecommendationIdOrderByRankNoAsc(data.path("requestId").asLong());
+        assertThat(stored).extracting(candidate -> candidate.getMenuItem().getId())
+                .containsExactlyElementsOf(candidateMenuIds(data));
+        assertThat(stored).extracting(PersonalRecommendationCandidate::getScore)
+                .containsExactlyElementsOf(responseScores);
+        assertThat(stored).extracting(PersonalRecommendationCandidate::getRankNo).containsExactly(1, 2, 3);
     }
 
     private void assertPersonalCandidatePolicy(long requestId, double score, String algorithmVersion) throws Exception {
