@@ -1,8 +1,8 @@
-package matchuri.backend.catalog.query;
+package matchuri.backend.catalog.command;
 
 import java.util.List;
 
-public record SearchMenuItemsQuery(
+public record SearchMenuItemsCommand(
         String query,
         List<Long> attributeCategoryIds,
         List<Long> ingredientIds

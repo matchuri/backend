@@ -39,7 +39,7 @@ shared-kernel/src/main/java/matchuri/backend/shared
 ## Domain Rules
 
 - `service`는 유스케이스 진입점과 트랜잭션 경계입니다.
-- `command`는 상태 변경 입력, `query`는 조회 입력, `result`는 서비스·모듈 API 출력입니다. 공개 범위와 점진적 적용 기준은 [DTO 규칙](../../docs/backend/guide.md#dto-규칙)을 따릅니다.
+- `command`/`result`는 API DTO와 분리한 서비스 입출력 모델입니다.
 - `support`는 여러 유스케이스에서 반복되는 조회, 검증, 계산, 정책 판단을 둡니다.
 - 도메인 전용 에러 코드는 해당 도메인의 `exception`에 둡니다.
 - `support -> service`, `entity -> repository`, `api dto -> entity` 직접 노출은 피합니다.

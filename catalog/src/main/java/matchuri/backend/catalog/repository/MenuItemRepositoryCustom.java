@@ -1,5 +1,7 @@
 package matchuri.backend.catalog.repository;
 
+import matchuri.backend.catalog.api.query.MenuRecommendationRow;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

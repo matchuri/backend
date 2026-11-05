@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.catalog.entity.MenuItem;
 import matchuri.backend.catalog.repository.MenuItemDetailRow;
 import matchuri.backend.catalog.repository.MenuItemRepositoryCustom;
-import matchuri.backend.catalog.repository.MenuRecommendationRow;
+import matchuri.backend.catalog.api.query.MenuRecommendationRow;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 

@@ -6,10 +6,10 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.media.support.ImageUrlResolver;
 import matchuri.backend.catalog.MenuErrorCode;
+import matchuri.backend.catalog.command.GetAttributeCategoriesCommand;
+import matchuri.backend.catalog.command.GetRestrictionIngredientsCommand;
+import matchuri.backend.catalog.command.SearchMenuItemsCommand;
 import matchuri.backend.catalog.entity.CategoryType;
-import matchuri.backend.catalog.query.GetAttributeCategoriesQuery;
-import matchuri.backend.catalog.query.GetRestrictionIngredientsQuery;
-import matchuri.backend.catalog.query.SearchMenuItemsQuery;
 import matchuri.backend.catalog.repository.AttributeCategoryRepository;
 import matchuri.backend.catalog.repository.IngredientRepository;
 import matchuri.backend.catalog.repository.MenuAttributeCategoryRepository;
@@ -37,9 +37,9 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
     private final ImageUrlResolver imageUrlResolver;
 
     @Override
-    public List<AttributeCategoryResult> getActiveAttributeCategories(GetAttributeCategoriesQuery query) {
-        List<CategoryType> categoryTypes = query.categoryTypes() == null ? List.of()
-                : query.categoryTypes().stream().distinct().toList();
+    public List<AttributeCategoryResult> getActiveAttributeCategories(GetAttributeCategoriesCommand command) {
+        List<CategoryType> categoryTypes = command.categoryTypes() == null ? List.of()
+                : command.categoryTypes().stream().distinct().toList();
 
         var categories = categoryTypes.isEmpty()
                 ? attributeCategoryRepository.findAllByActiveTrueOrderByCategoryTypeAscSortOrderAscIdAsc()
@@ -52,10 +52,10 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
     }
 
     @Override
-    public List<RestrictionIngredientResult> getActiveRestrictionIngredients(GetRestrictionIngredientsQuery query) {
+    public List<RestrictionIngredientResult> getActiveRestrictionIngredients(GetRestrictionIngredientsCommand command) {
         return ingredientRepository.searchActiveRestrictionIngredients(
-                        normalizeQuery(query.query()),
-                        query.allergen()
+                        normalizeQuery(command.query()),
+                        command.allergen()
                 )
                 .stream()
                 .map(RestrictionIngredientResult::from)
@@ -63,9 +63,9 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
     }
 
     @Override
-    public List<MenuItemSummaryResult> searchMenuItems(SearchMenuItemsQuery query) {
-        List<Long> attributeCategoryIds = distinctIds(query.attributeCategoryIds());
-        List<Long> ingredientIds = distinctIds(query.ingredientIds());
+    public List<MenuItemSummaryResult> searchMenuItems(SearchMenuItemsCommand command) {
+        List<Long> attributeCategoryIds = distinctIds(command.attributeCategoryIds());
+        List<Long> ingredientIds = distinctIds(command.ingredientIds());
 
         validateActiveAttributeCategoryIds(attributeCategoryIds);
         validateActiveIngredientIds(ingredientIds);
@@ -74,7 +74,7 @@ public class MenuReferenceServiceImpl implements MenuReferenceService {
         List<Long> ingredientIdsForQuery = idsForQuery(ingredientIds);
 
         return menuItemRepository.searchActiveMenuItems(
-                        normalizeQuery(query.query()),
+                        normalizeQuery(command.query()),
                         attributeCategoryIdsForQuery,
                         attributeCategoryIds.isEmpty(),
                         ingredientIdsForQuery,

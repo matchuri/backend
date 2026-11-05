@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import matchuri.backend.catalog.entity.MenuAttributeCategory;
-import matchuri.backend.catalog.repository.MenuAttributeCategoryIdRow;
+import matchuri.backend.catalog.api.query.MenuAttributeCategoryIdRow;
 import matchuri.backend.catalog.repository.MenuAttributeCategoryRepositoryCustom;
 import matchuri.backend.catalog.repository.MenuAttributeCategoryRow;
 import org.springframework.stereotype.Repository;

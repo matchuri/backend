@@ -8,7 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.catalog.repository.MenuIngredientIdRow;
+import matchuri.backend.catalog.api.query.MenuIngredientIdRow;
 import matchuri.backend.catalog.repository.MenuIngredientRepositoryCustom;
 import matchuri.backend.catalog.repository.MenuRestrictionIngredientRow;
 import org.springframework.stereotype.Repository;

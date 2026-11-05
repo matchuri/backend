@@ -1,4 +1,4 @@
-package matchuri.backend.catalog.repository;
+package matchuri.backend.catalog.api.query;
 
 public record MenuIngredientIdRow(
         Long menuId,
