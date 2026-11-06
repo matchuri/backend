@@ -17,7 +17,6 @@ import matchuri.backend.domain.realtime.result.RealtimeEventEnvelope;
 import matchuri.backend.domain.realtime.support.RealtimeSseEmitterRegistry;
 import matchuri.backend.global.exception.BusinessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -57,7 +56,7 @@ public class RealtimeEventService {
         return emitter;
     }
 
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = true)
     public void sendToMember(
             Long memberId,
             RealtimeEventType eventType,
@@ -75,7 +74,7 @@ public class RealtimeEventService {
         emitterRegistry.sendToMember(memberId, envelope.eventId(), eventType.name(), envelope);
     }
 
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = true)
     public void sendToGroup(
             Long groupId,
             RealtimeEventType eventType,
@@ -88,7 +87,7 @@ public class RealtimeEventService {
                 sessionId, actorMemberId, payload);
     }
 
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = true)
     public void sendToGroupMembers(
             Long groupId,
             Iterable<Long> memberIds,
@@ -111,7 +110,7 @@ public class RealtimeEventService {
         );
     }
 
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = true)
     public void sendGroupDeletedToMembers(
             Long groupId, Iterable<Long> snapshotMemberIds, RealtimeEventType eventType,
             Long eventGroupId, Long sessionId, Long actorMemberId, Object payload
