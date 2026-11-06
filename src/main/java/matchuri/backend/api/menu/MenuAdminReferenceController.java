@@ -1,0 +1,203 @@
+package matchuri.backend.api.menu;
+
+import jakarta.validation.Valid;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import matchuri.backend.api.menu.dto.request.CreateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.CreateAdminIngredientRequest;
+import matchuri.backend.api.menu.dto.request.CreateAdminMenuItemRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminAttributeCategoryRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminIngredientRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemRequest;
+import matchuri.backend.api.menu.dto.request.UpdateAdminMenuItemReferencesRequest;
+import matchuri.backend.api.menu.dto.response.AdminAttributeCategoryResponse;
+import matchuri.backend.api.menu.dto.response.AdminIngredientResponse;
+import matchuri.backend.api.menu.dto.response.AdminMenuItemDetailResponse;
+import matchuri.backend.api.menu.dto.response.AdminMenuItemResponse;
+import matchuri.backend.api.menu.mapper.MenuReferenceMapper;
+import matchuri.backend.domain.menu.service.MenuAdminReferenceService;
+import matchuri.backend.global.api.ApiResponse;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/admin")
+public class MenuAdminReferenceController implements MenuAdminReferenceApi {
+
+    private final MenuAdminReferenceService menuAdminReferenceService;
+    private final MenuReferenceMapper menuReferenceMapper;
+
+    @Override
+    @GetMapping("/attribute-categories")
+    public ApiResponse<List<AdminAttributeCategoryResponse>> getAdminAttributeCategories() {
+
+        var results = menuAdminReferenceService.getAttributeCategories();
+        var responses = menuReferenceMapper.toAdminAttributeCategoryResponses(results);
+
+        return ApiResponse.success(responses);
+    }
+
+    @Override
+    @GetMapping("/ingredients")
+    public ApiResponse<List<AdminIngredientResponse>> getAdminIngredients() {
+
+        var results = menuAdminReferenceService.getIngredients();
+        var responses = menuReferenceMapper.toAdminIngredientResponses(results);
+
+        return ApiResponse.success(responses);
+    }
+
+    @Override
+    @GetMapping("/menu-items")
+    public ApiResponse<List<AdminMenuItemResponse>> getAdminMenuItems() {
+
+        var results = menuAdminReferenceService.getMenuItems();
+        var responses = menuReferenceMapper.toAdminMenuItemResponses(results);
+
+        return ApiResponse.success(responses);
+    }
+
+    @Override
+    @GetMapping("/menu-items/{menuItemId}")
+    public ApiResponse<AdminMenuItemDetailResponse> getAdminMenuItem(
+            @PathVariable Long menuItemId
+    ) {
+        var result = menuAdminReferenceService.getMenuItemDetail(menuItemId);
+        var response = menuReferenceMapper.toAdminMenuItemDetailResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PostMapping("/menu-items")
+    public ApiResponse<AdminMenuItemDetailResponse> createAdminMenuItem(
+            @Valid @RequestBody CreateAdminMenuItemRequest request
+    ) {
+        var command = menuReferenceMapper.toCreateAdminMenuItemCommand(request);
+        var result = menuAdminReferenceService.createMenuItem(command);
+        var response = menuReferenceMapper.toAdminMenuItemDetailResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PatchMapping("/menu-items/{menuItemId}")
+    public ApiResponse<AdminMenuItemResponse> updateAdminMenuItem(
+            @PathVariable Long menuItemId,
+            @Valid @RequestBody UpdateAdminMenuItemRequest request
+    ) {
+
+        var command = menuReferenceMapper.toUpdateAdminMenuItemCommand(menuItemId, request);
+        var result = menuAdminReferenceService.updateMenuItem(command);
+        var response = menuReferenceMapper.toAdminMenuItemResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PatchMapping("/menu-items/{menuItemId}/references")
+    public ApiResponse<AdminMenuItemDetailResponse> updateAdminMenuItemReferences(
+            @PathVariable Long menuItemId,
+            @Valid @RequestBody UpdateAdminMenuItemReferencesRequest request
+    ) {
+        var command = menuReferenceMapper.toUpdateAdminMenuItemReferencesCommand(menuItemId, request);
+        var result = menuAdminReferenceService.updateMenuItemReferences(command);
+        var response = menuReferenceMapper.toAdminMenuItemDetailResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @DeleteMapping("/menu-items/{menuItemId}")
+    public ApiResponse<AdminMenuItemResponse> deactivateAdminMenuItem(
+            @PathVariable Long menuItemId
+    ) {
+        var result = menuAdminReferenceService.deactivateMenuItem(menuItemId);
+        var response = menuReferenceMapper.toAdminMenuItemResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PostMapping("/ingredients")
+    public ApiResponse<AdminIngredientResponse> createAdminIngredient(
+            @Valid @RequestBody CreateAdminIngredientRequest request
+    ) {
+
+        var command = menuReferenceMapper.toCreateAdminIngredientCommand(request);
+        var result = menuAdminReferenceService.createIngredient(command);
+        var response = menuReferenceMapper.toAdminIngredientResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PatchMapping("/ingredients/{ingredientId}")
+    public ApiResponse<AdminIngredientResponse> updateAdminIngredient(
+            @PathVariable Long ingredientId,
+            @Valid @RequestBody UpdateAdminIngredientRequest request
+    ) {
+
+        var command = menuReferenceMapper.toUpdateAdminIngredientCommand(ingredientId, request);
+        var result = menuAdminReferenceService.updateIngredient(command);
+        var response = menuReferenceMapper.toAdminIngredientResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @DeleteMapping("/ingredients/{ingredientId}")
+    public ApiResponse<AdminIngredientResponse> deactivateAdminIngredient(
+            @PathVariable Long ingredientId
+    ) {
+        var result = menuAdminReferenceService.deactivateIngredient(ingredientId);
+        var response = menuReferenceMapper.toAdminIngredientResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PostMapping("/attribute-categories")
+    public ApiResponse<AdminAttributeCategoryResponse> createAdminAttributeCategory(
+            @Valid @RequestBody CreateAdminAttributeCategoryRequest request
+    ) {
+
+        var command = menuReferenceMapper.toCreateAdminAttributeCategoryCommand(request);
+        var result = menuAdminReferenceService.createAttributeCategory(command);
+        var response = menuReferenceMapper.toAdminAttributeCategoryResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @PatchMapping("/attribute-categories/{attributeCategoryId}")
+    public ApiResponse<AdminAttributeCategoryResponse> updateAdminAttributeCategory(
+            @PathVariable Long attributeCategoryId,
+            @Valid @RequestBody UpdateAdminAttributeCategoryRequest request
+    ) {
+
+        var command = menuReferenceMapper.toUpdateAdminAttributeCategoryCommand(attributeCategoryId, request);
+        var result = menuAdminReferenceService.updateAttributeCategory(command);
+        var response = menuReferenceMapper.toAdminAttributeCategoryResponse(result);
+
+        return ApiResponse.success(response);
+    }
+
+    @Override
+    @DeleteMapping("/attribute-categories/{attributeCategoryId}")
+    public ApiResponse<AdminAttributeCategoryResponse> deactivateAdminAttributeCategory(
+            @PathVariable Long attributeCategoryId
+    ) {
+        var result = menuAdminReferenceService.deactivateAttributeCategory(attributeCategoryId);
+        var response = menuReferenceMapper.toAdminAttributeCategoryResponse(result);
+
+        return ApiResponse.success(response);
+    }
+}

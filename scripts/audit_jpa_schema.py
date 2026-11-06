@@ -122,16 +122,13 @@ def inspect_java_file(path: Path, root: Path) -> tuple[list[EntityMapping], list
 
 
 def audit(root: Path) -> tuple[list[EntityMapping], list[Finding]]:
-    source_roots = sorted(root.glob("*/src/main/java"))
-    legacy_source_root = root / "src" / "main" / "java"
-    if legacy_source_root.is_dir():
-        source_roots.append(legacy_source_root)
-    if not source_roots:
-        raise FileNotFoundError(f"JPA source root를 찾을 수 없습니다: {root}")
+    source_root = root / "src" / "main" / "java"
+    if not source_root.is_dir():
+        raise FileNotFoundError(f"JPA source root를 찾을 수 없습니다: {source_root}")
 
     mappings: list[EntityMapping] = []
     findings: list[Finding] = []
-    for path in sorted(path for source_root in source_roots for path in source_root.rglob("*.java")):
+    for path in sorted(source_root.rglob("*.java")):
         file_mappings, file_findings = inspect_java_file(path, root)
         mappings.extend(file_mappings)
         findings.extend(file_findings)

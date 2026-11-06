@@ -1,0 +1,469 @@
+package matchuri.backend.api.auth;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import matchuri.backend.api.auth.dto.docs.LoginApiResponse;
+import matchuri.backend.api.auth.dto.docs.LogoutApiResponse;
+import matchuri.backend.api.auth.dto.request.LoginRequest;
+import matchuri.backend.api.auth.dto.request.OAuth2ExchangeRequest;
+import matchuri.backend.api.auth.dto.response.LoginResponse;
+import matchuri.backend.api.auth.dto.response.LogoutResponse;
+import matchuri.backend.api.common.docs.ErrorExamples;
+import matchuri.backend.global.api.ApiResponse;
+import matchuri.backend.global.security.AuthenticatedMemberId;
+
+@Tag(name = "Auth", description = "로그인, 로그아웃, 소셜 OAuth2 로그인 관련 API")
+public interface AuthApi {
+
+    @Operation(
+            summary = "로컬 로그인",
+            description = """
+                    `loginId + password + captchaToken`으로 로그인합니다.
+                    
+                    - `captchaToken`은 로그인 버튼을 누른 직후 현재 CAPTCHA 공급자로부터 발급한 일회성 토큰이어야 합니다.
+                    - 서버는 자격 증명을 확인하기 전에 선택된 공급자 정책으로 토큰과 로그인 목적을 검증합니다.
+                    - 응답 body에는 `accessToken`과 회원 요약 정보가 포함됩니다.
+                    - `refreshToken`은 응답 body가 아니라 `HttpOnly` 쿠키로 내려갑니다.
+                    - 프론트는 이후 보호 API 호출 시 `Authorization: Bearer <accessToken>` 헤더를 사용합니다.
+                    - `DELETED`를 포함한 비활성 계정은 로그인할 수 없습니다.
+                    """
+    )
+    @SecurityRequirements
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "로그인 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+                                                "refreshToken": null,
+                                                "expiresIn": 3600,
+                                                "member": {
+                                                  "id": 1,
+                                                  "role": "MEMBER",
+                                                  "nickname": "점심탐험가"
+                                                },
+                                                "onboarding": {
+                                                  "requiredAgreementsCompleted": true,
+                                                  "nicknameCompleted": true,
+                                                  "tasteProfileCompleted": true,
+                                                  "completed": true,
+                                                  "nextStep": "READY"
+                                                }
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "CAPTCHA 검증 실패 또는 요청 필드 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "captchaVerificationFailed",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "AUTH_CAPTCHA_VERIFICATION_FAILED",
+                                                        "message": "자동입력 방지 확인에 실패했습니다. 다시 시도해 주세요.",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidBodyField",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "COMMON_INVALID_BODY_FIELD",
+                                                        "message": "요청 바디 필드가 올바르지 않습니다.",
+                                                        "details": [
+                                                          {
+                                                            "source": "BODY",
+                                                            "field": "captchaToken",
+                                                            "reason": "captchaToken은 비어 있을 수 없습니다."
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "아이디 또는 비밀번호가 올바르지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "loginFailed",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 401,
+                                                "code": "AUTH_LOGIN_FAILED",
+                                                "message": "아이디 또는 비밀번호가 올바르지 않습니다.",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "비활성 또는 삭제 대기 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "inactiveMember",
+                                    value = ErrorExamples.MEMBER_INACTIVE
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "503",
+                    description = "CAPTCHA 검증 서비스 통신 장애",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "captchaServiceUnavailable",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 503,
+                                                "code": "AUTH_CAPTCHA_SERVICE_UNAVAILABLE",
+                                                "message": "자동입력 방지 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    ApiResponse<LoginResponse> login(
+            LoginRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
+    );
+
+    @Operation(
+            summary = "리프레시 토큰으로 Access Token 재발급",
+            description = """
+                    `HttpOnly` 쿠키의 `refreshToken`으로 현재 로그인 세션을 검증한 뒤 새 Access Token을 발급합니다.
+                    
+                    - 요청 body는 없습니다.
+                    - `refreshToken`은 요청 body가 아니라 쿠키에서 읽습니다.
+                    - 성공 시 응답 body에는 새 `accessToken`과 회원 요약 정보가 포함됩니다.
+                    - 성공 시 현재 로그인 세션의 `refreshToken`도 새 값으로 회전하여 쿠키를 다시 설정합니다.
+                    - 유효하지 않거나 만료된 `refreshToken`이면 쿠키를 비우고 인증 실패를 반환합니다.
+                    """
+    )
+    @SecurityRequirements
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "재발급 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+                                                "refreshToken": null,
+                                                "expiresIn": 3600,
+                                                "member": {
+                                                  "id": 1,
+                                                  "role": "MEMBER",
+                                                  "nickname": "점심탐험가"
+                                                },
+                                                "onboarding": {
+                                                  "requiredAgreementsCompleted": true,
+                                                  "nicknameCompleted": true,
+                                                  "tasteProfileCompleted": true,
+                                                  "completed": true,
+                                                  "nextStep": "READY"
+                                                }
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "refreshToken이 없거나, 유효하지 않거나, 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "refreshTokenMissing", value = ErrorExamples.AUTH_REFRESH_TOKEN_MISSING),
+                                    @ExampleObject(name = "refreshTokenInvalid", value = ErrorExamples.AUTH_REFRESH_TOKEN_INVALID),
+                                    @ExampleObject(name = "refreshTokenExpired", value = ErrorExamples.AUTH_REFRESH_TOKEN_EXPIRED)
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "비활성 회원이라 재발급이 거절됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(name = "inactiveMember", value = ErrorExamples.MEMBER_INACTIVE)
+                    )
+            )
+    })
+    ApiResponse<LoginResponse> refresh(HttpServletRequest httpRequest, HttpServletResponse httpResponse);
+
+    @Operation(
+            summary = "로그아웃",
+            description = """
+                    현재 로그인 세션의 `refreshToken`만 폐기합니다.
+                    
+                    - 서버는 `refreshToken` 쿠키를 삭제합니다.
+                    - 이미 발급된 `accessToken`은 즉시 무효화되지 않으며, 만료 시점까지는 보호 API 호출에 사용할 수 있습니다.
+                    - 즉, 현재 단계의 로그아웃 의미는 `재발급 차단`이지 `즉시 전역 세션 종료`가 아닙니다.
+                    """)
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "로그아웃 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LogoutApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "loggedOut": true
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "refreshToken 쿠키가 없거나 서버 저장소에서 현재 세션을 찾지 못함",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "logoutFailed",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 400,
+                                                "code": "AUTH_LOGOUT_FAILED",
+                                                "message": "로그아웃 처리에 실패했습니다.",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken이 없거나 유효하지 않거나 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "tokenMissing", value = ErrorExamples.AUTH_TOKEN_MISSING),
+                                    @ExampleObject(name = "tokenInvalid", value = ErrorExamples.AUTH_TOKEN_INVALID),
+                                    @ExampleObject(name = "tokenExpired", value = ErrorExamples.AUTH_TOKEN_EXPIRED)
+                            }
+                    )
+            )
+    })
+    ApiResponse<LogoutResponse> logout(
+            @AuthenticatedMemberId Long memberId,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
+    );
+
+    @Operation(
+            summary = "소셜 OAuth2 로그인 시작",
+            description = """
+                    요청한 provider의 로그인 화면으로 리다이렉트합니다.
+                    
+                    - 일반 JSON API가 아니라 `302 Redirect` 응답입니다.
+                    - 브라우저 이동 또는 팝업/리다이렉트 흐름에서 사용합니다.
+                    - 현재 지원 provider는 `google`, `kakao`, `naver`입니다.
+                    - 로그인 성공 후 프론트는 최종적으로 `code`를 전달받고, 별도 교환 API를 호출해 `accessToken`을 받습니다.
+                    - `DELETED`를 포함한 비활성 계정은 OAuth2 인증 후 로그인 처리 단계에서 거절됩니다.
+                    """
+    )
+    @SecurityRequirements
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "302",
+                    description = "소셜 provider 인증 페이지로 리다이렉트"
+            )
+    })
+    void startOAuth2Login(
+            String provider,
+            HttpServletResponse response
+    ) throws IOException;
+
+    @Operation(
+            summary = "소셜 OAuth2 교환 코드 -> Access Token 교환",
+            description = """
+                    OAuth2 로그인 성공 후 프론트가 받은 단기 교환 코드를 Matchuri `accessToken`으로 교환합니다.
+                    
+                    - 성공 시 응답 body에는 `accessToken`과 회원 요약 정보가 포함됩니다.
+                    - `refreshToken`은 이미 OAuth2 성공 리다이렉트 단계에서 `HttpOnly` 쿠키로 처리되므로 body에는 포함되지 않습니다.
+                    - 현재 지원 provider는 `GOOGLE`, `KAKAO`, `NAVER`입니다.
+                    - 같은 교환 코드는 한 번만 사용할 수 있습니다.
+                    - 만료되었거나 이미 사용한 코드는 `AUTH_OAUTH2_EXCHANGE_CODE_INVALID`를 반환합니다.
+                    """
+    )
+    @SecurityRequirements
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "교환 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+                                                "refreshToken": null,
+                                                "expiresIn": 3600,
+                                                "member": {
+                                                  "id": 7,
+                                                  "role": "MEMBER",
+                                                  "nickname": "example_google"
+                                                },
+                                                "onboarding": {
+                                                  "requiredAgreementsCompleted": false,
+                                                  "nicknameCompleted": false,
+                                                  "tasteProfileCompleted": false,
+                                                  "completed": false,
+                                                  "nextStep": "REQUIRED_AGREEMENTS"
+                                                }
+                                              },
+                                              "error": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "지원하지 않는 소셜 로그인 provider 또는 요청 바디 형식 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "providerNotSupported",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "AUTH_OAUTH2_PROVIDER_NOT_SUPPORTED",
+                                                        "message": "지원하지 않는 소셜 로그인 제공자입니다.",
+                                                        "details": []
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidBodyField",
+                                            value = """
+                                                    {
+                                                      "success": false,
+                                                      "data": null,
+                                                      "error": {
+                                                        "status": 400,
+                                                        "code": "COMMON_INVALID_BODY_FIELD",
+                                                        "message": "요청 바디 필드가 올바르지 않습니다.",
+                                                        "details": [
+                                                          {
+                                                            "source": "BODY",
+                                                            "field": "code",
+                                                            "reason": "code는 비어 있을 수 없습니다."
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "교환 코드가 없거나, 만료되었거나, 이미 사용되었음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "invalidExchangeCode",
+                                    value = """
+                                            {
+                                              "success": false,
+                                              "data": null,
+                                              "error": {
+                                                "status": 401,
+                                                "code": "AUTH_OAUTH2_EXCHANGE_CODE_INVALID",
+                                                "message": "유효하지 않은 소셜 로그인 교환 코드입니다.",
+                                                "details": []
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    ApiResponse<LoginResponse> exchangeOAuth2Code(
+            OAuth2ExchangeRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
+    );
+}

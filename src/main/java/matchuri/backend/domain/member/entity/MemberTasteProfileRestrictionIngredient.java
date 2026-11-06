@@ -1,0 +1,54 @@
+package matchuri.backend.domain.member.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import matchuri.backend.domain.common.BaseEntity;
+import matchuri.backend.domain.menu.entity.Ingredient;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+@Getter
+@Entity
+@Table(
+        name = "member_taste_profile_restriction_ingredients",
+        comment = "회원 취향 프로필 제한 재료 매핑",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_member_profile_restriction_ingredient",
+                        columnNames = {"profile_id", "ingredient_id"}
+                )
+        }
+)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class MemberTasteProfileRestrictionIngredient extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(comment = "회원 취향 프로필 제한 재료 매핑 ID")
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "profile_id", nullable = false, comment = "회원 취향 프로필 ID")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private MemberTasteProfile profile;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ingredient_id", nullable = false, comment = "재료 ID")
+    private Ingredient ingredient;
+
+    public MemberTasteProfileRestrictionIngredient(MemberTasteProfile profile, Ingredient ingredient) {
+        this.profile = profile;
+        this.ingredient = ingredient;
+    }
+}

@@ -1,0 +1,959 @@
+package matchuri.backend.api.group;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import matchuri.backend.api.group.dto.docs.CreateGroupApiResponse;
+import matchuri.backend.api.group.dto.docs.CreateNicknameGroupInviteApiResponse;
+import matchuri.backend.api.group.dto.docs.CreateGroupRecommendationApiResponse;
+import matchuri.backend.api.group.dto.docs.CurrentGroupInviteLinkApiResponse;
+import matchuri.backend.api.group.dto.docs.DeleteGroupApiResponse;
+import matchuri.backend.api.group.dto.docs.FinalizeGroupRecommendationApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupApiExamples;
+import matchuri.backend.api.group.dto.docs.GroupDetailApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupInviteSummaryPageApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupInviteLinkApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupInviteLinkPreviewApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupRecommendationCandidateListApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupRecommendationReadinessApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupRecommendationSessionApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupRecommendationSummaryPageApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupSummaryPageApiResponse;
+import matchuri.backend.api.group.dto.docs.GroupVoteApiResponse;
+import matchuri.backend.api.group.dto.docs.JoinGroupApiResponse;
+import matchuri.backend.api.group.dto.docs.LeaveGroupApiResponse;
+import matchuri.backend.api.group.dto.docs.ReadyGroupRecommendationApiResponse;
+import matchuri.backend.api.group.dto.docs.RespondGroupInviteApiResponse;
+import matchuri.backend.api.group.dto.docs.UpdateGroupApiResponse;
+import matchuri.backend.api.group.dto.request.CreateGroupRecommendationRequest;
+import matchuri.backend.api.group.dto.request.CreateGroupRequest;
+import matchuri.backend.api.group.dto.request.CreateNicknameGroupInviteRequest;
+import matchuri.backend.api.group.dto.request.FinalizeGroupRecommendationRequest;
+import matchuri.backend.api.group.dto.request.JoinGroupRequest;
+import matchuri.backend.api.group.dto.request.JoinGroupByInviteLinkRequest;
+import matchuri.backend.api.group.dto.request.PreviewGroupInviteLinkRequest;
+import matchuri.backend.api.group.dto.request.RespondGroupInviteRequest;
+import matchuri.backend.api.group.dto.request.RerollGroupRecommendationRequest;
+import matchuri.backend.api.group.dto.request.UpdateGroupRequest;
+import matchuri.backend.api.group.dto.request.VoteGroupRecommendationRequest;
+import matchuri.backend.api.group.dto.response.CreateGroupRecommendationResponse;
+import matchuri.backend.api.group.dto.response.CreateGroupResponse;
+import matchuri.backend.api.group.dto.response.CreateNicknameGroupInviteResponse;
+import matchuri.backend.api.group.dto.response.DeleteGroupResponse;
+import matchuri.backend.api.group.dto.response.FinalizeGroupRecommendationResponse;
+import matchuri.backend.api.group.dto.response.GroupDetailResponse;
+import matchuri.backend.api.group.dto.response.GroupInviteSummaryResponse;
+import matchuri.backend.api.group.dto.response.GroupInviteLinkResponse;
+import matchuri.backend.api.group.dto.response.GroupInviteLinkPreviewResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationCandidateListResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationReadinessResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationDetailResponse;
+import matchuri.backend.api.group.dto.response.GroupRecommendationSummaryResponse;
+import matchuri.backend.api.group.dto.response.GroupSummaryResponse;
+import matchuri.backend.api.group.dto.response.GroupVoteResponse;
+import matchuri.backend.api.group.dto.response.JoinGroupResponse;
+import matchuri.backend.api.group.dto.response.LeaveGroupResponse;
+import matchuri.backend.api.group.dto.response.ReadyGroupRecommendationResponse;
+import matchuri.backend.api.group.dto.response.RespondGroupInviteResponse;
+import matchuri.backend.api.group.dto.response.UpdateGroupResponse;
+import matchuri.backend.domain.group.entity.GroupInviteStatus;
+import matchuri.backend.domain.group.entity.GroupRoomStatus;
+import matchuri.backend.global.api.ApiResponse;
+import matchuri.backend.global.api.PageResponse;
+import matchuri.backend.global.security.AuthenticatedMemberId;
+
+@Tag(name = "Group Decision", description = "그룹 메뉴 의사결정 API")
+public interface GroupApi {
+
+    @Operation(
+            summary = "그룹 생성",
+            description = """
+                    그룹 방을 생성합니다.
+
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 생성자는 `OWNER` 멤버로 함께 저장됩니다.
+                    - 그룹마다 하나의 고정 초대 코드를 생성합니다.
+                    - 실제 저장 테이블은 `group_rooms`, `group_room_members`입니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 생성 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateGroupApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.CREATE_GROUP_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<CreateGroupResponse> createGroup(
+            @AuthenticatedMemberId Long memberId,
+            @Valid CreateGroupRequest request
+    );
+
+    @Operation(
+            summary = "내 그룹 목록 조회",
+            description = """
+                    내가 속한 그룹 목록을 조회합니다.
+
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 `ACTIVE` 멤버로 속한 그룹만 반환합니다.
+                    - 삭제된 그룹은 목록에서 제외합니다.
+                    - 최신 그룹 추천이 있으면 `latestRecommendationStatus`로 상태를 반환합니다.
+                    - 아직 그룹 추천이 없으면 `latestRecommendationStatus`는 null입니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupSummaryPageApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.GROUP_LIST_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<PageResponse<GroupSummaryResponse>> getMyGroups(
+            @AuthenticatedMemberId Long memberId,
+            @Parameter(description = "그룹 상태 필터입니다. 생략하면 전체 상태를 조회합니다.", example = "ACTIVE")
+            GroupRoomStatus status,
+
+            @Parameter(description = "0부터 시작하는 페이지 번호입니다.", example = "0")
+            @Min(0)
+            Integer page,
+
+            @Parameter(description = "페이지 크기입니다. 기본값은 20입니다.", example = "20")
+            @Min(1)
+            @Max(100)
+            Integer size
+    );
+
+    @Operation(
+            summary = "그룹 상세 조회",
+            description = """
+                    그룹 방 상세와 현재 멤버, 가장 최근 그룹 추천 상태를 조회합니다.
+
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - 그룹의 모든 `ACTIVE` 멤버에게 고정 초대 코드를 함께 반환합니다.
+                    - 멤버 목록의 각 항목은 현재 로그인한 회원이면 `isMe=true`, 아니면 `false`를 반환합니다.
+                    - 삭제된 그룹은 조회할 수 없습니다.
+                    - 가장 최근 추천 세션이 있으면 `recentlyRecommendation`을 함께 반환합니다.
+                    - `PREPARING`이면 readiness 진행률을, `OPEN` 또는 종료 상태이면 후보와 투표 진행률을 포함합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupDetailApiResponse.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "preparing",
+                                            summary = "준비 중인 그룹 추천 포함",
+                                            value = GroupApiExamples.GROUP_DETAIL_SUCCESS
+                                    ),
+                                    @ExampleObject(
+                                            name = "open",
+                                            summary = "열린 그룹 추천 포함",
+                                            value = GroupApiExamples.GROUP_DETAIL_OPEN_RECOMMENDATION_SUCCESS
+                                    )
+                            }
+                    )
+            )
+    })
+    ApiResponse<GroupDetailResponse> getGroup(@AuthenticatedMemberId Long memberId, Long groupId);
+
+    @Operation(
+            summary = "그룹 초대 링크 신규 발급",
+            description = """
+                    현재 그룹에 활성 초대 링크가 없을 때 UUID 기반 토큰을 새로 발급합니다.
+
+                    - 로그인한 활성 회원 중 해당 그룹의 `ACTIVE` OWNER만 사용할 수 있습니다.
+                    - 토큰은 발급 시점부터 1일 뒤 만료됩니다.
+                    - 아직 만료되지 않은 링크가 있으면 재발급 API를 사용해야 합니다.
+                    - 응답의 `token`을 클라이언트 초대 URL 끝에 붙여 사용합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "초대 링크 발급 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkApiResponse.class),
+                            examples = @ExampleObject(name = "success", value = GroupApiExamples.GROUP_INVITE_LINK_SUCCESS)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "활성 초대 링크가 이미 존재함",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkApiResponse.class),
+                            examples = @ExampleObject(name = "alreadyExists", value = GroupApiExamples.GROUP_INVITE_LINK_ALREADY_EXISTS)
+                    )
+            )
+    })
+    ApiResponse<GroupInviteLinkResponse> createInviteLink(@AuthenticatedMemberId Long memberId, Long groupId);
+
+    @Operation(
+            summary = "그룹 초대 링크 재발급",
+            description = """
+                    아직 만료되지 않은 현재 초대 링크를 즉시 만료시키고 새 링크를 발급합니다.
+
+                    - 로그인한 활성 회원 중 해당 그룹의 `ACTIVE` OWNER만 사용할 수 있습니다.
+                    - 기존 토큰은 재발급 즉시 사용할 수 없습니다.
+                    - 새 토큰은 재발급 시점부터 1일 뒤 만료됩니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "초대 링크 재발급 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkApiResponse.class),
+                            examples = @ExampleObject(name = "success", value = GroupApiExamples.GROUP_INVITE_LINK_SUCCESS)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "재발급할 활성 초대 링크가 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkApiResponse.class),
+                            examples = @ExampleObject(name = "notFound", value = GroupApiExamples.GROUP_INVITE_LINK_NOT_FOUND)
+                    )
+            )
+    })
+    ApiResponse<GroupInviteLinkResponse> reissueInviteLink(@AuthenticatedMemberId Long memberId, Long groupId);
+
+    @Operation(
+            summary = "현재 그룹 초대 링크 조회",
+            description = """
+                    아직 만료되지 않은 현재 초대 링크 1개를 조회합니다.
+
+                    - 로그인한 활성 회원 중 해당 그룹의 `ACTIVE` OWNER만 사용할 수 있습니다.
+                    - 만료된 링크는 반환하지 않으며 활성 링크가 없으면 `200`과 `data: null`로 응답합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "현재 초대 링크 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CurrentGroupInviteLinkApiResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "activeLink", value = GroupApiExamples.GROUP_INVITE_LINK_SUCCESS),
+                                    @ExampleObject(name = "noActiveLink", value = GroupApiExamples.GROUP_INVITE_LINK_EMPTY)
+                            }
+                    )
+            )
+    })
+    ApiResponse<GroupInviteLinkResponse> getCurrentInviteLink(@AuthenticatedMemberId Long memberId, Long groupId);
+
+    @Operation(
+            summary = "닉네임 기반 그룹 초대 생성",
+            description = """
+                    닉네임으로 특정 회원에게 그룹 초대 요청을 보냅니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` OWNER 멤버일 때만 초대할 수 있습니다.
+                    - 초대 대상은 활성 회원의 nickname으로 찾습니다.
+                    - 자기 자신, 이미 그룹에 참여 중인 회원, 동일 그룹/대상의 `PENDING` 초대는 거절합니다.
+                    - 초대 요청은 생성 시점부터 24시간 뒤 만료됩니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "초대 생성 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateNicknameGroupInviteApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.CREATE_NICKNAME_INVITE_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<CreateNicknameGroupInviteResponse> createNicknameInvite(
+            @AuthenticatedMemberId Long memberId,
+            @Valid CreateNicknameGroupInviteRequest request
+    );
+
+    @Operation(
+            summary = "내 그룹 초대 목록 조회",
+            deprecated = true,
+            description = """
+                    현재 회원이 받은 그룹 초대 목록을 조회합니다.
+
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 초대 대상인 초대 요청만 반환합니다.
+                    - `status`를 생략하면 `PENDING` 초대만 조회합니다.
+                    - 생성 시각 최신순으로 정렬합니다.
+                    - 새 소비자는 간소화된 응답의 GET /api/v2/invites/me를 사용합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteSummaryPageApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.MY_INVITES_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<PageResponse<GroupInviteSummaryResponse>> getMyInvites(
+            @AuthenticatedMemberId Long memberId,
+            @Parameter(description = "초대 상태 필터입니다. 생략하면 PENDING 초대만 조회합니다.", example = "PENDING")
+            GroupInviteStatus status,
+
+            @Parameter(description = "0부터 시작하는 페이지 번호입니다.", example = "0")
+            @Min(0)
+            Integer page,
+
+            @Parameter(description = "페이지 크기입니다. 기본값은 20입니다.", example = "20")
+            @Min(1)
+            @Max(100)
+            Integer size
+    );
+
+    @Operation(
+            summary = "그룹 초대 응답",
+            description = """
+                    현재 회원이 받은 nickname 기반 그룹 초대에 응답합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 초대의 대상 회원일 때만 응답할 수 있습니다.
+                    - `PENDING` 상태이고 만료되지 않은 초대만 응답할 수 있습니다.
+                    - `ACCEPT`이면 그룹 membership을 생성하거나 기존 `LEFT` membership을 재활성화합니다.
+                    - `DECLINE`이면 초대 상태만 `DECLINED`로 닫고 membership은 변경하지 않습니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "초대 응답 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RespondGroupInviteApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RESPOND_INVITE_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<RespondGroupInviteResponse> respondGroupInvite(
+            @AuthenticatedMemberId Long memberId,
+            Long inviteId,
+            @Valid RespondGroupInviteRequest request
+    );
+
+    @Operation(
+            summary = "그룹 수정",
+            description = """
+                    그룹 정보를 수정합니다.
+
+                    구현 기준:
+                    - 현재 MVP에서는 그룹 이름과 위치(위도/경도/반경 거리/주소)를 수정합니다.
+                    - 생략된 필드는 변경하지 않습니다.
+                    - 요청에는 최소 1개 이상의 지원 필드가 포함되어야 합니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` OWNER 멤버일 때만 수정할 수 있습니다.
+                    - 그룹이 `ACTIVE` 상태일 때만 수정할 수 있습니다.
+                    - 그룹 추천 재요청은 MVP 8단계 클라이언트 계약에서 제외되었으므로 수정 응답은 재요청용 추천 ID를 반환하지 않습니다.
+                    - 이미 `PREPARING`인 추천 세션의 후보 생성은 후보 생성 시점의 최신 그룹 위치를 사용합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 수정 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UpdateGroupApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.UPDATE_GROUP_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<UpdateGroupResponse> updateGroup(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+            @Valid UpdateGroupRequest request
+    );
+
+    @Operation(
+            summary = "초대 코드로 그룹 참여",
+            description = """
+                    초대 코드로 그룹에 참여합니다.
+
+                    구현 기준:
+                    - 그룹의 고정 초대 코드 존재 여부를 검증합니다.
+                    - 연결된 그룹이 `ACTIVE` 상태일 때만 참여할 수 있습니다.
+                    - 이미 `ACTIVE` 멤버이면 중복 참여로 실패합니다.
+                    - 과거 `LEFT` 멤버는 기존 membership을 재활성화합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 참여 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = JoinGroupApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.JOIN_GROUP_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<JoinGroupResponse> joinGroup(
+            @AuthenticatedMemberId Long memberId,
+            @Valid JoinGroupRequest request
+    );
+
+    @Operation(
+            summary = "초대 링크 그룹 정보 미리보기",
+            description = """
+                    로그인 전에도 UUID 초대 토큰으로 그룹명, 방장의 현재 닉네임, 활성 그룹원 수를 조회합니다.
+                    그룹원 수에는 방장이 포함됩니다. 이 요청은 그룹에 참여시키거나 링크 상태를 변경하지 않습니다.
+                    토큰은 URL/서버 access log에 남지 않도록 request body로 전달합니다.
+                    존재하지 않는 토큰은 404, 만료된 토큰은 409, 비활성 그룹은 409를 반환합니다.
+                    """
+    )
+    @SecurityRequirements
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 정보 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkPreviewApiResponse.class),
+                            examples = @ExampleObject(name = "success", value = GroupApiExamples.GROUP_INVITE_LINK_PREVIEW_SUCCESS))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "UUID 토큰 형식이 올바르지 않음",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkPreviewApiResponse.class),
+                            examples = @ExampleObject(name = "invalidToken", value = GroupApiExamples.GROUP_INVITE_LINK_INVALID_TOKEN))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "초대 링크 토큰을 찾을 수 없음",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkPreviewApiResponse.class),
+                            examples = @ExampleObject(name = "notFound", value = GroupApiExamples.GROUP_INVITE_LINK_NOT_FOUND))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "초대 링크 만료 또는 그룹 비활성",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkPreviewApiResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "expired", value = GroupApiExamples.GROUP_INVITE_LINK_EXPIRED),
+                                    @ExampleObject(name = "inactiveGroup", value = GroupApiExamples.GROUP_NOT_ACTIVE)
+                            })
+            )
+    })
+    ApiResponse<GroupInviteLinkPreviewResponse> previewInviteLink(@Valid PreviewGroupInviteLinkRequest request);
+
+    @Operation(
+            summary = "초대 링크로 그룹 참여",
+            description = """
+                    클라이언트 초대 URL의 UUID 토큰으로 그룹에 참여합니다.
+
+                    - 로그인한 활성 회원만 사용할 수 있으며 비회원 로그인 유도는 클라이언트가 처리합니다.
+                    - 토큰이 존재하고 만료되지 않았으며 연결된 그룹이 `ACTIVE`일 때만 참여할 수 있습니다.
+                    - 이미 `ACTIVE` 멤버이면 중복 참여로 실패하고 과거 `LEFT` 멤버는 재활성화합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 참여 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = JoinGroupApiResponse.class),
+                            examples = @ExampleObject(name = "success", value = GroupApiExamples.JOIN_GROUP_SUCCESS)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "초대 링크 토큰을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkApiResponse.class),
+                            examples = @ExampleObject(name = "notFound", value = GroupApiExamples.GROUP_INVITE_LINK_NOT_FOUND)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "초대 링크가 만료됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupInviteLinkApiResponse.class),
+                            examples = @ExampleObject(name = "expired", value = GroupApiExamples.GROUP_INVITE_LINK_EXPIRED)
+                    )
+            )
+    })
+    ApiResponse<JoinGroupResponse> joinGroupByInviteLink(
+            @AuthenticatedMemberId Long memberId,
+            @Valid JoinGroupByInviteLinkRequest request
+    );
+
+    @Operation(
+            summary = "그룹 탈퇴",
+            description = """
+                    현재 회원이 그룹에서 탈퇴합니다.
+
+                    구현 기준:
+                    - 현재 회원의 활성 membership을 `LEFT`로 전환합니다.
+                     - 진행 중인 그룹 추천 투표가 있으면 해당 회원의 표를 제거하고 진행률을 다시 계산합니다.
+                     - 남은 활성 멤버가 모두 준비 완료했다면 추천 후보를 생성하고 세션을 `OPEN`으로 전환합니다.
+                    - `OWNER`는 나갈 수 없으며 그룹 삭제 API를 사용해야 합니다.
+                    - 이미 나간 멤버와 비멤버 접근은 상태에 맞는 에러로 처리합니다.
+                    - 실제 저장 테이블은 `group_room_members` 기준입니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 탈퇴 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LeaveGroupApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.LEAVE_GROUP_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<LeaveGroupResponse> leaveGroup(@AuthenticatedMemberId Long memberId, Long groupId);
+
+    @Operation(
+            summary = "그룹 삭제",
+            description = """
+                    그룹을 삭제 상태로 전환합니다.
+
+                    구현 기준:
+                    - 현재 회원이 해당 그룹의 `ACTIVE` OWNER 멤버일 때만 삭제할 수 있습니다.
+                    - 그룹은 `DELETED` 상태로 전환됩니다.
+                    - 해당 그룹의 `PENDING` 초대 요청은 `REVOKED`로 전환됩니다.
+                    - 해당 그룹의 아직 만료되지 않은 링크 초대는 삭제 시각으로 즉시 만료됩니다.
+                    - 해당 그룹의 `ACTIVE` 멤버는 후속 조회에서 노출되지 않도록 `LEFT`로 전환됩니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 삭제 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = DeleteGroupApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.DELETE_GROUP_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<DeleteGroupResponse> deleteGroup(@AuthenticatedMemberId Long memberId, Long groupId);
+
+    @Operation(
+            summary = "그룹 추천 시작",
+            description = """
+                    그룹 추천 준비 세션을 시작합니다.
+
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - MVP에서는 해당 그룹의 `OWNER`만 시작할 수 있습니다.
+                    - 한 그룹에는 동시에 `PREPARING` 또는 `OPEN` 그룹 추천을 1개만 허용합니다.
+                    - 생성 직후 상태는 `PREPARING`이며, 후보는 아직 생성하지 않습니다.
+                    - 준비 상태에서는 `group_recommendations.context_json`을 저장하지 않습니다.
+                    - 요청에 정상 위치 값(`latitude`, `longitude`, `radiusMeters`, `address`)이 있으면 그룹의 기억 위치만 갱신합니다.
+                    - 그룹원 준비 완료 API가 추가되면 모든 활성 멤버가 준비 완료한 시점에 후보를 생성하고 `OPEN`으로 전환합니다.
+                    - 후보 생성 시점에 현재 그룹 기억 위치를 확정 `contextJson` 스냅샷으로 기록합니다.
+                    - API 경로는 사용자 흐름상 `recommendations`를 사용하며, 최신 저장 테이블은 `group_recommendations` 기준입니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "그룹 추천 시작 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateGroupRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.CREATE_RECOMMENDATION_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<CreateGroupRecommendationResponse> createRecommendation(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+            @Valid CreateGroupRecommendationRequest request
+    );
+
+    @Operation(
+            summary = "그룹 추천 요청 리스트 조회",
+            description = """
+                    특정 그룹 방에서 생성된 그룹 추천 요청 목록을 조회합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - 삭제된 그룹은 조회할 수 없습니다.
+                    - `PREPARING` 세션도 목록에 포함합니다.
+                    - 응답은 `sessionId`, `status`, `createdAt`, `startedAt`, `endedAt`만 포함하는 얇은 summary입니다.
+                    - `createdAt`은 추천 시작, `startedAt`은 투표 시작, `endedAt`은 추천 종료 시각입니다.
+                    - `finalCandidate`, `finalMenuName`, `voteProgress`, `status` 필터는 1차 범위에서 제외합니다.
+                    - 최신순(`createdAt DESC`, `id DESC`)으로 정렬합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupRecommendationSummaryPageApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RECOMMENDATION_LIST_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<PageResponse<GroupRecommendationSummaryResponse>> getRecommendations(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+
+            @Parameter(description = "0부터 시작하는 페이지 번호입니다.", example = "0")
+            @Min(0)
+            Integer page,
+
+            @Parameter(description = "페이지 크기입니다. 기본값은 20입니다.", example = "20")
+            @Min(1)
+            @Max(100)
+            Integer size
+    );
+
+    @Operation(
+            summary = "그룹 추천 세션 상세 조회",
+            description = """
+                    그룹 추천 상태, 추천 당시 컨텍스트 JSON, 준비 진행률, 후보, 추천 카테고리, 투표 진행률, 투표 상태, 최종 후보를 조회합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - `sessionId`는 API 표현 이름이며 저장 모델은 `group_recommendations.id`로 해석합니다.
+                    - `contextJson`은 추천 당시 위치 등 컨텍스트 스냅샷이며, 파싱하지 않은 JSON 문자열로 반환합니다.
+                    - `PREPARING` 세션이면 후보는 빈 배열, 투표 진행률은 null, readiness 진행률은 값으로 반환합니다.
+                    - `OPEN` 세션이면 후보별 현재 투표 수와 전체 투표 진행률을 함께 반환하고 readiness는 null입니다.
+                    - `recommendationCategories`는 후보 생성 전에는 null, 생성 후에는 최대 5개 배열입니다. COMMON은 후보에 연결된 당시 모든 그룹원의 공통 취향이고 MENU는 후보 카테고리로 보충한 항목입니다.
+                    - 카테고리 ID, 출처, 순위는 추천 시점의 값이며 카테고리 이름은 조회 시점의 현재 값을 반환합니다.
+                    - `memberVotes`는 현재 활성 그룹원별 투표 여부, 본인 여부, 선택 후보 ID를 반환합니다.
+                    - `memberVotes.candidateId`는 해당 회원이 투표하지 않았으면 null입니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupRecommendationSessionApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RECOMMENDATION_SESSION_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<GroupRecommendationDetailResponse> getRecommendation(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+            Long sessionId
+    );
+
+    @Operation(
+            summary = "그룹 추천 후보 목록 조회",
+            description = """
+                    그룹 추천 후보 메뉴 목록만 조회합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - 후보가 생성된 `OPEN` 상태의 추천 세션에서만 조회할 수 있습니다.
+                    - `PREPARING` 상태의 준비 진행률은 추천 상세 또는 준비 상태 조회 API를 사용합니다.
+                    - 후보는 추천 순위 오름차순으로 반환합니다.
+                    - 후보별 현재 투표 수를 함께 반환합니다.
+                    - 실제 저장 테이블은 `group_recommendation_candidates` 기준입니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupRecommendationCandidateListApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RECOMMENDATION_CANDIDATES_SUCCESS
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "후보 조회 가능한 OPEN 상태가 아님",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "notOpen",
+                                    value = GroupApiExamples.RECOMMENDATION_NOT_OPEN_ERROR
+                            )
+                    )
+            )
+    })
+    ApiResponse<GroupRecommendationCandidateListResponse> getRecommendationCandidates(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+            Long sessionId
+    );
+
+    @Operation(
+            summary = "그룹 추천 준비 상태 조회",
+            description = """
+                    그룹 추천 준비 세션의 준비 진행률과 현재 활성 멤버별 준비 상태를 조회합니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 조회할 수 있습니다.
+                    - `sessionId`는 해당 그룹에 속한 그룹 추천이어야 합니다.
+                    - 분모는 현재 `ACTIVE` 그룹 멤버 기준입니다.
+                    - `status=READY`인 현재 활성 멤버만 준비 완료로 계산합니다.
+                    - 아직 준비 액션이 없거나 `CANCELED` 상태인 멤버는 준비 미완료로 계산합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupRecommendationReadinessApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.RECOMMENDATION_READINESS_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<GroupRecommendationReadinessResponse> getRecommendationReadiness(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+            Long sessionId
+    );
+
+    @Operation(
+            summary = "그룹 추천 준비 완료",
+            description = """
+                    현재 회원이 그룹 추천 준비 세션에서 준비 완료 상태가 됩니다.
+
+                    구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 현재 회원이 해당 그룹의 `ACTIVE` 멤버일 때만 준비 완료할 수 있습니다.
+                    - source 그룹 추천은 해당 그룹에 속하고 `PREPARING` 상태여야 합니다.
+                    - 같은 회원의 중복 호출은 idempotent하게 `READY` 상태를 유지합니다.
+                    - 모든 현재 `ACTIVE` 그룹 멤버가 준비 완료하면 후보를 생성하고 세션을 `OPEN`으로 전환합니다.
+                    - 응답은 준비 진행률과, `OPEN` 전환 시 생성된 후보 목록을 함께 반환합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "준비 완료 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ReadyGroupRecommendationApiResponse.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "preparing",
+                                            summary = "아직 전원 준비 전",
+                                            value = GroupApiExamples.READY_RECOMMENDATION_SUCCESS
+                                    ),
+                                    @ExampleObject(
+                                            name = "opened",
+                                            summary = "마지막 인원 준비 완료로 후보 생성",
+                                            value = GroupApiExamples.READY_RECOMMENDATION_OPEN_SUCCESS
+                                    )
+                            }
+                    )
+            )
+    })
+    ApiResponse<ReadyGroupRecommendationResponse> readyRecommendation(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+            Long sessionId
+    );
+
+    @Operation(
+            summary = "그룹 추천 재요청",
+            deprecated = true,
+            description = """
+                    열린 그룹 추천을 종료하고 새 그룹 추천을 생성합니다.
+
+                    Deprecated:
+                    - 그룹 추천 재요청은 MVP 8단계 클라이언트 연동 범위에서 제외되었습니다.
+                    - 엔드포인트와 도메인 구현은 MVP 이후 재도입 검토를 위해 호환 목적으로 보존합니다.
+                    - API 호출 시 `410 Gone`과 `GROUP_RECOMMENDATION_REROLL_DISABLED`를 반환합니다.
+
+                    보존된 구현 기준:
+                    - 로그인한 활성 회원만 사용할 수 있습니다.
+                    - 해당 그룹의 `ACTIVE` OWNER 멤버만 재요청할 수 있습니다.
+                    - source 그룹 추천은 해당 그룹에 속하고 `OPEN` 상태여야 합니다.
+                    - `NOT_SATISFIED`는 source 후보 전체를 `group_menu_actions.SKIP`으로 저장한 뒤 source를 `REROLLED_WITH_SKIP`으로 종료합니다.
+                    - `INPUT_CHANGED`는 `SKIP` 로그 없이 source를 `REROLLED_WITHOUT_SKIP`으로 종료합니다.
+                    - 새 후보 계산에서는 같은 그룹의 최근 24시간 `SKIP` 메뉴를 제외합니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "410",
+                    description = "그룹 추천 재요청은 MVP 클라이언트 계약에서 제외됨",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "disabled",
+                                    value = GroupApiExamples.REROLL_RECOMMENDATION_DISABLED
+                            )
+                    )
+            )
+    })
+    ApiResponse<CreateGroupRecommendationResponse> rerollRecommendation(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+            Long sessionId,
+            @Valid RerollGroupRecommendationRequest request
+    );
+
+    @Operation(
+            summary = "그룹 추천 후보 투표",
+            description = """
+                    그룹 추천 후보에 투표합니다.
+
+                    정책:
+                    - 활성 그룹 멤버만 투표할 수 있습니다.
+                    - 열린 그룹 추천(`OPEN`)에만 투표할 수 있습니다.
+                    - 회원은 추천 세션당 하나의 투표 row를 가지며, 다시 투표하면 기존 투표 후보를 변경합니다.
+                    - 같은 후보로 다시 투표하면 idempotent하게 기존 투표 정보를 반환합니다.
+                    - `voteValue`는 사용하지 않고 후보 선택 여부만 저장합니다.
+                    - 실제 저장 테이블은 `group_recommendation_votes` 기준입니다.
+                    - 응답의 `votedAt`은 최초 투표 또는 재투표로 마지막 반영된 시각입니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "투표 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GroupVoteApiResponse.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "success",
+                                            summary = "최초 투표",
+                                            value = GroupApiExamples.VOTE_SUCCESS
+                                    ),
+                                    @ExampleObject(
+                                            name = "revote",
+                                            summary = "기존 투표 후보 변경",
+                                            value = GroupApiExamples.REVOTE_SUCCESS
+                                    )
+                            }
+                    )
+            )
+    })
+    ApiResponse<GroupVoteResponse> vote(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+            Long sessionId,
+            @Valid VoteGroupRecommendationRequest request
+    );
+
+    @Operation(
+            summary = "그룹 추천 최종 메뉴 확정",
+            description = """
+                    투표 결과를 바탕으로 그룹의 최종 메뉴를 확정합니다.
+
+                    정책:
+                    - 해당 그룹의 `ACTIVE` `OWNER` 멤버만 최종 확정할 수 있습니다.
+                    - 최다 득표 후보를 최종 후보로 저장합니다.
+                    - 동률이면 추천 순위 `rankNo`가 가장 낮은 후보를 선택합니다.
+                    - 투표가 0건이면 `rankNo=1` 후보를 선택합니다.
+                    - 클라이언트가 최종 확정 시점 위치를 모두 전달하면 추천 컨텍스트 스냅샷으로 저장합니다.
+                    - 요청 body가 없거나 위치 필드가 일부만 전달되어도 최종 확정은 정상 처리하며 컨텍스트는 저장하지 않습니다.
+                    - 확정 후 그룹 추천 상태는 `FINALIZED`가 됩니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "확정 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FinalizeGroupRecommendationApiResponse.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = GroupApiExamples.FINALIZE_RECOMMENDATION_SUCCESS
+                            )
+                    )
+            )
+    })
+    ApiResponse<FinalizeGroupRecommendationResponse> finalizeRecommendation(
+            @AuthenticatedMemberId Long memberId,
+            Long groupId,
+            Long sessionId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = false,
+                    description = "선택적으로 전달하는 최종 확정 시점 위치입니다. 네 위치 필드가 모두 있어야 저장합니다."
+            )
+            @Valid FinalizeGroupRecommendationRequest request
+    );
+}

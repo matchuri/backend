@@ -3,8 +3,7 @@
 ## 1. 기술스택
 
 - Java 21
-- Spring Boot 4.0.3
-- Spring Modulith 2.0.3 (모듈 선언과 구조 검증)
+- Spring Boot 4.0.8
 - Gradle Kotlin DSL, Gradle Wrapper 9.3.1
 - Spring Web MVC
 - Spring Security, OAuth2 Client
@@ -22,6 +21,8 @@
 
 ## 2. 프로젝트 구조
 
+단일 Gradle 모듈에서 `api`, `domain`, `global`, `infra`로 나눈 레이어드 구조를 사용합니다.
+
 ```text
 backend
 ├─ .github
@@ -29,15 +30,24 @@ backend
 │  └─ workflows
 ├─ gradle
 │  └─ wrapper
-├─ backend-app          # Boot application, HTTP API, 설정, resources/seed
-├─ identity             # 인증, 회원, 취향, Security
-├─ catalog              # 메뉴·속성·재료
-├─ recommendation       # 추천 계산, 개인 추천, 행동 기록
-├─ group-decision       # 그룹, 초대, 추천 진행, 투표, 확정
-├─ media                # 이미지, 프리셋, 저장소 연동
-├─ realtime             # 커밋 후 이벤트와 SSE
-├─ shared-kernel        # 공통 응답, 예외, 영속성, 트랜잭션 지원
-├─ src/test             # 전체 모듈 회귀 테스트와 테스트 설정
+├─ src
+│  ├─ main
+│  │  ├─ java
+│  │  │  └─ matchuri
+│  │  │     └─ backend
+│  │  │        ├─ api
+│  │  │        ├─ domain
+│  │  │        ├─ global
+│  │  │        └─ infra
+│  │  └─ resources
+│  │     ├─ seed
+│  │     │  ├─ reference-data.json
+│  │     │  └─ local-sample-data.json
+│  │     ├─ application.yaml
+│  │     └─ application-local.yaml
+│  └─ test
+│     ├─ java
+│     └─ resources
 ├─ build.gradle.kts
 ├─ docker-compose.yml
 ├─ gradlew
@@ -46,8 +56,6 @@ backend
 ```
 
 ## 3. 실행환경
-
-각 모듈은 `src/main/java`와 자체 Gradle 의존성을 가집니다. 배포는 단일 실행 JAR과 단일 DB를 유지합니다. 모듈 경계와 트랜잭션 정책은 [아키텍처](../../docs/backend/architecture.md), 구현 규칙은 [가이드](../../docs/backend/guide.md)를 봅니다.
 
 - JDK 21
 - Docker Desktop 또는 Docker Engine
@@ -96,8 +104,6 @@ docker compose up -d db
 # 테스트 실행
 ./gradlew test --quiet
 ```
-
-모듈 경계만 검사하려면 `./gradlew fastTest --tests 'matchuri.backend.architecture.ModuleStructureTest' --quiet`를 실행합니다. 실행 인자를 넘길 때는 `./gradlew :backend-app:bootRun --args='--spring.profiles.active=local'`을 사용합니다. `./gradlew bootJar`의 배포 결과물은 `build/libs/backend-<version>.jar`입니다.
 
 Windows PowerShell에서는 아래 명령어를 사용할 수 있습니다.
 
