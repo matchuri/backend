@@ -1,0 +1,280 @@
+package matchuri.backend.api.member.mapper;
+
+import java.util.List;
+import matchuri.backend.api.auth.dto.response.LoginResponse;
+import matchuri.backend.api.auth.dto.response.LogoutResponse;
+import matchuri.backend.api.common.dto.OnboardingStatusResponse;
+import matchuri.backend.api.member.dto.request.RegisterLocalMemberRequest;
+import matchuri.backend.api.member.dto.request.RegisterLocalMemberV2Request;
+import matchuri.backend.api.member.dto.request.PutMemberLocationRequest;
+import matchuri.backend.api.member.dto.request.UpdateMemberPasswordRequest;
+import matchuri.backend.api.member.dto.request.UpdateMemberTasteProfileRequest;
+import matchuri.backend.api.member.dto.response.CreateMemberResponse;
+import matchuri.backend.api.member.dto.response.LoginIdExistsResponse;
+import matchuri.backend.api.member.dto.response.MemberLocationResponse;
+import matchuri.backend.api.member.dto.response.MemberProfileImageResponse;
+import matchuri.backend.api.member.dto.response.MemberProfileResponse;
+import matchuri.backend.api.member.dto.response.MemberPresetProfileImageResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteAttributeCategoryResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteDislikedMenuItemResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteProfileSummaryResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteProfileUpdateResponse;
+import matchuri.backend.api.member.dto.response.MemberTasteRestrictionIngredientResponse;
+import matchuri.backend.api.member.dto.response.NicknameExistsResponse;
+import matchuri.backend.api.member.dto.response.RegisterLocalMemberResponse;
+import matchuri.backend.api.member.dto.response.UpdateMemberPasswordResponse;
+import matchuri.backend.api.member.dto.response.UpdateMemberResponse;
+import matchuri.backend.api.member.dto.response.WithdrawMemberResponse;
+import matchuri.backend.domain.auth.command.LoginCommand;
+import matchuri.backend.domain.auth.command.OAuth2ExchangeCommand;
+import matchuri.backend.domain.auth.result.LoginPayload;
+import matchuri.backend.domain.auth.result.LogoutResult;
+import matchuri.backend.domain.member.command.CreateMemberCommand;
+import matchuri.backend.domain.member.command.PutMemberLocationCommand;
+import matchuri.backend.domain.member.command.RegisterLocalMemberCommand;
+import matchuri.backend.domain.member.command.RegisterLocalMemberV2Command;
+import matchuri.backend.domain.member.command.SubmitRequiredAgreementsCommand;
+import matchuri.backend.domain.member.command.UpdateMemberBasicInfoCommand;
+import matchuri.backend.domain.member.command.UpdateMemberPasswordCommand;
+import matchuri.backend.domain.member.command.UpdateMemberTasteProfileCommand;
+import matchuri.backend.domain.member.entity.SocialProviderType;
+import matchuri.backend.domain.member.result.CreateMemberResult;
+import matchuri.backend.domain.member.result.MemberLocationResult;
+import matchuri.backend.domain.member.result.MemberProfileImageResult;
+import matchuri.backend.domain.member.result.MemberProfileResult;
+import matchuri.backend.domain.member.result.MemberPresetProfileImageResult;
+import matchuri.backend.domain.member.result.MemberTasteProfileSummaryResult;
+import matchuri.backend.domain.member.result.MemberTasteUpdateResult;
+import matchuri.backend.domain.member.result.OnboardingStatusResult;
+import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
+import matchuri.backend.domain.member.result.UpdateMemberPasswordResult;
+import matchuri.backend.domain.member.result.UpdateMemberResult;
+import matchuri.backend.domain.member.result.WithdrawMemberResult;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MemberMapper {
+
+    public PutMemberLocationCommand toPutMemberLocationCommand(PutMemberLocationRequest request) {
+        return new PutMemberLocationCommand(
+                request.latitude(),
+                request.longitude(),
+                request.radiusMeters(),
+                request.address().trim()
+        );
+    }
+
+    public MemberLocationResponse toMemberLocationResponse(MemberLocationResult result) {
+        return new MemberLocationResponse(
+                result.latitude(),
+                result.longitude(),
+                result.radiusMeters(),
+                result.address()
+        );
+    }
+
+    public LoginIdExistsResponse toLoginIdExistsResponse(String loginId, boolean exists) {
+        return new LoginIdExistsResponse(loginId, exists);
+    }
+
+    public NicknameExistsResponse toNicknameExistsResponse(String nickname, boolean exists) {
+        return new NicknameExistsResponse(nickname, exists);
+    }
+
+    public CreateMemberCommand toCreateMemberCommand(String loginId, String password) {
+        return new CreateMemberCommand(loginId, password);
+    }
+
+    public CreateMemberResponse toCreateMemberResponse(CreateMemberResult result) {
+        return new CreateMemberResponse(result.memberId(), result.loginId(), result.createdAt());
+    }
+
+    public RegisterLocalMemberCommand toRegisterLocalMemberCommand(RegisterLocalMemberRequest request) {
+        return new RegisterLocalMemberCommand(
+                request.loginId(),
+                request.password(),
+                request.nickname(),
+                request.email(),
+                request.emailVerificationToken(),
+                request.agreements().stream()
+                        .map(agreement -> new SubmitRequiredAgreementsCommand.AgreementConsentCommand(
+                                agreement.agreementType(),
+                                agreement.agreementVersion()
+                        ))
+                        .toList()
+        );
+    }
+
+    public RegisterLocalMemberV2Command toRegisterLocalMemberV2Command(RegisterLocalMemberV2Request request) {
+        var memberCommand = new RegisterLocalMemberCommand(
+                request.loginId(),
+                request.password(),
+                request.nickname(),
+                request.email(),
+                request.emailVerificationToken(),
+                request.agreements().stream()
+                        .map(agreement -> new SubmitRequiredAgreementsCommand.AgreementConsentCommand(
+                                agreement.agreementType(),
+                                agreement.agreementVersion()
+                        ))
+                        .toList()
+        );
+        var tasteProfileCommand = new UpdateMemberTasteProfileCommand(
+                request.tasteProfile().attributeCategoryIds(),
+                request.tasteProfile().restrictionIngredientIds(),
+                request.tasteProfile().dislikedMenuItemIds()
+        );
+
+        return new RegisterLocalMemberV2Command(memberCommand, tasteProfileCommand);
+    }
+
+    public RegisterLocalMemberResponse toRegisterLocalMemberResponse(RegisterLocalMemberResult result) {
+        return new RegisterLocalMemberResponse(
+                result.memberId(),
+                result.loginId(),
+                result.email(),
+                result.nickname(),
+                result.createdAt()
+        );
+    }
+
+    public LoginCommand toLoginCommand(String loginId, String password, String captchaToken) {
+        return new LoginCommand(loginId, password, captchaToken);
+    }
+
+    public OAuth2ExchangeCommand toOAuth2ExchangeCommand(SocialProviderType provider, String code) {
+        return new OAuth2ExchangeCommand(provider, code);
+    }
+
+    public LoginResponse toLoginResponse(LoginPayload payload) {
+        return new LoginResponse(
+                payload.accessToken(),
+                null,
+                payload.expiresIn(),
+                new LoginResponse.LoginMemberSummary(payload.memberId(), payload.role(), payload.nickname()),
+                toOnboardingResponse(payload.onboarding())
+        );
+    }
+
+    public LogoutResponse toLogoutResponse(LogoutResult result) {
+        return new LogoutResponse(result.loggedOut());
+    }
+
+    public MemberProfileResponse toMemberProfileResponse(MemberProfileResult result) {
+        return new MemberProfileResponse(
+                result.id(),
+                result.loginId(),
+                result.nickname(),
+                result.isSocial(),
+                result.email(),
+                result.profileImageUrl()
+        );
+    }
+
+    public MemberProfileImageResponse toMemberProfileImageResponse(MemberProfileImageResult result) {
+        return new MemberProfileImageResponse(
+                result.profileImageId(),
+                result.presetProfileImageId(),
+                result.imageUrl(),
+                result.updatedAt()
+        );
+    }
+
+    public MemberPresetProfileImageResponse toMemberPresetProfileImageResponse(MemberPresetProfileImageResult result) {
+        return new MemberPresetProfileImageResponse(
+                result.presetProfileImageId(),
+                result.imageUrl(),
+                result.isDefault()
+        );
+    }
+
+    public List<MemberPresetProfileImageResponse> toMemberPresetProfileImageResponses(List<MemberPresetProfileImageResult> result) {
+        return result.stream().map(this::toMemberPresetProfileImageResponse).toList();
+    }
+
+    public MemberTasteProfileSummaryResponse toMemberTasteProfileSummaryResponse(
+            MemberTasteProfileSummaryResult result) {
+        return new MemberTasteProfileSummaryResponse(
+                result.memberId(),
+                result.profileVersion(),
+                result.attributeCategories().stream()
+                        .map(item -> new MemberTasteAttributeCategoryResponse(
+                                item.id(),
+                                item.categoryType(),
+                                item.code(),
+                                item.name(),
+                                item.sortOrder()
+                        ))
+                        .toList(),
+                result.restrictionIngredients().stream()
+                        .map(item -> new MemberTasteRestrictionIngredientResponse(
+                                item.id(),
+                                item.code(),
+                                item.name(),
+                                item.allergen(),
+                                item.sortOrder()
+                        ))
+                        .toList(),
+                result.dislikedMenuItems().stream()
+                        .map(item -> new MemberTasteDislikedMenuItemResponse(
+                                item.id(),
+                                item.code(),
+                                item.name()
+                        ))
+                        .toList(),
+                result.updatedAt()
+        );
+    }
+
+    public MemberTasteProfileUpdateResponse toMemberTasteProfileUpdateResponse(MemberTasteUpdateResult result) {
+        MemberTasteProfileSummaryResult profileResult = result.profile();
+        MemberTasteProfileSummaryResponse response = toMemberTasteProfileSummaryResponse(profileResult);
+        return new MemberTasteProfileUpdateResponse(
+                response.memberId(),
+                response.profileVersion(),
+                response.attributeCategories(),
+                response.restrictionIngredients(),
+                response.dislikedMenuItems(),
+                response.updatedAt(),
+                result.openPersonalRecommendationId()
+        );
+    }
+
+    public UpdateMemberBasicInfoCommand toUpdateMemberBasicInfoCommand(String nickname) {
+        return new UpdateMemberBasicInfoCommand(nickname);
+    }
+
+    public UpdateMemberPasswordCommand toUpdateMemberPasswordCommand(UpdateMemberPasswordRequest request) {
+        return new UpdateMemberPasswordCommand(request.currentPassword(), request.newPassword());
+    }
+
+    public UpdateMemberPasswordResponse toUpdateMemberPasswordResponse(UpdateMemberPasswordResult result) {
+        return new UpdateMemberPasswordResponse(result.passwordChanged());
+    }
+
+    public UpdateMemberTasteProfileCommand toUpdateMemberTasteProfileCommand(UpdateMemberTasteProfileRequest request) {
+        return new UpdateMemberTasteProfileCommand(
+                request.attributeCategoryIds(),
+                request.restrictionIngredientIds(),
+                request.dislikedMenuItemIds()
+        );
+    }
+
+    public UpdateMemberResponse toUpdateMemberResponse(UpdateMemberResult result) {
+        return new UpdateMemberResponse(result.id(), result.updatedAt(), toOnboardingResponse(result.onboarding()));
+    }
+
+    public WithdrawMemberResponse toWithdrawMemberResponse(WithdrawMemberResult result) {
+        return new WithdrawMemberResponse(result.id(), result.status());
+    }
+
+    private OnboardingStatusResponse toOnboardingResponse(OnboardingStatusResult result) {
+        return new OnboardingStatusResponse(
+                result.requiredAgreementsCompleted(),
+                result.nicknameCompleted(),
+                result.tasteProfileCompleted(),
+                result.completed(),
+                result.nextStep()
+        );
+    }
+}

@@ -1,0 +1,62 @@
+package matchuri.backend.api.group.dto.response;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+public record GroupRecommendationCandidateResponse(
+        @Schema(description = "그룹 추천 후보 ID입니다.", example = "8001")
+        Long candidateId,
+
+        @Schema(description = "후보 메뉴 ID입니다.", example = "1001")
+        Long menuId,
+
+        @Schema(description = "후보 메뉴명입니다.", example = "비빔밥")
+        String menuName,
+
+        @Schema(description = "후보 메뉴 이미지 URL입니다. 이미지가 없으면 null입니다.", example = "https://asset.matchuri.com/menu-items/1001/sample.jpg", nullable = true)
+        String thumbnailUrl,
+
+        @Schema(description = "추천 순위입니다.", example = "1")
+        Integer rankNo,
+
+        @Schema(description = "구성원별 취향 일치율과 비선호 감점을 반영한 0~100 추천 점수입니다. FOOD_CATEGORY와 TEMPERATURE는 유형별로 선택 항목 중 하나만 일치해도 충족됩니다. 찬성 인원 비율이나 만족 확률을 의미하지 않습니다.", example = "91.5")
+        Double score,
+
+        @Schema(description = "현재 찬성 투표 수입니다.", example = "3")
+        Integer voteCount
+) {
+    public static GroupRecommendationCandidateResponse mockBibimbap() {
+        return new GroupRecommendationCandidateResponse(
+                8001L,
+                1001L,
+                "비빔밥",
+                null,
+                1,
+                91.5,
+                3
+        );
+    }
+
+    public static GroupRecommendationCandidateResponse mockPorkCutlet() {
+        return new GroupRecommendationCandidateResponse(
+                8002L,
+                1002L,
+                "돈까스",
+                null,
+                2,
+                84.0,
+                1
+        );
+    }
+
+    public static GroupRecommendationCandidateResponse mockRiceNoodle() {
+        return new GroupRecommendationCandidateResponse(
+                8003L,
+                1003L,
+                "쌀국수",
+                null,
+                3,
+                79.5,
+                0
+        );
+    }
+}
