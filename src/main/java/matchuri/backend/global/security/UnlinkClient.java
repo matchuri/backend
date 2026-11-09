@@ -3,7 +3,7 @@ package matchuri.backend.global.security;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 
 public interface UnlinkClient {
-    boolean support(boolean isSocial, SocialProviderType socialProviderType);
+    boolean support(SocialProviderType socialProviderType);
 
-    void unlink(String providerId);
+    void unlink(Long memberId);
 }

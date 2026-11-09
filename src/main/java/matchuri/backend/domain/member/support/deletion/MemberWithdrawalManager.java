@@ -61,9 +61,9 @@ public class MemberWithdrawalManager {
 
     public void oauth2Unlink(Member member) {
         if (!member.isSocial()) return;
-        Optional<UnlinkClient> client = oAuth2UnlinkClientFactory.getClient(member.isSocial(), member.getSocialProviderType());
+        Optional<UnlinkClient> client = oAuth2UnlinkClientFactory.getClient(member.getSocialProviderType());
         client.ifPresentOrElse(
-                unlinkClient -> unlinkClient.unlink(member.getSocialProviderUserId()),
+                unlinkClient -> unlinkClient.unlink(member.getId()),
                 () -> { throw new AuthenticationException(AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED); }
         );
     }
