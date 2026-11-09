@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
 import jakarta.persistence.EntityManager;
@@ -47,6 +46,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -85,6 +85,9 @@ class MemberDeletionIntegrationTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    @MockitoBean
+    private RestTemplate restTemplate;
 
     @Test
     @DisplayName("탈퇴는 회원과 방장 그룹을 삭제 대기 상태로 전환하고 기존 세션을 폐기한다")
@@ -167,24 +170,21 @@ class MemberDeletionIntegrationTest {
             default -> throw new IllegalArgumentException("Unsupported test provider: " + provider);
         }
 
-        try (var http = mockConstruction(RestTemplate.class, (mock, context) -> {
-            ResponseEntity<?> response = provider == SocialProviderType.KAKAO
-                    ? ResponseEntity.ok(new KakaoUnlinkClient.UnlinkResult(987654321L))
-                    : ResponseEntity.ok().build();
-            doReturn(response).when(mock).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(responseType));
-        })) {
-            Member deleted = withdrawalManager.withdraw(member.getId(), LocalDateTime.of(2026, 11, 9, 12, 0));
+        ResponseEntity<?> response = provider == SocialProviderType.KAKAO
+                ? ResponseEntity.ok(new KakaoUnlinkClient.UnlinkResult(987654321L))
+                : ResponseEntity.ok().build();
+        doReturn(response).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(responseType));
 
-            assertThat(deleted.getStatus()).isEqualTo(MemberStatus.DELETED);
-            assertThat(http.constructed()).hasSize(1);
-            ArgumentCaptor<HttpEntity<?>> request = ArgumentCaptor.captor();
-            verify(http.constructed().getFirst()).exchange(eq(expectedUrl), eq(HttpMethod.POST), request.capture(), eq(responseType));
-            assertThat(request.getValue().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
-            assertThat(request.getValue().getBody()).isEqualTo(expectedBody);
-            if (provider == SocialProviderType.KAKAO) {
-                assertThat(request.getValue().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
-                        .isEqualTo("KakaoAK test-kakao-admin-key");
-            }
+        Member deleted = withdrawalManager.withdraw(member.getId(), LocalDateTime.of(2026, 11, 9, 12, 0));
+
+        assertThat(deleted.getStatus()).isEqualTo(MemberStatus.DELETED);
+        ArgumentCaptor<HttpEntity<?>> request = ArgumentCaptor.captor();
+        verify(restTemplate).exchange(eq(expectedUrl), eq(HttpMethod.POST), request.capture(), eq(responseType));
+        assertThat(request.getValue().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
+        assertThat(request.getValue().getBody()).isEqualTo(expectedBody);
+        if (provider == SocialProviderType.KAKAO) {
+            assertThat(request.getValue().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+                    .isEqualTo("KakaoAK test-kakao-admin-key");
         }
     }
 

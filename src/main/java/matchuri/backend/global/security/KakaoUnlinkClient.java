@@ -23,6 +23,7 @@ public class KakaoUnlinkClient implements UnlinkClient {
 
     public static final String URL = "https://kapi.kakao.com/v1/user/unlink";
     private final MemberRepository memberRepository;
+    private final RestTemplate restTemplate;
 
     @Value("${kakao.admin-key}")
     private String adminKey;
@@ -37,7 +38,6 @@ public class KakaoUnlinkClient implements UnlinkClient {
         String providerId = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(MemberErrorCode.NOT_FOUND)).getSocialProviderUserId();
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, "KakaoAK " + adminKey);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
