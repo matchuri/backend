@@ -27,6 +27,7 @@ public class NaverUnlinkClient implements UnlinkClient {
     private String clientSecret;
 
     private final ProviderTokenService providerTokenService;
+    private final RestTemplate restTemplate;
 
     @Override
     public boolean support(SocialProviderType socialProviderType) {
@@ -37,7 +38,6 @@ public class NaverUnlinkClient implements UnlinkClient {
     public void unlink(Long memberId) {
         String providerRefreshToken = providerTokenService.findByMemberId(memberId);
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 

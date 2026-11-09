@@ -18,6 +18,7 @@ public class GoogleUnlinkClient implements UnlinkClient {
     private final static String URL = "https://oauth2.googleapis.com/revoke";
 
     private final ProviderTokenService providerTokenService;
+    private final RestTemplate restTemplate;
 
     @Override
     public boolean support(SocialProviderType socialProviderType) {
@@ -28,7 +29,6 @@ public class GoogleUnlinkClient implements UnlinkClient {
     public void unlink(Long memberId) {
         String providerRefreshToken = providerTokenService.findByMemberId(memberId);
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
