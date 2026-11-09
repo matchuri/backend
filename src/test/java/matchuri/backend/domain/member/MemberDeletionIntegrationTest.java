@@ -1,6 +1,12 @@
 package matchuri.backend.domain.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
 
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
@@ -8,9 +14,11 @@ import matchuri.backend.domain.auth.entity.AuthExchangeCode;
 import matchuri.backend.domain.auth.entity.AuthRefreshToken;
 import matchuri.backend.domain.auth.entity.EmailVerification;
 import matchuri.backend.domain.auth.entity.EmailVerificationPurpose;
+import matchuri.backend.domain.auth.entity.ProviderRefreshToken;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
+import matchuri.backend.domain.auth.repository.ProviderRefreshTokenRepository;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
@@ -23,16 +31,27 @@ import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.service.MemberPurgeService;
 import matchuri.backend.domain.member.support.deletion.MemberWithdrawalManager;
+import matchuri.backend.global.security.KakaoUnlinkClient;
 import net.ttddyy.dsproxy.QueryCount;
 import net.ttddyy.dsproxy.QueryCountHolder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
-@SpringBootTest
+@SpringBootTest(properties = "kakao.admin-key=test-kakao-admin-key")
 @ActiveProfiles("test")
 @Transactional
 class MemberDeletionIntegrationTest {
@@ -60,6 +79,9 @@ class MemberDeletionIntegrationTest {
 
     @Autowired
     private EmailVerificationRepository emailVerificationRepository;
+
+    @Autowired
+    private ProviderRefreshTokenRepository providerRefreshTokenRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -106,6 +128,64 @@ class MemberDeletionIntegrationTest {
                 .orElseThrow().getStatus()).isEqualTo(GroupMemberStatus.LEFT);
         assertThat(authRefreshTokenRepository.findByMemberId(member.getId())).isEmpty();
         assertThat(authExchangeCodeRepository.findByCode("lifecycle-exchange-code")).isEmpty();
+    }
+
+    @ParameterizedTest
+    @EnumSource(SocialProviderType.class)
+    @DisplayName("소셜 회원 탈퇴는 내부 회원 ID로 제공자 정보를 조회하고 연결 해제 요청을 전송한다")
+    void withdrawsSocialMemberWithProviderUnlink(SocialProviderType provider) {
+        Member member = memberRepository.saveAndFlush(Member.createSocialMember(
+                provider, "987654321", "social@example.com", "소셜탈퇴회원"));
+        if (provider != SocialProviderType.KAKAO) {
+            providerRefreshTokenRepository.saveAndFlush(ProviderRefreshToken.builder()
+                    .member(member).token("provider-refresh-token").build());
+        }
+
+        var expectedBody = new LinkedMultiValueMap<String, String>();
+        String expectedUrl;
+        Class<?> responseType;
+        switch (provider) {
+            case GOOGLE -> {
+                expectedUrl = "https://oauth2.googleapis.com/revoke";
+                expectedBody.add("token", "provider-refresh-token");
+                responseType = Void.class;
+            }
+            case NAVER -> {
+                expectedUrl = "https://nid.naver.com/oauth2.0/revoke";
+                expectedBody.add("client_id", "test-naver-client-id");
+                expectedBody.add("client_secret", "test-naver-client-secret");
+                expectedBody.add("token", "provider-refresh-token");
+                expectedBody.add("token_type_hint", "refresh_token");
+                responseType = Void.class;
+            }
+            case KAKAO -> {
+                expectedUrl = "https://kapi.kakao.com/v1/user/unlink";
+                expectedBody.add("target_id_type", "user_id");
+                expectedBody.add("target_id", "987654321");
+                responseType = KakaoUnlinkClient.UnlinkResult.class;
+            }
+            default -> throw new IllegalArgumentException("Unsupported test provider: " + provider);
+        }
+
+        try (var http = mockConstruction(RestTemplate.class, (mock, context) -> {
+            ResponseEntity<?> response = provider == SocialProviderType.KAKAO
+                    ? ResponseEntity.ok(new KakaoUnlinkClient.UnlinkResult(987654321L))
+                    : ResponseEntity.ok().build();
+            doReturn(response).when(mock).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(responseType));
+        })) {
+            Member deleted = withdrawalManager.withdraw(member.getId(), LocalDateTime.of(2026, 11, 9, 12, 0));
+
+            assertThat(deleted.getStatus()).isEqualTo(MemberStatus.DELETED);
+            assertThat(http.constructed()).hasSize(1);
+            ArgumentCaptor<HttpEntity<?>> request = ArgumentCaptor.captor();
+            verify(http.constructed().getFirst()).exchange(eq(expectedUrl), eq(HttpMethod.POST), request.capture(), eq(responseType));
+            assertThat(request.getValue().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
+            assertThat(request.getValue().getBody()).isEqualTo(expectedBody);
+            if (provider == SocialProviderType.KAKAO) {
+                assertThat(request.getValue().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+                        .isEqualTo("KakaoAK test-kakao-admin-key");
+            }
+        }
     }
 
     @Test
