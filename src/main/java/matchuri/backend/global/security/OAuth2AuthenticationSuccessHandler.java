@@ -14,6 +14,7 @@ import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.exception.ErrorCode;
 import matchuri.backend.global.exception.MatchuriException;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -92,7 +93,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                 AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
     }
 
-    private String resolveProviderRefreshToken(Authentication authentication) {
+    private @Nullable String resolveProviderRefreshToken(Authentication authentication) {
         if (authentication instanceof OAuth2AuthenticationToken oauth2AuthenticationToken) {
             String registrationId = oauth2AuthenticationToken.getAuthorizedClientRegistrationId();
             String name = authentication.getName();
@@ -101,16 +102,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             if (oAuth2AuthorizedClient == null) {
                 throw new IllegalStateException("OAuth2 authorized client not found");
             }
-
-            String providerAccessToken = oAuth2AuthorizedClient.getAccessToken().getTokenValue();
-
             var refreshToken = oAuth2AuthorizedClient.getRefreshToken();
-            String providerRefreshToken = refreshToken == null ? null : refreshToken.getTokenValue();
-
-            log.info("providerAccessToken={}", providerAccessToken);
-            log.info("providerRefreshToken={}", providerRefreshToken);
-
-            return providerRefreshToken;
+            return refreshToken == null ? null : refreshToken.getTokenValue();
         }
 
         throw new IllegalStateException("OAuth2 Provider 리프레시 토큰이 없습니다.");
