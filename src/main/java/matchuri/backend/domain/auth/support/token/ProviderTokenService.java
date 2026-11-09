@@ -28,4 +28,8 @@ public class ProviderTokenService {
         repository.save(providerRefreshToken);
     }
 
+    public String findByMemberId(Long memberId) {
+        ProviderRefreshToken token = repository.findOneByMemberId(memberId);
+        return token.getToken();
+    }
 }

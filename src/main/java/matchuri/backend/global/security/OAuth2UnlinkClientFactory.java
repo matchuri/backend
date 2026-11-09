@@ -12,9 +12,9 @@ public class OAuth2UnlinkClientFactory {
 
     private final List<UnlinkClient> clients;
 
-    public Optional<UnlinkClient> getClient(boolean isSocial, SocialProviderType socialProviderType) {
+    public Optional<UnlinkClient> getClient(SocialProviderType socialProviderType) {
         for (UnlinkClient client : clients) {
-            if (client.support(isSocial, socialProviderType)) {
+            if (client.support(socialProviderType)) {
                 return Optional.of(client);
             }
         }
