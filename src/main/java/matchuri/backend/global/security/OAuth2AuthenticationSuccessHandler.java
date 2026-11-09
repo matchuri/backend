@@ -15,6 +15,8 @@ import matchuri.backend.global.exception.ErrorCode;
 import matchuri.backend.global.exception.MatchuriException;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -30,6 +32,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     private final RefreshTokenCookieService refreshTokenCookieService;
     private final MatchuriOAuth2AuthorizationRequestRepository authorizationRequestRepository;
     private final OAuth2RedirectService redirectService;
+    private final OAuth2AuthorizedClientService authorizedClientService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -40,8 +43,10 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         SocialProviderType provider = resolveProvider(authentication);
         try {
             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+            String refreshToken = resolveProviderRefreshToken(authentication);
             OAuth2LoginResult loginResult = oAuth2LoginService.login(
                     provider,
+                    refreshToken,
                     oauth2User,
                     request.getRemoteAddr()
             );
@@ -85,5 +90,29 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         throw new matchuri.backend.global.exception.AuthenticationException(
                 AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
+    }
+
+    private String resolveProviderRefreshToken(Authentication authentication) {
+        if (authentication instanceof OAuth2AuthenticationToken oauth2AuthenticationToken) {
+            String registrationId = oauth2AuthenticationToken.getAuthorizedClientRegistrationId();
+            String name = authentication.getName();
+            OAuth2AuthorizedClient oAuth2AuthorizedClient = authorizedClientService.loadAuthorizedClient(registrationId, name);
+
+            if (oAuth2AuthorizedClient == null) {
+                throw new IllegalStateException("OAuth2 authorized client not found");
+            }
+
+            String providerAccessToken = oAuth2AuthorizedClient.getAccessToken().getTokenValue();
+
+            var refreshToken = oAuth2AuthorizedClient.getRefreshToken();
+            String providerRefreshToken = refreshToken == null ? null : refreshToken.getTokenValue();
+
+            log.info("providerAccessToken={}", providerAccessToken);
+            log.info("providerRefreshToken={}", providerRefreshToken);
+
+            return providerRefreshToken;
+        }
+
+        throw new IllegalStateException("OAuth2 Provider 리프레시 토큰이 없습니다.");
     }
 }

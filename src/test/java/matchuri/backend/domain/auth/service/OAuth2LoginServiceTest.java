@@ -11,6 +11,7 @@ import matchuri.backend.domain.auth.result.TokenPair;
 import matchuri.backend.domain.auth.support.oauth2.GoogleOAuth2UserInfoResolver;
 import matchuri.backend.domain.auth.support.oauth2.KakaoOAuth2UserInfoResolver;
 import matchuri.backend.domain.auth.support.oauth2.OAuth2MemberService;
+import matchuri.backend.domain.auth.support.token.ProviderTokenService;
 import matchuri.backend.domain.auth.support.token.SessionTokenService;
 import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.SocialProviderType;
@@ -31,6 +32,9 @@ class OAuth2LoginServiceTest {
     @Mock
     private SessionTokenService sessionTokenService;
 
+    @Mock
+    private ProviderTokenService providerTokenService;
+
     @Test
     @DisplayName("provider에 맞는 resolver로 사용자 정보를 정규화한 뒤 로그인 흐름을 진행한다")
     void loginResolvesProviderUserInfoBeforeIssuingTokens() {
@@ -46,7 +50,8 @@ class OAuth2LoginServiceTest {
         OAuth2LoginService service = new OAuth2LoginService(
                 oAuth2MemberService,
                 sessionTokenService,
-                List.of(resolver)
+                List.of(resolver),
+                providerTokenService
         );
         Member member = Member.createSocialMember(SocialProviderType.GOOGLE, "google-user-1", "google@example.com",
                 "구글사용자");
@@ -62,11 +67,12 @@ class OAuth2LoginServiceTest {
         when(sessionTokenService.issueLoginTokenPair(member)).thenReturn(tokenPair);
         when(sessionTokenService.createExchangeCode(member, SocialProviderType.GOOGLE)).thenReturn("exchange-code");
 
-        OAuth2LoginResult result = service.login(SocialProviderType.GOOGLE, oauth2User, "127.0.0.1");
+        OAuth2LoginResult result = service.login(SocialProviderType.GOOGLE, "provider-refresh-token", oauth2User, "127.0.0.1");
 
         verify(oAuth2MemberService).findOrCreateMember(SocialProviderType.GOOGLE, "google-user-1",
                 "google@example.com");
         verify(sessionTokenService).issueLoginTokenPair(member);
+        verify(providerTokenService).saveRefreshTokenLogic(member, "provider-refresh-token");
         verify(sessionTokenService).createExchangeCode(member, SocialProviderType.GOOGLE);
         assertThat(result.refreshToken()).isEqualTo("refresh-token");
         assertThat(result.exchangeCode()).isEqualTo("exchange-code");
@@ -87,7 +93,8 @@ class OAuth2LoginServiceTest {
         OAuth2LoginService service = new OAuth2LoginService(
                 oAuth2MemberService,
                 sessionTokenService,
-                List.of(resolver)
+                List.of(resolver),
+                providerTokenService
         );
         Member member = Member.createSocialMember(SocialProviderType.KAKAO, "123456789", "kakao@example.com",
                 "kakao_kakao");
@@ -103,11 +110,12 @@ class OAuth2LoginServiceTest {
         when(sessionTokenService.issueLoginTokenPair(member)).thenReturn(tokenPair);
         when(sessionTokenService.createExchangeCode(member, SocialProviderType.KAKAO)).thenReturn("exchange-code");
 
-        OAuth2LoginResult result = service.login(SocialProviderType.KAKAO, oauth2User, "127.0.0.1");
+        OAuth2LoginResult result = service.login(SocialProviderType.KAKAO, "provider-refresh-token", oauth2User, "127.0.0.1");
 
         verify(oAuth2MemberService).findOrCreateMember(SocialProviderType.KAKAO, "123456789",
                 "kakao@example.com");
         verify(sessionTokenService).issueLoginTokenPair(member);
+        verify(providerTokenService).saveRefreshTokenLogic(member, "provider-refresh-token");
         verify(sessionTokenService).createExchangeCode(member, SocialProviderType.KAKAO);
         assertThat(result.refreshToken()).isEqualTo("refresh-token");
         assertThat(result.exchangeCode()).isEqualTo("exchange-code");

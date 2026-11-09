@@ -9,6 +9,7 @@ import matchuri.backend.domain.auth.result.TokenPair;
 import matchuri.backend.domain.auth.support.oauth2.OAuth2MemberService;
 import matchuri.backend.domain.auth.support.oauth2.OAuth2ProviderUserInfo;
 import matchuri.backend.domain.auth.support.oauth2.OAuth2UserInfoResolver;
+import matchuri.backend.domain.auth.support.token.ProviderTokenService;
 import matchuri.backend.domain.auth.support.token.SessionTokenService;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.global.exception.AuthenticationException;
@@ -25,10 +26,12 @@ public class OAuth2LoginService {
     private final OAuth2MemberService oAuth2MemberService;
     private final SessionTokenService sessionTokenService;
     private final List<OAuth2UserInfoResolver> userInfoResolvers;
+    private final ProviderTokenService providerTokenService;
 
     @Transactional
     public OAuth2LoginResult login(
             SocialProviderType provider,
+            String providerRefreshToken,
             OAuth2User oauth2User,
             String clientIp
     ) {
@@ -38,6 +41,8 @@ public class OAuth2LoginService {
                 userInfo.providerUserId(),
                 userInfo.email()
         );
+
+        providerTokenService.saveRefreshTokenLogic(member, providerRefreshToken);
         TokenPair tokenPair = sessionTokenService.issueLoginTokenPair(member);
         String exchangeCode = sessionTokenService.createExchangeCode(member, provider);
 
