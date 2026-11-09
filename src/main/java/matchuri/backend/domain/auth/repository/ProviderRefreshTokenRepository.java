@@ -8,4 +8,6 @@ public interface ProviderRefreshTokenRepository extends JpaRepository<ProviderRe
     List<ProviderRefreshToken> findByMemberId(Long memberId);
 
     boolean existsByMemberId(Long memberId);
+
+    ProviderRefreshToken findOneByMemberId(Long memberId);
 }
