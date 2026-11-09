@@ -1,5 +1,6 @@
 package matchuri.backend.domain.auth.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -33,5 +34,6 @@ public class ProviderRefreshToken {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
 
+    @Column(length = 512)
     private String token;
 }
