@@ -18,6 +18,8 @@ import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
 import matchuri.backend.domain.auth.repository.ProviderRefreshTokenRepository;
+import matchuri.backend.domain.auth.support.token.ProviderTokenCipher;
+import matchuri.backend.domain.auth.support.token.ProviderTokenService;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
@@ -84,6 +86,12 @@ class MemberDeletionIntegrationTest {
     private ProviderRefreshTokenRepository providerRefreshTokenRepository;
 
     @Autowired
+    private ProviderTokenCipher providerTokenCipher;
+
+    @Autowired
+    private ProviderTokenService providerTokenService;
+
+    @Autowired
     private EntityManager entityManager;
 
     @MockitoBean
@@ -141,7 +149,7 @@ class MemberDeletionIntegrationTest {
                 provider, "987654321", "social@example.com", "소셜탈퇴회원"));
         if (provider != SocialProviderType.KAKAO) {
             providerRefreshTokenRepository.saveAndFlush(ProviderRefreshToken.builder()
-                    .member(member).token("provider-refresh-token").build());
+                    .member(member).token(providerTokenCipher.encrypt("provider-refresh-token")).build());
         }
 
         var expectedBody = new LinkedMultiValueMap<String, String>();
@@ -186,6 +194,47 @@ class MemberDeletionIntegrationTest {
             assertThat(request.getValue().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
                     .isEqualTo("KakaoAK test-kakao-admin-key");
         }
+    }
+
+    @Test
+    @DisplayName("provider 토큰은 최초 저장과 갱신 모두 암호화하고 조회할 때 복호화한다")
+    void encryptsProviderRefreshTokenOnInsertAndUpdate() {
+        Member member = saveMember("provider-token-upsert", "토큰갱신회원");
+        providerTokenService.upsert(member, "first-provider-refresh-token");
+        providerRefreshTokenRepository.flush();
+        entityManager.clear();
+
+        ProviderRefreshToken stored = providerRefreshTokenRepository.findOneByMemberId(member.getId());
+        assertThat(stored.getToken()).isNotEqualTo("first-provider-refresh-token");
+        assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo("first-provider-refresh-token");
+
+        providerTokenService.upsert(member, null);
+        providerTokenService.upsert(member, "");
+        assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo("first-provider-refresh-token");
+
+        providerTokenService.upsert(member, "updated-provider-refresh-token");
+        providerRefreshTokenRepository.flush();
+        entityManager.clear();
+
+        stored = providerRefreshTokenRepository.findOneByMemberId(member.getId());
+        assertThat(stored.getToken()).isNotEqualTo("updated-provider-refresh-token");
+        assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo("updated-provider-refresh-token");
+        assertThat(providerRefreshTokenRepository.findByMemberId(member.getId())).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("512자 provider 토큰은 암호화된 상태로 DB에 저장하고 다시 조회할 수 있다")
+    void storesEncryptedProviderRefreshTokenWithinSupportedLength() {
+        Member member = saveMember("provider-token-length", "토큰길이회원");
+        String token = "r".repeat(512);
+
+        providerTokenService.upsert(member, token);
+        providerRefreshTokenRepository.flush();
+        entityManager.clear();
+
+        ProviderRefreshToken stored = providerRefreshTokenRepository.findOneByMemberId(member.getId());
+        assertThat(stored.getToken()).isNotEqualTo(token);
+        assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo(token);
     }
 
     @Test

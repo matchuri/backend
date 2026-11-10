@@ -11,15 +11,23 @@ import org.springframework.stereotype.Service;
 public class ProviderTokenService {
 
     private final ProviderRefreshTokenRepository repository;
+    private final ProviderTokenCipher tokenCipher;
 
-    public void saveRefreshTokenLogic(Member member, String token) {
-        boolean exists = repository.existsByMemberId(member.getId());
-        if (!exists) {
-            saveRefreshToken(member, token);
+    public void upsert(Member member, String token) {
+        if (token == null || token.isEmpty()) return;
+
+        ProviderRefreshToken existing = repository.findOneByMemberId(member.getId());
+        String encryptedToken = tokenCipher.encrypt(token);
+
+        if (existing != null) {
+            existing.updateToken(encryptedToken);
+            return;
         }
+
+        save(member, encryptedToken);
     }
 
-    public void saveRefreshToken(Member member, String token) {
+    public void save(Member member, String token) {
         ProviderRefreshToken providerRefreshToken = ProviderRefreshToken.builder()
                 .member(member)
                 .token(token)
@@ -30,6 +38,6 @@ public class ProviderTokenService {
 
     public String findByMemberId(Long memberId) {
         ProviderRefreshToken token = repository.findOneByMemberId(memberId);
-        return token.getToken();
+        return tokenCipher.decrypt(token.getToken());
     }
 }

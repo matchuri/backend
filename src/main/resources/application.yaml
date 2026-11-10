@@ -98,6 +98,8 @@ matchuri:
     purge-cron: ${MATCHURI_MEMBER_DELETION_PURGE_CRON:0 0 * * * *}
     grace-period-day: ${MATCHURI_MEMBER_DELETION_GRACE_PERIOD_DAY:3}
   auth:
+    provider-token:
+      encryption-key: ${MATCHURI_PROVIDER_TOKEN_AES_KEY}
     public-api-patterns:
       - /error
     public-get-api-patterns:

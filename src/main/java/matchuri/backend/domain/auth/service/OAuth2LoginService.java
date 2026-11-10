@@ -42,7 +42,7 @@ public class OAuth2LoginService {
                 userInfo.email()
         );
 
-        providerTokenService.saveRefreshTokenLogic(member, providerRefreshToken);
+        providerTokenService.upsert(member, providerRefreshToken);
         TokenPair tokenPair = sessionTokenService.issueLoginTokenPair(member);
         String exchangeCode = sessionTokenService.createExchangeCode(member, provider);
 
