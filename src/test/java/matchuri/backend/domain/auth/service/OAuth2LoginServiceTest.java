@@ -72,7 +72,7 @@ class OAuth2LoginServiceTest {
         verify(oAuth2MemberService).findOrCreateMember(SocialProviderType.GOOGLE, "google-user-1",
                 "google@example.com");
         verify(sessionTokenService).issueLoginTokenPair(member);
-        verify(providerTokenService).saveRefreshTokenLogic(member, "provider-refresh-token");
+        verify(providerTokenService).upsert(member, "provider-refresh-token");
         verify(sessionTokenService).createExchangeCode(member, SocialProviderType.GOOGLE);
         assertThat(result.refreshToken()).isEqualTo("refresh-token");
         assertThat(result.exchangeCode()).isEqualTo("exchange-code");
@@ -115,7 +115,7 @@ class OAuth2LoginServiceTest {
         verify(oAuth2MemberService).findOrCreateMember(SocialProviderType.KAKAO, "123456789",
                 "kakao@example.com");
         verify(sessionTokenService).issueLoginTokenPair(member);
-        verify(providerTokenService).saveRefreshTokenLogic(member, "provider-refresh-token");
+        verify(providerTokenService).upsert(member, "provider-refresh-token");
         verify(sessionTokenService).createExchangeCode(member, SocialProviderType.KAKAO);
         assertThat(result.refreshToken()).isEqualTo("refresh-token");
         assertThat(result.exchangeCode()).isEqualTo("exchange-code");

@@ -36,4 +36,8 @@ public class ProviderRefreshToken {
 
     @Column(length = 512)
     private String token;
+
+    public void updateToken(String token) {
+        this.token = token;
+    }
 }
