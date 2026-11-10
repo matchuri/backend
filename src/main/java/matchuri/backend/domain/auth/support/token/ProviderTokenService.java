@@ -20,7 +20,7 @@ public class ProviderTokenService {
         String encryptedToken = tokenCipher.encrypt(token);
 
         if (existing != null) {
-            existing.updateToken(token);
+            existing.updateToken(encryptedToken);
             return;
         }
 

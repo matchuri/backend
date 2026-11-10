@@ -34,7 +34,7 @@ public class ProviderRefreshToken {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
 
-    @Column(length = 512)
+    @Column(length = 1024)
     private String token;
 
     public void updateToken(String token) {
