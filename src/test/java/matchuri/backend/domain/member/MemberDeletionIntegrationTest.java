@@ -33,6 +33,7 @@ import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.service.MemberPurgeService;
 import matchuri.backend.domain.member.support.deletion.MemberWithdrawalManager;
 import matchuri.backend.global.security.KakaoUnlinkClient;
+import matchuri.backend.global.security.OAuth2Unlinker;
 import net.ttddyy.dsproxy.QueryCount;
 import net.ttddyy.dsproxy.QueryCountHolder;
 import org.junit.jupiter.api.DisplayName;
@@ -60,6 +61,9 @@ class MemberDeletionIntegrationTest {
 
     @Autowired
     private MemberWithdrawalManager withdrawalManager;
+
+    @Autowired
+    private OAuth2Unlinker oAuth2Unlinker;
 
     @Autowired
     private MemberPurgeService memberPurgeService;
@@ -143,8 +147,8 @@ class MemberDeletionIntegrationTest {
 
     @ParameterizedTest
     @EnumSource(SocialProviderType.class)
-    @DisplayName("소셜 회원 탈퇴는 내부 회원 ID로 제공자 정보를 조회하고 연결 해제 요청을 전송한다")
-    void withdrawsSocialMemberWithProviderUnlink(SocialProviderType provider) {
+    @DisplayName("소셜 회원 연결 해제는 내부 회원 ID로 제공자 정보를 조회하고 제공자별 요청을 전송한다")
+    void unlinksSocialMemberFromProvider(SocialProviderType provider) {
         Member member = memberRepository.saveAndFlush(Member.createSocialMember(
                 provider, "987654321", "social@example.com", "소셜탈퇴회원"));
         if (provider != SocialProviderType.KAKAO) {
@@ -183,9 +187,8 @@ class MemberDeletionIntegrationTest {
                 : ResponseEntity.ok().build();
         doReturn(response).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(responseType));
 
-        Member deleted = withdrawalManager.withdraw(member.getId(), LocalDateTime.of(2026, 11, 9, 12, 0));
+        oAuth2Unlinker.unlink(member.getId());
 
-        assertThat(deleted.getStatus()).isEqualTo(MemberStatus.DELETED);
         ArgumentCaptor<HttpEntity<?>> request = ArgumentCaptor.captor();
         verify(restTemplate).exchange(eq(expectedUrl), eq(HttpMethod.POST), request.capture(), eq(responseType));
         assertThat(request.getValue().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
