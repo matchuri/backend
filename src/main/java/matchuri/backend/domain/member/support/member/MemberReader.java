@@ -14,6 +14,11 @@ public class MemberReader {
 
     private final MemberRepository memberRepository;
 
+    public Member get(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.NOT_FOUND, memberId));
+    }
+
     public Member getActiveMember(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(MemberErrorCode.NOT_FOUND, memberId));
