@@ -1,9 +1,7 @@
 package matchuri.backend.domain.member.support.deletion;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.group.repository.GroupRoomRepository;
@@ -13,10 +11,7 @@ import matchuri.backend.domain.member.entity.Member;
 import matchuri.backend.domain.member.entity.MemberStatus;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberRepository;
-import matchuri.backend.global.exception.AuthenticationException;
 import matchuri.backend.global.exception.BusinessException;
-import matchuri.backend.global.security.OAuth2UnlinkClientFactory;
-import matchuri.backend.global.security.UnlinkClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +28,6 @@ public class MemberWithdrawalManager {
     private final GroupMemberDepartureManager groupMemberDepartureManager;
     private final AuthRefreshTokenRepository authRefreshTokenRepository;
     private final AuthExchangeCodeRepository authExchangeCodeRepository;
-    private final OAuth2UnlinkClientFactory oAuth2UnlinkClientFactory;
 
     public Member withdraw(Long memberId, LocalDateTime deletedAt) {
         Member member = memberRepository.findByIdForUpdate(memberId)
@@ -49,7 +43,6 @@ public class MemberWithdrawalManager {
                 .forEach(membership -> groupMemberDepartureManager.leave(membership, deletedAt));
 
         deleteTokens(memberId);
-        oauth2Unlink(member);
 
         return member;
     }
@@ -57,14 +50,5 @@ public class MemberWithdrawalManager {
     public void deleteTokens(Long memberId) {
         authRefreshTokenRepository.deleteByMemberId(memberId);
         authExchangeCodeRepository.deleteByMemberId(memberId);
-    }
-
-    public void oauth2Unlink(Member member) {
-        if (!member.isSocial()) return;
-        Optional<UnlinkClient> client = oAuth2UnlinkClientFactory.getClient(member.getSocialProviderType());
-        client.ifPresentOrElse(
-                unlinkClient -> unlinkClient.unlink(member.getId()),
-                () -> { throw new AuthenticationException(AuthErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED); }
-        );
     }
 }
