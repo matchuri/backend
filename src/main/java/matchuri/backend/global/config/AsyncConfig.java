@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Slf4j
 @Configuration
@@ -13,6 +14,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class AsyncConfig {
 
     public static final String OAUTH_UNLINK_EXECUTOR = "oauthUnlinkExecutor";
+    public static final String OAUTH_UNLINK_RETRY_SCHEDULER = "oauthUnlinkRetryScheduler";
 
     @Bean(OAUTH_UNLINK_EXECUTOR)
     public Executor oauthUnlinkExecutor() {
@@ -25,5 +27,12 @@ public class AsyncConfig {
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(10);
         return executor;
+    }
+
+    @Bean(name = OAUTH_UNLINK_RETRY_SCHEDULER, defaultCandidate = false)
+    public ThreadPoolTaskScheduler oauthUnlinkRetryScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setThreadNamePrefix("oauth-unlink-retry-");
+        return scheduler;
     }
 }

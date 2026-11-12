@@ -100,6 +100,8 @@ matchuri:
   auth:
     provider-token:
       encryption-key: ${MATCHURI_PROVIDER_TOKEN_AES_KEY}
+    oauth-unlink:
+      retry-delays: ${MATCHURI_OAUTH_UNLINK_RETRY_DELAYS:5m,30m,2h}
     public-api-patterns:
       - /error
     public-get-api-patterns:
