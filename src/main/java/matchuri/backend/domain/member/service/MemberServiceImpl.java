@@ -66,7 +66,9 @@ import matchuri.backend.domain.recommendation.entity.PersonalRecommendationStatu
 import matchuri.backend.domain.recommendation.repository.PersonalRecommendationRepository;
 import matchuri.backend.global.exception.BusinessException;
 import matchuri.backend.global.exception.RequestValidationException;
+import matchuri.backend.global.security.OAuthUnlinkEvent;
 import org.jspecify.annotations.Nullable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -98,6 +100,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberProfileImageManager memberProfileImageManager;
     private final ImageUrlResolver imageUrlResolver;
     private final MemberWithdrawalManager memberWithdrawalManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public boolean existsByLoginId(String loginId) {
@@ -399,6 +402,10 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public WithdrawMemberResult withdraw(Long memberId) {
         Member member = memberWithdrawalManager.withdraw(memberId, LocalDateTime.now(ZoneOffset.UTC));
+
+        if (member.isSocial()) {
+            eventPublisher.publishEvent(new OAuthUnlinkEvent(memberId));
+        }
 
         return WithdrawMemberResult.from(member);
     }

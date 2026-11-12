@@ -3,10 +3,12 @@ package matchuri.backend.domain.member.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -34,6 +36,7 @@ import matchuri.backend.domain.member.entity.MemberTasteProfile;
 import matchuri.backend.domain.member.entity.MemberTasteProfileCategory;
 import matchuri.backend.domain.member.entity.MemberTasteProfileDislikedMenuItem;
 import matchuri.backend.domain.member.entity.MemberTasteProfileRestrictionIngredient;
+import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.domain.member.repository.MemberAgreementRepository;
 import matchuri.backend.domain.member.repository.MemberHomeRow;
@@ -55,10 +58,12 @@ import matchuri.backend.domain.member.result.OnboardingStatusResult;
 import matchuri.backend.domain.member.result.RegisterLocalMemberResult;
 import matchuri.backend.domain.member.result.UpdateMemberResult;
 import matchuri.backend.domain.member.support.agreement.RequiredAgreementRequestValidator;
+import matchuri.backend.domain.member.support.deletion.MemberWithdrawalManager;
 import matchuri.backend.domain.member.support.member.MemberReader;
 import matchuri.backend.domain.member.support.onboarding.OnboardingStatusResolver;
 import matchuri.backend.domain.member.support.profile.MemberProfileImageManager;
 import matchuri.backend.domain.image.support.ImageUrlResolver;
+import matchuri.backend.global.security.OAuthUnlinkEvent;
 import matchuri.backend.domain.menu.entity.AttributeCategory;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.menu.entity.Ingredient;
@@ -76,6 +81,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -138,6 +144,12 @@ class MemberServiceImplTest {
 
     @Mock
     private ImageUrlResolver imageUrlResolver;
+
+    @Mock
+    private MemberWithdrawalManager memberWithdrawalManager;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private MemberServiceImpl memberService;
@@ -751,4 +763,26 @@ class MemberServiceImplTest {
         assertThat(profileResult.dislikedMenuItems()).isEmpty();
         assertThat(result.openPersonalRecommendationId()).isNull();
     }
-}
+
+    @Test
+    @DisplayName("소셜 회원 탈퇴는 커밋 이후 처리할 OAuth unlink 이벤트를 발행한다")
+    void withdrawPublishesUnlinkEventForSocialMember() {
+        Member member = Member.builder().id(1L).social(true).socialProviderType(SocialProviderType.KAKAO)
+                .socialProviderUserId("kakao-1").memberRole(MemberRole.MEMBER).status(MemberStatus.DELETED).build();
+        when(memberWithdrawalManager.withdraw(eq(1L), any(LocalDateTime.class))).thenReturn(member);
+
+        memberService.withdraw(1L);
+
+        verify(eventPublisher).publishEvent(new OAuthUnlinkEvent(1L));
+    }
+
+    @Test
+    @DisplayName("일반 회원 탈퇴는 OAuth unlink 이벤트를 발행하지 않는다")
+    void withdrawDoesNotPublishUnlinkEventForLocalMember() {
+        Member member = Member.builder().id(2L).memberRole(MemberRole.MEMBER).status(MemberStatus.DELETED).build();
+        when(memberWithdrawalManager.withdraw(eq(2L), any(LocalDateTime.class))).thenReturn(member);
+
+        memberService.withdraw(2L);
+
+        verifyNoInteractions(eventPublisher);
+    }}

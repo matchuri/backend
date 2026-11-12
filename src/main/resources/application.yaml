@@ -96,8 +96,12 @@ spring:
 matchuri:
   member-deletion:
     purge-cron: ${MATCHURI_MEMBER_DELETION_PURGE_CRON:0 0 * * * *}
-    grace-period-day: 3
+    grace-period-day: ${MATCHURI_MEMBER_DELETION_GRACE_PERIOD_DAY:3}
   auth:
+    provider-token:
+      encryption-key: ${MATCHURI_PROVIDER_TOKEN_AES_KEY}
+    oauth-unlink:
+      retry-delays: ${MATCHURI_OAUTH_UNLINK_RETRY_DELAYS:5m,30m,2h}
     public-api-patterns:
       - /error
     public-get-api-patterns:
@@ -227,3 +231,6 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+
+kakao:
+  admin-key: ${MATCHURI_KAKAO_ADMIN_KEY:dummy}

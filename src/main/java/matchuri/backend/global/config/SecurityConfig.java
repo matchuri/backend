@@ -20,6 +20,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -39,6 +43,7 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
     private final RequiredAgreementAccessFilter requiredAgreementAccessFilter;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Bean
     @Order(1)
@@ -89,7 +94,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(authorization -> authorization.authorizationRequestRepository(authorizationRequestRepository))
+                        .authorizationEndpoint(authorization -> authorization
+                                .authorizationRequestResolver(oauth2AuthorizationRequestResolver())
+                                .authorizationRequestRepository(authorizationRequestRepository)
+                        )
                         .successHandler(oauth2AuthenticationSuccessHandler)
                         .failureHandler(oauth2AuthenticationFailureHandler)
                 )
@@ -126,5 +134,28 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private OAuth2AuthorizationRequestResolver oauth2AuthorizationRequestResolver() {
+        var resolver = new DefaultOAuth2AuthorizationRequestResolver(
+                clientRegistrationRepository,
+                "/oauth2/authorization"
+        );
+
+        resolver.setAuthorizationRequestCustomizer(builder -> {
+            builder.attributes(attributes -> {
+                Object registrationId =
+                        attributes.get(OAuth2ParameterNames.REGISTRATION_ID);
+
+                if ("google".equals(registrationId)) {
+                    builder.additionalParameters(parameters -> {
+                        parameters.put("access_type", "offline");
+                        parameters.put("prompt", "consent");
+                    });
+                }
+            });
+        });
+
+        return resolver;
     }
 }
