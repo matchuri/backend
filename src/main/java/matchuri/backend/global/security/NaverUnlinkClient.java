@@ -37,6 +37,7 @@ public class NaverUnlinkClient implements UnlinkClient {
     @Override
     public void unlink(Long memberId) {
         String providerRefreshToken = providerTokenService.findByMemberId(memberId);
+        if (providerRefreshToken == null) return;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

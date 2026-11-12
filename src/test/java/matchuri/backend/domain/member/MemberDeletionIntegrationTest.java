@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -199,6 +201,31 @@ class MemberDeletionIntegrationTest {
         }
     }
 
+    @ParameterizedTest
+    @EnumSource(value = SocialProviderType.class, names = {"GOOGLE", "NAVER"})
+    @DisplayName("저장된 provider 토큰이 없어도 탈퇴하고 외부 연결 해제 요청은 보내지 않는다")
+    void withdrawsAndSkipsUnlinkWhenProviderTokenIsMissing(SocialProviderType provider) {
+        Member member = memberRepository.saveAndFlush(Member.createSocialMember(
+                provider, "missing-provider-token", "missing-token@example.com", "토큰없는탈퇴회원"));
+
+        Member withdrawn = withdrawalManager.withdraw(member.getId(), LocalDateTime.of(2026, 9, 11, 10, 0));
+        oAuth2Unlinker.unlink(member.getId());
+
+        assertThat(withdrawn.getStatus()).isEqualTo(MemberStatus.DELETED);
+        verifyNoInteractions(restTemplate);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @DisplayName("저장된 provider 토큰 값이 null 또는 빈 문자열이면 조회 결과는 null이다")
+    void returnsNullForEmptyStoredProviderToken(String token) {
+        Member member = saveMember("provider-token-empty", "빈토큰회원");
+        providerRefreshTokenRepository.saveAndFlush(ProviderRefreshToken.builder()
+                .member(member).token(token).build());
+
+        assertThat(providerTokenService.findByMemberId(member.getId())).isNull();
+    }
+
     @Test
     @DisplayName("provider 토큰은 최초 저장과 갱신 모두 암호화하고 조회할 때 복호화한다")
     void encryptsProviderRefreshTokenOnInsertAndUpdate() {
@@ -207,7 +234,7 @@ class MemberDeletionIntegrationTest {
         providerRefreshTokenRepository.flush();
         entityManager.clear();
 
-        ProviderRefreshToken stored = providerRefreshTokenRepository.findOneByMemberId(member.getId());
+        ProviderRefreshToken stored = providerRefreshTokenRepository.findOneByMemberId(member.getId()).orElseThrow();
         assertThat(stored.getToken()).isNotEqualTo("first-provider-refresh-token");
         assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo("first-provider-refresh-token");
 
@@ -219,7 +246,7 @@ class MemberDeletionIntegrationTest {
         providerRefreshTokenRepository.flush();
         entityManager.clear();
 
-        stored = providerRefreshTokenRepository.findOneByMemberId(member.getId());
+        stored = providerRefreshTokenRepository.findOneByMemberId(member.getId()).orElseThrow();
         assertThat(stored.getToken()).isNotEqualTo("updated-provider-refresh-token");
         assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo("updated-provider-refresh-token");
         assertThat(providerRefreshTokenRepository.findByMemberId(member.getId())).hasSize(1);
@@ -235,7 +262,7 @@ class MemberDeletionIntegrationTest {
         providerRefreshTokenRepository.flush();
         entityManager.clear();
 
-        ProviderRefreshToken stored = providerRefreshTokenRepository.findOneByMemberId(member.getId());
+        ProviderRefreshToken stored = providerRefreshTokenRepository.findOneByMemberId(member.getId()).orElseThrow();
         assertThat(stored.getToken()).isNotEqualTo(token);
         assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo(token);
     }
