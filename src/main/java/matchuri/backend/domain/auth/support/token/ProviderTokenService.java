@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import matchuri.backend.domain.auth.entity.ProviderRefreshToken;
 import matchuri.backend.domain.auth.repository.ProviderRefreshTokenRepository;
 import matchuri.backend.domain.member.entity.Member;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,16 +16,12 @@ public class ProviderTokenService {
 
     public void upsert(Member member, String token) {
         if (token == null || token.isEmpty()) return;
-
-        ProviderRefreshToken existing = repository.findOneByMemberId(member.getId());
         String encryptedToken = tokenCipher.encrypt(token);
 
-        if (existing != null) {
-            existing.updateToken(encryptedToken);
-            return;
-        }
-
-        save(member, encryptedToken);
+        repository.findOneByMemberId(member.getId()).ifPresentOrElse(
+                existing -> existing.updateToken(encryptedToken),
+                () -> save(member, encryptedToken)
+        );
     }
 
     public void save(Member member, String token) {
@@ -36,8 +33,11 @@ public class ProviderTokenService {
         repository.save(providerRefreshToken);
     }
 
-    public String findByMemberId(Long memberId) {
-        ProviderRefreshToken token = repository.findOneByMemberId(memberId);
-        return tokenCipher.decrypt(token.getToken());
+    public @Nullable String findByMemberId(Long memberId) {
+        return repository.findOneByMemberId(memberId)
+                .map(ProviderRefreshToken::getToken)
+                .filter(token -> !token.isBlank())
+                .map(tokenCipher::decrypt)
+                .orElse(null);
     }
 }
