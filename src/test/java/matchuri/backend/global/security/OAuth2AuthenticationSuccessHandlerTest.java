@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Map;
 import matchuri.backend.domain.auth.exception.AuthErrorCode;
 import matchuri.backend.domain.auth.result.OAuth2LoginResult;
@@ -13,6 +14,7 @@ import matchuri.backend.domain.auth.support.token.RefreshTokenCookieService;
 import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.exception.MemberErrorCode;
 import matchuri.backend.global.exception.BusinessException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +23,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -41,8 +48,22 @@ class OAuth2AuthenticationSuccessHandlerTest {
     @Mock
     private OAuth2RedirectService redirectService;
 
+    @Mock
+    private OAuth2AuthorizedClientService authorizedClientService;
+
     @InjectMocks
     private OAuth2AuthenticationSuccessHandler successHandler;
+
+    @BeforeEach
+    void setUpProviderRefreshToken() {
+        var registration = CommonOAuth2Provider.GOOGLE.getBuilder("google")
+                .clientId("test-client-id").clientSecret("test-client-secret").build();
+        Instant now = Instant.now();
+        when(authorizedClientService.loadAuthorizedClient("google", "google-user-1"))
+                .thenReturn(new OAuth2AuthorizedClient(registration, "google-user-1",
+                        new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "provider-access-token", now, now.plusSeconds(3600)),
+                        new OAuth2RefreshToken("provider-refresh-token", now)));
+    }
 
     @Test
     @DisplayName("OAuth2 로그인 성공 시 쿠키를 정리하고 refresh token을 설정한 뒤 성공 URL로 리다이렉트한다")
@@ -53,7 +74,8 @@ class OAuth2AuthenticationSuccessHandlerTest {
         Authentication authentication = authentication(
                 createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
 
-        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class),
+        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE),
+                org.mockito.Mockito.eq("provider-refresh-token"), any(OAuth2User.class),
                 org.mockito.Mockito.eq("127.0.0.1")))
                 .thenReturn(new OAuth2LoginResult(1L, "refresh-token", "exchange-code"));
         when(redirectService.buildSuccessRedirectUrl(SocialProviderType.GOOGLE, "exchange-code"))
@@ -78,7 +100,8 @@ class OAuth2AuthenticationSuccessHandlerTest {
         Authentication authentication = authentication(
                 createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
 
-        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class),
+        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE),
+                org.mockito.Mockito.eq("provider-refresh-token"), any(OAuth2User.class),
                 org.mockito.Mockito.eq("127.0.0.1")))
                 .thenThrow(new IllegalStateException("boom"));
         when(redirectService.buildFailureRedirectUrl(SocialProviderType.GOOGLE, AuthErrorCode.OAUTH2_PROCESSING_FAILED))
@@ -103,7 +126,8 @@ class OAuth2AuthenticationSuccessHandlerTest {
         Authentication authentication = authentication(
                 createOAuth2User("google-user-1", "google@example.com", "구글사용자"));
 
-        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE), any(OAuth2User.class),
+        when(oAuth2LoginService.login(org.mockito.Mockito.eq(SocialProviderType.GOOGLE),
+                org.mockito.Mockito.eq("provider-refresh-token"), any(OAuth2User.class),
                 org.mockito.Mockito.eq("127.0.0.1")))
                 .thenThrow(new BusinessException(MemberErrorCode.INACTIVE_MEMBER));
         when(redirectService.buildFailureRedirectUrl(SocialProviderType.GOOGLE, MemberErrorCode.INACTIVE_MEMBER))

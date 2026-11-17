@@ -22,7 +22,7 @@ public class MemberPurgeScheduler {
     private final MemberRepository memberRepository;
     private final MemberPurgeService memberPurgeService;
 
-    @Scheduled(cron = "${matchuri.member-deletion.purge-cron:0 0 * * * *}", zone = "UTC")
+    @Scheduled(cron = "${matchuri.member-deletion.purge-cron}", zone = "UTC")
     public void purgeDueMembers() {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         int purgedCount = 0;

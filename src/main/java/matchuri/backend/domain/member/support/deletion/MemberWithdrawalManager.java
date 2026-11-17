@@ -41,9 +41,14 @@ public class MemberWithdrawalManager {
         groupRoomRepository.findOwnedNotDeletedForUpdate(memberId).forEach(room -> room.delete(deletedAt));
         groupRoomMemberRepository.findActiveMembershipsInOtherRooms(memberId)
                 .forEach(membership -> groupMemberDepartureManager.leave(membership, deletedAt));
-        authRefreshTokenRepository.deleteByMemberId(memberId);
-        authExchangeCodeRepository.deleteByMemberId(memberId);
+
+        deleteTokens(memberId);
 
         return member;
+    }
+
+    public void deleteTokens(Long memberId) {
+        authRefreshTokenRepository.deleteByMemberId(memberId);
+        authExchangeCodeRepository.deleteByMemberId(memberId);
     }
 }

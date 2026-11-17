@@ -4,9 +4,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import java.time.Duration;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -44,6 +47,10 @@ public class MatchuriProperties {
         @Valid
         @NotNull
         private OAuth2 oauth2;
+
+        @Valid
+        @NotNull
+        private OAuthUnlink oauthUnlink;
 
         @Valid
         @NotNull
@@ -93,6 +100,14 @@ public class MatchuriProperties {
 
         @Positive
         private long exchangeCodeExpirationSeconds;
+    }
+
+    @Getter
+    @Setter
+    public static class OAuthUnlink {
+        @NotNull
+        @Size(min = 3, max = 3)
+        private List<@NotNull @DurationMin(nanos = 1) Duration> retryDelays;
     }
 
     @Getter

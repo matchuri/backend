@@ -1,6 +1,12 @@
 package matchuri.backend.domain.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
@@ -8,9 +14,13 @@ import matchuri.backend.domain.auth.entity.AuthExchangeCode;
 import matchuri.backend.domain.auth.entity.AuthRefreshToken;
 import matchuri.backend.domain.auth.entity.EmailVerification;
 import matchuri.backend.domain.auth.entity.EmailVerificationPurpose;
+import matchuri.backend.domain.auth.entity.ProviderRefreshToken;
 import matchuri.backend.domain.auth.repository.AuthExchangeCodeRepository;
 import matchuri.backend.domain.auth.repository.AuthRefreshTokenRepository;
 import matchuri.backend.domain.auth.repository.EmailVerificationRepository;
+import matchuri.backend.domain.auth.repository.ProviderRefreshTokenRepository;
+import matchuri.backend.domain.auth.support.token.ProviderTokenCipher;
+import matchuri.backend.domain.auth.support.token.ProviderTokenService;
 import matchuri.backend.domain.group.entity.GroupMemberRole;
 import matchuri.backend.domain.group.entity.GroupMemberStatus;
 import matchuri.backend.domain.group.entity.GroupRoom;
@@ -23,22 +33,39 @@ import matchuri.backend.domain.member.entity.SocialProviderType;
 import matchuri.backend.domain.member.repository.MemberRepository;
 import matchuri.backend.domain.member.service.MemberPurgeService;
 import matchuri.backend.domain.member.support.deletion.MemberWithdrawalManager;
+import matchuri.backend.global.security.KakaoUnlinkClient;
+import matchuri.backend.global.security.OAuth2Unlinker;
 import net.ttddyy.dsproxy.QueryCount;
 import net.ttddyy.dsproxy.QueryCountHolder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
-@SpringBootTest
+@SpringBootTest(properties = "kakao.admin-key=test-kakao-admin-key")
 @ActiveProfiles("test")
 @Transactional
 class MemberDeletionIntegrationTest {
 
     @Autowired
     private MemberWithdrawalManager withdrawalManager;
+
+    @Autowired
+    private OAuth2Unlinker oAuth2Unlinker;
 
     @Autowired
     private MemberPurgeService memberPurgeService;
@@ -62,7 +89,19 @@ class MemberDeletionIntegrationTest {
     private EmailVerificationRepository emailVerificationRepository;
 
     @Autowired
+    private ProviderRefreshTokenRepository providerRefreshTokenRepository;
+
+    @Autowired
+    private ProviderTokenCipher providerTokenCipher;
+
+    @Autowired
+    private ProviderTokenService providerTokenService;
+
+    @Autowired
     private EntityManager entityManager;
+
+    @MockitoBean
+    private RestTemplate restTemplate;
 
     @Test
     @DisplayName("탈퇴는 회원과 방장 그룹을 삭제 대기 상태로 전환하고 기존 세션을 폐기한다")
@@ -106,6 +145,126 @@ class MemberDeletionIntegrationTest {
                 .orElseThrow().getStatus()).isEqualTo(GroupMemberStatus.LEFT);
         assertThat(authRefreshTokenRepository.findByMemberId(member.getId())).isEmpty();
         assertThat(authExchangeCodeRepository.findByCode("lifecycle-exchange-code")).isEmpty();
+    }
+
+    @ParameterizedTest
+    @EnumSource(SocialProviderType.class)
+    @DisplayName("소셜 회원 연결 해제는 내부 회원 ID로 제공자 정보를 조회하고 제공자별 요청을 전송한다")
+    void unlinksSocialMemberFromProvider(SocialProviderType provider) {
+        Member member = memberRepository.saveAndFlush(Member.createSocialMember(
+                provider, "987654321", "social@example.com", "소셜탈퇴회원"));
+        if (provider != SocialProviderType.KAKAO) {
+            providerRefreshTokenRepository.saveAndFlush(ProviderRefreshToken.builder()
+                    .member(member).token(providerTokenCipher.encrypt("provider-refresh-token")).build());
+        }
+
+        var expectedBody = new LinkedMultiValueMap<String, String>();
+        String expectedUrl;
+        Class<?> responseType;
+        switch (provider) {
+            case GOOGLE -> {
+                expectedUrl = "https://oauth2.googleapis.com/revoke";
+                expectedBody.add("token", "provider-refresh-token");
+                responseType = Void.class;
+            }
+            case NAVER -> {
+                expectedUrl = "https://nid.naver.com/oauth2.0/revoke";
+                expectedBody.add("client_id", "test-naver-client-id");
+                expectedBody.add("client_secret", "test-naver-client-secret");
+                expectedBody.add("token", "provider-refresh-token");
+                expectedBody.add("token_type_hint", "refresh_token");
+                responseType = Void.class;
+            }
+            case KAKAO -> {
+                expectedUrl = "https://kapi.kakao.com/v1/user/unlink";
+                expectedBody.add("target_id_type", "user_id");
+                expectedBody.add("target_id", "987654321");
+                responseType = KakaoUnlinkClient.UnlinkResult.class;
+            }
+            default -> throw new IllegalArgumentException("Unsupported test provider: " + provider);
+        }
+
+        ResponseEntity<?> response = provider == SocialProviderType.KAKAO
+                ? ResponseEntity.ok(new KakaoUnlinkClient.UnlinkResult(987654321L))
+                : ResponseEntity.ok().build();
+        doReturn(response).when(restTemplate).exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(responseType));
+
+        oAuth2Unlinker.unlink(member.getId());
+
+        ArgumentCaptor<HttpEntity<?>> request = ArgumentCaptor.captor();
+        verify(restTemplate).exchange(eq(expectedUrl), eq(HttpMethod.POST), request.capture(), eq(responseType));
+        assertThat(request.getValue().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
+        assertThat(request.getValue().getBody()).isEqualTo(expectedBody);
+        if (provider == SocialProviderType.KAKAO) {
+            assertThat(request.getValue().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+                    .isEqualTo("KakaoAK test-kakao-admin-key");
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = SocialProviderType.class, names = {"GOOGLE", "NAVER"})
+    @DisplayName("저장된 provider 토큰이 없어도 탈퇴하고 외부 연결 해제 요청은 보내지 않는다")
+    void withdrawsAndSkipsUnlinkWhenProviderTokenIsMissing(SocialProviderType provider) {
+        Member member = memberRepository.saveAndFlush(Member.createSocialMember(
+                provider, "missing-provider-token", "missing-token@example.com", "토큰없는탈퇴회원"));
+
+        Member withdrawn = withdrawalManager.withdraw(member.getId(), LocalDateTime.of(2026, 9, 11, 10, 0));
+        oAuth2Unlinker.unlink(member.getId());
+
+        assertThat(withdrawn.getStatus()).isEqualTo(MemberStatus.DELETED);
+        verifyNoInteractions(restTemplate);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @DisplayName("저장된 provider 토큰 값이 null 또는 빈 문자열이면 조회 결과는 null이다")
+    void returnsNullForEmptyStoredProviderToken(String token) {
+        Member member = saveMember("provider-token-empty", "빈토큰회원");
+        providerRefreshTokenRepository.saveAndFlush(ProviderRefreshToken.builder()
+                .member(member).token(token).build());
+
+        assertThat(providerTokenService.findByMemberId(member.getId())).isNull();
+    }
+
+    @Test
+    @DisplayName("provider 토큰은 최초 저장과 갱신 모두 암호화하고 조회할 때 복호화한다")
+    void encryptsProviderRefreshTokenOnInsertAndUpdate() {
+        Member member = saveMember("provider-token-upsert", "토큰갱신회원");
+        providerTokenService.upsert(member, "first-provider-refresh-token");
+        providerRefreshTokenRepository.flush();
+        entityManager.clear();
+
+        ProviderRefreshToken stored = providerRefreshTokenRepository.findOneByMemberId(member.getId()).orElseThrow();
+        assertThat(stored.getToken()).isNotEqualTo("first-provider-refresh-token");
+        assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo("first-provider-refresh-token");
+
+        providerTokenService.upsert(member, null);
+        providerTokenService.upsert(member, "");
+        assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo("first-provider-refresh-token");
+
+        providerTokenService.upsert(member, "updated-provider-refresh-token");
+        providerRefreshTokenRepository.flush();
+        entityManager.clear();
+
+        stored = providerRefreshTokenRepository.findOneByMemberId(member.getId()).orElseThrow();
+        assertThat(stored.getToken()).isNotEqualTo("updated-provider-refresh-token");
+        assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo("updated-provider-refresh-token");
+        assertThat(providerRefreshTokenRepository.findByMemberId(member.getId())).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("512자 provider 토큰은 암호화된 상태로 DB에 저장하고 다시 조회할 수 있다")
+    void storesEncryptedProviderRefreshTokenWithinSupportedLength() {
+        Member member = saveMember("provider-token-length", "토큰길이회원");
+        String token = "r".repeat(512);
+
+        providerTokenService.upsert(member, token);
+        providerRefreshTokenRepository.flush();
+        entityManager.clear();
+
+        ProviderRefreshToken stored = providerRefreshTokenRepository.findOneByMemberId(member.getId()).orElseThrow();
+        assertThat(stored.getToken()).isNotEqualTo(token);
+        assertThat(providerTokenService.findByMemberId(member.getId())).isEqualTo(token);
     }
 
     @Test

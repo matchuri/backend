@@ -77,6 +77,8 @@ matchuri:
   query-monitor:
     enabled: true
   auth:
+    provider-token:
+      encryption-key: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
     public-api-patterns:
       - /error
     public-get-api-patterns:
