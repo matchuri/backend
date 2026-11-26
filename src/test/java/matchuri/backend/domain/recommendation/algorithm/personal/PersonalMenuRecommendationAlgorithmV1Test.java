@@ -54,7 +54,7 @@ class PersonalMenuRecommendationAlgorithmV1Test {
         MenuRecommendationResult result = algorithm.recommend(input);
 
         assertThat(result.algorithmType()).isEqualTo(RecommendationAlgorithmType.PERSONAL);
-        assertThat(result.algorithmVersion()).isEqualTo("v1.3");
+        assertThat(result.algorithmVersion()).isEqualTo("v1.4");
         assertThat(result.candidates())
                 .extracting(candidate -> candidate.menuId())
                 .containsExactly(1L, 4L);
@@ -223,6 +223,86 @@ class PersonalMenuRecommendationAlgorithmV1Test {
                 .extracting(candidate -> candidate.score())
                 .containsExactly(0.5, 0.5);
         assertConsistentFinalScores(result);
+    }
+
+    @Test
+    @DisplayName("동점 후보는 앞서 고른 전체 메뉴와 조리 방식 및 음식 분류가 겹치지 않는 순서로 고른다")
+    void recommendDiversifiesTiesAgainstAllSelectedMenus() {
+        MenuRecommendationResult result = algorithm.recommend(preferenceInput(
+                List.of(10L),
+                List.of(
+                        menu(4L, "구이 일식", 10L, 23L, 41L),
+                        menu(5L, "구이 양식", 10L, 23L, 42L),
+                        menu(2L, "튀김과 면 양식", 10L, 21L, 22L, 42L),
+                        menu(8L, "볶음 양식", 10L, 24L, 42L),
+                        menu(6L, "볶음 한식", 10L, 24L, 40L),
+                        menu(7L, "볶음 일식", 10L, 24L, 41L),
+                        menu(3L, "구이 한식", 10L, 23L, 40L),
+                        menu(1L, "국물과 면 한식", 10L, 20L, 21L, 40L)
+                ),
+                Map.of(
+                        10L, CategoryType.FLAVOR,
+                        20L, CategoryType.COOKING_METHOD,
+                        21L, CategoryType.COOKING_METHOD,
+                        22L, CategoryType.COOKING_METHOD,
+                        23L, CategoryType.COOKING_METHOD,
+                        24L, CategoryType.COOKING_METHOD,
+                        40L, CategoryType.FOOD_CATEGORY,
+                        41L, CategoryType.FOOD_CATEGORY,
+                        42L, CategoryType.FOOD_CATEGORY
+                )
+        ));
+
+        assertThat(result.candidates()).extracting(candidate -> candidate.menuId()).containsExactly(1L, 4L, 8L);
+        assertThat(result.candidates()).extracting(candidate -> candidate.rankNo()).containsExactly(1, 2, 3);
+        assertThat(result.candidates()).extracting(candidate -> candidate.score()).containsExactly(100.0, 100.0, 100.0);
+        assertConsistentFinalScores(result);
+    }
+
+    @Test
+    @DisplayName("소수 첫째 자리 동점에는 다양성을 적용하고 낮은 점수의 후보에 우선권을 주지 않는다")
+    void recommendUsesDiversityOnlyWithinHighestRemainingRoundedScore() {
+        MenuRecommendationResult result = algorithm.recommend(preferenceInput(
+                List.of(10L),
+                List.of(
+                        menu(1L, "100점 국물", 10L, 20L),
+                        menu(2L, "반올림 전 0.52점 국물", 20L, 91L),
+                        menu(3L, "반올림 전 0.515점 구이", 21L, 92L),
+                        menu(4L, "0점 튀김", 22L)
+                ),
+                Map.of(
+                        10L, CategoryType.FLAVOR,
+                        20L, CategoryType.COOKING_METHOD,
+                        21L, CategoryType.COOKING_METHOD,
+                        22L, CategoryType.COOKING_METHOD
+                ),
+                Map.of(91L, 104L, 92L, 103L, 99L, 9793L)
+        ));
+
+        assertThat(result.candidates()).extracting(candidate -> candidate.menuId()).containsExactly(1L, 3L, 2L);
+        assertThat(result.candidates()).extracting(candidate -> candidate.score()).containsExactly(100.0, 0.5, 0.5);
+        assertConsistentFinalScores(result);
+    }
+
+    @ParameterizedTest
+    @MethodSource("diversityTagScenarios")
+    @DisplayName("조리 방식을 비교할 수 있는 후보에만 다양성 우선권을 준다")
+    void recommendUsesMenuIdWhenCookingDiversityCannotBeDetermined(
+            List<Long> firstMenuAttributes, List<Long> expectedMenuIds
+    ) {
+        MenuRecommendationResult result = algorithm.recommend(preferenceInput(
+                List.of(10L),
+                List.of(
+                        new MenuRecommendationProfile(1L, "M1", "첫 메뉴", firstMenuAttributes, List.of()),
+                        menu(2L, "조리 방식 미확인", 10L, 99L),
+                        menu(3L, "국물", 10L, 20L),
+                        menu(4L, "구이", 10L, 21L)
+                ),
+                preferenceCategoryTypes()
+        ));
+
+        assertThat(result.candidates()).extracting(candidate -> candidate.menuId())
+                .containsExactlyElementsOf(expectedMenuIds);
     }
 
     @Test
@@ -442,6 +522,17 @@ class PersonalMenuRecommendationAlgorithmV1Test {
                 Arguments.of(Map.of(10L, 1L, 90L, 1L), 75.0),
                 Arguments.of(Map.of(10L, 100L, 90L, 100L), 75.0)
         );
+    }
+
+    private static Stream<Arguments> diversityTagScenarios() {
+        return Stream.of(
+                Arguments.of(List.of(10L), List.of(1L, 2L, 3L)),
+                Arguments.of(List.of(10L, 20L), List.of(1L, 4L, 2L))
+        );
+    }
+
+    private MenuRecommendationProfile menu(long id, String name, Long... attributes) {
+        return new MenuRecommendationProfile(id, "M" + id, name, List.of(attributes), List.of());
     }
 
     private static Stream<Map<Long, Long>> fullMatchHistoryScenarios() {

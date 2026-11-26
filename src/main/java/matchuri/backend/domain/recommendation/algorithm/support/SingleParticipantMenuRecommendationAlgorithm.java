@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.recommendation.algorithm.MenuRecommendationAlgorithm;
 import matchuri.backend.domain.recommendation.algorithm.input.MenuRecommendationInput;
@@ -29,7 +30,7 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
     public MenuRecommendationResult recommend(MenuRecommendationInput input) {
         TasteProfileSnapshot participant = input.participants().getFirst();
 
-        List<ScoredMenu> scoredMenus = input.menus().stream()
+        Stream<ScoredMenu> rankedMenus = input.menus().stream()
                 .filter(menu -> !containsAny(menu.ingredientIds(), participant.restrictionIngredientIds()))
                 .filter(menu -> !participant.dislikedMenuItemIds().contains(menu.menuId()))
                 .filter(menu -> !input.recentSelectedMenuIds().contains(menu.menuId()))
@@ -37,11 +38,13 @@ public abstract class SingleParticipantMenuRecommendationAlgorithm implements Me
                 .map(menu -> score(menu, participant, input.selectedAttributeCategoryFrequency(),
                         input.attributeCategoryTypes()))
                 .sorted(Comparator.comparing(ScoredMenu::totalScore).reversed()
-                        .thenComparing(scoredMenu -> scoredMenu.menu().menuId()))
-                .limit(input.candidateLimit())
-                .toList();
+                        .thenComparing(scoredMenu -> scoredMenu.menu().menuId()));
 
-        return new MenuRecommendationResult(type(), version(), toCandidates(scoredMenus));
+        return new MenuRecommendationResult(type(), version(), toCandidates(selectCandidates(rankedMenus, input)));
+    }
+
+    protected List<ScoredMenu> selectCandidates(Stream<ScoredMenu> rankedMenus, MenuRecommendationInput input) {
+        return rankedMenus.limit(input.candidateLimit()).toList();
     }
 
     protected ScoredMenu score(

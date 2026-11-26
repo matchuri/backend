@@ -139,7 +139,8 @@ public interface RecommendationApi {
                     
                     특정 회원에게 취향 프로필(`MemberTasteProfile`) 정보가 없다면 403에러가 발생합니다.
 
-                    `restriction ingredient`, `disliked menu item`, 최근 선택 메뉴를 제외한 뒤 후보를 저장하고 반환합니다.
+                    `restriction ingredient`, `disliked menu item`, 최근 선택 메뉴와 최근 SKIP 메뉴를 제외한 뒤 후보를 저장하고 반환합니다.
+                    최종 추천 점수가 같은 경우 2위부터는 앞서 선정한 후보와의 조리 방식·음식 분류 중복을 고려합니다.
                     24시간 이내 열린 개인 추천이 이미 있으면 새 추천을 만들지 않고 409를 반환합니다.
                     """
     )
@@ -188,7 +189,7 @@ public interface RecommendationApi {
     @Operation(
             summary = "개인 추천 재요청",
             description = """
-                    이전 개인 추천을 종료하고 새 개인 추천을 실행합니다.
+                    이전 개인 추천을 종료하고 최초 생성과 같은 후보 선정 규칙으로 새 개인 추천을 실행합니다.
 
                     `NOT_SATISFIED`는 이전 추천 후보 전체를 `SKIP` 행동 로그로 저장하고
                     source 추천을 `REROLLED_WITH_SKIP`으로 종료합니다. \n

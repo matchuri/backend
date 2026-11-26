@@ -360,6 +360,26 @@ class MenuSeedCoverageAuditTest {
     }
 
     @Test
+    @DisplayName("조리 방식과 음식 분류를 폭넓게 선호하면 만점 후보 안에서 첫 추천과 재추천을 다양화한다")
+    void diverseSeedProfileKeepsFullScoresForVariedFirstAndRerollBatches() throws IOException {
+        ReferenceSeedData seed = classpathJson("seed/reference-data.json", ReferenceSeedData.class);
+        Fixtures fixtures = classpathJson("seed/recommendation-coverage-fixtures.json", Fixtures.class);
+
+        var profile = MenuSeedCoverageAudit.audit(seed, fixtures).supportedProfiles().stream()
+                .filter(row -> row.code().equals("MULTI_DIVERSE_COOKING_AND_CUISINES"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(profile.firstBatch().menuCodes())
+                .containsExactly("KONGGUKSU", "CHICKEN_KATSU_MEAL", "SPICY_PORK_RIB_STEAMED");
+        assertThat(profile.firstBatch().fullMatchCount()).isEqualTo(3);
+        assertThat(profile.rerollBatch().menuCodes())
+                .containsExactly("TOM_YUM_RICE_NOODLES", "AGWI_STEAMED", "SQUID_STIR_FRY");
+        assertThat(profile.rerollBatch().fullMatchCount()).isEqualTo(3);
+        assertThat(profile.initialAndRerollDistinct()).isTrue();
+    }
+
+    @Test
     @DisplayName("기준 조리 구성의 가공 재료는 추적 대상 원료를 함께 매핑한다")
     void referenceRecipesIncludeIngredientSources() throws IOException {
         ReferenceSeedData seed = classpathJson("seed/reference-data.json", ReferenceSeedData.class);
