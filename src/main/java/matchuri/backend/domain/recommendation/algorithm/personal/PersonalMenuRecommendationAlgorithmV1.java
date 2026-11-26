@@ -1,9 +1,17 @@
 package matchuri.backend.domain.recommendation.algorithm.personal;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import matchuri.backend.domain.menu.entity.CategoryType;
 import matchuri.backend.domain.recommendation.algorithm.RecommendationAlgorithmType;
+import matchuri.backend.domain.recommendation.algorithm.input.MenuRecommendationInput;
 import matchuri.backend.domain.recommendation.algorithm.input.MenuRecommendationProfile;
 import matchuri.backend.domain.recommendation.algorithm.input.TasteProfileSnapshot;
 import matchuri.backend.domain.recommendation.algorithm.support.RecommendationPreferenceMatchCalculator;
@@ -14,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PersonalMenuRecommendationAlgorithmV1 extends SingleParticipantMenuRecommendationAlgorithm {
 
-    private static final String VERSION = "v1.3";
+    private static final String VERSION = "v1.4";
     private static final double SCORE_MAX = 100.0;
     private static final double HISTORY_BONUS_RATIO = 0.5;
 
@@ -26,6 +34,44 @@ public class PersonalMenuRecommendationAlgorithmV1 extends SingleParticipantMenu
     @Override
     public String version() {
         return VERSION;
+    }
+
+    @Override
+    protected List<ScoredMenu> selectCandidates(Stream<ScoredMenu> rankedMenus, MenuRecommendationInput input) {
+        int limit = input.candidateLimit();
+        if (limit <= 1 || input.attributeCategoryTypes().isEmpty()) {
+            return super.selectCandidates(rankedMenus, input);
+        }
+
+        var remaining = rankedMenus
+                .map(menu -> DiversityCandidate.from(menu, input.attributeCategoryTypes()))
+                .collect(Collectors.toCollection(ArrayList::new));
+        List<ScoredMenu> selected = new ArrayList<>();
+        Set<Long> selectedCookingMethods = new HashSet<>();
+        Set<Long> selectedFoodCategories = new HashSet<>();
+        Comparator<DiversityCandidate> diversityOrder = Comparator
+                .comparing((DiversityCandidate candidate) ->
+                        addsDiversity(candidate.cookingMethods(), selectedCookingMethods), Comparator.reverseOrder())
+                .thenComparing(candidate -> addsDiversity(candidate.foodCategories(), selectedFoodCategories),
+                        Comparator.reverseOrder())
+                .thenComparing(candidate -> candidate.scoredMenu().menu().menuId());
+
+        while (selected.size() < limit && !remaining.isEmpty()) {
+            double highestScore = remaining.getFirst().scoredMenu().totalScore();
+            DiversityCandidate next = remaining.stream()
+                    .takeWhile(candidate -> Double.compare(candidate.scoredMenu().totalScore(), highestScore) == 0)
+                    .min(diversityOrder)
+                    .orElseThrow();
+            selected.add(next.scoredMenu());
+            selectedCookingMethods.addAll(next.cookingMethods());
+            selectedFoodCategories.addAll(next.foodCategories());
+            remaining.remove(next);
+        }
+        return selected;
+    }
+
+    private static boolean addsDiversity(Set<Long> candidateTags, Set<Long> selectedTags) {
+        return !candidateTags.isEmpty() && !selectedTags.isEmpty() && Collections.disjoint(candidateTags, selectedTags);
     }
 
     @Override
@@ -70,5 +116,22 @@ public class PersonalMenuRecommendationAlgorithmV1 extends SingleParticipantMenu
     ) {
         return RecommendationPreferenceMatchCalculator.calculateByCategoryType(
                 menuAttributeIds, preferredAttributeIds, categoryTypes);
+    }
+
+    private record DiversityCandidate(ScoredMenu scoredMenu, Set<Long> cookingMethods, Set<Long> foodCategories) {
+
+        private static DiversityCandidate from(ScoredMenu scoredMenu, Map<Long, CategoryType> categoryTypes) {
+            Set<Long> cookingMethods = new HashSet<>();
+            Set<Long> foodCategories = new HashSet<>();
+            for (Long attributeId : scoredMenu.menu().attributeCategoryIds()) {
+                CategoryType type = categoryTypes.get(attributeId);
+                if (type == CategoryType.COOKING_METHOD) {
+                    cookingMethods.add(attributeId);
+                } else if (type == CategoryType.FOOD_CATEGORY) {
+                    foodCategories.add(attributeId);
+                }
+            }
+            return new DiversityCandidate(scoredMenu, cookingMethods, foodCategories);
+        }
     }
 }

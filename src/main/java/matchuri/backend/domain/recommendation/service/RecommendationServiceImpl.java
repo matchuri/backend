@@ -185,7 +185,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 findRecentlySelectedMenuIds(recommendations),
                 findRecentlySkippedMenuIds(member.getId()),
                 countSelectedAttributeCategoryFrequency(recommendations),
-                tasteProfile.getPreferAttributeCategories().stream()
+                attributeCategoryRepository.findAll().stream()
                         .collect(Collectors.toMap(AttributeCategory::getId, AttributeCategory::getCategoryType))
         );
         MenuRecommendationResult recommendationResult = algorithm.recommend(input);

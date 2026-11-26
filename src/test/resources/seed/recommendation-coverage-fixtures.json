@@ -158,6 +158,28 @@
         { "categoryType": "TEXTURE", "code": "SOFT" },
         { "categoryType": "TEMPERATURE", "code": "HOT" }
       ]
+    },
+    {
+      "code": "MULTI_DIVERSE_COOKING_AND_CUISINES",
+      "name": "매콤하거나 고소한 메뉴를 여러 조리 방식과 음식 분류에 걸쳐 선호",
+      "preferredAttributes": [
+        { "categoryType": "FLAVOR", "code": "SPICY" },
+        { "categoryType": "FLAVOR", "code": "NUTTY" },
+        { "categoryType": "COOKING_METHOD", "code": "SOUP" },
+        { "categoryType": "COOKING_METHOD", "code": "GRILLED" },
+        { "categoryType": "COOKING_METHOD", "code": "FRIED" },
+        { "categoryType": "COOKING_METHOD", "code": "STIR_FRIED" },
+        { "categoryType": "COOKING_METHOD", "code": "STEAMED" },
+        { "categoryType": "COOKING_METHOD", "code": "NOODLE_MIXED" },
+        { "categoryType": "FOOD_CATEGORY", "code": "KOREAN" },
+        { "categoryType": "FOOD_CATEGORY", "code": "JAPANESE" },
+        { "categoryType": "FOOD_CATEGORY", "code": "WESTERN" },
+        { "categoryType": "FOOD_CATEGORY", "code": "ASIAN" },
+        { "categoryType": "TEXTURE", "code": "CRISPY" },
+        { "categoryType": "TEXTURE", "code": "CHEWY" },
+        { "categoryType": "TEMPERATURE", "code": "HOT" },
+        { "categoryType": "TEMPERATURE", "code": "COLD" }
+      ]
     }
   ],
   "constraintScenarios": [

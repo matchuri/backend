@@ -919,7 +919,7 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("회원 추천 생성과 재요청은 저장된 맛과 조리법 대안을 유형별로 계산하고 v1.3 메타를 저장한다")
+    @DisplayName("회원 추천 생성과 재요청은 조리 방식 다양성을 비교할 때 미선택 태그도 사용하고 v1.4 순위를 저장한다")
     void personalRecommendationCreateAndRerollUseAlternativesPerType() throws Exception {
         Member member = saveMember("alternatives-personal", "유형별선호회원");
         String accessToken = accessToken(member);
@@ -933,21 +933,31 @@ class PersonalRecommendationIntegrationTest {
                 new AttributeCategory(CategoryType.COOKING_METHOD, "SOUP", "국물", 10));
         AttributeCategory grilled = attributeCategoryRepository.save(
                 new AttributeCategory(CategoryType.COOKING_METHOD, "GRILLED", "구이", 20));
+        AttributeCategory steamed = attributeCategoryRepository.save(
+                new AttributeCategory(CategoryType.COOKING_METHOD, "STEAMED", "찜", 30));
         MemberTasteProfile profile = memberTasteProfileRepository.save(new MemberTasteProfile(member, "v1"));
         for (AttributeCategory category : List.of(korean, spicy, rich, soup, grilled)) {
             memberTasteProfileCategoryRepository.save(new MemberTasteProfileCategory(profile, category));
         }
-        MenuItem menu = menuItemRepository.save(new MenuItem("KOREAN_SPICY_SOUP", "매운 한식 국물", "추천 점수 검증"));
-        saveMenuAttribute(menu, korean);
-        saveMenuAttribute(menu, spicy);
-        saveMenuAttribute(menu, soup);
+        MenuItem first = menuItemRepository.save(new MenuItem("SPICY_FISH_SOUP", "매운 생선탕", "찐 생선을 넣은 국물"));
+        MenuItem overlapping = menuItemRepository.save(
+                new MenuItem("SPICY_GRILLED_STEAMED", "매운 생선찜과 구이", "찜과 구이"));
+        MenuItem distinct = menuItemRepository.save(new MenuItem("SPICY_GRILLED", "매운 생선구이", "구이"));
+        for (MenuItem menu : List.of(first, overlapping, distinct)) {
+            saveMenuAttribute(menu, korean);
+            saveMenuAttribute(menu, spicy);
+        }
+        saveMenuAttribute(first, soup);
+        saveMenuAttribute(first, steamed);
+        saveMenuAttribute(overlapping, grilled);
+        saveMenuAttribute(overlapping, steamed);
+        saveMenuAttribute(distinct, grilled);
+        List<Long> expectedMenuIds = List.of(first.getId(), distinct.getId(), overlapping.getId());
 
         JsonNode recommendation = createRecommendation(accessToken);
         long requestId = recommendation.path("requestId").asLong();
 
-        assertThat(recommendation.path("candidates").get(0).path("menuId").asLong()).isEqualTo(menu.getId());
-        assertThat(recommendation.path("candidates").get(0).path("score").asDouble()).isEqualTo(100.0);
-        assertPersonalCandidatePolicy(requestId, 100.0, "v1.3");
+        assertPersonalCandidatePolicy(recommendation, expectedMenuIds);
 
         MvcResult rerollResult = mockMvc.perform(post(
                                 "/api/v1/personal/recommendations/{requestId}/reroll", requestId)
@@ -957,14 +967,11 @@ class PersonalRecommendationIntegrationTest {
                                 {"rerollType":"INPUT_CHANGED","contextJson":{}}
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.candidates[0].menuId").value(menu.getId()))
-                .andExpect(jsonPath("$.data.candidates[0].score").value(100.0))
                 .andReturn();
 
-        long rerolledRequestId = objectMapper.readTree(rerollResult.getResponse().getContentAsString())
-                .path("data").path("requestId").asLong();
-        assertThat(rerolledRequestId).isNotEqualTo(requestId);
-        assertPersonalCandidatePolicy(rerolledRequestId, 100.0, "v1.3");
+        JsonNode rerolled = objectMapper.readTree(rerollResult.getResponse().getContentAsString()).path("data");
+        assertThat(rerolled.path("requestId").asLong()).isNotEqualTo(requestId);
+        assertPersonalCandidatePolicy(rerolled, expectedMenuIds);
         assertThat(memberMenuActionRepository.count()).isZero();
     }
 
@@ -1036,8 +1043,8 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"v1.1, 60.0", "v1.2, 83.3"})
-    @DisplayName("기존 v1.1과 v1.2 후보의 상세와 후보 목록 및 선택 이력 조회는 저장된 점수와 메타를 재계산하지 않는다")
+    @CsvSource({"v1.1, 60.0", "v1.2, 83.3", "v1.3, 80.0"})
+    @DisplayName("기존 후보의 상세와 후보 목록 및 선택 이력 조회는 저장된 점수와 메타를 반환한다")
     void personalRecommendationReadsPreserveLegacyCandidateScoreAndMetadata(
             String algorithmVersion, double savedScore
     ) throws Exception {
@@ -1105,7 +1112,7 @@ class PersonalRecommendationIntegrationTest {
             PersonalRecommendationCandidate candidate = candidates.get(index);
             JsonNode metadata = readCandidateMetadata(candidate.getCandidateMetaJson());
             assertThat(metadata.path("algorithmType").asText()).isEqualTo("PERSONAL");
-            assertThat(metadata.path("algorithmVersion").asText()).isEqualTo("v1.3");
+            assertThat(metadata.path("algorithmVersion").asText()).isEqualTo("v1.4");
             assertThat(metadata.path("scoreBreakdown").path("normalizedScore").asDouble())
                     .isEqualTo(candidate.getScore());
             assertThat(metadata.path("scoreBreakdown").path("rawScore").asDouble()).isEqualTo(candidate.getScore());
@@ -1237,18 +1244,30 @@ class PersonalRecommendationIntegrationTest {
         assertThat(stored).extracting(PersonalRecommendationCandidate::getRankNo).containsExactly(1, 2, 3);
     }
 
-    private void assertPersonalCandidatePolicy(long requestId, double score, String algorithmVersion) throws Exception {
-        List<PersonalRecommendationCandidate> candidates = personalRecommendationCandidateRepository
-                .findByPersonalRecommendationIdOrderByRankNoAsc(requestId);
-        assertThat(candidates).hasSize(1);
-        PersonalRecommendationCandidate candidate = candidates.getFirst();
-        assertThat(candidate.getScore()).isEqualTo(score);
-        JsonNode metadata = readCandidateMetadata(candidate.getCandidateMetaJson());
-        assertThat(metadata.path("algorithmType").asText()).isEqualTo("PERSONAL");
-        assertThat(metadata.path("algorithmVersion").asText()).isEqualTo(algorithmVersion);
-        assertThat(metadata.path("scoreBreakdown").path("normalizedScore").asDouble()).isEqualTo(score);
-        assertThat(metadata.path("scoreBreakdown").path("rawScore").asDouble()).isEqualTo(score);
-        assertThat(metadata.path("scoreBreakdown").path("categoryMatchingCount").asLong()).isEqualTo(3L);
+    private void assertPersonalCandidatePolicy(JsonNode recommendation, List<Long> expectedMenuIds) throws Exception {
+        List<JsonNode> returnedCandidates = new ArrayList<>();
+        recommendation.path("candidates").forEach(returnedCandidates::add);
+        assertThat(returnedCandidates).extracting(candidate -> candidate.path("menuId").asLong())
+                .containsExactlyElementsOf(expectedMenuIds);
+        assertThat(returnedCandidates).extracting(candidate -> candidate.path("score").asDouble())
+                .containsExactly(100.0, 100.0, 100.0);
+        assertThat(returnedCandidates).extracting(candidate -> candidate.path("rankNo").asInt())
+                .containsExactly(1, 2, 3);
+
+        List<PersonalRecommendationCandidate> storedCandidates = personalRecommendationCandidateRepository
+                .findByPersonalRecommendationIdOrderByRankNoAsc(recommendation.path("requestId").asLong());
+        assertThat(storedCandidates).extracting(candidate -> candidate.getMenuItem().getId())
+                .containsExactlyElementsOf(expectedMenuIds);
+        assertThat(storedCandidates).extracting(PersonalRecommendationCandidate::getRankNo).containsExactly(1, 2, 3);
+        for (PersonalRecommendationCandidate candidate : storedCandidates) {
+            assertThat(candidate.getScore()).isEqualTo(100.0);
+            JsonNode metadata = readCandidateMetadata(candidate.getCandidateMetaJson());
+            assertThat(metadata.path("algorithmType").asText()).isEqualTo("PERSONAL");
+            assertThat(metadata.path("algorithmVersion").asText()).isEqualTo("v1.4");
+            assertThat(metadata.path("scoreBreakdown").path("normalizedScore").asDouble()).isEqualTo(100.0);
+            assertThat(metadata.path("scoreBreakdown").path("rawScore").asDouble()).isEqualTo(100.0);
+            assertThat(metadata.path("scoreBreakdown").path("categoryMatchingCount").asLong()).isEqualTo(3L);
+        }
     }
 
     private JsonNode readCandidateMetadata(String metadataJson) throws Exception {
