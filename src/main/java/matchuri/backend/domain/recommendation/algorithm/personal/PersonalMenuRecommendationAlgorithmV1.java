@@ -26,7 +26,7 @@ public class PersonalMenuRecommendationAlgorithmV1 extends SingleParticipantMenu
     private static final double SCORE_MAX = 100.0;
     private static final double HISTORY_BONUS_RATIO = 0.5;
     private static final int DIVERSITY_REPLACEMENT_RANK = 3;
-    private static final double MAX_DIVERSITY_SCORE_GAP = 10.0;
+    private static final double MAX_DIVERSITY_SCORE_GAP = 20.0;
 
     @Override
     public RecommendationAlgorithmType type() {

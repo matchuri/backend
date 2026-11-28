@@ -288,10 +288,10 @@ class PersonalMenuRecommendationAlgorithmV1Test {
 
     @ParameterizedTest
     @CsvSource({
-            "739, 639, 3, 4, 63.9",
-            "739, 638, 3, 3, 73.9",
-            "1000, 900, 3, 4, 90.0",
-            "739, 639, 4, 3, 73.9"
+            "839, 639, 3, 4, 63.9",
+            "839, 638, 3, 3, 83.9",
+            "1000, 800, 3, 4, 80.0",
+            "839, 639, 4, 3, 83.9"
     })
     @DisplayName("후보 세 개를 요청하면 기존 3위와의 점수 차이가 허용 범위 안인 대안으로 3위를 바꾼다")
     void recommendReplacesOnlyThirdCandidateWithinInclusiveScoreGap(
@@ -377,10 +377,9 @@ class PersonalMenuRecommendationAlgorithmV1Test {
                         menu(1L, "한식 국물", 10L, 20L, 30L, 31L, 40L, 50L),
                         menu(2L, "한식 국물 대안", 10L, 20L, 30L, 31L, 40L, 50L),
                         menu(3L, "기존 3위 한식 국물", 10L, 20L, 30L, 31L, 40L, 50L),
-                        menu(4L, "90점 한식 구이", 10L, 21L, 30L, 40L, 50L)
+                        menu(4L, "80점 한식 구이", 10L, 21L, 30L, 40L, 50L)
                 ),
-                preferenceCategoryTypes(),
-                Map.of(21L, 1L)
+                preferenceCategoryTypes()
         ));
 
         assertThat(result.candidates()).extracting(candidate -> candidate.menuId()).containsExactly(1L, 2L, thirdMenuId);
@@ -672,10 +671,10 @@ class PersonalMenuRecommendationAlgorithmV1Test {
     }
 
     private static Stream<Arguments> thirdCandidateCookingPreferenceScenarios() {
-        // 두 대안 점수는 90점이며, 처음에는 조리 방식, 다음에는 식감 선호가 불일치한다.
+        // 대안은 두 경우 모두 80점이다. 첫 경우는 조리 방식, 두 번째는 식감 선호가 불일치한다.
         return Stream.of(
                 Arguments.of(List.of(10L, 20L, 30L, 40L, 50L), 3L, 100.0),
-                Arguments.of(List.of(10L, 20L, 21L, 31L, 40L, 50L), 4L, 90.0)
+                Arguments.of(List.of(10L, 20L, 21L, 31L, 40L, 50L), 4L, 80.0)
         );
     }
 
