@@ -919,7 +919,7 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @Test
-    @DisplayName("회원 추천 생성과 재요청은 조리 방식 다양성을 비교할 때 미선택 태그도 사용하고 v1.4 순위를 저장한다")
+    @DisplayName("회원 추천 생성과 재요청은 조리 방식 다양성을 비교할 때 미선택 태그도 사용하고 순위를 저장한다")
     void personalRecommendationCreateAndRerollUseAlternativesPerType() throws Exception {
         Member member = saveMember("alternatives-personal", "유형별선호회원");
         String accessToken = accessToken(member);
@@ -1043,7 +1043,7 @@ class PersonalRecommendationIntegrationTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"v1.1, 60.0", "v1.2, 83.3", "v1.3, 80.0"})
+    @CsvSource({"v1.1, 60.0", "v1.2, 83.3", "v1.3, 80.0", "v1.4, 79.9"})
     @DisplayName("기존 후보의 상세와 후보 목록 및 선택 이력 조회는 저장된 점수와 메타를 반환한다")
     void personalRecommendationReadsPreserveLegacyCandidateScoreAndMetadata(
             String algorithmVersion, double savedScore
@@ -1112,7 +1112,7 @@ class PersonalRecommendationIntegrationTest {
             PersonalRecommendationCandidate candidate = candidates.get(index);
             JsonNode metadata = readCandidateMetadata(candidate.getCandidateMetaJson());
             assertThat(metadata.path("algorithmType").asText()).isEqualTo("PERSONAL");
-            assertThat(metadata.path("algorithmVersion").asText()).isEqualTo("v1.4");
+            assertThat(metadata.path("algorithmVersion").asText()).isEqualTo("v1.5");
             assertThat(metadata.path("scoreBreakdown").path("normalizedScore").asDouble())
                     .isEqualTo(candidate.getScore());
             assertThat(metadata.path("scoreBreakdown").path("rawScore").asDouble()).isEqualTo(candidate.getScore());
@@ -1263,7 +1263,7 @@ class PersonalRecommendationIntegrationTest {
             assertThat(candidate.getScore()).isEqualTo(100.0);
             JsonNode metadata = readCandidateMetadata(candidate.getCandidateMetaJson());
             assertThat(metadata.path("algorithmType").asText()).isEqualTo("PERSONAL");
-            assertThat(metadata.path("algorithmVersion").asText()).isEqualTo("v1.4");
+            assertThat(metadata.path("algorithmVersion").asText()).isEqualTo("v1.5");
             assertThat(metadata.path("scoreBreakdown").path("normalizedScore").asDouble()).isEqualTo(100.0);
             assertThat(metadata.path("scoreBreakdown").path("rawScore").asDouble()).isEqualTo(100.0);
             assertThat(metadata.path("scoreBreakdown").path("categoryMatchingCount").asLong()).isEqualTo(3L);

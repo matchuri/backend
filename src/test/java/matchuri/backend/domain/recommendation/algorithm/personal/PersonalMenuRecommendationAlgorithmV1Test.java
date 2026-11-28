@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -54,7 +55,7 @@ class PersonalMenuRecommendationAlgorithmV1Test {
         MenuRecommendationResult result = algorithm.recommend(input);
 
         assertThat(result.algorithmType()).isEqualTo(RecommendationAlgorithmType.PERSONAL);
-        assertThat(result.algorithmVersion()).isEqualTo("v1.4");
+        assertThat(result.algorithmVersion()).isEqualTo("v1.5");
         assertThat(result.candidates())
                 .extracting(candidate -> candidate.menuId())
                 .containsExactly(1L, 4L);
@@ -260,15 +261,15 @@ class PersonalMenuRecommendationAlgorithmV1Test {
     }
 
     @Test
-    @DisplayName("소수 첫째 자리 동점에는 다양성을 적용하고 낮은 점수의 후보에 우선권을 주지 않는다")
-    void recommendUsesDiversityOnlyWithinHighestRemainingRoundedScore() {
+    @DisplayName("2위는 소수 첫째 자리까지 반올림한 최고점 후보 사이에서 다양성을 반영한다")
+    void recommendUsesSecondCandidateDiversityWithinHighestRemainingRoundedScore() {
         MenuRecommendationResult result = algorithm.recommend(preferenceInput(
                 List.of(10L),
                 List.of(
                         menu(1L, "100점 국물", 10L, 20L),
-                        menu(2L, "반올림 전 0.52점 국물", 20L, 91L),
-                        menu(3L, "반올림 전 0.515점 구이", 21L, 92L),
-                        menu(4L, "0점 튀김", 22L)
+                        menu(3L, "반올림 전 0.52점 국물", 20L, 91L),
+                        menu(4L, "반올림 전 0.515점 구이", 21L, 92L),
+                        menu(2L, "0점 튀김", 22L)
                 ),
                 Map.of(
                         10L, CategoryType.FLAVOR,
@@ -276,12 +277,141 @@ class PersonalMenuRecommendationAlgorithmV1Test {
                         21L, CategoryType.COOKING_METHOD,
                         22L, CategoryType.COOKING_METHOD
                 ),
-                Map.of(91L, 104L, 92L, 103L, 99L, 9793L)
+                Map.of(91L, 104L, 92L, 103L, 99L, 9793L),
+                2
         ));
 
-        assertThat(result.candidates()).extracting(candidate -> candidate.menuId()).containsExactly(1L, 3L, 2L);
-        assertThat(result.candidates()).extracting(candidate -> candidate.score()).containsExactly(100.0, 0.5, 0.5);
+        assertThat(result.candidates()).extracting(candidate -> candidate.menuId()).containsExactly(1L, 4L);
+        assertThat(result.candidates()).extracting(candidate -> candidate.score()).containsExactly(100.0, 0.5);
         assertConsistentFinalScores(result);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "739, 639, 3, 4, 63.9",
+            "739, 638, 3, 3, 73.9",
+            "1000, 900, 3, 4, 90.0",
+            "739, 639, 4, 3, 73.9"
+    })
+    @DisplayName("후보 세 개를 요청하면 기존 3위와의 점수 차이가 허용 범위 안인 대안으로 3위를 바꾼다")
+    void recommendReplacesOnlyThirdCandidateWithinInclusiveScoreGap(
+            long thirdHistoryFrequency, long alternativeHistoryFrequency, int limit, long thirdMenuId, double thirdScore
+    ) {
+        Map<Long, Long> history = Map.of(
+                91L, 1000L - thirdHistoryFrequency,
+                92L, thirdHistoryFrequency - alternativeHistoryFrequency,
+                93L, alternativeHistoryFrequency
+        );
+        MenuRecommendationResult result = algorithm.recommend(preferenceInput(
+                List.of(),
+                List.of(
+                        menu(1L, "100점 국물", 20L, 91L, 92L, 93L),
+                        menu(2L, "100점 국물 대안", 20L, 91L, 92L, 93L),
+                        menu(3L, "기존 3위 국물", 20L, 92L, 93L),
+                        menu(4L, "낮은 점수 구이", 21L, 93L)
+                ),
+                preferenceCategoryTypes(),
+                history,
+                limit
+        ));
+
+        assertThat(result.candidates()).hasSize(limit);
+        assertThat(result.candidates().subList(0, 3)).extracting(candidate -> candidate.menuId())
+                .containsExactly(1L, 2L, thirdMenuId);
+        assertThat(result.candidates().subList(0, 3)).extracting(candidate -> candidate.score())
+                .containsExactly(100.0, 100.0, thirdScore);
+        assertConsistentFinalScores(result);
+    }
+
+    @Test
+    @DisplayName("3위 대안은 양쪽 조리 방식과 제외 조건을 확인하고 점수, 음식 분류, 메뉴 ID 순으로 고른다")
+    void recommendChoosesHighestEligibleThirdAlternativeThenCuisineAndMenuId() {
+        MenuRecommendationInput input = new MenuRecommendationInput(
+                RecommendationTargetType.PERSONAL,
+                List.of(new TasteProfileSnapshot(1L, "1", List.of(), List.of(), List.of())),
+                List.of(
+                        menu(1L, "100점 한식 국물", 20L, 40L, 91L, 92L, 93L, 94L),
+                        menu(2L, "100점 한식 구이", 21L, 40L, 91L, 92L, 93L, 94L),
+                        menu(3L, "100점 한식 국물 대안", 20L, 40L, 91L, 92L, 93L, 94L),
+                        menu(4L, "94점 일식 튀김", 22L, 41L, 91L),
+                        menu(5L, "99점 일식 국물과 튀김", 20L, 22L, 41L, 91L, 92L, 93L),
+                        menu(6L, "99점 일식 구이와 튀김", 21L, 22L, 41L, 91L, 92L, 93L),
+                        menu(7L, "99점 일식 조리 방식 미확인", 41L, 91L, 92L, 93L),
+                        menu(8L, "95점 한식 튀김", 22L, 40L, 91L, 92L),
+                        menu(9L, "95점 일식 튀김", 22L, 41L, 91L, 92L),
+                        menu(10L, "95점 양식 튀김", 22L, 42L, 91L, 92L),
+                        menu(11L, "최근 SKIP한 99점 일식 튀김", 22L, 41L, 91L, 92L, 93L)
+                ),
+                RecommendationContextSnapshot.of("{}"),
+                3,
+                List.of(),
+                List.of(11L),
+                Map.of(91L, 940L, 92L, 10L, 93L, 40L, 94L, 10L),
+                Map.of(
+                        20L, CategoryType.COOKING_METHOD,
+                        21L, CategoryType.COOKING_METHOD,
+                        22L, CategoryType.COOKING_METHOD,
+                        40L, CategoryType.FOOD_CATEGORY,
+                        41L, CategoryType.FOOD_CATEGORY,
+                        42L, CategoryType.FOOD_CATEGORY
+                )
+        );
+
+        MenuRecommendationResult result = algorithm.recommend(input);
+
+        assertThat(result.candidates()).extracting(candidate -> candidate.menuId()).containsExactly(1L, 2L, 9L);
+        assertThat(result.candidates()).extracting(candidate -> candidate.rankNo()).containsExactly(1, 2, 3);
+        assertThat(result.candidates()).extracting(candidate -> candidate.score()).containsExactly(100.0, 100.0, 95.0);
+        assertConsistentFinalScores(result);
+    }
+
+    @ParameterizedTest
+    @MethodSource("thirdCandidateCookingPreferenceScenarios")
+    @DisplayName("기존 3위가 선호 조리 방식에 맞으면 대안도 선택한 조리 방식에 맞아야 한다")
+    void recommendPreservesPreferredCookingWhenReplacingThirdCandidate(
+            List<Long> preferences, long thirdMenuId, double thirdScore
+    ) {
+        MenuRecommendationResult result = algorithm.recommend(preferenceInput(
+                preferences,
+                List.of(
+                        menu(1L, "한식 국물", 10L, 20L, 30L, 31L, 40L, 50L),
+                        menu(2L, "한식 국물 대안", 10L, 20L, 30L, 31L, 40L, 50L),
+                        menu(3L, "기존 3위 한식 국물", 10L, 20L, 30L, 31L, 40L, 50L),
+                        menu(4L, "90점 한식 구이", 10L, 21L, 30L, 40L, 50L)
+                ),
+                preferenceCategoryTypes(),
+                Map.of(21L, 1L)
+        ));
+
+        assertThat(result.candidates()).extracting(candidate -> candidate.menuId()).containsExactly(1L, 2L, thirdMenuId);
+        assertThat(result.candidates()).extracting(candidate -> candidate.score()).containsExactly(100.0, 100.0, thirdScore);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"20, 21, 22", "20, 21, 99", "99, 20, 20", "20, 99, 20"})
+    @DisplayName("조리 방식이 이미 다양하거나 어느 후보의 조리 방식이 미확인이면 기존 3위를 유지한다")
+    void recommendKeepsThirdCandidateWhenCookingOverlapCannotBeConfirmed(
+            long firstCookingTag, long secondCookingTag, long thirdCookingTag
+    ) {
+        MenuRecommendationResult result = algorithm.recommend(preferenceInput(
+                List.of(),
+                List.of(
+                        menu(1L, "100점 첫 번째 후보", firstCookingTag, 91L, 92L),
+                        menu(2L, "100점 두 번째 후보", secondCookingTag, 91L, 92L),
+                        menu(3L, "100점 세 번째 후보", thirdCookingTag, 91L, 92L),
+                        menu(4L, "95점 새 조리 방식", 23L, 91L)
+                ),
+                Map.of(
+                        20L, CategoryType.COOKING_METHOD,
+                        21L, CategoryType.COOKING_METHOD,
+                        22L, CategoryType.COOKING_METHOD,
+                        23L, CategoryType.COOKING_METHOD
+                ),
+                Map.of(91L, 95L, 92L, 5L)
+        ));
+
+        assertThat(result.candidates()).extracting(candidate -> candidate.menuId()).containsExactly(1L, 2L, 3L);
+        assertThat(result.candidates()).extracting(candidate -> candidate.score()).containsExactly(100.0, 100.0, 100.0);
     }
 
     @ParameterizedTest
@@ -501,12 +631,22 @@ class PersonalMenuRecommendationAlgorithmV1Test {
             Map<Long, CategoryType> categoryTypes,
             Map<Long, Long> history
     ) {
+        return preferenceInput(preferences, menus, categoryTypes, history, 3);
+    }
+
+    private MenuRecommendationInput preferenceInput(
+            List<Long> preferences,
+            List<MenuRecommendationProfile> menus,
+            Map<Long, CategoryType> categoryTypes,
+            Map<Long, Long> history,
+            int candidateLimit
+    ) {
         return new MenuRecommendationInput(
                 RecommendationTargetType.PERSONAL,
                 List.of(new TasteProfileSnapshot(1L, "1", preferences, List.of(), List.of())),
                 menus,
                 RecommendationContextSnapshot.of("{}"),
-                3,
+                candidateLimit,
                 List.of(),
                 List.of(),
                 history,
@@ -528,6 +668,14 @@ class PersonalMenuRecommendationAlgorithmV1Test {
         return Stream.of(
                 Arguments.of(List.of(10L), List.of(1L, 2L, 3L)),
                 Arguments.of(List.of(10L, 20L), List.of(1L, 4L, 2L))
+        );
+    }
+
+    private static Stream<Arguments> thirdCandidateCookingPreferenceScenarios() {
+        // 두 대안 점수는 90점이며, 처음에는 조리 방식, 다음에는 식감 선호가 불일치한다.
+        return Stream.of(
+                Arguments.of(List.of(10L, 20L, 30L, 40L, 50L), 3L, 100.0),
+                Arguments.of(List.of(10L, 20L, 21L, 31L, 40L, 50L), 4L, 90.0)
         );
     }
 

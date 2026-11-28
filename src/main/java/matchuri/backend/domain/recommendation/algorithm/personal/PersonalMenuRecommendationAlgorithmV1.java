@@ -22,9 +22,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PersonalMenuRecommendationAlgorithmV1 extends SingleParticipantMenuRecommendationAlgorithm {
 
-    private static final String VERSION = "v1.4";
+    private static final String VERSION = "v1.5";
     private static final double SCORE_MAX = 100.0;
     private static final double HISTORY_BONUS_RATIO = 0.5;
+    private static final int DIVERSITY_REPLACEMENT_RANK = 3;
+    private static final double MAX_DIVERSITY_SCORE_GAP = 10.0;
 
     @Override
     public RecommendationAlgorithmType type() {
@@ -49,6 +51,7 @@ public class PersonalMenuRecommendationAlgorithmV1 extends SingleParticipantMenu
         List<ScoredMenu> selected = new ArrayList<>();
         Set<Long> selectedCookingMethods = new HashSet<>();
         Set<Long> selectedFoodCategories = new HashSet<>();
+        boolean allSelectedCookingMethodsKnown = true;
         Comparator<DiversityCandidate> diversityOrder = Comparator
                 .comparing((DiversityCandidate candidate) ->
                         addsDiversity(candidate.cookingMethods(), selectedCookingMethods), Comparator.reverseOrder())
@@ -57,17 +60,44 @@ public class PersonalMenuRecommendationAlgorithmV1 extends SingleParticipantMenu
                 .thenComparing(candidate -> candidate.scoredMenu().menu().menuId());
 
         while (selected.size() < limit && !remaining.isEmpty()) {
-            double highestScore = remaining.getFirst().scoredMenu().totalScore();
+            double highestScore = remaining.getFirst().score();
             DiversityCandidate next = remaining.stream()
-                    .takeWhile(candidate -> Double.compare(candidate.scoredMenu().totalScore(), highestScore) == 0)
+                    .takeWhile(candidate -> Double.compare(candidate.score(), highestScore) == 0)
                     .min(diversityOrder)
                     .orElseThrow();
+            if (limit == DIVERSITY_REPLACEMENT_RANK && selected.size() == DIVERSITY_REPLACEMENT_RANK - 1
+                    && allSelectedCookingMethodsKnown
+                    && !Collections.disjoint(next.cookingMethods(), selectedCookingMethods)) {
+                next = findDiverseThirdCandidate(remaining, next, selectedCookingMethods,
+                        input.participants().getFirst().preferredAttributeCategoryIds(), diversityOrder);
+            }
             selected.add(next.scoredMenu());
             selectedCookingMethods.addAll(next.cookingMethods());
             selectedFoodCategories.addAll(next.foodCategories());
+            allSelectedCookingMethodsKnown &= !next.cookingMethods().isEmpty();
             remaining.remove(next);
         }
         return selected;
+    }
+
+    private DiversityCandidate findDiverseThirdCandidate(
+            List<DiversityCandidate> remaining,
+            DiversityCandidate regularThird,
+            Set<Long> selectedCookingMethods,
+            List<Long> preferredAttributeIds,
+            Comparator<DiversityCandidate> diversityOrder
+    ) {
+        double minimumScore = RecommendationScoreNormalizer.normalize(
+                regularThird.score() - MAX_DIVERSITY_SCORE_GAP, SCORE_MAX);
+        boolean matchesPreferredCooking = !Collections.disjoint(regularThird.cookingMethods(), preferredAttributeIds);
+        return remaining.stream()
+                .takeWhile(candidate -> candidate.score() >= minimumScore)
+                .filter(candidate -> candidate.score() < regularThird.score())
+                .filter(candidate -> addsDiversity(candidate.cookingMethods(), selectedCookingMethods))
+                .filter(candidate -> !matchesPreferredCooking
+                        || !Collections.disjoint(candidate.cookingMethods(), preferredAttributeIds))
+                .min(Comparator.comparingDouble(DiversityCandidate::score).reversed().thenComparing(diversityOrder))
+                .orElse(regularThird);
     }
 
     private static boolean addsDiversity(Set<Long> candidateTags, Set<Long> selectedTags) {
@@ -119,6 +149,10 @@ public class PersonalMenuRecommendationAlgorithmV1 extends SingleParticipantMenu
     }
 
     private record DiversityCandidate(ScoredMenu scoredMenu, Set<Long> cookingMethods, Set<Long> foodCategories) {
+
+        private double score() {
+            return scoredMenu.totalScore();
+        }
 
         private static DiversityCandidate from(ScoredMenu scoredMenu, Map<Long, CategoryType> categoryTypes) {
             Set<Long> cookingMethods = new HashSet<>();
