@@ -360,12 +360,13 @@ class MenuSeedCoverageAuditTest {
     }
 
     @Test
-    @DisplayName("조리 방식과 음식 분류를 폭넓게 선호하면 만점 후보 안에서 첫 추천과 재추천을 다양화한다")
-    void diverseSeedProfileKeepsFullScoresForVariedFirstAndRerollBatches() throws IOException {
+    @DisplayName("조리 방식과 음식 분류를 폭넓게 선호할 때 누적 SKIP에 따라 추천 후보를 다양화한다")
+    void diverseSeedProfileVariesRecommendationsAcrossRepeatedSkips() throws IOException {
         ReferenceSeedData seed = classpathJson("seed/reference-data.json", ReferenceSeedData.class);
         Fixtures fixtures = classpathJson("seed/recommendation-coverage-fixtures.json", Fixtures.class);
 
-        var profile = MenuSeedCoverageAudit.audit(seed, fixtures).supportedProfiles().stream()
+        Report report = MenuSeedCoverageAudit.audit(seed, fixtures);
+        var profile = report.supportedProfiles().stream()
                 .filter(row -> row.code().equals("MULTI_DIVERSE_COOKING_AND_CUISINES"))
                 .findFirst()
                 .orElseThrow();
@@ -377,6 +378,16 @@ class MenuSeedCoverageAuditTest {
                 .containsExactly("TOM_YUM_RICE_NOODLES", "AGWI_STEAMED", "SQUID_STIR_FRY");
         assertThat(profile.rerollBatch().fullMatchCount()).isEqualTo(3);
         assertThat(profile.initialAndRerollDistinct()).isTrue();
+
+        var afterTwoSkips = report.diagnosticProfiles().stream()
+                .filter(row -> row.code().equals("MULTI_DIVERSE_COOKING_AND_CUISINES_AFTER_TWO_SKIPS"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(afterTwoSkips.fullMatchMenuCodes()).contains("AGLIO_OLIO");
+        assertThat(afterTwoSkips.firstBatch().menuCodes())
+                .containsExactly("BUN_BO_HUE", "SEAFOOD_STEAMED", "PORK_CUTLET");
+        assertThat(afterTwoSkips.firstBatch().candidates()).extracting(candidate -> candidate.score())
+                .containsExactly(100.0, 100.0, 80.0);
     }
 
     @Test

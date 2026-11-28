@@ -236,6 +236,18 @@
       "dislikedMenuCodes": ["MALA_XIANG_GUO"],
       "recentSelectedMenuCodes": ["KIMCHI_STEW"],
       "recentlySkippedMenuCodes": ["MAPO_TOFU"]
+    },
+    {
+      "code": "MULTI_DIVERSE_COOKING_AND_CUISINES_AFTER_TWO_SKIPS",
+      "name": "여러 조리 방식과 음식 분류를 선호하며 두 번 건너뛴 여섯 메뉴 제외",
+      "profileCode": "MULTI_DIVERSE_COOKING_AND_CUISINES",
+      "restrictionIngredientCodes": [],
+      "dislikedMenuCodes": [],
+      "recentSelectedMenuCodes": [],
+      "recentlySkippedMenuCodes": [
+        "KONGGUKSU", "CHICKEN_KATSU_MEAL", "SPICY_PORK_RIB_STEAMED",
+        "TOM_YUM_RICE_NOODLES", "AGWI_STEAMED", "SQUID_STIR_FRY"
+      ]
     }
   ],
   "unsupportedProfiles": []
